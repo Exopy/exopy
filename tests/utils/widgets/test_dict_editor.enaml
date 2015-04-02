@@ -1,0 +1,125 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Run this file with enaml-run command to manually check widget behavior.
+
+The tool_tip of the window explains the expected behavior.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import sys
+import os
+from atom.api import Atom, Dict, Enum, List
+from enaml.widgets.api import (Window, Container, ObjectCombo,
+                               Field, Label, CheckBox, GroupBox,
+                               MultilineField)
+from enaml.layout.api import vbox, hbox, spacer
+
+# Assume that the test is run against an installed version of ecpy and if not
+# prepend path to sys.path.
+try:
+    from ecpy.utils.widgets.dict_editor import DictEditor
+except ImportError:
+    sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
+    from ecpy.utils.widgets.dict_editor import DictEditor
+
+
+class Model(Atom):
+    """Dummy class holding the dict to edit.
+
+    """
+    #: Dictionary to edit.
+    mapping = Dict()
+
+    #: Set of allowed operation on dictionary.
+    ops = List()
+
+    #: Alignment of the menu buttons
+    alignment = Enum('top', 'v_center', 'bottom')
+
+
+TOOLTIP =\
+"""."""
+
+enamldef StrStrEditor(Container):
+
+    attr model
+    constraints = [hbox(k, v)]
+    padding = 1
+
+    Field: k:
+        text := model.key
+    Field: v:
+        text := model.value
+
+
+enamldef Main(Window): main:
+
+    title = 'Test dictionary editor'
+    tool_tip = TOOLTIP
+
+    attr model = Model()
+
+    Container:
+
+        constraints = [hbox(ed, vbox(o, hbox(al_l, al), f)),
+                       ed.width >= f.width]
+
+        DictEditor(StrStrEditor): ed:
+            ed.mapping := model.mapping
+            ed.operations << model.ops
+            ed.alignment << main.model.alignment
+
+        GroupBox: o:
+            title = 'Operations'
+            constraints = [hbox(a, spacer, m, spacer, r)]
+
+            CheckBox: a:
+                text = 'Add'
+                checked << 'add' in model.ops
+                toggled ::
+                    ops = model.ops[:]
+                    if 'add' in ops:
+                        ops.remove('add')
+                    else:
+                        ops.append('add')
+                    model.ops = ops
+
+            CheckBox: m:
+                text = 'Move'
+                checked << 'move' in model.ops
+                toggled ::
+                    ops = model.ops[:]
+                    if 'move' in ops:
+                        ops.remove('move')
+                    else:
+                        ops.append('move')
+                    model.ops = ops
+
+            CheckBox: r:
+                text = 'Remove'
+                checked << 'remove' in model.ops
+                toggled ::
+                    ops = model.ops[:]
+                    if 'remove' in ops:
+                        ops.remove('remove')
+                    else:
+                        ops.append('remove')
+                    model.ops = ops
+
+        Label: al_l:
+            text = 'Alignment'
+
+        ObjectCombo: al:
+            items = list(model.get_member('alignment').items)
+            selected := model.alignment
+
+        MultilineField: f:
+            text << str(model.mapping)

@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Run this file with enaml-run command to manually check widget behavior.
+
+The tool_tip of the window explains the expected behavior.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import sys
+import os
+from atom.api import Atom, Unicode
+from enaml.widgets.api import Window, Container, PushButton
+from enaml.layout.api import vbox, hbox
+
+# Assume that the test is run against an installed version of ecpy and if not
+# prepend path to sys.path.
+try:
+    from ecpy.utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
+except ImportError:
+    sys.path.insert(0, os.path.abspath('....'))
+    from ecpy.utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
+
+
+class Model(Atom):
+    """Dummy class holding the string displayed by the QtAutoscrollHtml widget.
+
+    """
+    text = Unicode()
+
+
+TOOLTIP =\
+"""You should see a text area which is read-only and two push-buttons. The
+first one to clear the text the second one to add lines. When adding lines the
+display should automatically scroll so that the last line is visible. One line
+in two should be bold."""
+
+
+enamldef Main(Window):
+
+    title = 'Test autoscroll'
+    tool_tip = TOOLTIP
+
+    attr model = Model()
+
+    Container:
+
+        constraints = [vbox(sc, hbox(cl, ad))]
+
+        QtAutoscrollHtml: sc:
+            text << model.text
+
+        PushButton: cl:
+            text = 'Clear'
+            clicked :: model.text = ''
+
+        PushButton: ad:
+            attr counter
+            text = 'Add text'
+            clicked ::
+                if ad.counter:
+                    model.text += 'Hello world\n'
+                else:
+                    model.text += '<b>Hello world</b><br>'
+                ad.counter = not ad.counter

@@ -1,0 +1,184 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Template to edit a dictionary content.
+
+This is a simplified version of a list editor automatically handling the adding
+removing of keys and syncing by re-assigning the dict to the underlying model.
+This is fit only for editing dict holding standard python types.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import (Atom, Value, Callable, List, Typed, Bool,
+                      Signal, Dict)
+from enaml.widgets.api import Container
+
+from .list_editor import ListEditor
+from ..container_change import ContainerChange
+
+
+class Pair(Atom):
+    """Base model to represent a key/value pair of a dictionary.
+
+    """
+    key = Value('')
+    value = Value('')
+
+    refresh_method = Callable()
+
+    def _post_setattr_key(self, old, new):
+        self.refresh_method()
+
+    def _post_setattr_value(self, old, new):
+        self.refresh_method()
+
+
+class _DictEditorModel(Atom):
+    """ Model converting a dict into an editable list of Pair.
+
+    """
+    #: Refrence to the widget for which this object acts as model.
+    editor = Value()
+
+    #: List of pairs.
+    pairs = List(Typed(Pair))
+
+    #: Signal used to notify the ListEditor that the list of Pairs has changed
+    pairs_changed = Signal()
+
+    #: Falg preventing circular updates.
+    _no_notif = Bool()
+
+    def refresh(self):
+        """ Synchronise pairs and the underlying model.
+
+        """
+        if not self._no_notif:
+            self._no_notif = True
+            self.editor.mapping = {p.key: p.value for p in self.pairs}
+            self._no_notif = False
+
+    def add_pair(self, index, pos='before'):
+        """Create a new key/value pair in the dictionary.
+
+        Parameters
+        ----------
+        index : int
+            Index at which to insert the new item.
+
+        pos : {'before', 'after'}
+            Whether to add the element before or after the element at the given
+            index.
+
+        """
+        self._no_notif = True
+        l = len(self.editor.mapping)
+        while True:
+            name = 'item{}'.format(l)
+            l += 1
+            if name not in self.editor.mapping:
+                break
+        pair = Pair(refresh_method=self.refresh,
+                    key=name)
+        self._no_notif = False
+        i = index if pos == 'before' else index + 1
+        self.pairs.insert(i, pair)
+        self.pairs_changed(ContainerChange(obj=self, name='pairs',
+                                           added=[(i, pair)]))
+        self.refresh()
+
+    def move_pair(self, index, new):
+        """Move a pair.
+
+        Parameters
+        ----------
+        index : int
+            Current index of the air to move.
+
+        new : int
+            New index at which the Pair should be.
+
+        """
+        pair = self.pairs.pop(index)
+        self.pairs.insert(new, pair)
+        self.pairs_changed(ContainerChange(obj=self, name='pairs',
+                                           moved=[(index, new, pair)]))
+
+    def remove_pair(self, index):
+        """Delete a pair
+
+        Parameters
+        ----------
+        index : int
+            Index of the Pair to remove.
+
+        """
+        pair = self.pairs.pop(index)
+        self.pairs_changed(ContainerChange(obj=self, name='pairs',
+                                           removed=[(index, pair)]))
+        self.refresh()
+
+    def _post_setattr_pairs(self, new, old):
+        self.pairs_changed()
+        self.refresh()
+
+    def _post_setattr_model(self, old, new):
+        if not self._no_notif:
+            self._no_notif = True
+            self.pairs = self._make_pairs()
+            self._no_notif = False
+
+    def _make_pairs(self):
+        return [Pair(key=p[0], value=p[1],
+                     refresh_method=self.refresh)
+                for p in self.editor.mapping.items()]
+
+
+template DictEditor(Content):
+    """Template allowing to modify a dictionary.
+
+    The content should be an enaml widget with a **model** attribute which will
+    receive one Pair object representing the key/value being edited.
+    As the order of the key in a dict does not matter, the ui allow to change
+    the order but does not notify the model about this change.
+
+    Attributes
+    ----------
+    mapping : dict or collections.OrderedDict
+        Dictionary to edit.
+
+    operations : tuple, {'add', 'move', 'remove'}
+        Allowed operations on the dictionary.
+
+    alignment : {'top', 'v_center', 'bottom'}
+        Alignment of the pushbutton used to edit each item of the list.
+
+    """
+    Container: main:
+        attr mapping
+        attr operations
+        alias alignment : ed.alignment
+
+        attr _model = _DictEditorModel(editor=main)
+        func _make_ops(ops):
+            if ops:
+                aux = {'add': _model.add_pair,
+                       'move': _model.move_pair,
+                       'remove': _model.remove_pair}
+                return {k: aux[k] for k in ops}
+            else:
+                return {}
+        padding = 0
+
+        ListEditor(Content): ed:
+            ed.model = _model
+            ed.iterable_name = 'pairs'
+            ed.signal_name = 'pairs_changed'
+            ed.operations << _make_ops(main.operations)

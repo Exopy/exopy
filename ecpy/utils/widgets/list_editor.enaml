@@ -1,0 +1,215 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Template widget allowing to edit a list member from an Atom object.
+
+The list should be composed of Atom object itself, and should be paired with
+a Signal used to notify listeners about internal changes of the list. It is the
+responsability of the model to signal internal changes to the list.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from functools import partial
+from atom.api import Unicode, List
+from enaml.core.api import Looper, Conditional
+from enaml.core.declarative import d_
+from enaml.layout.api import hbox, align, spacer, grid, vbox
+from enaml.widgets.api import (PushButton, Menu, Action, Container, ScrollArea,
+                               GroupBox, Form)
+
+from ..container_change import ContainerChange
+
+enamldef PopupListMenu(Menu):
+    """Popup menu used to alter add, delete or move elements in the list.
+
+    """
+    #: Reference to the list being edited.
+    attr model
+
+    #: Index of the element being edited.
+    attr index : int
+
+    #: Dict mapping operation to function to use to perform it.
+    #: Possible entries are:
+    #: - 'add' : function to add an entry, receive index and 'before'/'after'
+    #: - 'remove' : function to remove an entry, receive the index and new pos.
+    #: - 'move' : function move an element receive the index and the new index.
+    attr operations : dict
+
+    Conditional:
+        condition = bool('add' in operations)
+        Action:
+            text = 'Add before'
+            triggered ::
+                operations['add'](index, 'before')
+        Action:
+            text = 'Add after'
+            triggered ::
+                operations['add'](index, 'after')
+        Action:
+            separator = True
+
+    Conditional:
+        condition = bool('remove' in operations)
+        Action:
+            text = 'Delete'
+            triggered :: operations['remove'](index)
+        Action:
+            separator = True
+
+    Conditional:
+        condition = bool('move' in operations)
+        Conditional:
+            condition = bool(index != 0)
+            Action:
+                text = 'Move to top'
+                triggered ::
+                    operations['move'](index, 0)
+        Conditional:
+            condition = bool(index != 0)
+            Action:
+                text = 'Move up'
+                triggered ::
+                    operations['move'](index, index - 1)
+        Conditional:
+            condition = bool(index != len(model)-1)
+            Action:
+                text = 'Move down'
+                triggered ::
+                    obj = model.pop(index)
+                    operations['move'](index, index + 1)
+        Conditional:
+            condition = bool(index != len(model)-1)
+            Action:
+                text = 'Move to bottom'
+                triggered ::
+                    operations['move'](index, len(model))
+
+class ListContainer(Container):
+    """Custom container handling the layout for the list editor.
+
+    The user specifies which widget to use to edit the list and this container
+    takes care of correctly laying out the PushButton used to edit the list
+    content.
+
+    """
+    #: Aligmenent of the PushButton used to edit the list content.
+    alignment = d_(Unicode('top'))
+
+    def layout_constraints(self):
+        """Layout the push buttons used to edit the list content.
+
+        """
+        children = self.widgets()
+        lines = []; aligns = []
+
+        while children:
+            lines.append(hbox(*children[0:2]))
+            aligns.append(align(self.alignment, children[0], children[1]))
+            del children[0:2]
+
+        constraints = [vbox(*lines)]
+        constraints.extend(aligns)
+        return  constraints
+
+
+template ListEditor(Content):
+    """ Edit an iterable stored in an Atom object using the provided content.
+
+    The content should be an enaml widget with a model attribute which will
+    receive one item of the iterable being edited.
+
+    Attributes
+    ----------
+    model : Atom
+        Reference to the object owning the list being edited.
+
+    iterable_name : unicode
+        Name of the member holding the list being edited. This should be set
+        only once.
+
+    signal_name : unicode
+        Name of the signal signaling changes of the iterable. This should be
+        set only once.
+
+    operations : dict
+        Dictionary mapping operation type ('add', 'remove', 'move') to callable
+        performing the operation. Those callables are responsible for signaling
+        that the list was modified.
+
+    alignment : {'top', 'v_center', 'bottom'}
+        Alignment of the pushbutton used to edit each item of the list.
+
+    """
+    GroupBox: cont:
+        attr model
+        attr iterable_name
+        attr signal_name
+        attr operations : dict
+        attr alignment = 'top'
+
+        attr _internal : list = getattr(model, iterable_name)[:]
+        func _update_internal(change):
+            """Update the list editor when the edited list change.
+
+            This can handle either a member notification meaning a whole new
+            list was assigned or a ContainerChange object. When only move
+            operation occured we manually request a relayout so that the widget
+            order reflects the new list order.
+
+            """
+            cont._internal = getattr(model, iterable_name)[:]
+            if (isinstance(change, ContainerChange) and change.moved and
+                    cd_lp.condition):
+                cd_lp.items[0].children[0].request_relayout()
+
+        initialized ::
+            model.observe(iterable_name, _update_internal)
+            model.observe(signal_name, _update_internal)
+
+        padding = 0
+        Conditional:
+            condition << (not bool(_internal) and bool(operations) and
+                          'add' in operations)
+            PushButton:
+                text = 'Add first element'
+                clicked ::
+                    operations['add'](0, 'before')
+
+        Conditional:
+            condition << not bool(_internal)
+            GroupBox:
+                pass
+
+        Conditional: cd_lp:
+            condition << bool(_internal)
+            ScrollArea:
+                border = None
+                ListContainer:
+                    alignment << cont.alignment
+                    alignment::
+                        self.request_relayout()
+                    padding = (2,0,2,0)
+                    Looper: _lp:
+                        iterable << _internal
+                        PushButton:
+                            constraints = [width == 15, height == 20]
+                            font = 'bold 12pt Consolas'
+                            text = '>'
+                            clicked ::
+                                # We cannot rely on the loop_index as moved
+                                # event alter the layout but not the item
+                                # generation.
+                                ind = _internal.index(loop_item)
+                                PopupListMenu(model=_internal,
+                                              index=ind,
+                                              operations=operations).popup()
+                        Content: content:
+                            model << loop_item
