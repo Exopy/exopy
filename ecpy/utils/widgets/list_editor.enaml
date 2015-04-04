@@ -43,54 +43,47 @@ enamldef PopupListMenu(Menu):
     #: - 'move' : function move an element receive the index and the new index.
     attr operations : dict
 
-    Conditional:
-        condition = bool('add' in operations)
-        Action:
-            text = 'Add before'
-            triggered ::
-                operations['add'](index, 'before')
-        Action:
-            text = 'Add after'
-            triggered ::
-                operations['add'](index, 'after')
-        Action:
-            separator = True
+    Action:
+        visible = 'add' in operations
+        text = 'Add before'
+        triggered ::
+            operations['add'](index, 'before')
+    Action:
+        visible = 'add' in operations
+        text = 'Add after'
+        triggered ::
+            operations['add'](index, 'after')
+    Action:
+        separator = True
 
-    Conditional:
-        condition = bool('remove' in operations)
-        Action:
-            text = 'Delete'
-            triggered :: operations['remove'](index)
-        Action:
-            separator = True
+    Action:
+        visible = 'remove' in operations
+        text = 'Delete'
+        triggered :: operations['remove'](index)
+    Action:
+        separator = True
 
-    Conditional:
-        condition = bool('move' in operations)
-        Conditional:
-            condition = bool(index != 0)
-            Action:
-                text = 'Move to top'
-                triggered ::
-                    operations['move'](index, 0)
-        Conditional:
-            condition = bool(index != 0)
-            Action:
-                text = 'Move up'
-                triggered ::
-                    operations['move'](index, index - 1)
-        Conditional:
-            condition = bool(index != len(model)-1)
-            Action:
-                text = 'Move down'
-                triggered ::
-                    obj = model.pop(index)
-                    operations['move'](index, index + 1)
-        Conditional:
-            condition = bool(index != len(model)-1)
-            Action:
-                text = 'Move to bottom'
-                triggered ::
-                    operations['move'](index, len(model))
+    Action:
+        visible = 'move' in operations and index != 0
+        text = 'Move to top'
+        triggered ::
+            operations['move'](index, 0)
+    Action:
+        visible = 'move' in operations and index != 0
+        text = 'Move up'
+        triggered ::
+            operations['move'](index, index - 1)
+    Action:
+        visible = 'move' in operations and index != len(model)-1
+        text = 'Move down'
+        triggered ::
+            obj = model.pop(index)
+            operations['move'](index, index + 1)
+    Action:
+        visible = 'move' in operations and index != len(model)-1
+        text = 'Move to bottom'
+        triggered ::
+            operations['move'](index, len(model))
 
 class ListContainer(Container):
     """Custom container handling the layout for the list editor.
