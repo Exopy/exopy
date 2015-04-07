@@ -11,17 +11,7 @@
 """
 from atom.api import Str, Float, Enum, List, Dict, Typed, Int
 from ecpy.utils.atom_util import (tagged_members, simple_member_from_str,
-                                      member_from_str, HasPrefAtom)
-
-from ..util import complete_line
-
-
-def setup_module():
-    print complete_line(__name__ + ': setup_module()', '~', 78)
-
-
-def teardown_module():
-    print complete_line(__name__ + ': teardown_module()', '~', 78)
+                                  member_from_str, HasPrefAtom)
 
 
 class _Aaux(HasPrefAtom):
@@ -116,7 +106,7 @@ def test_update_members_from_pref():
             'list_': "[2.0, 5.0]",
             'dict_': "{'a': 1.0}",
             'atom': {'int_': '2'}}
-    aux.update_members_from_preferences(**pref)
+    aux.update_members_from_preferences(pref)
     assert aux.string == 'a'
     assert aux.float_n == 1.0
     assert aux.enum == 'a'

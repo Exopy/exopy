@@ -45,9 +45,9 @@ def tagged_members(obj, meta=None, meta_value=None):
                 if member.metadata is not None and meta in member.metadata}
     else:
         return {key: member for key, member in members.items()
-                if member.metadata is not None
-                and meta in member.metadata
-                and member.metadata[meta] == meta_value}
+                if member.metadata is not None and
+                meta in member.metadata and
+                member.metadata[meta] == meta_value}
 
 
 def simple_member_from_str(member, str_value):
@@ -155,7 +155,7 @@ def preferences_from_members(self):
         return pref
 
 
-def update_members_from_preferences(self, **parameters):
+def update_members_from_preferences(self, parameters):
     """ Use the string values given in the parameters to update the members
 
     This function will call itself on any tagged HasPrefAtom member.
@@ -168,7 +168,7 @@ def update_members_from_preferences(self, **parameters):
 
         old_val = getattr(self, name)
         if issubclass(type(old_val), HasPrefAtom):
-            old_val.update_members_from_preferences(**parameters[name])
+            old_val.update_members_from_preferences(parameters[name])
         elif old_val is None:
             pass
         else:
@@ -176,7 +176,7 @@ def update_members_from_preferences(self, **parameters):
             converted = member_from_str(member, value)
             setattr(self, name, converted)
 
-bind_method(HasPrefAtom, 'preferences_from_members', 
+bind_method(HasPrefAtom, 'preferences_from_members',
             preferences_from_members)
 bind_method(HasPrefAtom, 'update_members_from_preferences',
             update_members_from_preferences)
