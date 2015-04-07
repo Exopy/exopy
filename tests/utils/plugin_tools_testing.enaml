@@ -1,0 +1,137 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifests used when testing plugin tools module content.
+
+"""
+from  atom.api import Typed, Unicode
+from enaml.workbench.api import (PluginManifest, Plugin, Extension,
+                                 ExtensionPoint)
+from  enaml.core.declarative import Declarative, d_
+
+from ecpy.utils.plugin_tools import ExtensionsCollector
+
+
+POINT = 'test.contrib'
+
+PLUGIN_ID = 'test'
+
+class Contribution(Declarative):
+    """Dummy class representing a contribution to an extension point.
+
+    """
+    id = d_(Unicode())
+
+    task = d_(Unicode())
+
+
+def validate_contrib(contrib):
+
+     return bool(contrib.task), 'Contribution does not declare a task'
+
+
+class ModularPlugin(Plugin):
+    """Plugin delegating the handling of the contribution to its extension
+    point.
+
+    """
+    contribs = Typed(ExtensionsCollector)
+
+    def start(self):
+        """Instantiate the ExtensionCollector.
+
+        """
+        self.contribs = ExtensionsCollector(workbench=self.workbench,
+                                            point=POINT,
+                                            ext_class=Contribution,
+                                            validate_ext=validate_contrib)
+        self.contribs.start()
+
+    def stop(self):
+        """Clean the ExtensionCollector.
+
+        """
+        self.contribs.stop()
+
+
+enamldef ModularManifest(PluginManifest):
+    """Manifest for the ModularPlugin.
+
+    """
+    id = 'test'
+    factory = ModularPlugin
+
+    ExtensionPoint:
+        id = POINT
+
+
+enamldef Contributor1(PluginManifest):
+    """Contributor to ModularPlugin.
+
+    """
+    id = u'contrib1'
+
+    Extension:
+        id = 'contrib'
+        point = u'test.contrib'
+        Contribution:
+            id = 'contrib1.contrib'
+            task = 'Do'
+
+
+enamldef Contributor1bis(PluginManifest):
+    """Contributor to ModularPlugin with the same id as Contributor1.
+
+    """
+    id = u'contrib1bis'
+
+    Extension:
+        id = 'contrib'
+        point = u'test.contrib'
+        Contribution:
+            id = 'contrib1.contrib'
+            task = 'For'
+
+
+enamldef Contributor2(PluginManifest):
+    """Contributor to ModularPlugin using a factory function.
+
+    """
+    id = u'contrib2'
+
+    Extension:
+        id = 'contrib'
+        point = u'test.contrib'
+        factory = lambda w: [Contribution(id='contrib2.contrib',
+                                          task='While')]
+
+
+enamldef Contributor3(PluginManifest):
+    """Contributor to ModularPlugin forgetting to declare a task.
+
+    """
+    id = u'contrib3'
+
+    Extension:
+        id = 'contrib'
+        point = u'test.contrib'
+        Contribution:
+            id = 'contrib3.contrib'
+
+
+enamldef Contributor4(PluginManifest):
+    """Contributor to ModularPlugin using a factory function but returning
+    wrong type.
+
+    """
+    id = u'contrib4'
+
+    Extension:
+        id = 'contrib'
+        point = u'test.contrib'
+        factory = lambda w: [None]
