@@ -1,0 +1,121 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Utility widget to display a error report given as a dictionary {id: message}
+
+Notes
+-----
+This is a basic implementation not fitting cases where the errors have a
+complex structure (nested)
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+from atom.api import (Atom, Dict, Unicode)
+from enaml.widgets.api import (Dialog, Container, Label, MultilineField,
+                               PushButton, Notebook, Page)
+from enaml.layout.api import vbox, grid, hbox, align
+from enaml.core.api import Conditional
+
+from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+
+class _ErrorsDisplayModel(Atom):
+    """Model taking care of displaying the message corresponding to the
+    selected error.
+
+    """
+    #: Dict listing the errors as id: message.
+    errors = Dict()
+
+    #: Id of the currently selected error.
+    selected_error = Unicode()
+
+    #: Message corresponding to the selected error.
+    message = Unicode()
+
+    def __init__(self, errors):
+        super(_ErrorsDisplayModel, self).__init__(errors=errors)
+        if errors:
+            self.selected_error= errors.keys()[0]
+
+    def _post_setattr_selected_error(self, old, new):
+        """ Set the `message` attrs when an error id is selected.
+
+        """
+        if new:
+            self.message = self.errors[new]
+
+
+enamldef ErrorsDisplayContainer(Container):
+    """Container displying the errors as a list with a panel for the message.
+
+    """
+    #: Dict listing the errors as id: message.
+    attr errors
+
+    #: Name of the errors. Used as title.
+    alias errors_type : lis_lab.text
+
+    attr _model << _ErrorsDisplayModel(errors)
+    _model ::
+        lis.items = sorted(_model.errors.keys())
+
+    constraints = [vbox(hbox(lis_lab, che_lab), hbox(lis, che)),
+                   align('left', lis_lab, lis),
+                   align('left', che_lab, che)]
+
+    Label: lis_lab:
+        pass
+    QtListStrWidget: lis:
+        items = sorted(_model.errors.keys())
+        hug_height = 'ignore'
+        selected_item >> _model.selected_error
+
+    Label: che_lab:
+        text << _model.selected_error
+    MultilineField: che:
+        text << _model.message
+        read_only = True
+
+
+enamldef ErrorsDisplay(Dialog): dial:
+    """Convenience dialog to display an ErrorsDisplayContainer.
+
+    """
+    #: Dict listing the errors as id: message.
+    attr errors
+
+    #: Name of the errors. Used as title.
+    attr errors_type
+
+    #: Message to display when the errors attr is empty.
+    attr no_err_message = ''
+
+    title << errors_type
+
+    Conditional:
+        condition = bool(errors)
+        Container:
+            constraints = [vbox(cont, ex),
+                           contents_right == ex.right]
+            ErrorsDisplayContainer: cont:
+                errors << dial.errors
+                errors_type << dial.errors_type
+            PushButton: ex:
+                text = 'Close'
+                clicked :: dial.accept()
+
+    Conditional:
+        condition = not bool(errors)
+        Container:
+            MultilineField:
+                read_only = True
+                text << no_err_message
+            PushButton:
+                text = 'Close'
+                clicked :: dial.accept()
