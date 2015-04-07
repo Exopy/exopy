@@ -1,0 +1,130 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Run this file with enaml-run command to manually check widget behavior.
+
+The tool_tip of the window explains the expected behavior.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import sys
+import os
+from enaml.widgets.api import (Window, Container, PushButton, Field,
+                               CheckBox)
+from enaml.layout.api import vbox, hbox, spacer
+
+# Assume that the test is run against an installed version of ecpy and if not
+# prepend path to sys.path.
+try:
+    from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+except ImportError:
+    sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
+    from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+
+
+TOOLTIP =\
+"""In this test, you can move numbers (squares of 0 to 9) from the list on the
+left to the list on the right by first selecting the items and using the '>>',
+'>', '<', '<<' buttons.
+Note that any time the is ordered based on the string representation of the
+number (so using only the first digit).
+When checking the checkbox multiple selection using CTRL is permitted. The
+fields situated below the list display the selected indexes (in the unordered
+list) and values. Check that those make sense at all times.
+All selections should work on the first time, and after any operation the first
+displayed item should always be selected.
+"""
+
+
+def repr_item(item):
+    return 'item_{}'.format(item)
+
+
+enamldef Main(Window): main:
+
+    title = 'Test QtListStrWidget'
+    tool_tip = TOOLTIP
+
+    attr multiselect = False
+
+    Container:
+        constraints = [vbox(hbox(m, spacer),
+                            hbox(vbox(l1, si1, so1),
+                                 vbox(ll, l, r, rr, spacer),
+                                 vbox(l2, si2, so2)))]
+
+        QtListStrWidget: l1:
+            multiselect << main.multiselect
+            items = [i**2 for i in range(10)]
+
+        Field: si1:
+            text << (str(l1.selected_indexes) if l1.multiselect
+                     else str(l1.selected_index))
+
+        Field: so1:
+            text << (str(l1.selected_items) if l1.multiselect
+                     else str(l1.selected_item))
+
+        QtListStrWidget: l2:
+            multiselect << main.multiselect
+
+        Field: si2:
+            text << (str(l2.selected_indexes) if l2.multiselect
+                     else str(l2.selected_index))
+
+        Field: so2:
+            text << (str(l2.selected_items) if l2.multiselect
+                     else str(l2.selected_item))
+
+        PushButton: ll:
+            text = '<<'
+            clicked ::
+                l1.items = l1.items[:] + l2.items[:]
+                l2.items = []
+
+        PushButton: l:
+            text = '<'
+            clicked ::
+                if l2.items:
+                    if multiselect:
+                        l1.items.extend([l2.items[i]
+                                         for i in l2.selected_indexes])
+                        for i in sorted(l2.selected_indexes, reverse=True):
+                            del l2.items[i]
+                    else:
+                        l1.items.append(l2.items.pop(l2.selected_index))
+                    l1.refresh_items()
+                    l2.refresh_items()
+
+        PushButton: r:
+            text = '>'
+            clicked ::
+                if l1.items:
+                    if multiselect:
+                        l2.items.extend([l1.items[i]
+                                         for i in l1.selected_indexes])
+                        for i in sorted(l1.selected_indexes, reverse=True):
+                            del l1.items[i]
+                    else:
+                        l2.items.append(l1.items.pop(l1.selected_index))
+                    l1.refresh_items()
+                    l2.refresh_items()
+
+        PushButton: rr:
+            text = '>>'
+            clicked::
+                l2.items = l1.items[:] + l2.items[:]
+                l1.items = []
+
+        CheckBox: m:
+            text = 'Multi-select'
+            checked = False
+            checked ::
+                main.multiselect = change['value']
