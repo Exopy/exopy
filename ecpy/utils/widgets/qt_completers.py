@@ -175,10 +175,6 @@ class QtLineCompleter(RawWidget):
         widget.textEdited.connect(self.update_object)
         return widget
 
-    # -------------------------------------------------------------------------
-    #  Handles the user entering input data in the edit control:
-    # -------------------------------------------------------------------------
-
     def update_object(self):
         """ Handles the user entering input data in the edit control.
         """
@@ -189,9 +185,6 @@ class QtLineCompleter(RawWidget):
             self.text = value
             self._no_update = False
 
-    # -------------------------------------------------------------------------
-    #  Updates the editor when the object trait changes external to the editor:
-    # -------------------------------------------------------------------------
     def _post_setattr_text(self, old, new):
         """Updates the editor when the object changes externally to the editor.
 
@@ -275,10 +268,6 @@ class QtTextCompleter(RawWidget):
         widget.textChanged.connect(self.update_object)
         return widget
 
-    # -------------------------------------------------------------------------
-    #  Handles the user entering input data in the edit control:
-    # -------------------------------------------------------------------------
-
     def update_object(self):
         """ Handles the user entering input data in the edit control.
 
@@ -290,9 +279,12 @@ class QtTextCompleter(RawWidget):
             self.text = value
             self._no_update = False
 
-    # -------------------------------------------------------------------------
-    #  Updates the editor when the object trait changes external to the editor:
-    # -------------------------------------------------------------------------
+    def focus_lost(self):
+        """Notify the completer the focus was lost.
+
+        """
+        self._completer.on_focus_lost()
+
     def _post_setattr_text(self, old, new):
         """Updates the editor when the object changes externally to the editor.
 
@@ -308,9 +300,3 @@ class QtTextCompleter(RawWidget):
         """
         if self.proxy_is_active and self._completer:
             self._completer._update_entries(new)
-
-    def focus_lost(self):
-        """Notify the completer the focus was lost.
-
-        """
-        self._completer.on_focus_lost()

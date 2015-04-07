@@ -46,7 +46,29 @@ class Model(Atom):
 
 
 TOOLTIP =\
-"""."""
+"""In this test, you have a DictEditor on the left and means to set different
+options on the right.
+
+When starting all operation on the dictionary are forbidden, you can enable
+them by checking the corresponding checkbox. First check the Add checkbox to
+see a add first element button appear click to populate teh dict with a first
+element. Several things should happen :
+- the button is replaced by a pair of fields (first for key, second for value)
+  preceded by a button with a >
+- the field monitoring the dict should have been updated to reflect the fact
+  that the dictionary now contains one element.
+
+From there on you should test :
+- that the alignment ObjectCombo does control the alignment of the > button
+- that the menu which appears when clicking the > button does reflect the
+  checkboxes states, and the position of the object (first object cannot move
+  up, last can't move down).
+- adding an object works
+- editing key, value does update the undelying dict
+- removing an entry works
+- moving an entry does update only the display (a dict is essentially
+  unordered)
+"""
 
 enamldef StrStrEditor(Container):
 
