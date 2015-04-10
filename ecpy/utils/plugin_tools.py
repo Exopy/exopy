@@ -113,7 +113,8 @@ class ExtensionsCollector(Atom):
 
         # If no extension remain clear everything
         if not extensions:
-            self.contributions.clear()
+            # Force a notification to be emitted.
+            self.contributions = {}
             self._extensions.clear()
             return
 
@@ -127,7 +128,7 @@ class ExtensionsCollector(Atom):
                 contribs = self._load_contributions(extension)
             new_extensions[extension].extend(contribs)
 
-        # Create mapping between engine id and declaration.
+        # Create mapping between contrib id and declaration.
         contribs = {}
         for extension in extensions:
             for contrib in new_extensions[extension]:
