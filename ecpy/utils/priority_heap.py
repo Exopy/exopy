@@ -84,7 +84,7 @@ class PriorityHeap(object):
         """Return the length of the underlying list.
 
         """
-        return len(self._heap)
+        return len([t for t in self._heap if t[2] is not _REMOVED])
 
     def __next__(self):
         """Iterate over the heap by poping object.
