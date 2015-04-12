@@ -12,6 +12,8 @@ The list should be composed of Atom object itself, and should be paired with
 a Signal used to notify listeners about internal changes of the list. It is the
 responsability of the model to signal internal changes to the list.
 
+2015-04-09 To work correctly this requires the latest master of enaml (>0.9.8)
+
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
@@ -77,7 +79,6 @@ enamldef PopupListMenu(Menu):
         visible = 'move' in operations and index != len(model)-1
         text = 'Move down'
         triggered ::
-            obj = model.pop(index)
             operations['move'](index, index + 1)
     Action:
         visible = 'move' in operations and index != len(model)-1
@@ -158,10 +159,7 @@ template ListEditor(Content):
             order reflects the new list order.
 
             """
-            cont._internal = getattr(model, iterable_name)[:]
-            if (isinstance(change, ContainerChange) and change.moved and
-                    cd_lp.condition):
-                cd_lp.items[0].children[0].request_relayout()
+            self._internal = getattr(model, iterable_name)[:]
 
         initialized ::
             model.observe(iterable_name, _update_internal)
@@ -201,8 +199,14 @@ template ListEditor(Content):
                                 # event alter the layout but not the item
                                 # generation.
                                 ind = _internal.index(loop_item)
-                                PopupListMenu(model=_internal,
-                                              index=ind,
-                                              operations=operations).popup()
-                        Content: content:
-                            model << loop_item
+                                menu = PopupListMenu(model=_internal,
+                                                     index=ind,
+                                                     operations=operations)
+                                menu.popup()
+                        Container:
+                            # Using this container is necessary when using
+                            # MappedView or similar as content as otherwise the
+                            # widget order is screwed up.
+                            padding = 0
+                            Content: content:
+                                model << loop_item
