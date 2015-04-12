@@ -1,0 +1,307 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Run this file with enaml-run command to manually check widget behavior.
+
+Here the window is divided into two : on the left a tree widget is used to
+display a hierarchic set of Folder and File objects, on the right is displayed
+the widget associated with the currently selected object in the tree. A button
+to re-initialise the tree is also availabla.
+Action to test:
+- when clicking on a tree node the widget on the right should immediately
+  update.
+- when right-cliking a node a menu should appear the available operations
+  depend on the node :
+  - root node :
+    only Append should appear to add a new node. When clicked a
+    dialog proposing to enter the name of the new node and its type should
+    appear. Check that all buttons produce the expected result.
+  - folder node :
+    Add after, Add before, Append, Cut, Copy, Paste, Rename, Delete should
+    appear. Make sure that everything does work and that copying and pasting in
+    the same node does not cause any issue.
+  - file node :
+    Add after, Add before, Cut, Copy, Paste, Rename, Delete should appear.
+    The name of the node should be followed by '(File)' when renaming the popup
+    should not show it but the name after renaming should show it again.
+- dragging and dropping is supported and should allow to change a File of
+  Folder and to re-organise File inside a Folder (when doing this Moving should
+  be printed to the console).
+- changing the name of a file in the right panel should automatically be
+  reflected on the tree.
+- using the right panel widget to modify the order of the object should also be
+  reflected on the tree.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import sys
+import os
+from atom.api import Atom, Unicode, Signal, List
+from enaml.widgets.api import (Window, Container, PushButton, Field,
+                               CheckBox, Action, GroupBox, Dialog,
+                               Menu, Label)
+from enaml.layout.api import vbox, hbox, spacer
+from enaml.stdlib.mapped_view import MappedView
+
+# Assume that the test is run against an installed version of ecpy and if not
+# prepend path to sys.path.
+try:
+    from ecpy.utils.container_change import ContainerChange
+    from ecpy.utils.widgets.list_editor import ListEditor
+    from ecpy.utils.widgets.qt_tree_widget import QtTreeWidget
+    from ecpy.utils.widgets.qt_tree_menu import (NewAction, CutAction,
+                                                 CopyAction, PasteAction,
+                                                 RenameAction, DeleteAction)
+    from ecpy.utils.widgets.tree_nodes import TreeNode
+except ImportError:
+    sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
+    from ecpy.utils.container_change import ContainerChange
+    from ecpy.utils.widgets.list_editor import ListEditor
+    from ecpy.utils.widgets.qt_tree_widget import QtTreeWidget
+    from ecpy.utils.widgets.qt_tree_menu import (NewAction, CutAction,
+                                                 CopyAction, PasteAction,
+                                                 RenameAction, DeleteAction)
+    from ecpy.utils.widgets.tree_nodes import TreeNode
+
+
+class File(Atom):
+    """Class simply holding a name, to be represented as a leaf.
+
+    """
+    name = Unicode()
+
+
+class Folder(Atom):
+    """Class having a name and children to be represented as a node.
+
+    """
+    name = Unicode()
+
+    children = List()
+
+    children_changed = Signal()
+
+    def add_child(self, index, child):
+        """Add a child.
+
+        """
+        self.children.insert(index, child)
+        self.children_changed(ContainerChange(obj=self, name='children',
+                                              added=[(index, child)]))
+
+    def remove_child(self, index):
+        """Add a child.
+
+        """
+        child = self.children.pop(index)
+        self.children_changed(ContainerChange(obj=self, name='children',
+                                              removed=[(index, child)]))
+
+    def move_child(self, old, new):
+        """Add a child.
+
+        """
+        child = self.children.pop(old)
+        self.children.insert(new, child)
+        self.children_changed(ContainerChange(obj=self, name='children',
+                                              moved=[(old, new, child)]))
+
+
+enamldef EmptyView(Container):
+    """Empty view.
+
+    """
+    attr obj
+
+
+VIEWS_MAPPING = {type(None): EmptyView}
+
+
+enamldef Mapping(MappedView):
+    """Mapping for Folder and File views.
+
+    """
+    typemap = VIEWS_MAPPING
+    modelkey = 'obj'
+
+
+enamldef FileView(Field):
+    """View for a File object.
+
+    """
+    attr obj
+    text := obj.name
+
+
+VIEWS_MAPPING[File] = FileView
+
+
+enamldef FolderView(GroupBox):
+    """View for a Folder object.
+
+    """
+    attr obj
+    title << obj.name
+    ListEditor(Mapping): ed:
+        ed.model = obj
+        ed.iterable_name = 'children'
+        ed.signal_name = 'children_changed'
+        ed.operations = {'move': obj.move_child}
+
+
+VIEWS_MAPPING[Folder] = FolderView
+
+
+enamldef TypeDialog(Dialog): dial:
+    """Simple dialog to select whether to add a File or Folder.
+
+    """
+    title = 'Select type to insert'
+    attr typ
+    alias obj_name : fd.text
+    Container:
+        constraints = [vbox(fd, hbox(cn, fi, fo))]
+        Field: fd:
+            hug_width = 'ignore'
+        PushButton: cn:
+            text = 'Cancel'
+            clicked::
+                dial.reject()
+        PushButton: fi:
+            text = 'File'
+            clicked::
+                dial.typ = File
+                dial.accept()
+        PushButton: fo:
+            text = 'Folder'
+            clicked::
+                dial.typ = Folder
+                dial.accept()
+
+
+def factory():
+    dial = TypeDialog()
+    dial.exec_()
+    if dial.result:
+        return dial.typ(name=dial.obj_name)
+
+
+enamldef FFTree(QtTreeWidget):
+    """QtTreeWidget to edit Folder and File.
+
+    """
+    TreeNode:
+        node_for = [Folder]
+        label = 'name'
+        children_member = 'children'
+        children_changed = 'children_changed'
+        add = [Folder, File]
+        move = [Folder, File]
+        insert_child => (obj, index, child):
+            obj.add_child(index, child)
+        delete_child => (obj, index):
+            obj.remove_child(index)
+        move_child => (obj, old, new):
+            print('Moving')
+            obj.move_child(old, new)
+        Menu:
+            attr context
+            NewAction:
+                action_context << context
+                mode = 'Add before'
+                factory = factory
+            NewAction:
+                action_context << context
+                mode = 'Add after'
+                factory = factory
+            Action:
+                separator = True
+            NewAction:
+                action_context << context
+                factory = factory
+            Action:
+                separator = True
+            CutAction:
+                action_context << context
+            CopyAction:
+                action_context << context
+            PasteAction:
+                action_context << context
+            Action:
+                separator = True
+            DeleteAction:
+                action_context << context
+            RenameAction:
+                action_context << context
+
+    TreeNode:
+        node_for = [File]
+        label = 'name'
+        get_label => (obj):
+            return obj.name + ' (File)'
+        enter_rename => (obj):
+            return obj.name
+        Menu:
+            attr context
+            NewAction:
+                action_context << context
+                mode = 'Add before'
+                factory = factory
+            NewAction:
+                action_context << context
+                mode = 'Add after'
+                factory = factory
+            Action:
+                separator = True
+            CutAction:
+                action_context << context
+            CopyAction:
+                action_context << context
+            PasteAction:
+                action_context << context
+            Action:
+                separator = True
+            DeleteAction:
+                action_context << context
+            RenameAction:
+                action_context << context
+
+
+enamldef Main(Window): main:
+    """Window with side by side a tree and a mapping displaying the selected
+    node.
+
+    """
+    title = 'Test Tree widget'
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
+    attr model = Folder(name='Root', children=[File(name='Foo'),
+                                               File(name='Bar')])
+    model ::
+        main.selected = model
+    attr selected = model
+
+    Container:
+        constraints << [vbox(hbox(tr, vbox(lb, *(mp.objects + [spacer]))),
+                             hbox(spacer, re)),
+                        lb.width >= tr.width]
+
+        FFTree: tr:
+            root_node << model
+            selected_item := selected
+
+        Label: lb:
+            text = 'Selected item'
+
+        Mapping: mp:
+            model << selected
+
+        PushButton: re:
+            text = 'Reset'
+            clicked :: main.model = Folder(name='Root')
