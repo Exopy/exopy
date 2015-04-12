@@ -8,7 +8,15 @@
 # -----------------------------------------------------------------------------
 """Run this file with enaml-run command to manually check widget behavior.
 
-The tool_tip of the window explains the expected behavior.
+In this test, a dictionary is displayed as read-only using an
+ErrorDisplayContainer. On the left a QtListStrWidget allows to select the key
+for which the value should be displayed in the MultiLineField on the right.
+The MulitilineField below simply display the underlying dictionary to check
+that everything makes sense. The push buttons can be used to open a dialog
+displaying errors, an empty ones and to changes the dict of errors.
+When testing one should pay particular attention to how the selection
+reacts : clicking on an entry should immediately display the corresponding
+value.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -30,23 +38,10 @@ except ImportError:
                                                    ErrorsDisplay)
 
 
-TOOLTIP =\
-"""In this test, a dictionary is displayed as read-only using an
-ErrorDisplayContainer. On the left a QtListStrWidget allows to select the key
-for which the value should be displayed in the MultiLineField on the right.
-The MulitilineField below simply display the underlying dictionary to check
-that everything makes sense. The push buttons can be used to open a dialog
-displaying errors, an empty ones and to changes the dict of errors.
-When testing one should pay particular attention to how the selection
-reacts : clicking on an entry should immediately disply the corresponding
-value.
-"""
-
-
 enamldef Main(Window): main:
 
     title = 'Test ErrorsDisplay'
-    tool_tip = TOOLTIP
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
 
     attr errors = {'Loading': 'Could not load Dummy',
                    'Preferences': 'Unable to locate preference folder'}

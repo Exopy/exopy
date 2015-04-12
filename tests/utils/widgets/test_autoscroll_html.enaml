@@ -8,7 +8,10 @@
 # -----------------------------------------------------------------------------
 """Run this file with enaml-run command to manually check widget behavior.
 
-The tool_tip of the window explains the expected behavior.
+You should see a text area which is read-only and two push-buttons. The
+first one to clear the text the second one to add lines. When adding lines the
+display should automatically scroll so that the last line is visible. One line
+in two should be bold.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -25,7 +28,7 @@ from enaml.layout.api import vbox, hbox
 try:
     from ecpy.utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
 except ImportError:
-    sys.path.insert(0, os.path.abspath('....'))
+    sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
     from ecpy.utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
 
 
@@ -36,17 +39,10 @@ class Model(Atom):
     text = Unicode()
 
 
-TOOLTIP =\
-"""You should see a text area which is read-only and two push-buttons. The
-first one to clear the text the second one to add lines. When adding lines the
-display should automatically scroll so that the last line is visible. One line
-in two should be bold."""
-
-
 enamldef Main(Window):
 
     title = 'Test autoscroll'
-    tool_tip = TOOLTIP
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
 
     attr model = Model()
 

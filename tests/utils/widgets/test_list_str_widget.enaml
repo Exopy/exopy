@@ -8,7 +8,16 @@
 # -----------------------------------------------------------------------------
 """Run this file with enaml-run command to manually check widget behavior.
 
-The tool_tip of the window explains the expected behavior.
+In this test, you can move numbers (squares of 0 to 9) from the list on the
+left to the list on the right by first selecting the items and using the '>>',
+'>', '<', '<<' buttons.
+Note that any time the is ordered based on the string representation of the
+number (so using only the first digit).
+When checking the checkbox multiple selection using CTRL is permitted. The
+fields situated below the list display the selected indexes (in the unordered
+list) and values. Check that those make sense at all times.
+All selections should work on the first time, and after any operation the first
+displayed item should always be selected.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -29,20 +38,6 @@ except ImportError:
     from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
 
 
-TOOLTIP =\
-"""In this test, you can move numbers (squares of 0 to 9) from the list on the
-left to the list on the right by first selecting the items and using the '>>',
-'>', '<', '<<' buttons.
-Note that any time the is ordered based on the string representation of the
-number (so using only the first digit).
-When checking the checkbox multiple selection using CTRL is permitted. The
-fields situated below the list display the selected indexes (in the unordered
-list) and values. Check that those make sense at all times.
-All selections should work on the first time, and after any operation the first
-displayed item should always be selected.
-"""
-
-
 def repr_item(item):
     return 'item_{}'.format(item)
 
@@ -50,7 +45,7 @@ def repr_item(item):
 enamldef Main(Window): main:
 
     title = 'Test QtListStrWidget'
-    tool_tip = TOOLTIP
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
 
     attr multiselect = False
 

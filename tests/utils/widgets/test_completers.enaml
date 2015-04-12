@@ -8,7 +8,18 @@
 # -----------------------------------------------------------------------------
 """Run this file with enaml-run command to manually check widget behavior.
 
-The tool_tip of the window explains the expected behavior.
+The window is divided in two :
+- the first contains a QtLineCompleter widget, a field reflecting the state of
+  the model and a clear button. When typing in the QtLineCompleter you should
+  be proposed completion after an opening {. If removing it the popup should
+  disappear. If you select a completion and no unmatched } is found one is
+  au tomatically inserted.
+- the second contains a QtTextCompleter, a multiline field reflecting the state
+  of the model and a clear button. When typing in the QtTextCompleter you
+  should be proposed completion after a space. The popup should appear by the
+  cursor and you should be able to select an entry using 'Enter'. If the widget
+  loses focus on the next time you are proposed a completion a different set
+  of possible values should appear.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -53,26 +64,10 @@ class Model(Atom):
             return ['France', 'Spain', 'Germany', 'England']
 
 
-TOOLTIP =\
-"""The window is divided in two :
-- the first contains a QtLineCompleter widget, a field reflecting the state of
-  the model and a clear button. When typing in the QtLineCompleter you should
-  be proposed completion after an opening {. If removing it the popup should
-  disappear. If you select a completion and no unmatched } is found one is
-  au tomatically inserted.
-- the second contains a QtTextCompleter, a multiline field reflecting the state
-  of the model and a clear button. When typing in the QtTextCompleter you
-  should be proposed completion after a space. The popup should appear by the
-  cursor and you should be able to select an entry using 'Enter'. If the widget
-  loses focus on the next time you are proposed a completion a different set
-  of possible values should appear.
-"""
-
-
 enamldef Main(Window):
 
     title = 'Test completers'
-    tool_tip = TOOLTIP
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
 
     attr line_model = Model()
     attr text_model = Model()
