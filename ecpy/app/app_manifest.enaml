@@ -22,8 +22,9 @@ import os
 #ICON_PATH = os.path.join(os.path.dirname(__file__), '..', 'icons', 'ecpy.png')
 #ICON = Image(data=open(ICON_PATH, 'rb').read())
 
-
+# =============================================================================
 # --- Factories ---------------------------------------------------------------
+# =============================================================================
 
 def app_plugin_factory():
     """Factory function for the app plugin.
@@ -67,8 +68,9 @@ enamldef AppWindow(WorkbenchWindow):
         plugin = window.workbench.get_plugin('ecpy.app')
         plugin.run_app_cleanup()
 
-
+# =============================================================================
 # --- Descriptions ------------------------------------------------------------
+# =============================================================================
 
 STARTUP_EXT_DESC =\
 '''Plugin can contribute AppStartup to this point to customize the application
@@ -87,8 +89,9 @@ before starting to unregister plugin. This should ONLY be used when the logic
 cannot be implemented in the stop method of the plugin because the presence
 of other plugins is mandatory.'''
 
-
+# =============================================================================
 # --- Manifest ----------------------------------------------------------------
+# =============================================================================
 
 enamldef AppManifest(PluginManifest):
     """Ecpy app plugin manifest.
@@ -97,7 +100,9 @@ enamldef AppManifest(PluginManifest):
     id = 'ecpy.app'
     factory = app_plugin_factory
 
-    # --- Extension points
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
 
     ExtensionPoint:
         id = 'startup'
@@ -111,7 +116,9 @@ enamldef AppManifest(PluginManifest):
         id = 'closed'
         description = CLOSED_EXT_DESC
 
-    # --- Extensions
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
 
     Extension:
         id = 'branding'

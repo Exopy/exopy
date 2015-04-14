@@ -16,6 +16,11 @@ from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
+PLUGIN_ID = 'ecpy.app.states'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
 
 def state_plugin_factory():
     """ Factory function for the StatePlugin.
@@ -24,14 +29,20 @@ def state_plugin_factory():
     from .plugin import StatePlugin
     return StatePlugin()
 
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
 
 def get_state(event):
     """Handler for the get_state command.
 
     """
-    plugin = event.workbench.get_plugin('ecpy.app.states')
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
     return plugin.get_state(**event.parameters)
 
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
 
 STATES_DESCRIPTION = \
 """Plugins which needs to give read-only access to some members should
@@ -43,16 +54,28 @@ GET_STATE_DESCRIPTION = \
 of the plugin contributing the state.
 """
 
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
 
 enamldef StateManifest(PluginManifest):
     """
     """
-    id = 'ecpy.app.states'
+    id = PLUGIN_ID
     factory = state_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
 
     ExtensionPoint:
         id = 'state'
         description = STATES_DESCRIPTION
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
     Extension:
         id = 'commands'
         point = 'enaml.workbench.core.commands'
