@@ -28,7 +28,6 @@ class TreeNode(Declarative):
     being right-clicked.
 
     """
-    # --- Members -------------------------------------------------------------
 
     #: List of object classes and/or interfaces that the node applies to
     node_for = d_(List())
@@ -188,7 +187,9 @@ class TreeNode(Declarative):
 
         return label
 
+    # =========================================================================
     # --- Initializes the object ----------------------------------------------
+    # =========================================================================
 
     def initialize(self):
         """Collect the Menu provided as a child.
@@ -199,13 +200,17 @@ class TreeNode(Declarative):
                 self._menu = ch
                 break
 
+    # =========================================================================
     # --- Property Implementations --------------------------------------------
+    # =========================================================================
 
     @node_for_class.getter
     def _get_node_for_class(self):
         return tuple([klass for klass in self.node_for])
 
+    # =========================================================================
     # --- Overridable Methods: ------------------------------------------------
+    # =========================================================================
 
     def allows_children(self, obj):
         """Returns whether this object can have children.

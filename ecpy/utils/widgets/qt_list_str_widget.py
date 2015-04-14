@@ -139,7 +139,9 @@ class QtListStrWidget(RawWidget):
 
         widget.setSelectionMode(mode)
 
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     def _post_setattr_items(self, old, new):
         """Update the widget content when the items changes.

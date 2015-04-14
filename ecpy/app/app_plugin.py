@@ -128,7 +128,9 @@ class AppPlugin(Plugin):
         for clean in self._clean_heap:
             clean(self.workbench)
 
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     #: Priority heap storing contributed AppStartup.run by priority.
     _start_heap = Typed(PriorityHeap, ())

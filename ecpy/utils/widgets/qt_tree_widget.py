@@ -77,7 +77,9 @@ class QtTreeWidget(RawWidget):
     """Simple style of tree editor.
 
     """
+    # =========================================================================
     # --- Members definitions -------------------------------------------------
+    # =========================================================================
 
     #: Root object of the tree.
     root_node = d_(Value())
@@ -108,7 +110,9 @@ class QtTreeWidget(RawWidget):
     #: Object id to object map used internally.
     _map = Dict()
 
+    # =========================================================================
     # --- Enaml Raw widget interface ------------------------------------------
+    # =========================================================================
 
     def create_widget(self, parent):
         """Finishes initializing the editor by creating the underlying toolkit
@@ -150,7 +154,9 @@ class QtTreeWidget(RawWidget):
 
         super(QtTreeWidget, self).destroy()
 
+    # =========================================================================
     # --- Public API ----------------------------------------------------------
+    # =========================================================================
 
     def get_object(self, nid):
         """Gets the object associated with a specified node.
@@ -179,7 +185,9 @@ class QtTreeWidget(RawWidget):
             return self._get_node_data(nid)[1]
         return None
 
+    # =========================================================================
     # --- Observers -----------------------------------------------------------
+    # =========================================================================
 
     def _post_setattr_selected_item(self, old, new):
         """Update the selection when it changes externally.
@@ -198,7 +206,9 @@ class QtTreeWidget(RawWidget):
         if self.proxy_is_active:
             self._set_root_node(new)
 
+    # =========================================================================
     # --- Node manipulation methods -------------------------------------------
+    # =========================================================================
 
     def _expand_levels(self, nid, levels, expand=True):
         """Expands from the specified node the specified number of sub-levels.
@@ -454,7 +464,9 @@ class QtTreeWidget(RawWidget):
 
         node.when_label_changed(obj, self._label_updated, True)
 
+    # =========================================================================
     # --- Object instrospection -----------------------------------------------
+    # =========================================================================
 
     def _object_info(self, obj, name=''):
         """Tree node data for an object in the form (expanded, node, nid).
@@ -545,7 +557,9 @@ class QtTreeWidget(RawWidget):
         """Sets the node specific data. """
         nid._py_data = data
 
+    # =========================================================================
     # --- Object operations ---------------------------------------------------
+    # =========================================================================
 
     def _append(self, node, obj, data, make_copy=False):
         """Performs an append operation.
@@ -575,7 +589,9 @@ class QtTreeWidget(RawWidget):
         """
         node.move_child(obj, old, new)
 
+    # =========================================================================
     # --- Tree event handlers -------------------------------------------------
+    # =========================================================================
 
     def _on_item_expanded(self, nid):
         """ Handles a tree node being expanded.
@@ -674,9 +690,9 @@ class QtTreeWidget(RawWidget):
                 # Use the menu specified by the node:
                 menu.popup()
 
-    # -------------------------------------------------------------------------
-    #  Menu action helper methods:
-    # -------------------------------------------------------------------------
+    # =========================================================================
+    # Menu action helper methods:
+    # =========================================================================
 
     def _is_copyable(self, obj, node, parent_node):
         return ((parent_node is not None) and parent_node.can_copy(obj))
@@ -857,7 +873,9 @@ class QtTreeWidget(RawWidget):
 
             tree.blockSignals(blk)
 
+    # =========================================================================
     # --- Miscellaneous methods -----------------------------------------------
+    # =========================================================================
 
     def _get_brush(self, color):
         """Get brush associated to a color.

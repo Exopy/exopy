@@ -94,10 +94,21 @@ class ExtensionsCollector(Atom):
         self.contributions.clear()
         self._extensions.clear()
 
+    def contributed_by(self, contrib_id):
+        """Find the extension declaring a contribution.
+
+        """
+        contrib = self.contributions[contrib_id]
+        for ext, cs in self._extensions.items():
+            if contrib in cs:
+                return ext
+
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     #: Private storage keeping track of which extension declared which object.
-    _extensions = Typed(defaultdict, ())
+    _extensions = Typed(defaultdict, (list,))
 
     def _refresh_contributions(self):
         """ Refresh the extensions contributions.
@@ -118,7 +129,7 @@ class ExtensionsCollector(Atom):
             self._extensions.clear()
             return
 
-        # Get the engines declarations for all extensions.
+        # Get the contributions declarations for all extensions.
         new_extensions = defaultdict(list)
         old_extensions = self._extensions
         for extension in extensions:
