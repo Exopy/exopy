@@ -50,8 +50,8 @@ def tagged_members(obj, meta=None, meta_value=None):
                 member.metadata[meta] == meta_value}
 
 
-def simple_member_from_str(member, str_value):
-    """ Convert a string to the right type for a non-container member.
+def member_from_str(member, str_value):
+    """ Convert a string to the right type for a member.
 
     Parameters
     ----------
@@ -80,51 +80,6 @@ def simple_member_from_str(member, str_value):
         value = literal_eval(str_value)
 
     return value
-
-
-def member_from_str(member, value):
-    """ Convert a string to the right type for a member.
-
-    Does not support Instance, Typed, Subclass, etc
-
-    Parameters
-    ----------
-    member : Member
-        Member for which the string should be converted to a value
-
-    str_value : string
-        String to convert
-
-    Returns
-    -------
-    converted_value
-        The converted value
-
-    """
-    # If we get a container must check each member
-    if isinstance(value, list):
-        validation_mode = member.validate_mode
-        if len(validation_mode) > 1:
-            val_member = validation_mode[1]
-            validated = [member_from_str(val_member, val)
-                         for val in value]
-        else:
-            validated = value
-
-    if isinstance(value, dict):
-        validation_mode = member.validate_mode
-        if len(validation_mode) > 2:
-            key_member = validation_mode[1]
-            value_member = validation_mode[2]
-            validated = {member_from_str(key_member, key):
-                         member_from_str(value_member, val)
-                         for key, val in value.iteritems}
-        else:
-            validated = value
-    else:
-        validated = simple_member_from_str(member, value)
-
-    return validated
 
 
 class HasPrefAtom(Atom):

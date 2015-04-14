@@ -52,6 +52,7 @@ class TestAppPlugin(object):
 
         assert manifest.called == ['test_nested.startup1', 'test.startup2',
                                    'test_nested.startup2']
+        self.workbench.unregister('ecpy.app')
 
     def test_closing(self):
         """Test that validation stops as soon as the event is rejected.

@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 from enaml.workbench.api import Workbench
 import enaml
+from pytest import raises
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -47,6 +48,10 @@ class TestState(object):
 
         assert hasattr(state, 'string')
         assert state.string == 'init'
+        with raises(AttributeError):
+            state.string = 1
+
+        self.workbench.unregister('ecpy.app.states')
 
     def test_state_unicity(self):
         """Test that asking twice the same state return the same object.

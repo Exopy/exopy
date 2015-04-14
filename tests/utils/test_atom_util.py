@@ -10,8 +10,7 @@
 
 """
 from atom.api import Str, Float, Enum, List, Dict, Typed, Int
-from ecpy.utils.atom_util import (tagged_members, simple_member_from_str,
-                                  member_from_str, HasPrefAtom)
+from ecpy.utils.atom_util import (tagged_members, member_from_str, HasPrefAtom)
 
 
 class _Aaux(HasPrefAtom):
@@ -30,6 +29,8 @@ class _Aux(HasPrefAtom):
 
     atom = Typed(_Aaux, ()).tag(pref=True)
 
+    no_tag = Int()
+
 
 def test_tagged_members1():
     aux = _Aux()
@@ -45,24 +46,12 @@ def test_tagged_members2():
     assert members == ['float_n']
 
 
-def test_simple_member_from_str1():
+def test_tagged_members3():
     aux = _Aux()
-    assert simple_member_from_str(aux.get_member('string'), 'a') == 'a'
-
-
-def test_simple_member_from_str2():
-    aux = _Aux()
-    assert simple_member_from_str(aux.get_member('float_n'), '1.0') == 1.0
-
-
-def test_simple_member_from_str3():
-    aux = _Aux()
-    assert simple_member_from_str(aux.get_member('enum'), 'a') == 'a'
-
-
-def test_simple_member_from_str4():
-    aux = _Aux()
-    assert simple_member_from_str(aux.get_member('enum_float'), '1.0') == 1.0
+    members = sorted(tagged_members(aux).keys())
+    test = sorted(['string', 'float_n', 'enum', 'enum_float', 'list_',
+                   'dict_', 'atom', 'no_tag'])
+    assert members == test
 
 
 def test_member_from_str1():
@@ -99,21 +88,24 @@ def test_member_from_str6():
 
 def test_update_members_from_pref():
     aux = _Aux()
-    pref = {'string': 'a',
-            'float_n': '1.0',
+    pref = {'float_n': '1.0',
             'enum': 'a',
             'enum_float': '1.0',
             'list_': "[2.0, 5.0]",
             'dict_': "{'a': 1.0}",
             'atom': {'int_': '2'}}
     aux.update_members_from_preferences(pref)
-    assert aux.string == 'a'
     assert aux.float_n == 1.0
     assert aux.enum == 'a'
     assert aux.enum_float == 1.0
     assert aux.list_ == [2.0, 5.0]
     assert aux.dict_ == {'a': 1.0}
     assert aux.atom.int_ == 2
+
+    aux.atom = None
+    pref = {'atom': {'int_': '2'}}
+    aux.update_members_from_preferences(pref)
+    assert aux.atom is None
 
 
 def test_pref_from_members():

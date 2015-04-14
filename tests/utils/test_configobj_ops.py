@@ -13,11 +13,23 @@ import os
 from configobj import ConfigObj
 from nose.tools import assert_equal, assert_in
 
-from ecpy.utils.configobj_ops import flatten_config
+from ecpy.utils.configobj_ops import flatten_config, include_configobj
+
+
+def test_include():
+
+    a = ConfigObj()
+    a['r'] = 2
+    b = ConfigObj()
+    b['a'] = {}
+    b['a']['t'] = 3
+
+    include_configobj(a, b)
+    assert a == {'r': 2, 'a': {'t': 3}}
 
 
 def test_flatten_configobj():
-    """
+    """Test looking for specific keys in a ConfigObj object.
 
     """
     config = ConfigObj(os.path.join(os.path.dirname(__file__),

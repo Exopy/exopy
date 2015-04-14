@@ -206,4 +206,4 @@ class ExtensionsCollector(Atom):
         """
         workbench = self.workbench
         point = workbench.get_extension_point(self.point)
-        point.unobserve('extensions', self._on_closing_checks_updated)
+        point.unobserve('extensions', self._on_contribs_updated)
