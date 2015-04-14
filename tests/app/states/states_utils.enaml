@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Dummy plugin to test the state plugin.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Atom, Unicode
+from enaml.workbench.api import PluginManifest, Plugin, Extension
+
+from ecpy.app.states.state import State
+
+
+class _State(Plugin):
+    """Dummy plugin having a string member.
+
+    """
+    string = Unicode('init')
+
+
+enamldef StateContributor(PluginManifest):
+    """Plugin contributing a state object.
+
+    """
+    id = u'test.states'
+    factory = _State
+
+    Extension:
+        id = 'state'
+        point = u'ecpy.app.states.state'
+        State:
+            id = 'test.states.state'
+            sync_members = ['string']

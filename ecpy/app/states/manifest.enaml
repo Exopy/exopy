@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""State plugin manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+
+def state_plugin_factory():
+    """ Factory function for the StatePlugin.
+
+    """
+    from .plugin import StatePlugin
+    return StatePlugin()
+
+
+def get_state(event):
+    """Handler for the get_state command.
+
+    """
+    plugin = event.workbench.get_plugin('ecpy.app.states')
+    return plugin.get_state(**event.parameters)
+
+
+STATES_DESCRIPTION = \
+"""Plugins which needs to give read-only access to some members should
+provide an extension to this point in the form of a State object.
+"""
+
+GET_STATE_DESCRIPTION = \
+"""Function to retrieve a reference to a state object given the plugin id
+of the plugin contributing the state.
+"""
+
+
+enamldef StateManifest(PluginManifest):
+    """
+    """
+    id = 'ecpy.app.states'
+    factory = state_plugin_factory
+
+    ExtensionPoint:
+        id = 'state'
+        description = STATES_DESCRIPTION
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'ecpy.app.get_state'
+            description = SAVE_PREF_DESCRIPTION
+            handler = get_state
