@@ -39,12 +39,12 @@ class HasPrefPlugin(Plugin):
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
 
-        prefs = core.invoke_command('ecpy.app.preferences.get_plugin_prefs',
-                                    {'plugin_id': self.manifest.id}, self)
+        prefs = core.invoke_command('ecpy.app.preferences.get',
+                                    {'plugin_id': self.manifest.id})
 
         self.update_members_from_preferences(prefs)
         core.invoke_command('ecpy.app.preferences.plugin_init_complete',
-                            {'plugin_id': self.manifest.id}, self)
+                            {'plugin_id': self.manifest.id})
 
 
 class ExtensionsCollector(Atom):

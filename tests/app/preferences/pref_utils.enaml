@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Preferences plugin test helpers.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Atom, Unicode
+from enaml.workbench.api import PluginManifest, Extension
+
+from ecpy.utils.plugin_tools import HasPrefPlugin
+from ecpy.app.preferences.preferences import Preferences
+
+
+class _Pref(HasPrefPlugin):
+    """Plugin having two members declared as preferences.
+
+    """
+    #: Non auto saving member.
+    string = Unicode().tag(pref=True)
+
+    #: Member needing to be automatically saved.
+    auto = Unicode().tag(pref=True)
+
+
+enamldef PrefContributor(PluginManifest):
+    """Manifest declaring preferences for its plugin.
+
+    """
+    id = u'test.prefs'
+    factory = _Pref
+
+    Extension:
+        id = 'prefs'
+        point = u'ecpy.app.preferences.plugin'
+        Preferences:
+            auto_save = ['auto']
+
+
+enamldef PrefContributor2(PluginManifest):
+    """Manifest declaring preferences for its plugin.
+
+    """
+    id = u'test.prefs2'
+    factory = _Pref
+
+    Extension:
+        id = 'prefs'
+        point = u'ecpy.app.preferences.plugin'
+        Preferences:
+            auto_save = ['auto']
+
+
+enamldef BadPrefContributor(PluginManifest):
+    """Manifest declaring preferences for its plugin but using the wrong type
+    of object.
+
+    """
+    id = u'test.bad_prefs'
+    factory = _Pref
+
+    Extension:
+        id = 'prefs'
+        point = u'ecpy.app.preferences.plugin'
+        factory = lambda w: None
