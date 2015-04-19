@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 from configobj import ConfigObj
+from future.builtins import str
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
@@ -91,7 +92,8 @@ def check_app_folder(workbench):
     if not os.path.isfile(app_dir) or 'app_path' not in ConfigObj(app_dir):
         path = ''
         try:
-            path = os.path.expanduser('~/ecpy')
+            # Explicit casting to detect encoding issues.
+            path = str(os.path.expanduser('~/ecpy'))
         except Exception:
             # Silently ignore issues on Python 2 when userpath contains
             # non-ascii characters.
