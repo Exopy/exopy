@@ -97,19 +97,19 @@ class SharedDict(Atom):
 
     def __getitem__(self, key):
 
-        with self.locked:
+        with self.locked():
             aux = self._dict[key]
 
         return aux
 
     def __setitem__(self, key, value):
 
-        with self.locked:
+        with self._lock:
             self._dict[key] = value
 
     def __delitem__(self, key):
 
-        with self.locked:
+        with self._lock:
             del self._dict[key]
 
     def __contains__(self, key):

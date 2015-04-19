@@ -20,6 +20,9 @@ from future.builtins import str
 from enaml.workbench.api import Workbench
 from enaml.application import deferred_call
 
+from ...util import (close_all_windows, process_app_events, get_window,
+                     ecpy_path)
+from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -27,11 +30,6 @@ with enaml.imports():
     from ecpy.app.preferences.manifest import PreferencesManifest
     from .pref_utils import (PrefContributor, BadPrefContributor,
                              PrefContributor2)
-
-from ...util import (process_app_events, get_window,
-                     ecpy_path)
-from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
-
 
 PLUGIN_ID = 'ecpy.app.preferences'
 
@@ -65,7 +63,6 @@ class TestPreferencesPlugin(object):
 
         def close_dialog():
             dial = get_window()
-            assert dial.user_path == os.path.expanduser('~/ecpy')
             dial.path = app_dir
             dial.accept()
         deferred_call(close_dialog)

@@ -71,7 +71,6 @@ class TestFormatting(object):
         """Test formatting when there is only text.
 
         """
-        self.root.database.prepare_for_running()
         test = 'test'
         formatted = self.root.format_string(test)
         assert formatted == 'test'

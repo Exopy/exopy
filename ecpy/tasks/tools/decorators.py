@@ -19,7 +19,6 @@ import logging
 from functools import update_wrapper
 from time import sleep
 from threading import Thread, current_thread
-from itertools import chain
 
 
 def handle_stop_pause(root):
@@ -54,7 +53,7 @@ def handle_stop_pause(root):
                 root.paused_threads_counter.decrement()
                 return True
             if not pause_flag.is_set():
-                if current_thread().name == 'MainThread':
+                if current_thread().ident == root.thread_id:
                     # Prevent some issues if a stupid user changes a
                     # value on an instr previously set by a task.
                     instrs = root.instrs
@@ -81,7 +80,7 @@ def make_stoppable(function_to_decorate):
     """
     def decorator(*args, **kwargs):
 
-        if handle_stop_pause(args[0].root_task):
+        if handle_stop_pause(args[0].root):
             return
 
         return function_to_decorate(*args, **kwargs)
@@ -104,8 +103,8 @@ def smooth_crash(function_to_decorate):
         except Exception:
             log = logging.getLogger(function_to_decorate.__module__)
             mes = 'The following unhandled exception occured in {} :'
-            log.exception(mes.format(obj.task_name))
-            obj.root_task.should_stop.set()
+            log.exception(mes.format(obj.name))
+            obj.root.should_stop.set()
 
     update_wrapper(decorator, function_to_decorate)
     return decorator
@@ -129,21 +128,24 @@ def make_parallel(perform, pool):
     def wrapper(*args, **kwargs):
 
         obj = args[0]
-        root = obj.root_task
+        root = obj.root
         safe_perform = smooth_crash(perform)
+
+        def thread_perform(task, *args, **kwargs):
+            safe_perform(task, *args, **kwargs)
+            task.root.active_threads_counter.decrement()
+
         thread = Thread(group=None,
-                        target=safe_perform,
+                        target=thread_perform,
                         args=args,
                         kwargs=kwargs)
-        # Create a shallow copy to avoid mutating a dict shared by multiple
-        # threads.
-        pools = obj.root_task.threads
+
+        pools = obj.root.threads
         with pools.safe_access(pool) as threads:
             threads.append(thread)
 
         root.active_threads_counter.increment()
         thread.start()
-        root.active_threads_counter.decrement()
 
     update_wrapper(wrapper, perform)
     return wrapper
@@ -173,14 +175,15 @@ def make_wait(perform, wait, no_wait):
 
     """
     if wait:
-        def wrapper(*args, **kwargs):
+        def wrapper(obj, *args, **kwargs):
 
-            obj = args[0]
-            all_threads = obj.root_task.threads
+            all_threads = obj.root.threads
             while True:
+                threads = []
                 # Get all the threads we should be waiting upon.
-                threads = chain.from_iterable([all_threads[w]
-                                               for w in wait])
+                with all_threads.locked():
+                    for p in wait:
+                        threads.extend(all_threads[p])
 
                 # If there is none break. Use any as threads is an iterator.
                 if not any(threads):
@@ -197,22 +200,23 @@ def make_wait(perform, wait, no_wait):
                         all_threads[w] = [t for t in all_threads[w]
                                           if t.is_alive()]
 
-                # Start over till no thread remain in the pool in wait.
+                # Start over till no thread remain in the pools in wait.
 
-            return perform(*args, **kwargs)
+            return perform(obj, *args, **kwargs)
 
     elif no_wait:
-        def wrapper(*args, **kwargs):
+        def wrapper(obj, *args, **kwargs):
 
-            obj = args[0]
-            # Create a shallow copy to avoid mutating a dict shared by multiple
-            # threads.
-            all_threads = obj.root_task.threads
-            pools = [k for k in all_threads if k not in no_wait]
+            all_threads = obj.root.threads
+            with all_threads.locked():
+                pools = [k for k in all_threads if k not in no_wait]
+
             while True:
                 # Get all the threads we should be waiting upon.
-                threads = chain.from_iterable([all_threads[p]
-                                               for p in pools])
+                threads = []
+                with all_threads.locked():
+                    for p in pools:
+                        threads.extend(all_threads[p])
 
                 # If there is None break. Use any as threads is an iterator.
                 if not any(threads):
@@ -231,18 +235,19 @@ def make_wait(perform, wait, no_wait):
 
                 # Start over till no thread remain in the pool in wait.
 
-            return perform(*args, **kwargs)
+            return perform(obj, *args, **kwargs)
     else:
-        def wrapper(*args, **kwargs):
+        def wrapper(obj, *args, **kwargs):
 
-            obj = args[0]
-            all_threads = obj.root_task.threads
+            all_threads = obj.root.threads
             while True:
-                # Get all the threads we should be waiting upon.
-                threads = chain.from_iterable([all_threads[p]
-                                               for p in all_threads])
+                threads = []
+                with all_threads.locked():
+                    # Get all the threads we should be waiting upon.
+                    for p in all_threads:
+                        threads.extend(all_threads[p])
 
-                # If there is None break. Use any as threads is an iterator.
+                # If there is none break. Use any as threads is an iterator.
                 if not any(threads):
                     break
 
@@ -256,7 +261,7 @@ def make_wait(perform, wait, no_wait):
                     for p in all_threads:
                         all_threads[p] = [t for t in all_threads[p]
                                           if t.is_alive()]
-            return perform(*args, **kwargs)
+            return perform(obj, *args, **kwargs)
 
     update_wrapper(wrapper, perform)
 
