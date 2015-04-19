@@ -40,14 +40,11 @@ EVALUATER_TOOLTIP = '\n'.join([
     "- pi is available as Pi"])
 
 
-def safe_eval(expr, local_var=None):
+def safe_eval(expr, local_var):
     """Eval expr save is expr contains only letters.
 
     """
     if expr.isalpha():
         return expr
 
-    if local_var:
-        return eval(expr, globals(), local_var)
-    else:
-        return eval(expr)
+    return eval(expr, globals(), local_var)
