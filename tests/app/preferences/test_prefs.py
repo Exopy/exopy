@@ -69,7 +69,7 @@ class TestPreferencesPlugin(object):
             dial.path = app_dir
             dial.accept()
         deferred_call(close_dialog)
-        app.run_app_startup()
+        app.run_app_startup(object())
         process_app_events()
 
         assert os.path.isfile(app_pref)
@@ -97,7 +97,7 @@ class TestPreferencesPlugin(object):
             dial.reject()
         deferred_call(close_dialog)
         with pytest.raises(SystemExit):
-            app.run_app_startup()
+            app.run_app_startup(object())
             process_app_events()
 
     def test_app_startup3(self, tmpdir, windows):
@@ -122,7 +122,7 @@ class TestPreferencesPlugin(object):
         # Start the app and fake a user answer.
         app = self.workbench.get_plugin('ecpy.app')
 
-        app.run_app_startup()
+        app.run_app_startup(object())
 
         assert os.path.isdir(app_dir)
 

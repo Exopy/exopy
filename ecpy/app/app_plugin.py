@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import inspect
+from funcsigs import signature
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 
@@ -37,8 +37,8 @@ def validate_startup(startup):
         return bool(startup.run), msg % startup.id
 
     msg = "AppStartup %s run function signature must be (workbench, cmd_args)"
-    sig = inspect.getargspec(startup.run)
-    return len(sig.args) == 2, msg % startup.id
+    sig = signature(startup.run)
+    return len(sig.parameters) == 2, msg % startup.id
 
 
 def validate_closing(closing):

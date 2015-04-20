@@ -58,7 +58,7 @@ class TestAppPlugin(object):
         manifest = StartupContributor()
         self.workbench.register(manifest)
         plugin = self.workbench.get_plugin('ecpy.app')
-        plugin.run_app_startup()
+        plugin.run_app_startup(object())
 
         assert manifest.called == ['test_nested.startup1', 'test.startup2',
                                    'test_nested.startup2']
