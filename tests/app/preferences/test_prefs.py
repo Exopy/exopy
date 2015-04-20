@@ -28,7 +28,7 @@ with enaml.imports():
     from .pref_utils import (PrefContributor, BadPrefContributor,
                              PrefContributor2)
 
-from ...util import (close_all_windows, process_app_events, get_window,
+from ...util import (process_app_events, get_window,
                      ecpy_path)
 from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
 
@@ -122,9 +122,7 @@ class TestPreferencesPlugin(object):
         # Start the app and fake a user answer.
         app = self.workbench.get_plugin('ecpy.app')
 
-        deferred_call(close_all_windows)
         app.run_app_startup()
-        process_app_events()
 
         assert os.path.isdir(app_dir)
 

@@ -12,8 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 import sys
-import logging
-import pytest
 from multiprocessing import Queue
 from time import sleep, localtime
 from ecpy.app.log.tools import (StreamToLogRedirector, QueueHandler,
@@ -21,15 +19,6 @@ from ecpy.app.log.tools import (StreamToLogRedirector, QueueHandler,
                                 GuiHandler, QueueLoggerThread)
 
 from ...util import process_app_events
-
-
-@pytest.yield_fixture
-def logger(caplog):
-    logger = logging.getLogger('test')
-
-    yield logger
-
-    logger.handlers = []
 
 
 def test_log_model():

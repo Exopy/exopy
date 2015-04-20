@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 import pytest
+import logging
 from configobj import ConfigObj
 from inspect import getabsfile
 from enaml.qt.qt_application import QtApplication
@@ -98,3 +99,15 @@ def app_dir(tmpdir):
     conf['app_path'] = app_dir
     conf.write()
     return app_dir
+
+
+@pytest.yield_fixture
+def logger(caplog):
+    """Fixture returning a logger for testing and cleaning handlers afterwards.
+
+    """
+    logger = logging.getLogger('test')
+
+    yield logger
+
+    logger.handlers = []
