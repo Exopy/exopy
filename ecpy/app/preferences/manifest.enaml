@@ -83,7 +83,7 @@ enamldef AppDirSelectionDialog(Dialog): dial:
 
 
 
-def check_app_folder(workbench):
+def check_app_folder(workbench, cmd_args):
     """Check whether or not the app folder is defined and prompt the user if
     not.
 
@@ -235,7 +235,8 @@ OPEN_EDITOR_DESCRIPTION = \
 # =============================================================================
 
 enamldef PreferencesManifest(PluginManifest):
-    """
+    """Manifest for the PreferencePlugin.
+
     """
     id = PLUGIN_ID
     factory = preference_plugin_factory

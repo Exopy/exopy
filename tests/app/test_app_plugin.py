@@ -18,8 +18,18 @@ import enaml
 
 with enaml.imports():
     from ecpy.app.app_manifest import AppManifest
+    from ecpy.app.app_extensions import AppStartup
+    from ecpy.app.app_plugin import validate_startup
     from .app_helpers import (StartupContributor, ClosingContributor1,
                               ClosingContributor2, ClosedContributor)
+
+
+def test_validate_startup():
+    """Check that validate start up identify wrong startup.
+
+    """
+    assert not validate_startup(AppStartup())[0]
+    assert not validate_startup(AppStartup(run=lambda x: x))[0]
 
 
 class FalseWindow(object):

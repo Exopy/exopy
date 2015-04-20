@@ -70,9 +70,10 @@ class PriorityHeap(object):
         with the sorting.
 
         """
-        heapobj = self._map[obj]
-        heapobj[2] = _REMOVED
-        del self._map[obj]
+        if obj in self._map:
+            heapobj = self._map[obj]
+            heapobj[2] = _REMOVED
+            del self._map[obj]
 
     def __iter__(self):
         """Allow to use this object as an iterator.

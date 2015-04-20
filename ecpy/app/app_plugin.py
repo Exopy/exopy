@@ -11,6 +11,8 @@
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
+
+import inspect
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 
@@ -31,7 +33,12 @@ def validate_startup(startup):
 
     """
     msg = "AppStartup '%s' does not declare a run callable"
-    return bool(startup.run), msg % startup.id
+    if not bool(startup.run):
+        return bool(startup.run), msg % startup.id
+
+    msg = "AppStartup %s run function signature must be (workbench, cmd_args)"
+    sig = inspect.getargspec(startup.run)
+    return len(sig.args) == 2, msg % startup.id
 
 
 def validate_closing(closing):
@@ -105,12 +112,12 @@ class AppPlugin(Plugin):
         del self.startup, self.closing, self.closed
         del self._start_heap, self._clean_heap
 
-    def run_app_startup(self):
+    def run_app_startup(self, cmd_args):
         """Run all the registered app startups based on their priority.
 
         """
         for run in self._start_heap:
-            run(self.workbench)
+            run(self.workbench, cmd_args)
 
     def validate_closing(self, window, event):
         """Run all closing checks to determine whether or not to close the app.

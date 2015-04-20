@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 from time import sleep
-import enaml.qt.QtGui as QtGui
 from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window
 

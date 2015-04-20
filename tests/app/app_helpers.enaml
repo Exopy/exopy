@@ -25,8 +25,8 @@ from ecpy.app.app_extensions import AppStartup, AppClosing, AppClosed
 # then be called given its priority an finally startup2 of both 'test' and
 # 'nested' in their registration order.
 
-def run_and_register(obj, workbench):
-    """Startup runfunction keeping track of the order of the call.
+def run_and_register(obj, workbench, cmd_args):
+    """Startup run function keeping track of the order of the call.
 
     """
     m = workbench.get_manifest('test')
@@ -52,7 +52,7 @@ enamldef NestedStartupContributor(PluginManifest):
             priority = 1
 
 
-def startup(workbench):
+def startup(workbench, cmd_args):
     """Startup run function registering a new plugin.
 
     """
