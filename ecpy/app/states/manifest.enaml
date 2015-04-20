@@ -80,6 +80,6 @@ enamldef StateManifest(PluginManifest):
         id = 'commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            id = 'ecpy.app.get_state'
+            id = 'ecpy.app.states.get'
             description = SAVE_PREF_DESCRIPTION
             handler = get_state

@@ -22,7 +22,7 @@ with enaml.imports():
 
 
 CORE_PLUGIN = 'enaml.workbench.core'
-GET_STATE = 'ecpy.app.get_state'
+GET_STATE = 'ecpy.app.states.get'
 
 STATE_ID = 'test.states.state'
 
