@@ -1,0 +1,52 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""False dependencies declaration used for testing.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension
+
+from ecpy.app.dependencies.dependencies import (BuildDependency,
+                                                RuntimeDependency)
+
+
+BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
+
+RUNTIME_DEP_POINT = 'ecpy.app.dependencies.runtime'
+
+
+enamldef BuildDep(PluginManifest):
+    """Build dependency contributor.
+
+    """
+    id = 'test.build_dep'
+
+    Extension:
+        id = 'build_deps'
+        point = BUILD_DEP_POINT
+        BuildDependency:
+            id = 'test.build_dep'
+            walk_members = ['test']
+            collect = lambda workbench, flat_walk : {'test': {}}
+
+enamldef RuntimeDep(PluginManifest):
+    """Runtime dependency contributor.
+
+    """
+    id = 'test.runtime_dep'
+
+    Extension:
+        id = 'runtime_deps'
+        point = RUNTIME_DEP_POINT
+        RuntimeDependency:
+            id = 'test.runtime_dep'
+            walk_members = ['test_run']
+            collect = lambda workbench, flat_walk, caller : {'test_run': {}}

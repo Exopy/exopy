@@ -50,8 +50,13 @@ provide an extension to this point in the form of a State object.
 """
 
 GET_STATE_DESCRIPTION = \
-"""Function to retrieve a reference to a state object given the plugin id
-of the plugin contributing the state.
+"""Retrieve a reference to a state object.
+
+Parameters
+----------
+id : unicode
+    Id of the  state.
+
 """
 
 # =============================================================================
@@ -59,7 +64,7 @@ of the plugin contributing the state.
 # =============================================================================
 
 enamldef StateManifest(PluginManifest):
-    """
+    """Manifest of the StatesPlugin
     """
     id = PLUGIN_ID
     factory = state_plugin_factory
