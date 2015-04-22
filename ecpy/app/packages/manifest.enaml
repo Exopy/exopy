@@ -1,0 +1,73 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifest for the PackagesPlugin which collect and handle extension packages.
+
+Extension packages are packages which declare a setuptools entry point :
+`ecpy_package_extension` pointing towards a callable returning a lits of plugin
+manifest. At application start up, the entry point is inspected and all
+collected manifest are registered. They are unregistered during application
+closing (after calling the ClosedApp handlers). Each manifest can declare a
+priority between 0 and 100 which will be used when unregistering (lower values
+unregistered first).
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension
+from ..app_extensions import AppStartup
+
+PLUGIN_ID = 'ecpy.app.packages'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def packages_plugin_factory():
+    """Factory function for the PackagesPLugin
+
+    """
+    from .plugin import PackagesPlugin
+    return PackagesPlugin()
+
+
+# =============================================================================
+# --- Startup handler ---------------------------------------------------------
+# =============================================================================
+
+def collect_and_register_packages(workbench, cmd_args):
+    """Start up handler in charge of collecting and registering packages.
+
+    """
+    plugin = workbench.get_plugin(PLUGIN_ID)
+    plugin.collect_and_register()
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef PackagesManifest(PluginManifest):
+    """Manifest of the Packages plugin.
+
+    """
+    id = PLUGIN_ID
+    factory = packages_plugin_factory
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'startup'
+        point = 'ecpy.app.startup'
+        AppStartup:
+            id = 'ecpy.app.packages'
+            run = collect_and_register_packages
+            priority = 5
