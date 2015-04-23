@@ -16,7 +16,7 @@ import pytest
 import threading
 from multiprocessing import Event
 from time import sleep
-from atom.api import Unicode
+from atom.api import Unicode, set_default
 from enaml.application import deferred_call
 
 from ecpy.tasks.base_tasks import RootTask, ComplexTask
@@ -50,13 +50,18 @@ class TestTaskExecution(object):
 
             feval = Unicode().tag(feval=True)
 
+            database_entries = set_default({'form': '', 'feval': 0})
+
         tester = Tester(name='test', form='{meas_name}', feval='2*{test_val}',
-                        database_entries={'val': 1})
+                        database_entries={'val': 1, 'form': '', 'feval': 0})
         self.root.default_path = str(tmpdir)
+        self.root.meas_name = 'test'
         self.root.add_child_task(0, tester)
 
         res, tb = self.root.check()
         assert res and tb == {}
+        assert self.root.get_from_database('test_form') == 'test'
+        assert self.root.get_from_database('test_feval') == 2
 
         tester.form = '{test}'
         res, tb = self.root.check()
@@ -169,7 +174,6 @@ class TestTaskExecution(object):
         assert root.should_stop.is_set()
         assert aux.perform_called == 1
 
-    # XXXX rework to make sure one thread is alive when waiting start
     @pytest.mark.timeout(1)
     def test_root_perform_wait_all(self):
         """Test running a simple task waiting on all pools.

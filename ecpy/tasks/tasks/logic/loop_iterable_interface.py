@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Unicode
 from collections import Iterable
 
-from ..task_interface import TaskInterface
+from ...task_interface import TaskInterface
 
 
 class IterableLoopInterface(TaskInterface):
@@ -29,7 +29,8 @@ class IterableLoopInterface(TaskInterface):
         """Check that the iterable member evaluation does yield an iterable.
 
         """
-        test, traceback = super(IterableLoopInterface).check(*args, **kwargs)
+        test, traceback = super(IterableLoopInterface,
+                                self).check(*args, **kwargs)
         if not test:
             return test, traceback
 
@@ -37,11 +38,11 @@ class IterableLoopInterface(TaskInterface):
         iterable = task.format_and_eval_string(self.iterable)
         if isinstance(iterable, Iterable):
             task.write_in_database('point_number', len(iterable))
-            if 'value' in task.task_database_entries:
+            if 'value' in task.database_entries:
                 task.write_in_database('value', next(iter(iterable)))
         else:
             test = False
-            traceback[task.path + '_' + task.name] = \
+            traceback[task.path + '/' + task.name] = \
                 'The computed iterable is not iterable.'
 
         return test, traceback

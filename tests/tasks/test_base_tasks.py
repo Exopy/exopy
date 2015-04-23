@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+from atom.api import Value, List
 from ecpy.tasks.base_tasks import RootTask, SimpleTask, ComplexTask
 
 
@@ -349,3 +350,22 @@ def test_build_complex_from_config():
     assert len(task.children) == 1
     assert task.children[0].name == 'test_child'
     assert isinstance(task.children[0], SimpleTask)
+
+
+def test_gather_children():
+    """Test _gather_children method in all corner cases.
+
+    """
+
+    class SuperComplexTask(ComplexTask):
+
+        subtask = Value().tag(child=True)
+
+        subtasks = List().tag(child=True)
+
+    sct = SuperComplexTask(subtask=1, subtasks=[2, 3],
+                           children=[SimpleTask()])
+    children = sct._gather_children()
+
+    assert len(children) == 4
+    assert 1 in children and 2 in children and 3 in children

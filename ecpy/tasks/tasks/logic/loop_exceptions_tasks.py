@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, set_default)
 
-from ..base_tasks import SimpleTask
+from ...base_tasks import SimpleTask
 from .loop_task import LoopTask
 from .while_task import WhileTask
 from .loop_exceptions import BreakException, ContinueException
@@ -41,11 +41,11 @@ class BreakTask(SimpleTask):
         """
         test, traceback = super(BreakTask, self).check(*args, **kwargs)
 
-        if not isinstance(self.parent_task, (LoopTask, WhileTask)):
+        if not isinstance(self.parent, (LoopTask, WhileTask)):
             test = False
             mess = 'Incorrect parent type: {}, expected LoopTask or WhileTask.'
-            traceback[self.task_path + '/' + self.task_name + '-parent'] = \
-                mess.format(self.parent_task.task_class)
+            traceback[self.path + '/' + self.name + '-parent'] = \
+                mess.format(self.parent.task_class)
 
         return test, traceback
 
@@ -78,13 +78,11 @@ class ContinueTask(SimpleTask):
         """
         test, traceback = super(ContinueTask, self).check(*args, **kwargs)
 
-        try:
-            self.format_and_eval_string(self.condition)
-        except Exception as e:
+        if not isinstance(self.parent, (LoopTask, WhileTask)):
             test = False
-            mess = 'Task did not succeed to compute the continue condition: {}'
-            traceback[self.task_path + '/' + self.task_name + '-cond'] = \
-                mess.format(e)
+            mess = 'Incorrect parent type: {}, expected LoopTask or WhileTask.'
+            traceback[self.path + '/' + self.name + '-parent'] = \
+                mess.format(self.parent.task_class)
 
         return test, traceback
 

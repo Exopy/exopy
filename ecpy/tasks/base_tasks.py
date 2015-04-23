@@ -127,7 +127,9 @@ class BaseTask(Atom):
         err_path = self.path + '/' + self.name
         for n, m in tagged_members(self, 'fmt').items():
             try:
-                self.format_string(getattr(self, n))
+                val = self.format_string(getattr(self, n))
+                if n in self.database_entries:
+                    self.write_in_database(n, val)
             except Exception:
                 if m.metadata['fmt'] != 'Warn':
                     res = False
@@ -136,7 +138,9 @@ class BaseTask(Atom):
 
         for n, m in tagged_members(self, 'feval').items():
             try:
-                self.format_and_eval_string(getattr(self, n))
+                val = self.format_and_eval_string(getattr(self, n))
+                if n in self.database_entries:
+                    self.write_in_database(n, val)
             except Exception:
                 if m.metadata['feval'] != 'Warn':
                     res = False
@@ -451,7 +455,7 @@ class BaseTask(Atom):
                 return safe_eval(str_to_eval, vals)
             else:
                 self._eval_cache[string] = (string, [])
-                return safe_eval(string, [])
+                return safe_eval(string, {})
 
         # In edition mode simply perfom the evaluation as execution time is not
         # critical and as the database has not been collapsed to an indexed
@@ -477,7 +481,7 @@ class BaseTask(Atom):
                 expr = str_to_format.format(*replacement_token)
                 return safe_eval(expr, repl)
             else:
-                return safe_eval(string, [])
+                return safe_eval(string, {})
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

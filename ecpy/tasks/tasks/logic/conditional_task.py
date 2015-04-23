@@ -32,5 +32,5 @@ class ConditionalTask(ComplexTask):
 
         """
         if self.format_and_eval_string(self.condition):
-            for child in self.children_task:
+            for child in self.children:
                 child.perform_(child)

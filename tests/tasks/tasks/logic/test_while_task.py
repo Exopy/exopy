@@ -12,10 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import pytest
 from multiprocessing import Event
 
 from ecpy.tasks.base_tasks import RootTask
-from ecpy.tasks.tasks_logic.while_task import WhileTask
+from ecpy.tasks.tasks.logic.while_task import WhileTask
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
@@ -54,7 +55,7 @@ class TestWhileTask(object):
         test, traceback = self.task.check(test_instr=True)
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test-cond' == traceback
+        assert 'root/Test-condition' in traceback
 
     def test_perform1(self):
         """Test performing when condition is True.
@@ -63,6 +64,7 @@ class TestWhileTask(object):
         self.task.condition = '{Test_index} < 5'
 
         self.root.database.prepare_for_running()
+        self.root.check()
 
         self.task.perform()
         assert self.check.perform_called == 4
@@ -74,6 +76,7 @@ class TestWhileTask(object):
         self.task.condition = '1 < 0'
 
         self.root.database.prepare_for_running()
+        self.root.check()
 
         self.task.perform()
         assert not self.check.perform_called
@@ -82,13 +85,30 @@ class TestWhileTask(object):
         """Test handling of BreakTask and ContinueTask.
 
         """
+        self.task.condition = 'True'
         self.task.add_child_task(0, BreakTask(name='Break',
                                               condition='True'))
         self.task.add_child_task(0, ContinueTask(name='Continue',
                                                  condition='{Test_index} < 5'))
 
         self.root.database.prepare_for_running()
+        self.root.check()
 
         self.task.perform()
         assert not self.check.perform_called
         assert self.task.get_from_database('Test_index') == 5
+
+    @pytest.mark.timeout(1)
+    def test_perform4(self):
+        """Test handling stopping while iterating.
+
+        """
+        self.task.condition = 'True'
+        stop = lambda t, v: t.root.should_stop.set()
+        self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
+                                              stoppable=False))
+        self.root.check()
+
+        self.task.perform()
+
+        assert self.task.children[0].perform_called == 1

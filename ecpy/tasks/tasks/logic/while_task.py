@@ -15,9 +15,9 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import (Unicode, set_default)
 
 
-from ..base_tasks import ComplexTask
+from ...base_tasks import ComplexTask
 from .loop_exceptions import BreakException, ContinueException
-from ..tools.task_decorator import handle_stop_pause
+from ...tools.decorators import handle_stop_pause
 
 
 class WhileTask(ComplexTask):

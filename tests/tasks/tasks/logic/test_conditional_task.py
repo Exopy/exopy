@@ -27,10 +27,10 @@ class TestConditionTask(object):
 
     def setup(self):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
-        self.task = ConditionalTask(task_name='Test')
+        self.task = ConditionalTask(name='Test')
         self.root.add_child_task(0, self.task)
-        self.check = CheckTask(task_name='check')
-        self.task.add_child_task(1, self.check)
+        self.check = CheckTask(name='check')
+        self.task.add_child_task(0, self.check)
 
     def test_check1(self):
         """Test that everything is ok if condition is evaluable.
@@ -52,7 +52,7 @@ class TestConditionTask(object):
         test, traceback = self.task.check(test_instr=True)
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test-cond' in traceback
+        assert 'root/Test-condition' in traceback
 
     def test_perform1(self):
         """Test performing when condition is True.
@@ -60,6 +60,7 @@ class TestConditionTask(object):
         """
         self.task.condition = 'True'
         self.root.database.prepare_for_running()
+        self.root.check()
 
         self.task.perform()
         assert self.check.perform_called
@@ -70,6 +71,7 @@ class TestConditionTask(object):
         """
         self.task.condition = '1 < 0'
         self.root.database.prepare_for_running()
+        self.root.check()
 
         self.task.perform()
         assert not self.check.perform_called

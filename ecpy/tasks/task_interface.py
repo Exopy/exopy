@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_tb
+from traceback import format_exc
 from atom.api import Atom, ForwardTyped, Instance, Unicode, Dict
 
 from ..utils.atom_util import HasPrefAtom, tagged_members
@@ -43,11 +43,12 @@ class InterfaceableTaskMixin(Atom):
         if a valid interface (real or default one) exists.
 
         """
-        test, traceback = super(InterfaceableTaskMixin, self).check(*args,
-                                                                    **kwargs)
+        test = True
+        traceback = {}
+        err_path = self.path + '/' + self.name
 
         if not self.interface and not hasattr(self, 'i_perform'):
-            traceback[self.name + '_interface'] = 'Missing interface'
+            traceback[err_path + '-interface'] = 'Missing interface'
             return False, traceback
 
         if self.interface:
@@ -55,6 +56,10 @@ class InterfaceableTaskMixin(Atom):
 
             traceback.update(i_traceback)
             test &= i_test
+
+        res = super(InterfaceableTaskMixin, self).check(*args, **kwargs)
+        test &= res[0]
+        traceback.update(res[1])
 
         return test, traceback
 
@@ -219,23 +224,27 @@ class TaskInterface(HasPrefAtom):
         res = True
         traceback = {}
         task = self.task
-        err_path = task.path + '_' + task.name
-        for n, m in tagged_members(self, 'format').items():
+        err_path = task.path + '/' + task.name
+        for n, m in tagged_members(self, 'fmt').items():
             try:
-                task.format_string(getattr(self, n))
+                val = task.format_string(getattr(self, n))
+                if n in self.database_entries:
+                    task.write_in_database(n, val)
             except Exception:
-                if m.metadata['format'] != 'Warn':
+                if m.metadata['fmt'] != 'Warn':
                     res = False
-                msg = 'Failed to format %s : %s' % n, format_tb()
+                msg = 'Failed to format %s : %s' % (n, format_exc())
                 traceback[err_path + '-' + n] = msg
 
-        for n, m in tagged_members(self, 'eval').items():
+        for n, m in tagged_members(self, 'feval').items():
             try:
-                task.format_and_eval_string(getattr(self, n))
+                val = task.format_and_eval_string(getattr(self, n))
+                if n in self.database_entries:
+                    task.write_in_database(n, val)
             except Exception:
-                if m.metadata['format'] != 'Warn':
+                if m.metadata['feval'] != 'Warn':
                     res = False
-                msg = 'Failed to eval %s : %s' % n, format_tb()
+                msg = 'Failed to eval %s : %s' % (n, format_exc())
                 traceback[err_path + '-' + n] = msg
 
         return res, traceback
@@ -281,7 +290,7 @@ class TaskInterface(HasPrefAtom):
 
         """
         interface = cls()
-        interface.update_members_from_preferences(**config)
+        interface.update_members_from_preferences(config)
         return interface
 
     def _default_interface_class(self):

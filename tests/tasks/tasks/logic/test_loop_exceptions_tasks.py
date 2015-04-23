@@ -46,7 +46,7 @@ class TestExceptionTasks(object):
         self.root.add_child_task(0, loop)
         exception_task.condition = 'True'
 
-        test, traceback = self.task.check()
+        test, traceback = exception_task.check()
         assert test
         assert not traceback
 
@@ -60,7 +60,7 @@ class TestExceptionTasks(object):
         exception_task.condition = 'True'
         self.root.add_child_task(0, whil)
 
-        test, traceback = self.task.check()
+        test, traceback = exception_task.check()
         assert test
         assert not traceback
 
@@ -71,21 +71,21 @@ class TestExceptionTasks(object):
         loop = LoopTask(name='Parent')
         loop.add_child_task(0, exception_task)
         exception_task.condition = '*True'
-        self.root.children_task.append(loop)
+        self.root.add_child_task(0, loop)
 
-        test, traceback = self.task.check()
+        test, traceback = exception_task.check()
         assert not test
         assert len(traceback) == 1
-        assert 'root/Parent/Test-cond' in traceback
+        assert 'root/Parent/Test-condition' in traceback
 
     def test_check4(self, exception_task):
         """Test handling a wrong parent type.
 
         """
         self.root.add_child_task(0, exception_task)
-        self.task.condition = 'True'
+        exception_task.condition = 'True'
 
-        test, traceback = self.task.check()
+        test, traceback = exception_task.check()
         assert not test
         assert len(traceback) == 1
         assert 'root/Test-parent' in traceback

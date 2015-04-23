@@ -16,9 +16,9 @@ from atom.api import (Typed, Bool, set_default)
 
 from timeit import default_timer
 
-from ..base_tasks import (SimpleTask, ComplexTask)
-from ..task_interface import InterfaceableTaskMixin
-from ..tools.task_decorator import handle_stop_pause
+from ...base_tasks import (SimpleTask, ComplexTask)
+from ...task_interface import InterfaceableTaskMixin
+from ...tools.decorators import handle_stop_pause
 from .loop_exceptions import BreakException, ContinueException
 
 
@@ -45,16 +45,13 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         """
         test = True
         traceback = {}
-        if not self.interface:
-            traceback[self.name + '_interface'] = 'Missing interface'
-            return False, traceback
+        if self.interface:
+            i_test, i_traceback = self.interface.check(*args, **kwargs)
 
-        i_test, i_traceback = self.interface.check(*args, **kwargs)
+            traceback.update(i_traceback)
+            test &= i_test
 
-        traceback.update(i_traceback)
-        test &= i_test
-
-        c_test, c_traceback = ComplexTask.check(self, *args, **kwargs)
+        c_test, c_traceback = super(LoopTask, self).check(*args, **kwargs)
 
         traceback.update(c_traceback)
         test &= c_test
@@ -184,31 +181,42 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
                 continue
             self.write_in_database('elapsed_time', default_timer()-tic)
 
-#    def _post_setattr_task(self, old, new):
-#        """Keep the database entries in sync with the task member.
-#
-#        """
-#        if old:
-#            if self.has_root:
-#                # XXXX ff
-#                self._child_removed(old)
-#
-#        if change['value'] and c_type != 'delete':
-#            if self.has_root:
-#                self._child_added(change['value'])
-#
-#            aux = self.task_database_entries.copy()
-#            if 'value' in aux:
-#                del aux['value']
-#            self.task_database_entries = aux
-#
-#        else:
-#            if c_type == 'delete' and self.has_root:
-#                self._child_removed(change['value'])
-#
-#            aux = self.task_database_entries.copy()
-#            aux['value'] = 1.0
-#            self.task_database_entries = aux
+    def _post_setattr_task(self, old, new):
+        """Keep the database entries in sync with the task member.
+
+        """
+        if old:
+            if self.has_root:
+                old.unregister_from_database()
+                old.root = None
+                old.parent = None
+
+        if new:
+            if self.has_root:
+                new.depth = self.depth + 1
+                new.database = self.database
+                new.path = self._child_path()
+
+                # Give him its root so that it can proceed to any child
+                # registration it needs to.
+                new.parent = self
+                new.root = self.root
+
+                # Ask the child to register in database
+                new.register_in_database()
+
+            aux = self.database_entries.copy()
+            if 'value' in aux:
+                del aux['value']
+            self.database_entries = aux
+
+        else:
+            aux = self.database_entries.copy()
+            aux['value'] = 1.0
+            self.database_entries = aux
+
+        if self.has_root:
+            self.register_preferences()
 
     def _post_setattr_timing(self, old, new):
         """Keep the database entries in sync with the timing flag.
@@ -217,7 +225,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         if new:
             aux = self.database_entries.copy()
             aux['elapsed_time'] = 1.0
-            self.task_database_entries = aux
+            self.database_entries = aux
         else:
             aux = self.database_entries.copy()
             if 'elapsed_time' in aux:
