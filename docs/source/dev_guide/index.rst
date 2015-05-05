@@ -16,7 +16,5 @@ please refer to its documentation for the specifics of the procedure.
 	:numbered:
 	
 	glossary
-	packages
-	plugin
 	application
 
