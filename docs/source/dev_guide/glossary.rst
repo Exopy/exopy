@@ -1,5 +1,7 @@
 .. _glossary:
 
+.. include:: substitutions.rst
+
 Glossary and principle
 ======================
 
@@ -16,7 +18,7 @@ Application architecture
 ------------------------
 
 At the core of the application stands the workbench which is responsible for 
-handling the registering and un-registering of all plugins. It is through it 
+handling the registering and unregistering of all plugins. It is through it 
 that one can access to a plugin. All plugins can access to the workbench 
 through their 'workbench' attribute.
 
@@ -28,10 +30,10 @@ Structure of a plugin
 ---------------------
 
 A plugin is divided into two parts:
-- a manifest (subclass of enaml.workbench.plugin_manifest.PluginManifest) which
+- a manifest (subclass of |PluginManifest|) which
   is purely declarative and states what functionalities the plugin contribute
   to the application and how its own functionalities can be extended.
-- an active part (subclass of enaml.workbench.plugin.Plugin) which implement
+- an active part (subclass of |Plugin|) which implement
   the logic necessary for the new functionality provided by the plugin (such
   as the handling of the contributions to the plugin functionalities).
   
@@ -41,10 +43,10 @@ contribute new capabilities to existing plugin.
 The manifest of a plugin is written in an enaml file (.enaml). It must be given
 an id (which must be unique and is a dot separated string, ex: 
 'ecpy.app.logging') and can have a two kind of children :
-- ExtensionPoint children are used to declare points to which other plugin can 
+- |ExtensionPoint| children are used to declare points to which other plugin can 
   contribute to extend the plugin capabilities. The extension point needs an 
   id. 
-- Extension children are used to declare contribution to other plugins, they 
+- |Extension| children are used to declare contribution to other plugins, they 
   must have an id and declare to which extension point they are contributing.
   The extension point is the combination of the plugin id and the extension
   point id. The nature of the children of an extension depends on the 
@@ -89,3 +91,5 @@ setup.py file) the following command :
 In development mode, files are not copied to the python site-packages folder
 but python directly looks into the original folder when it needs them, so you 
 can modify them and directly see the result without re-installing anything.
+
+.. _Github: https://github.com/Ecpy
