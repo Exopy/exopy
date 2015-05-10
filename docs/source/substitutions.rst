@@ -31,7 +31,11 @@
 
 .. |EventClose| replace:: :py:class:~enaml.widgets.window.EventClose
 
-.. |EventClose.reject| replace:: :py:class:~enaml.widgets.window.EventClose.reject|
+.. |EventClose.reject| replace:: :py:class:~enaml.widgets.window.EventClose.reject
+
+.. |MenuItem| replace:: :py:class:~enaml.workbench.ui.menu_item.MenuItem
+
+.. |ActionItem| replace:: :py:class:~enaml.workbench.ui.action_item.ActionItem
 
 .. ============================================================================
 .. Ecpy substitutions

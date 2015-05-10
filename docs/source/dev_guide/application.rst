@@ -152,7 +152,7 @@ is straightforward. First your plugin should inherit from
 |HasPreferencesPlugin| and should call the parent class start method in its own
 start method. Second all members which should be saved should be 
 tagged with the 'pref' metadata (use |Member.tag| method). The value of the 
-metadata can be `True` or any of the values presented in :ref: . All value thus
+metadata can be `True` or any of the values presented in :ref: XXXX. All value thus
 tagged are loaded from the preference file if found, and saved when the user
 request to save the preferences. Finally, a |Preferences| object to the 
 'ecpy.app.preferences.plugin' extension point. A single |Preferences| object
@@ -221,13 +221,33 @@ A |RuntimeDependecy| needs:
 - 'collect': a callable to gather all the identified dependencies. (Refer to 
   the API docs for more details).
 
+  
 Customizing logging
 -------------------
 
+By default Ecpy use two logs:
+- a log collecting all levels and directed to a file (in the application folder
+  under logs) and which is rotated daily or every time the application starts.
+- a log collecting INFO log and above and stored in a string with a max of 1000
+  lines. This string is meant to be used for displaying the log in the GUI, and
+  is available from the state of the log plugin ('ecpy.app.logging').
+  
+If you need to add handlers, formatters or filters, you should do so in the 
+|Plugin.start| method of your plugin by calling the corresponding commands
+:ref: XXXX .
 
 
+Contributing to the application interface
+-----------------------------------------
 
-Contributing to the main window menu bar
-----------------------------------------
+Adding entries in the main window menu bar
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Plugins can also add new entries to the menu bar of the application main 
+window. To do so they should contribute |MenuItem| and |ActionItem| to the
+'enaml.workbench.ui' plugin.
 
+Providing new workspaces
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo:: write
