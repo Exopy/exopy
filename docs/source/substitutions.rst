@@ -1,6 +1,6 @@
 ..
    This file holds some common substitutions (mainly for referencing code).
-   to use it add the directive include:: substitutions.rst at the beginning of
+   To use it add the directive include:: substitutions.rst at the beginning of
    the file.
   
 .. ============================================================================  
@@ -12,6 +12,10 @@
 .. |PluginManifest| replace:: :py:class:~enaml.workbench.plugin_manifest.PluginManifest
 
 .. |Plugin| replace:: :py:class:~enaml.workbench.plugin.Plugin
+
+.. |Plugin.start| replace:: :py:meth:~enaml.workbench.plugin.Plugin.start
+
+.. |Plugin.stop| replace:: :py:meth:~enaml.wokbench.plugin.Plugin.stop
 
 .. |ExtensionPoint| replace:: :py:class:~enaml.workbench.extension_point.ExtensionPoint
 
@@ -25,6 +29,9 @@
 
 .. |ExecutionEvent| replace:: :py:class:~enaml.workbench.core.execution_event.ExecutionEvent
 
+.. |EventClose| replace:: :py:class:~enaml.widgets.window.EventClose
+
+.. |EventClose.reject| replace:: :py:class:~enaml.widgets.window.EventClose.reject|
 
 .. ============================================================================
 .. Ecpy substitutions
@@ -35,3 +42,9 @@
 .. |AppClosing| replace:: :py:class:~ecpy.app.app_extensions.AppClosing 
 
 .. |AppClosed| replace:: :py:class:~ecpy.app.app_extensions.AppClosed
+
+.. |BuildDependency| replace:: :py:class:~ecpy.app.dependencies.dependencies.BuildDependency
+
+.. |RuntimeDependecy| replace:: :py:class:~ecpy.app.dependencies.dependencies.RuntimeDependecy
+
+.. |Preferences| replace:: :py:class:~ecpy.app.preferences.preferences.Preferences

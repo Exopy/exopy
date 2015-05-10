@@ -9,6 +9,8 @@ This section will focus on the functionality offered by the plugins
 constituting the core of the Ecpy application and how custom plugin can use
 and or extend those functionalities.
 
+.. contents::
+
 Providing application wide commands and sharing state
 -----------------------------------------------------
 
@@ -82,36 +84,150 @@ relies on three extension points (one for each behaviour) :
 .. note::
 
    The customisation of the start up and exit of the application should only be
-   used for operations not fitting into the |start| and |stop| methods of the
-   plugin. This fits operation that must be performed at application start up 
-   and cannot be deferred to plugin starting, or clean up operations requiring
-   the full application to be active (ie not dependent only on the plugin state
-   )
+   used for operations not fitting into the |Plugin.start| and |Plugin.stop|
+   methods of the plugin. This fits operation that must be performed at 
+   application start up and cannot be deferred to plugin starting, or clean up 
+   operations requiring the full application to be active (ie not dependent 
+   only on the plugin state).
    
 Declaring an AppStartup extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to customize the application start up, you need to contribute an
+|AppStartup| object to the 'ecpy.app.startup' extension point. An |AppStartup|
+must have : 
+- an id which must be unique and can be the id of the plugin but does not have 
+  to.
+- a run attribute which must be a callable taking as single argument the 
+  workbench.
+- a priority, which is an integer specifying when to call this start up.
+
+.. note::
+
+	Start up are called from **lowest** priority value to highest and by their
+	order of discovery if they have the same priority. The default priority is 
+	20.
 
 
 Declaring an AppClosing extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+In order to customize how the application determine whether or not it can exit,
+you need to contribute an |AppClosing| object to the 'ecpy.app.closing' 
+extension point. An |AppClosing| must have : 
+- an id which must be unique and can be the id of the plugin but does not have 
+  to.
+- a validate attribute which must be a callable taking as arguments the 
+  main window instance (from which the workbench can be accessed) and the 
+  |CloseEvent| associated with the attempt to close the application. If the
+  plugin determine that the application should not be closed, it should call
+  the |CloseEvent.reject| method of the |CloseEvent|.
+
 
 Declaring an AppClosed extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to customize the application closing, you need to contribute an
+|AppClosed| object to the 'ecpy.app.closed' extension point. An |AppClosed|
+must have : 
+- an 'id' which must be unique and can be the id of the plugin but does not
+  have to.
+- a 'clean' attribute which must be a callable taking as single argument the 
+  workbench.
+- a priority, which is an integer specifying when to call this start up.
+
+.. note::
+
+	Closed are called from **lowest** priority value to highest and by their 
+	order of discovery if they have the same priority. The default priority is
+	20.
 
    
 Using the built in preferences manager
 --------------------------------------
 
+If any of your plugin need to retain user preferences from one application run
+to the next it should use the built-in preferences management system, which
+is straightforward. First your plugin should inherit from 
+|HasPreferencesPlugin| and should call the parent class start method in its own
+start method. Second all members which should be saved should be 
+tagged with the 'pref' metadata (use |Member.tag| method). The value of the 
+metadata can be `True` or any of the values presented in :ref: . All value thus
+tagged are loaded from the preference file if found, and saved when the user
+request to save the preferences. Finally, a |Preferences| object to the 
+'ecpy.app.preferences.plugin' extension point. A single |Preferences| object
+can be contributed per plugin.
+
+.. note::
+
+	The preferences system saves object by writing their repr to a file so any 
+	object whose repr can be evaluated by literal_eval can be saved (literal_eval
+	is used for security reasons).
+
+A |Preferences| object has the following members :
+- 'auto_save': list of the names of members whose update should trigger an 
+  automatic saving of the preferences.
+- 'edit_view': an enaml Container used to edit the preferences of the plugin.
+  If no such object is conytributed the default templating mechanism presented
+  below is used.
+- 'saving_method': name of the plugin method to use to retrieve the values of 
+  the members which should be saved.
+- 'loading_method': name of the plugin method to use to update the values of 
+  the saved members.
+
+A |Preferences| object can be left blank as the default values are fine most of
+the time. 
+
+Editing preferences object
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo:: write once implemented
 
 
 Declaring dependencies
 ----------------------
 
+When loading and transferring complex object over the network Ecpy needs to 
+collect all the base classes needed for reconstructing the object in an
+environment lacking an active workbench. These are considered to be 
+build dependencies. In the same way some resources can be necessary to execute
+some part of the application and need to be queried beforehand to allow the 
+system to run in a situation where the workbench is absent. Those are 
+considered to be run-time dependencies.
+
+If your plugin introduces new object which can, for example, be used in tasks
+either as a build or as a runtime dependency you need to contribute either a
+|BuildDependency| object to the 'ecpy.app.dependencies.build' extension point 
+or a |RuntimeDependecy| object to the 'ecpy.app.dependencies.runtime'
+extension point.
+
+A |BuildDependency| needs:
+- an 'id' which must be unique and can be the id of the plugin but does not
+  have to.
+- 'walk_members': a list of members names for which to looks for when walking a 
+  live object or saved representation of it (''). Those will be used later to 
+  collect the dependencies.
+- 'collect': a callable to gather all the identified dependencies. (Refer to 
+  the API docs for more details).
+
+A |RuntimeDependecy| needs:
+- an 'id' which must be unique and can be the id of the plugin but does not
+  have to.
+- 'walk_members': a list of members names for which to looks for when walking a 
+  live object or saved representation of it. Those will be used later to 
+  collect the dependencies.
+- 'walk_callables': a dict mapping names to callables used to collect the 
+  dependencies. Those will be used later to collect the dependencies.
+- 'collect': a callable to gather all the identified dependencies. (Refer to 
+  the API docs for more details).
 
 Customizing logging
 -------------------
 
 
+
+
 Contributing to the main window menu bar
 ----------------------------------------
+
+
