@@ -1,0 +1,123 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Definition of the base views for the tasks.
+
+If need be one can inherit from an enamldef class to build a new class using
+class.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from operator import attrgetter
+
+from enaml.widgets.api import GroupBox, Stack, StackItem
+from enaml.core.api import d_, d_func
+
+from .tools.task_editor import TaskEditor, FoldingTaskEditor
+
+
+enamldef BaseTaskView(GroupBox):
+    """Base class for all task views.
+
+    """
+    #: Reference to the task edited using this view.
+    attr task
+
+    #: Reference to the root view of the hierarchy.
+    attr root
+
+    func refresh():
+        """Ensure that the view will be displayed properly.
+
+        This methods should be called after reparenting a view.
+
+        """
+        self.show()
+
+    title << task.name
+
+
+enamldef ComplexTaskView(BaseTaskView):
+    """View for complex tasks.
+
+    """
+    func refresh():
+        """Ensure that all children tasks are also properly displayed.
+
+        """
+        self.show()
+        if stack.index == 0:
+            editor.refresh()
+
+    FoldingTaskEditor: editor:
+        task = task
+        root = root
+
+
+enamldef RootTaskView(BaseTaskView):
+    """Special view for the root task.
+
+    This view must always exists as it is responsible for managing the views
+    for the whole hierarchy.
+
+    """
+    #: Reference to the core plugin of the application.
+    attr core
+
+    func refresh():
+        """Ensure that all children tasks are also properly displayed.
+
+        """
+        self.show()
+        editor.refresh()
+
+    func view_for(task):
+        """Create a widget for the specified view.
+
+        The view is initialized but given no parent.
+
+        """
+        if task not in _cache:
+            cmd = 'ecpy.task.get_task_view'
+            view_cls = core.invoke_command(cmd, {'task': type(task).__name__})
+            _cache[task] = view_cls(task=task, root=self)
+
+        return _cache[task]
+
+
+    func discard_view(task):
+        """Take care of destroying the view associated with a given task.
+
+        """
+        try:
+            view = _cache.pop(task)
+            view.destroy()
+        except KeyError:
+            pass
+
+    destroyed::
+        # When this view is destroyed it must destroy all the view in the cache
+        # Do it by depth order to always destroy the parent first, should allow
+        # to speed up a bit the process.
+        tasks = sorted(_cache, attrgetter('depth'))
+        for t in tasks:
+            view = _cache[task]
+            if not view.is_destroyed:
+                view.destroy()
+
+    TaskEditor: editor:
+        task = task
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Dictionary used to store the view associated with each task.
+    attr _cache

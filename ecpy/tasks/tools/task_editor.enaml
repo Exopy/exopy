@@ -1,0 +1,305 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget used to edit a list of tasks.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from itertools import chain
+from functools import partial
+
+from atom.api import Typed, Unicode, Constant, Bool, Value
+from enaml.core.declarative import d_
+from enaml.widgets.api import Container, Stack, StackItem
+
+from .base_tasks import ComplexTask
+from ..utils.widgets.list_editor import PopupListMenu
+from ..utils.container_change import ContainerChange
+
+
+enamldef TaskEditorButton(PushButton):
+    """A push button displayed on the right of a task in the editor.
+
+    This button generates a popup menu which is used to add, move and remove
+    task directly from the editor.
+
+    """
+    #: Refrence to the task this button is linked to.
+    attr task
+
+    #: Reference to the editor.
+    attr editor
+
+    clicked::
+        items = editor.task.children
+        popup = PopupListMenu(self, model=items, index=items.index(task),
+                              operations=editor.operations)
+        popup.popup()
+
+    constraints = [width == 15, height == 20]
+    font = 'bold 12pt Consolas'
+    text = '>'
+
+
+enamldef EmptyEditorButton(PushButton):
+    """Button displayed when the edited list of task is empty.
+
+    """
+    #: Reference to the editor using this button
+    attr editor
+
+    text = 'Add a first task'
+
+    clicked::
+        pass
+
+
+class TaskEditor(Container):
+    """Custom container used to edit a list of tasks.
+
+    """
+    #: Reference to the task whose children are edited.
+    task = d_(Typed(ComplexTask))
+
+    #: Reference to the root view of the hierarchy.
+    root = d_(Value())
+
+    #: Dictionary of operations used by to alter the children member list.
+    operations = Constant()
+
+
+    def refresh(self):
+        """Ensure that all child views are visible and correctly parented.
+
+        """
+        self._relayout_requested = False
+        self._no_relayout = True
+        for _, view in self._children.values():
+            view.set_parent(self)
+            view.refresh()
+        self._no_relayout = False
+        if self._relayout_requested:
+            self.request_relayout()
+
+    def layout_constraints(self):
+        """Build the constraints based on the children member order.
+
+        """
+        items = self.task.children
+        if items:
+            children = self._children
+            rows = [children[o] for o in items]
+            return [grid(*rows, row_align='top')]
+        else:
+            return [vbox(*self.visible_widgets())]
+
+    def initialize(self):
+        """Overridden initializer to setup member observers.
+
+        """
+        # Populate the container.
+        self._populate()
+
+        super(Container, self).initialize()
+
+        task.observe('children', self._update_views)
+        task.observe('children_changed', self._update_views)
+
+    def destroy(self):
+        """Overriden destroyer to remove observers.
+
+        """
+        task.unobserve('children', self._update_views)
+        task.unobserve('children_changed', self._update_views)
+        super(Container, self).destroy()
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Dictionary mappping the tasks found in children_member to the pair
+    #: button view used to edit them.
+    _children = Dict()
+
+    #: Flag preventing relayout. Used to avoid multiple relayouts during
+    #: refreshing
+    _no_relayout = Bool()
+
+    #: Flag signaling that a refreshing led to a relayout request.
+    _relayout_requested = Bool()
+
+    #: Push button used when no item exists.
+    _empty_button = Typed(EmptyEditorButton)
+
+    def _populate(self):
+        """Populate the container based on the children_member.
+
+        """
+        items = self.task.children
+        if items:
+            for i in items:
+                button = TaskEditorButton(task=i, editor=self)
+                view = self.root.view_for(i)
+                self._children[i] = (button, view)
+
+            self.insert_children(None, chain(self._children.values()))
+
+        else:
+            self._empty_button.set_parent(self)
+            self._empty_button.show()
+
+    def _update_views(self, change, root=True):
+        """Handler updating as needed the views when the children_member is
+        updated.
+
+        Parameters
+        ----------
+        change : dict or `ContainerChange`
+            Payload of the received notification.
+
+        root : bool, optional
+            Flag indicating whether or not this is the root call or a recursive
+            one.
+
+        """
+        if isinstance(change, ContainerChange):
+
+            obj = change.obj
+            name = change.name
+
+            if change.collapsed:
+                for ch in change.collapsed:
+                    self._update_views(ch, False)
+
+            elif change.added:
+
+                # Add all of the children that were added:
+                for index, child in change.added:
+                    self._add_view(child)
+
+            elif change.removed:
+                # Remove all of the children that were deleted:
+                nodes = self._nodes_for(nid)
+                for _, task in change.removed:
+                    self._remove_view(task)
+
+            elif change.moved and root:
+                # Simply need to relayout.
+                self.request_relayout()
+
+            if root:
+                # Make sure the _empty_button is correctly parented.
+                if self.items:
+                    self._empty_button.set_parent(None)
+                else:
+                    self._empty_button.set_parent(self)
+                    self._empty_button.show()
+
+        else:
+            # The whole member was replaced so we can just forget about its
+            # previous state. The root view is also observing this it will take
+            # care of discarding the views that need to be discarded.
+
+            # First we destroy all the buttons.
+            for b, _ in self._children.values():
+                b.destroy()
+
+            self._empty_button.set_parent(None)
+
+            # Next we repopulate the container.
+            self._populate()
+
+    def _add_view(self, task):
+        """Add a view for the specified task.
+
+        """
+        button = TaskEditorButton(task=i, editor=self)
+        view = self.root.view_for(task)
+        self._children[task] = (button, view)
+
+        button.set_parent(self)
+        view.set_parent(self)
+
+    def _remove_view(self, task):
+        """Remove the view associated with a task.
+
+        """
+        button, view = self._children.pop(task)
+        button.destroy()
+        self.root.discard_view(task)
+
+    def _default_operations(self):
+        """Build the operations dictionary used by the popup menu.
+
+        """
+        def add(index, position):
+            """Handler for the add entry of the menu.
+
+            """
+            task = self.root.get_new_task()
+            if task:
+                if position == 'after':
+                    index += 1
+                self.task.add_child_task(index, task)
+
+        def move(old, new):
+            """Handler for the move entries of the menu.
+
+            """
+            self.task.move_child_task(old, new)
+
+        def remove(self, index):
+            """Handler for the remove entry of the menu.
+
+            """
+            self.task.remove_child_task(index)
+
+        return {'add': add, 'move': move, 'remove': remove}
+
+    def _default__empty_button(self):
+        """
+        """
+        return EmptyEditorButton(editor=editor)
+
+
+enamldef FoldingTaskEditor(Container):
+    """Task editor which can be masked.
+
+    """
+    #: Direct access to the task of the underlying editor.
+    alias task: editor.task
+
+    #: Direct access to the root of the underlying editor.
+    alias root : editor.root
+
+    func refresh():
+        if stack.index == 0:
+            editor.referesh()
+
+    PushButton:
+        text = '-'
+        constraints = [height == 5]
+        clicked ::
+            ind = int(not stack.index)
+            stack.index = ind
+            self.text = '+' if ind else '-'
+
+    Stack: stack:
+        size_hint_mode = 'current'
+
+        StackItem:
+            TaskEditor: editor:
+                pass
+
+        StackItem:
+            Container:
+                Label:
+                    text = 'Folded'
+
