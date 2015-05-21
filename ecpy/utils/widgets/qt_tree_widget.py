@@ -229,7 +229,10 @@ class QtTreeWidget(RawWidget):
         """
         if not tree:
             tree = self.get_widget()
+
+        self._guard ^= INDEX_GUARD
         tree.clear()
+        self._guard ^= INDEX_GUARD
 
         self._map = {}
 
@@ -245,9 +248,8 @@ class QtTreeWidget(RawWidget):
             self._set_node_data(nid, (False, node, obj))
             if self.hide_root or self._has_children(node, obj):
                 self._expand_node(nid)
-                if not self.hide_root:
-                    nid.setExpanded(True)
-                    tree.setCurrentItem(nid)
+            if not self.hide_root:
+                nid.setExpanded(True)
             self._expand_levels(nid, self.auto_expand, False)
 
         ncolumns = tree.columnCount()
@@ -828,7 +830,7 @@ class QtTreeWidget(RawWidget):
                 if expanded:
                     # Remove all of the children that were deleted:
                     nodes = self._nodes_for(nid)
-                    for i in [ind for ind, _ in change.removed]:
+                    for i, _ in change.removed:
                         self._delete_node(nodes[i])
 
                 # Try to expand the node (if requested):
