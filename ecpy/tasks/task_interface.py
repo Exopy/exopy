@@ -13,28 +13,20 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from traceback import format_exc
-from atom.api import Atom, ForwardTyped, Instance, Unicode, Dict
+from atom.api import Atom, ForwardTyped, Typed, Unicode, Dict, Property
 
 from ..utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
 
 
-class InterfaceableTaskMixin(Atom):
-    """Mixin class for defining a task using interfaces.
+class InterfaceableMixin(Atom):
+    """Base class for mixin used to fabricate interfaceable task or interface.
 
-    When defining a new interfaceablke task this mixin should always be the
-    letf most class when defining the inheritance. This is due to the Python
-    Method Resolution Order (mro) and the fact that this mixin must override
-    methods defined in tasks.
-    ex : MyTaskI(InterfaceableTaskMixin, MyTask):
-
-    InterfaceableTaskMixin must appear a single time in the mro. This is
-    checked by the manager at loading time.
-
+    This class should not be used directly, use one of its subclass.
 
     """
     #: A reference to the current interface for the task.
-    interface = ForwardTyped(lambda: TaskInterface)
+    interface = ForwardTyped(lambda: BaseInterface)
 
     def check(self, *args, **kwargs):
         """ Check the interface.
@@ -45,7 +37,7 @@ class InterfaceableTaskMixin(Atom):
         """
         test = True
         traceback = {}
-        err_path = self.path + '/' + self.name
+        err_path = self.get_error_path()
 
         if not self.interface and not hasattr(self, 'i_perform'):
             traceback[err_path + '-interface'] = 'Missing interface'
@@ -57,10 +49,9 @@ class InterfaceableTaskMixin(Atom):
             traceback.update(i_traceback)
             test &= i_test
 
-        res = super(InterfaceableTaskMixin, self).check(*args, **kwargs)
+        res = super(InterfaceableMixin, self).check(*args, **kwargs)
         test &= res[0]
         traceback.update(res[1])
-
         return test, traceback
 
     def perform(self, *args, **kwargs):
@@ -99,45 +90,18 @@ class InterfaceableTaskMixin(Atom):
 
         Returns
         -------
-        infos : dict
-            Dict holding all the answers for the specified members and
-            callables.
+        infos : list
+            List holding the main object and its interface answers
 
         """
         # I assume the interface does not override any task member.
         # For the callables only the not None answer will be updated.
-        ancestors = type(self).mro()
-        i = ancestors.index(InterfaceableTaskMixin)
-        answers = ancestors[i + 1].answer(self, members, callables)
+        answers = super(InterfaceableMixin, self).answer(members, callables)
 
         if self.interface:
             interface_answers = self.interface.answer(members, callables)
-            answers.update(interface_answers)
-        return answers
 
-    def register_preferences(self):
-        """Register the task preferences into the preferences system.
-
-        """
-        ancestors = type(self).mro()
-        i = ancestors.index(InterfaceableTaskMixin)
-        ancestors[i + 1].register_preferences(self)
-
-        if self.interface:
-            prefs = self.interface.preferences_from_members()
-            self.preferences['interface'] = prefs
-
-    def update_preferences_from_members(self):
-        """Update the values stored in the preference system.
-
-        """
-        ancestors = type(self).mro()
-        i = ancestors.index(InterfaceableTaskMixin)
-        ancestors[i + 1].update_preferences_from_members(self)
-
-        if self.interface:
-            prefs = self.interface.preferences_from_members()
-            self.preferences['interface'] = prefs
+        return [answers, interface_answers]
 
     @classmethod
     def build_from_config(cls, config, dependencies):
@@ -159,18 +123,59 @@ class InterfaceableTaskMixin(Atom):
             Newly built task.
 
         """
-        ancestors = cls.mro()
-        i = ancestors.index(InterfaceableTaskMixin)
-        builder = ancestors[i + 1].build_from_config.__func__
-        task = builder(cls, config, dependencies)
+        new = super(InterfaceableMixin, cls).build_from_config(config,
+                                                               dependencies)
 
         if 'interface' in config:
             inter_class_name = config['interface'].pop('interface_class')
             inter_class = dependencies['interfaces'][inter_class_name]
-            task.interface = inter_class.build_from_config(config['interface'],
-                                                           dependencies)
+            new.interface = inter_class.build_from_config(config['interface'],
+                                                          dependencies)
 
-        return task
+        return new
+
+    def get_error_path(self):
+        """Build the path to use when reporting errors during checks.
+
+        """
+        raise NotImplementedError()
+
+
+class InterfaceableTaskMixin(InterfaceableMixin):
+    """Mixin class for defining a task using interfaces.
+
+    When defining a new interfaceable task this mixin should always be the
+    letf most class when defining the inheritance. This is due to the Python
+    Method Resolution Order (mro) and the fact that this mixin must override
+    methods defined in tasks.
+    ex : MyTaskI(InterfaceableTaskMixin, MyTask):
+
+    """
+    def register_preferences(self):
+        """Register the task preferences into the preferences system.
+
+        """
+        super(InterfaceableTaskMixin, self).register_preferences()
+
+        if self.interface:
+            prefs = self.interface.preferences_from_members()
+            self.preferences['interface'] = prefs
+
+    def update_preferences_from_members(self):
+        """Update the values stored in the preference system.
+
+        """
+        super(InterfaceableTaskMixin, self).update_preferences_from_members()
+
+        if self.interface:
+            prefs = self.interface.preferences_from_members()
+            self.preferences['interface'] = prefs
+
+    def get_error_path(self):
+        """Build the path to use when reporting errors during checks.
+
+        """
+        return self.path + '/' + self.name
 
     def _post_setattr_interface(self, old, new):
         """ Observer ensuring the interface always has a valid ref to the task
@@ -188,24 +193,83 @@ class InterfaceableTaskMixin(Atom):
         if new:
             inter = new
             inter.task = self
+            if isinstance(inter, InterfaceableInterfaceMixin):
+                inter._post_setattr_interface(None, inter.interface)
             for entry, value in inter.database_entries.iteritems():
                 new_entries[entry] = value
 
         self.database_entries = new_entries
 
 
-class TaskInterface(HasPrefAtom):
-    """Base class to use when writing a task interface.
+class InterfaceableInterfaceMixin(InterfaceableMixin):
+    """Mixin class for defining an interface using interfaces.
+
+    When defining a new interfaceable task this mixin should always be the
+    letf most class when defining the inheritance. This is due to the Python
+    Method Resolution Order (mro) and the fact that this mixin must override
+    methods defined in tasks.
+    ex : MyInterface(InterfaceableTaskMixin, Interface):
+
+    """
+    def get_error_path(self):
+        """Build the path to use when reporting errors during checks.
+
+        """
+        try:
+            return self.parent.get_error_path() + '/' + type(self).__name__
+        except AttributeError:
+            return '/'.join((self.task.path, self.task.name,
+                             type(self).__name__))
+
+    def preferences_from_members(self):
+        """Update the values stored in the preference system.
+
+        """
+        prefs = super(InterfaceableInterfaceMixin,
+                      self).preferences_from_members()
+
+        if self.interface:
+            i_prefs = self.interface.preferences_from_members()
+            prefs['interface'] = i_prefs
+
+        return prefs
+
+    def _post_setattr_interface(self, old, new):
+        """ Observer ensuring the interface always has a valid ref to the
+        parent interface and that the interface database entries are added to
+        the task one.
+
+        """
+        # XXXX Workaround Atom _DictProxy issue.
+        task = self.task
+        if task:
+            new_entries = dict(task.database_entries)
+            if old:
+                inter = old
+                inter.parent = None
+                for entry in inter.database_entries:
+                    new_entries.pop(entry, None)
+
+            if new:
+                inter = new
+                inter.parent = self
+                for entry, value in inter.database_entries.iteritems():
+                    new_entries[entry] = value
+
+            task.database_entries = new_entries
+
+
+class BaseInterface(HasPrefAtom):
+    """Base class to use for interfaces.
 
     The interface should not re-use member names used by the task to avoid
     issue when walking.
 
+    This class should not be used directly, use one of its subclass.
+
     """
     #: Class attribute indicating whether this interface has views or not.
     has_view = False
-
-    #: A reference to which this interface is linked.
-    task = Instance(BaseTask)
 
     #: Name of the class of the interface. Used for persistence purposes.
     interface_class = Unicode().tag(pref=True)
@@ -250,8 +314,7 @@ class TaskInterface(HasPrefAtom):
         return res, traceback
 
     def perform(self, *args, **kwargs):
-        """Method called by the perform method defined on the
-        InterfaceableTaskMixin class.
+        """Method called by the parent perform method.
 
         """
         raise NotImplementedError()
@@ -278,9 +341,6 @@ class TaskInterface(HasPrefAtom):
         """
         answers = {m: getattr(self, m, None) for m in members}
         answers.update({k: c(self) for k, c in callables.iteritems()})
-        for key, val in answers.copy().iteritems():
-            if val is None:
-                del answers[key]
 
         return answers
 
@@ -298,3 +358,32 @@ class TaskInterface(HasPrefAtom):
 
         """
         return type(self).__name__
+
+
+class TaskInterface(BaseInterface):
+    """Base class to use when writing a task interface.
+
+    The interface should not re-use member names used by the task to avoid
+    issue when walking.
+
+    """
+    #: A reference to the task to which this interface is linked.
+    task = Typed(BaseTask)
+
+
+class IInterface(BaseInterface):
+    """Base class to use when writing an interface interface.
+
+    The interface should not re-use member names used by the task or parent
+    interfaces to avoid issue when walking.
+
+    """
+    #: A reference to the parent interface to which this interface is linked.
+    parent = Typed(BaseInterface)
+
+    #: Direct access to the task, which acts as a root parent.
+    task = Property(cached=True)
+
+    @task.getter
+    def _get_task(self):
+        return self.parent.task

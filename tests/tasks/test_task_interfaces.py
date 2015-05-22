@@ -15,14 +15,15 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Bool, Unicode, set_default
 
 from ecpy.tasks.base_tasks import ComplexTask, RootTask
-from ecpy.tasks.task_interface import InterfaceableTaskMixin, TaskInterface
+from ecpy.tasks.task_interface import (InterfaceableTaskMixin, TaskInterface,
+                                       InterfaceableInterfaceMixin, IInterface)
 
 
 class InterfaceTest(TaskInterface):
     """Base task interface for testing purposes.
 
     """
-    #: Control falg for the check method.
+    #: Control flag for the check method.
     answer = Bool()
 
     #: Flag indicating whether or not the check method was called.
@@ -44,6 +45,62 @@ class InterfaceTest(TaskInterface):
 
 class InterfaceTest2(TaskInterface):
     """Subclass with a different default value for the database entry.
+
+    """
+    #: Member to test auto formatting of tagged members.
+    fmt = Unicode().tag(fmt=True)
+
+    #: Member to test auto evaluation of tagged members.
+    feval = Unicode().tag(feval=True)
+
+    database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
+
+
+class InterfaceTest3(InterfaceableInterfaceMixin, TaskInterface):
+    """Interfaceable interface
+
+    """
+
+    database_entries = set_default({'test': 2.0})
+
+
+class InterfaceTest4(InterfaceableInterfaceMixin, TaskInterface):
+    """Interfaceable interface with default interface.
+
+    """
+
+    database_entries = set_default({'test': 2.0})
+
+    def i_perform(self):
+        self.task.write_in_database('test', 3.0)
+
+
+class IIinterfaceTest1(IInterface):
+    """Base IInterface for testing.
+
+    """
+    #: Control flag for the check method.
+    answer = Bool()
+
+    #: Flag indicating whether or not the check method was called.
+    called = Bool()
+
+    database_entries = set_default({'itest': 1.0})
+
+    def check(self, *args, **kwargs):
+        self.called = True
+
+        if self.answer:
+            return True, {}
+        else:
+            return False, {'i': 0}
+
+    def perform(self):
+        self.task.write_in_database('itest', 2.0)
+
+
+class IIinterfaceTest2(IInterface):
+    """Base IInterface for testing.
 
     """
     #: Member to test auto formatting of tagged members.
@@ -204,7 +261,7 @@ class TestInterfaceableTaskMixin(object):
         assert type(bis.children[0]).__name__ == 'IMixin'
 
     def test_build_from_config2(self):
-        """Test building a interfaceable task with no interface from a config.
+        """Test building a interfaceable task with an interface from a config.
 
         """
         self.mixin.interface = InterfaceTest(answer=True)
@@ -225,6 +282,188 @@ class TestInterfaceableTaskMixin(object):
 
         w = self.mixin.answer(['task_class', 'interface_class'],
                               {'has_fmt': lambda t: hasattr(t, 'fmt')})
-        assert w == {'task_class': 'Mixin',
-                     'interface_class': 'InterfaceTest2',
-                     'has_fmt': True}
+        assert w == [{'task_class': 'Mixin',
+                      'interface_class': None,
+                      'has_fmt': False},
+                     {'task_class': None,
+                      'interface_class': 'InterfaceTest2',
+                      'has_fmt': True}]
+
+
+class TestInterfaceableInterfaceMixin(object):
+    """Test the capabilities of task interfaces.
+
+    """
+
+    def setup(self):
+        self.root = RootTask()
+        self.mixin = InterfaceTest3()
+        self.root.add_child_task(0, Mixin(name='Simple', interface=self.mixin))
+
+    def test_interface_observer(self):
+        """Test changing the interface.
+
+        """
+        i1 = IIinterfaceTest1()
+        i2 = IIinterfaceTest2()
+
+        self.mixin.interface = i1
+        assert i1.parent is self.mixin
+        assert i1.task is self.mixin.task
+        assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 1.0}
+
+        self.mixin.interface = i2
+        assert i2.task is self.mixin.task
+        assert i1.parent is None
+        assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 2.0,
+                                                    'fmt': '', 'feval': 0}
+
+    def test_check1(self):
+        """Test running checks when the interface is present.
+
+        """
+        self.mixin.interface = IIinterfaceTest1(answer=True)
+
+        res, traceback = self.mixin.check()
+        assert res
+        assert not traceback
+        assert self.mixin.interface.called
+
+    def test_check2(self):
+        """Test running checks when no interface exist but i_perform is
+        implemented.
+
+        """
+        interface = InterfaceTest4()
+        self.root.children[0].interface = interface
+        res, traceback = interface.check()
+        assert res
+        assert not traceback
+
+    def test_check3(self):
+        """Test handling missing interface.
+
+        """
+        res, traceback = self.mixin.check()
+        assert not res
+        assert traceback
+        assert len(traceback) == 1
+        assert 'root/Simple/InterfaceTest3-interface' in traceback
+
+    def test_check4(self):
+        """Test handling a non-passing test from the interface.
+
+        """
+        self.mixin.interface = IIinterfaceTest1()
+
+        res, traceback = self.mixin.check()
+        assert not res
+        assert len(traceback) == 1
+        assert self.mixin.interface.called
+
+    def test_check5(self):
+        """Check that auto-check of fmt and feavl tagged members works.
+
+        """
+        self.mixin.interface = IIinterfaceTest2(fmt='{Simple_test}',
+                                                feval='2*{Simple_test}')
+
+        res, traceback = self.mixin.check()
+        assert res
+        assert not traceback
+        assert self.root.get_from_database('Simple_fmt') == '2.0'
+        assert self.root.get_from_database('Simple_feval') == 4.0
+
+    def test_check6(self):
+        """Check that auto-check of fmt and feavl handle errors.
+
+        """
+        self.mixin.interface = IIinterfaceTest2(fmt='{Simple_test*}',
+                                                feval='2*{Simple_test}*')
+
+        res, traceback = self.mixin.check()
+        print(traceback)
+        assert not res
+        assert self.root.get_from_database('Simple_fmt') == ''
+        assert self.root.get_from_database('Simple_feval') == 0
+        assert len(traceback) == 2
+        assert 'root/Simple-fmt' in traceback
+        assert 'root/Simple-feval' in traceback
+
+    def test_perform1(self):
+        """Test perform does call interface if present.
+
+        """
+        self.mixin.interface = IIinterfaceTest1()
+        self.root.database.prepare_for_running()
+
+        self.mixin.perform()
+        assert self.root.get_from_database('Simple_itest') == 2.0
+
+    def test_perform2(self):
+        """Test perform use i_perform when no interface exists.
+
+        """
+        self.mixin = InterfaceTest4()
+        self.root.children[0].interface = self.mixin
+        self.root.database.prepare_for_running()
+
+        self.mixin.perform()
+        assert self.root.get_from_database('Simple_test') == 3.0
+
+    def test_build_from_config1(self):
+        """Test building a interfaceable interface with no interface from a
+        config.
+
+        """
+        aux = RootTask()
+        mixin = Mixin()
+        mixin.interface = InterfaceTest3()
+        aux.add_child_task(0, mixin)
+        bis = RootTask.build_from_config(aux.preferences,
+                                         {'tasks': {'Mixin': Mixin,
+                                                    'RootTask': RootTask},
+                                          'interfaces': {'InterfaceTest3':
+                                                         InterfaceTest3}})
+        assert type(bis.children[0].interface).__name__ == 'InterfaceTest3'
+
+    def test_build_from_config2(self):
+        """Test building a interfaceable interface with an interface from a
+        config.
+
+        """
+        self.mixin.interface = IIinterfaceTest1(answer=True)
+        self.root.update_preferences_from_members()
+        bis = RootTask.build_from_config(self.root.preferences,
+                                         {'tasks': {'Mixin': Mixin,
+                                                    'RootTask': RootTask},
+                                          'interfaces': {'InterfaceTest3':
+                                                         InterfaceTest3,
+                                                         'IIinterfaceTest1':
+                                                         IIinterfaceTest1}})
+
+        interface = bis.children[0].interface.interface
+        assert type(interface).__name__ == 'IIinterfaceTest1'
+        assert self.root.children[0].database_entries ==\
+            {'test': 2.0, 'itest': 1.0}
+
+    def test_answer(self):
+        """Test walking a task with an interfaceable interface.
+
+        """
+        self.mixin.interface = IIinterfaceTest2()
+
+        task = self.root.children[0]
+        w = task.answer(['task_class', 'interface_class'],
+                        {'has_fmt': lambda t: hasattr(t, 'fmt')})
+        assert w == [{'task_class': 'Mixin',
+                      'interface_class': None,
+                      'has_fmt': False},
+                     [{'task_class': None,
+                       'interface_class': 'InterfaceTest3',
+                       'has_fmt': False},
+                      {'task_class': None,
+                       'interface_class': 'IIinterfaceTest2',
+                       'has_fmt': True}
+                      ]
+                     ]
