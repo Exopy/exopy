@@ -40,8 +40,9 @@ class Declarator(Declarative):
         if not isinstance(self.parent, Declarator):
             return
 
-        if getattr(self.parent, 'group', None):
-            return self.parent.group
+        group = getattr(self.parent, 'group', None)
+        if group:
+            return group
 
         return self.parent.get_group()
 
@@ -90,7 +91,7 @@ class GroupDeclarator(Declarator):
         """
         paths = []
         if isinstance(self.parent, GroupDeclarator):
-            parent_path = self.parent.get_full_path()
+            parent_path = self.parent.get_path()
             if parent_path:
                 paths.append(parent_path)
 
@@ -106,15 +107,16 @@ class GroupDeclarator(Declarator):
         """
         if ':' in self.path:
             msg = 'Path cannot contain ":", issue in {} (path {}, group {})'
-            traceback['Error %' % len(traceback)] = msg.format(type(self),
-                                                               self.path,
-                                                               self.group)
+            traceback['Error %s' % len(traceback)] = msg.format(type(self),
+                                                                self.path,
+                                                                self.group)
             return
 
         for ch in self.children:
             if not isinstance(ch, Declarator):
                 msg = 'All children of GroupDeclarator must be Declarator, got'
-                raise TypeError(msg + '%s' % type(ch))
+                traceback['Error %s' % len(traceback)] = msg + '%s' % type(ch)
+                continue
             ch.register(plugin, traceback)
 
     def unregister(self, plugin):
@@ -122,7 +124,5 @@ class GroupDeclarator(Declarator):
 
         """
         for ch in self.children:
-            if not isinstance(ch, Declarator):
-                msg = 'All children of GroupDeclarator must be Declarator, got'
-                raise TypeError(msg + '%s' % type(ch))
-            ch.unregister(plugin)
+            if isinstance(ch, Declarator):
+                ch.unregister(plugin)
