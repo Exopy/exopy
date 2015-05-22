@@ -20,7 +20,7 @@ from enaml.core.api import d_
 import enaml
 
 from .base_tasks import BaseTask
-from .task_interface import TaskInterface, InterfaceableTaskMixin
+from .task_interface import TaskInterface
 from ..utils.declarator import Declarator, GroupDeclarator
 
 with enaml.imports():
@@ -115,13 +115,6 @@ class Task(Declarator):
             traceback[task] = msg.format(v_path, view, format_exc())
             return
 
-        if issubclass(self.task_cls, InterfaceableTaskMixin):
-            ancestors = type(self.task_cls).mro()
-            if ancestors.count(InterfaceableTaskMixin) > 1:
-                msg = ('{} cannot inherit multiple times from '
-                       'InterfaceableTaskMixin')
-                traceback[task] = msg.format(self.task_cls.__name__)
-
         if any(not isinstance(i, Interface) for i in self.children):
             msg = 'Only Interface can be declared as Task children not {}'
             for err in self.children:
@@ -183,8 +176,8 @@ class Interface(Declarator):
     #: The path of any parent GroupDeclarator object will be prepended to it.
     views = d_(Value())
 
-    #: Name of the task to which this interface contribute.
-    task = d_(Unicode())
+    #: Name of the task/interface to which this interface contribute.
+    extended = d_(Unicode())
 
     #: Interface class retrieved at registering time.
     interface_cls = Subclass(TaskInterface)
@@ -256,15 +249,29 @@ class Interface(Declarator):
             traceback[interface] = msg.format(v_path, view, format_exc())
             return
 
-        if self.task:
-            task = self.task
+        if self.extended:
+            extended = self.extended
         elif isinstance(self.parent, Task):
-            task = self.parent.task.split(':')[1]
+            extended = self.parent.task.split(':')[1]
+        elif isinstance(self.parent, Interface):
+            extended = self.parent.interface.split(':')[1]
         else:
-            traceback[interface] = 'No task declared for {}'.format(interface)
+            msg = 'No task/interface declared for {}'
+            traceback[interface] = msg.format(interface)
             return
 
-        plugin._interfaces[task].append(self)
+        if any(not isinstance(i, Interface) for i in self.children):
+            msg = 'Only Interface can be declared as Interface children not {}'
+            for err in self.children:
+                if not isinstance(i, Interface):
+                    break
+            traceback[interface] = msg.format(type(err))
+            return
+
+        plugin._interfaces[extended].append(self)
+
+        for i in self.children:
+            i.register(plugin, traceback)
 
     def unregister(self, plugin):
         """Remove itself from the plugin.
