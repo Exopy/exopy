@@ -15,16 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 from importlib import import_module
 from traceback import format_exc
 
-from atom.api import Unicode, List, Value, Subclass
+from atom.api import Unicode, List, Value, Dict
 from enaml.core.api import d_
 import enaml
 
-from .base_tasks import BaseTask
-from .task_interface import TaskInterface
+from .infos import TaskInfos, InterfaceInfos
 from ..utils.declarator import Declarator, GroupDeclarator
-
-with enaml.imports():
-    from .base_views import BaseTaskView
 
 
 class Tasks(GroupDeclarator):
@@ -41,7 +37,9 @@ class Task(Declarator):
 
     """
     #: Path to the task object. Path should be dot separated and the class
-    #: name preceded by ':'.
+    #: name preceded by ':'. If only the task name is provided it will be used
+    #: to update the corresponding TaskInfos (only instruments and interfaces
+    #: can be updated that way).
     #: ex: ecpy.tasks.tasks.logic.loop_task:LoopTask
     #: The path of any parent GroupDeclarator object will be prepended to it.
     task = d_(Unicode())
@@ -50,19 +48,31 @@ class Task(Declarator):
     #: The path of any parent GroupDeclarator object will be prepended to it.
     view = d_(Unicode())
 
-    #: Task class retrieved at registering time.
-    task_cls = Subclass(BaseTask)
+    #: Metadata associated to the task. ex : loopable = True
+    metadata = d_(Dict())
 
-    #: View class retrieved at registering time.
-    view_cls = Subclass(BaseTaskView)
+    #: List of supported driver names.
+    instruments = d_(List())
 
     def register(self, plugin, traceback):
-        """Collect task and view and add itself to the plugin.
+        """Collect task and view and add infos to the plugin.
 
         The group declared by a parent if any is taken into account. All
         Interface children are also registered.
 
         """
+        # If the task only specifies a name update the matching infos.
+        if ':' not in self.task:
+            if self.task not in plugin._tasks:
+                plugin._delayed = self
+                return
+
+            plugin._tasks[self.task].instruments.update(self.instruments)
+            for i in self.children:
+                i.register(plugin, traceback)
+            return
+
+        # Determine the path to the task and view.
         path = self.get_path()
         try:
             t_path, task = (path + '.' + self.task
@@ -81,7 +91,8 @@ class Task(Declarator):
             traceback[err_id] = msg
             return
 
-        if plugin.task_exists(task) or task in traceback:
+        # Check that the view does not already exist.
+        if task in plugin._tasks or task in traceback:
             i = 1
             while True:
                 err_id = '%s_duplicate%d' % (task, i)
@@ -92,8 +103,11 @@ class Task(Declarator):
             traceback[err_id] = msg.format(task, t_path)
             return
 
+        infos = TaskInfos(metadata=self.metadata, instruments=self.instruments)
+
+        # Get the task class.
         try:
-            self.task_cls = getattr(import_module(t_path), task)
+            infos.cls = getattr(import_module(t_path), task)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
             traceback[task] = msg.format(t_path, format_exc())
@@ -103,9 +117,10 @@ class Task(Declarator):
             traceback[task] = msg.format(t_path, task, format_exc())
             return
 
+        # Get the task view.
         try:
             with enaml.imports():
-                self.view_cls = getattr(import_module(v_path), view)
+                infos.view = getattr(import_module(v_path), view)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
             traceback[task] = msg.format(v_path, format_exc())
@@ -115,6 +130,7 @@ class Task(Declarator):
             traceback[task] = msg.format(v_path, view, format_exc())
             return
 
+        # Check children type.
         if any(not isinstance(i, Interface) for i in self.children):
             msg = 'Only Interface can be declared as Task children not {}'
             for err in self.children:
@@ -123,31 +139,36 @@ class Task(Declarator):
             traceback[task] = msg.format(type(err))
             return
 
-        plugin._tasks[self.get_group()][task] = self
+        # Add group and add to plugin
+        infos.metadata['group'] = self.get_group()
+        plugin._tasks[task] = infos
 
+        # Register children.
         for i in self.children:
             i.register(plugin, traceback)
 
     def unregister(self, plugin):
-        """Remove itself from the plugin.
+        """Remove contributed infos from the plugin.
 
         """
+        # Unregister children.
         for i in self.children:
             i.unregister(plugin)
+
+        # If we were just extending the task, clean instruments.
+        if ':' not in self.task:
+            if self.task in plugin._tasks:
+                infos = plugin._tasks[self.task]
+                infos.instruments = [i for i in infos.instruments
+                                     if i not in self.instruments]
+            return
+
+        # Remove infos.
+        task = self.task.split(':')[1]
         try:
-            del plugin._tasks[self.get_group()][self.task_cls.__name__]
-            del self.task_cls
-            del self.view_cls
+            del plugin._tasks[task]
         except KeyError:
             pass
-
-
-class InstrTask(Task):
-    """Declarator used to contribute a task using instruments.
-
-    """
-    #: List of supported driver names.
-    instrs = List()
 
 
 class Interfaces(GroupDeclarator):
@@ -167,7 +188,8 @@ class Interface(Declarator):
 
     """
     #: Path to the interface object. Path should be dot separated and the class
-    #: name preceded by ':'.
+    #: name preceded by ':'. If only the interface name is provided it will be
+    #: used to update the corresponding InterfaceInfos.
     #: ex: ecpy.tasks.tasks.logic.loop_linspace_interface:LinspaceLoopInterface
     #: The path of any parent GroupDeclarator object will be prepended to it.
     interface = d_(Unicode())
@@ -176,19 +198,57 @@ class Interface(Declarator):
     #: The path of any parent GroupDeclarator object will be prepended to it.
     views = d_(Value())
 
-    #: Name of the task/interface to which this interface contribute.
-    extended = d_(Unicode())
+    #: Name of the task/interfaces to which this interface contribute. If this
+    #: interface contributes to a task then the task name is enough, if it
+    #: contributes to an interface a list with the names of the tasks and all
+    #: intermediate interfaces should be provided.
+    #: When declared as a child of a Task/Interface the names are inferred from
+    #: the parents.
+    extended = d_(List())
 
-    #: Interface class retrieved at registering time.
-    interface_cls = Subclass(TaskInterface)
-
-    #: View classes retrieved at registering time.
-    views_cls = List()
+    #: List of supported driver names.
+    instruments = d_(List())
 
     def register(self, plugin, traceback):
-        """Collect interface and views and add itself to the plugin.
+        """Collect interface and views and add infos to the plugin.
 
         """
+        # Update the extended list if necessary.
+        if self.extended:
+            pass
+        elif isinstance(self.parent, Task):
+            self.extended = [self.parent.task.split(':')[-1]]
+        elif isinstance(self.parent, Interface):
+            parent = self.parent
+            self.extended = parent.extended + [parent.interface.split(':')[-1]]
+        else:
+            msg = 'No task/interface declared for {}'
+            interface = self.interface.split(':')[-1]
+            traceback[interface] = msg.format(interface)
+            return
+
+        # Get access to parent infos.
+        try:
+            parent_infos = plugin._tasks[self.extended[0]]
+            for n in self.extended[1::]:
+                parent_infos = parent_infos.interfaces[n]
+
+        except KeyError:
+            plugin._delayed.append(self)
+            return
+
+        # If the interface only specifies a name update the matching infos.
+        if ':' not in self.interface:
+            if self.interface not in parent_infos.interfaces:
+                plugin._delayed.append(self)
+                return
+            infos = parent_infos.interfaces[self.interface]
+            infos.instruments.update(self.instruments)
+            for i in self.children:
+                i.register(plugin, traceback)
+            return
+
+        # Determine the path to the interface and views.
         path = self.get_path()
         vs = ([self.views] if not isinstance(self.views, (list, tuple))
               else self.views)
@@ -212,7 +272,8 @@ class Interface(Declarator):
             traceback[err_id] = msg
             return
 
-        if plugin.interface_exists(interface) or interface in traceback:
+        # Check that the interface does not already exists.
+        if interface in parent_infos.interfaces or interface in traceback:
             i = 1
             while True:
                 err_id = '%s_duplicate%d' % (interface, i)
@@ -223,8 +284,11 @@ class Interface(Declarator):
             traceback[err_id] = msg.format(interface, i_path)
             return
 
+        infos = InterfaceInfos(instruments=self.instruments)
+
+        # Get the interface class.
         try:
-            self.interface_cls = getattr(import_module(i_path), interface)
+            infos.cls = getattr(import_module(i_path), interface)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
             traceback[interface] = msg.format(i_path, format_exc())
@@ -234,12 +298,13 @@ class Interface(Declarator):
             traceback[interface] = msg.format(i_path, interface, format_exc())
             return
 
+        # Get the views.
         try:
             with enaml.imports():
                 cls = []
                 for v_path, view in views:
                     cls.append(getattr(import_module(v_path), view))
-                self.views_cls = cls
+                infos.views = cls
         except ImportError:
             msg = 'Failed to import {} :\n{}'
             traceback[interface] = msg.format(v_path, format_exc())
@@ -249,17 +314,7 @@ class Interface(Declarator):
             traceback[interface] = msg.format(v_path, view, format_exc())
             return
 
-        if self.extended:
-            extended = self.extended
-        elif isinstance(self.parent, Task):
-            extended = self.parent.task.split(':')[1]
-        elif isinstance(self.parent, Interface):
-            extended = self.parent.interface.split(':')[1]
-        else:
-            msg = 'No task/interface declared for {}'
-            traceback[interface] = msg.format(interface)
-            return
-
+        # Check children type.
         if any(not isinstance(i, Interface) for i in self.children):
             msg = 'Only Interface can be declared as Interface children not {}'
             for err in self.children:
@@ -268,30 +323,35 @@ class Interface(Declarator):
             traceback[interface] = msg.format(type(err))
             return
 
-        plugin._interfaces[extended].append(self)
+        parent_infos.interfaces[interface] = infos
 
         for i in self.children:
             i.register(plugin, traceback)
 
     def unregister(self, plugin):
-        """Remove itself from the plugin.
+        """Remove contributed infos from the plugin.
 
         """
-        if self.task:
-            task = self.task
-        elif isinstance(self.parent, Task):
-            task = self.parent.task.split(':')[1]
         try:
-            del plugin._interface[task][self.interface_cls.__name__]
-            del self.interface_cls
-            del self.views_cls
+            parent_infos = plugin._tasks[self.extended[0]]
+            for n in self.extended[1::]:
+                parent_infos = parent_infos.interfaces[n]
+
+        except KeyError:
+            return
+
+        for i in self.children:
+            i.unregister(plugin)
+
+        interface = self.task.split(':')[-1]
+        if ':' not in interface:
+            if interface in parent_infos.interfaces:
+                infos = parent_infos.interfaces[interface]
+                infos.instruments = [i for i in infos.instruments
+                                     if i not in self.instruments]
+            return
+
+        try:
+            del parent_infos.interfaces[interface]
         except KeyError:
             pass
-
-
-class InstrInterface(Interface):
-    """Declarator used to contribute a task using instruments.
-
-    """
-    #: List of supported driver names.
-    instrs = List()
