@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import re
 
-from atom.api import Unicode
+from atom.api import Unicode, Bool
 from enaml.core.api import Declarative,  d_
 
 
@@ -22,6 +22,9 @@ class Declarator(Declarative):
     """Base class for extension object which uses a visitor pattern.
 
     """
+    #: Flag indicating whether the declarator has been successfully registered
+    is_registered = Bool()
+
     def get_path(self):
         """Query from parent the path to use for this declarator.
 
@@ -125,10 +128,15 @@ class GroupDeclarator(Declarator):
                 continue
             ch.register(plugin, traceback)
 
+        self.is_registered = True
+
     def unregister(self, plugin):
         """Unregister all children Declarator.
 
         """
-        for ch in self.children:
-            if isinstance(ch, Declarator):
-                ch.unregister(plugin)
+        if self.is_registered:
+            for ch in self.children:
+                if isinstance(ch, Declarator):
+                    ch.unregister(plugin)
+
+            self.is_registered = False

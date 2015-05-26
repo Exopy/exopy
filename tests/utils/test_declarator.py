@@ -24,11 +24,10 @@ class TestDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 
     """
-    registered = Bool()
     unregistered = Bool()
 
     def register(self, plugin, traceback):
-        self.registered = True
+        self.is_registered = True
 
     def unregister(self, plugin):
         self.unregistered = True
@@ -85,9 +84,9 @@ def test_group_registering1(declarators):
     """
     gr, _, decl = declarators
 
-    assert not decl.registered
+    assert not decl.is_registered
     gr.register(None, {})
-    assert decl.registered
+    assert decl.is_registered
 
     assert not decl.unregistered
     gr.unregister(None)
