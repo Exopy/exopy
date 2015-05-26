@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import re
+
 from atom.api import Unicode
 from enaml.core.api import Declarative,  d_
 
@@ -73,6 +75,9 @@ class Declarator(Declarative):
         raise NotImplementedError()
 
 
+PATH_VALIDATOR = re.compile('^(\.?\w+)*$')
+
+
 class GroupDeclarator(Declarator):
     """Declarator used to group an ensemble of declarator.
 
@@ -105,9 +110,10 @@ class GroupDeclarator(Declarator):
         """Register all children Declarator.
 
         """
-        if ':' in self.path:
-            msg = 'Path cannot contain ":", issue in {} (path {}, group {})'
-            traceback['Error %s' % len(traceback)] = msg.format(type(self),
+        if not PATH_VALIDATOR.match(self.path):
+            msg = 'Invalid path {} in {} (path {}, group {})'
+            traceback['Error %s' % len(traceback)] = msg.format(self.path,
+                                                                type(self),
                                                                 self.path,
                                                                 self.group)
             return

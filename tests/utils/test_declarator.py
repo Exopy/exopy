@@ -79,7 +79,6 @@ def test_group_declarator_group(declarators):
     assert declarators[1].get_group() is None
 
 
-# XXXX test registering unregistering
 def test_group_registering1(declarators):
     """Test group registering, unregistering.
 
@@ -101,7 +100,7 @@ def test_group_registering2(declarators):
     """
     gr, _, _ = declarators
 
-    gr.path = 'foo:'
+    gr.path = 'foo..'
     tb = {}
     gr.register(None, tb)
 
