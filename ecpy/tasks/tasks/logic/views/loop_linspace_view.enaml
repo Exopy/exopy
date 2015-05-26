@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the LinspaceLoopInterface.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, Label, Splitter, SplitItem)
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ....tools.string_evaluation import EVALUATER_TOOLTIP
+
+
+enamldef LinspaceLoopView(Splitter): view:
+    """View for the LinspaceLoopInterface.
+
+    """
+
+    attr interface
+
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_start:
+                text = 'Start'
+            QtLineCompleter: val_start:
+                text := interface.start
+                entries_updater << interface.task.accessible_database_entries
+                tool_tip = EVALUATER_TOOLTIP
+
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_stop:
+                text = 'Stop'
+            QtLineCompleter: val_stop:
+                text := interface.stop
+                entries_updater << interface.task.accessible_database_entries
+                tool_tip = EVALUATER_TOOLTIP
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_step:
+                text = 'Step'
+            QtLineCompleter: val_step:
+                text := interface.step
+                entries_updater << interface.task.accessible_database_entries
+                tool_tip = EVALUATER_TOOLTIP

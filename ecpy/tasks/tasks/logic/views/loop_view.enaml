@@ -1,0 +1,114 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the LoopTask.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.core.api import Include
+from enaml.layout.api import hbox, align, spacer, vbox, grid, factory
+from enaml.widgets.api import (PushButton, Container, Label, Field,
+                                GroupBox, CheckBox, ObjectCombo)
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ....tools.string_evaluation import EVALUATER_TOOLTIP
+from ....base_views import ComplexTaskView
+
+
+def format_name(i_class):
+    """Helper funtion formatting interfaces name for object combo widget.
+
+    """
+    aux = i_class.__name__
+    if aux.endswith('LoopInterface'):
+        aux = aux[:-13]
+    return aux
+
+
+enamldef LoopView(ComplexTaskView): view:
+    """View for the LoopTask.
+
+    This view handles the insertion of the selected interface views.
+
+    """
+
+    layout_constraints => ():
+        children = view.visible_widgets()
+        if self.find('interface_include').objects:
+            i_views = view.find('interface_include').objects
+            i_len = len(i_views)
+            if getattr(i_views[0], 'inline', False):
+                labels = children[:i_len+4:2]
+                vals = children[1:i_len+4:2]
+                return [vbox(grid(labels, vals), *children[i_len+4:])]
+
+            else:
+                c_1 = hbox(children[0], children[1], children[2], children[3],
+                           spacer)
+                return [vbox(c_1, *children[4:]),
+                        align('v_center', children[0], children[1]),
+                        align('v_center', children[1], children[2]),
+                        align('v_center', children[2], children[3])]
+
+        else:
+            c_1 = hbox(children[0], children[1], children[2], children[3],
+                       spacer)
+            return [vbox(c_1, *children[4:])]
+
+    initialized ::
+        # XXXX
+        t = self.task
+        i_include = view.find('interface_include')
+
+        if not t.interface:
+            t.interface = i_select.items[0]()
+
+        i_name = t.interface.interface_class
+
+        cmd = 'hqc_meas.task_manager.interface_views_request'
+        i_views, _ = core.invoke_command(cmd, {'interface_classes':
+                                               [i_name]})
+
+        i_include.objects = [i_view(interface=t.interface)
+                             for i_view in i_views[i_name]]
+
+    Label:
+        text = 'Interface'
+    ObjectCombo: i_select:
+        items << list(root.interfaces_for(task.task_class))
+        to_string = format_name
+        selected << type(task.interface) if task.interface else items[0]
+        selected ::
+            # XXXX
+            i_include = view.find('interface_include')
+            i_include.objects = []
+
+            i_class = change['value']
+            interface = i_class()
+            i_name = interface.interface_class
+            task.interface = interface
+
+            cmd = 'hqc_meas.task_manager.interface_views_request'
+            i_views, _ = core.invoke_command(cmd, {'interface_classes':
+                                                   [i_name]})
+
+            i_include.objects = [i_view(interface=interface)
+                                 for i_view in i_views[i_name]]
+
+    Label:
+        text = 'Timing'
+    CheckBox:
+        checked := task.timing
+
+    Include: interface:
+        name = 'interface_include'
+
+    Include:
+        objects << [root.view_for(task.task)] if task.task else []

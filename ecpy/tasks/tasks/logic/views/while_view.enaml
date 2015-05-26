@@ -1,0 +1,31 @@
+# -*- coding: utf-8 -*-
+# =============================================================================
+# module : while_task_view.py
+# author : Matthieu Dartiailh
+# license : MIT license
+# =============================================================================
+"""View for the WhileTask.
+
+"""
+from enaml.widgets.api import (GroupBox, Label)
+from enaml.layout.api import hbox, vbox
+from inspect import cleandoc
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ....tools.string_evaluation import EVALUATER_TOOLTIP
+from ....base_views import ComplexTaskView
+
+
+enamldef WhileView(ComplexTaskView):
+    """View for the WhileTask.
+
+    """
+
+    constraints = [vbox(hbox(cond_lab, cond_val), editor)]
+
+    Label: cond_lab:
+        text = 'Condition'
+    QtLineCompleter: cond_val:
+        text := task.condition
+        entries_updater << task.accessible_database_entries
+        tool_tip = EVALUATER_TOOLTIP
