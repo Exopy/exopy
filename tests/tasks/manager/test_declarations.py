@@ -207,11 +207,11 @@ def test_unregister_task_decl2(plugin, task_decl):
     task_decl.register(plugin, {})
     plugin._tasks = {}
     task_decl.unregister(plugin)
-    assert not plugin._tasks
+    # Would raise an error if the error was not properly catched.
 
 
 def test_unregister_task_decl3(plugin, task_decl):
-    """Test unregistering a task simply contributing drivers.
+    """Test unregistering a task simply contributing instruments.
 
     """
     plugin._tasks['Task'] = TaskInfos()
@@ -228,8 +228,13 @@ def test_unregister_task_decl3(plugin, task_decl):
 
 @pytest.fixture
 def int_decl():
-    return Interface(interface='ecpy.tasks.base_tasks:RootTask',
-                     views='ecpy.tasks.base_views:RootTaskView')
+    tasks = Tasks(path='ecpy.tasks.tasks.logic')
+    task = Task(task='loop_task:LoopTask', view='views.loop_view:LoopView')
+    tasks.insert_children(None, [task])
+    i = Interface(interface='loop_iterable_interface:IterableLoopInterface',
+                  views=['views.loop_iterable_view:IterableLoopLabel'])
+    task.insert_children(None, [i])
+    return task, i
 
 
 def test_interface_decl1():
@@ -238,77 +243,165 @@ def test_interface_decl1():
     pass
 
 
-def test_interface_decl_missing_ext():
+def test_interface_decl2(plugin, int_decl):
+    """Test handling not yet registered task.
+
+    """
+    tb = {}
+    task, i = int_decl
+    i.interface = 'foo'
+    i.register(plugin, tb)
+    assert plugin._delayed
+
+
+def test_interface_decl_missing_ext(plugin):
     """Test handling missing extended, no parent.
 
     """
-    pass
+    tb = {}
+    Interface(interface='foo:bar').register(plugin, tb)
+    assert 'task/interface ' in tb['bar']
 
 
-def test_interface_decl_path_1():
+def test_interface_decl_path_1(int_decl, plugin):
     """Test handling wrong path : missing ':'.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.interface = 'foo.tt'
+    task.register(plugin, tb)
+    assert 'Error 0' in tb
 
 
-def test_interface_decl_path2():
+def test_interface_decl_path2(int_decl, plugin):
     """Test handling wrong path : too many ':'.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.views = 'foo:bar:foo'
+    task.register(plugin, tb)
+    assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_duplicate1():
+def test_interface_decl_duplicate1(int_decl, plugin):
     """Test handling duplicate : in plugin.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    infos = TaskInfos(interfaces={i.interface.split(':')[-1]: None})
+    plugin._tasks[task.task.split(':')[-1]] = infos
+    i.register(plugin, tb)
+    assert 'IterableLoopInterface_duplicate1' in tb
 
 
-def test_interface_decl_duplicate2():
+def test_interface_decl_duplicate2(int_decl, plugin):
     """Test handling duplicate : in traceback.
 
     """
-    pass
+    tb = {'IterableLoopInterface': ''}
+    task, i = int_decl
+    task.register(plugin, tb)
+    assert 'IterableLoopInterface_duplicate1' in tb
 
 
-def test_interface_decl_cls1():
+def test_interface_decl_cls1(int_decl, plugin):
     """Test handling task class issues : failed import.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.interface = 'foo.bar:baz'
+    task.register(plugin, tb)
+    assert 'baz' in tb
 
 
-def test_interface_decl_cls2():
+def test_interface_decl_cls2(int_decl, plugin):
     """Test handling task class issues : undefined in module.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.interface = 'loop_iterable_interface:baz'
+    task.register(plugin, tb)
+    assert 'baz' in tb
 
 
-def test_interface_decl_view1():
+def test_interface_decl_view1(int_decl, plugin):
     """Test handling view issues : failed import.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.views = 'foo.bar:baz'
+    task.register(plugin, tb)
+    assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_view2():
+def test_interface_decl_view2(int_decl, plugin):
     """Test handling view issues : undefined in module.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.views = 'views.loop_iterable_view:baz'
+    task.register(plugin, tb)
+    assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_children():
+def test_interface_decl_children(int_decl, plugin):
     """Test handling child type issue.
 
     """
-    pass
+    tb = {}
+    task, i = int_decl
+    i.insert_children(None, [Task()])
+    task.register(plugin, tb)
+    assert 'IterableLoopInterface' in tb and\
+        'Interface' in tb['IterableLoopInterface']
 
 
-def test_unregister_interface_decl():
+def test_unregister_interface_decl(int_decl, plugin):
+    """Test unregistering an interface.
+
     """
+    task, i = int_decl
+    task.register(plugin, {})
+    i.unregister(plugin)
+    assert not plugin._tasks['LoopTask'].interfaces
+
+
+def test_unregister_interface_decl2(plugin, int_decl):
+    """Test unregistering an interface for a task which already disappeared.
+
     """
-    pass
+    task, i = int_decl
+    task.register(plugin, {})
+    plugin._tasks = {}
+    i.unregister(plugin)
+    # Would raise an error if the error was not properly catched.
+
+
+def test_unregister_interface_decl3(plugin, int_decl):
+    """Test unregistering an interface which already disappeared.
+
+    """
+    task, i = int_decl
+    task.register(plugin, {})
+    plugin._tasks['LoopTask'].interfaces = {}
+    i.unregister(plugin)
+    # Would raise an error if the error was not properly catched.
+
+#
+#def test_unregister_interface_decl4(plugin, int_decl):
+#    """Test unregistering an interface simply contributing instruments.
+#
+#    """
+#    plugin._tasks['Task'] = TaskInfos()
+#    task_decl.task = 'Task'
+#    task_decl.instruments = ['test']
+#    task_decl.register(plugin, {})
+#    task_decl.unregister(plugin)
+#    assert not plugin._tasks['Task'].instruments

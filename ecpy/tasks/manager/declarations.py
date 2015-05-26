@@ -22,6 +22,8 @@ import enaml
 from .infos import TaskInfos, InterfaceInfos
 from ...utils.declarator import Declarator, GroupDeclarator
 
+# XXXX when importing add except for wrogn type (check exception raise by atom)
+
 
 def check_children(declarator):
     """Make sure that all the children of a declarator are interfaces.
@@ -253,7 +255,6 @@ class Interface(Declarator):
             interface = self.interface.split(':')[-1]
             traceback[interface] = msg.format(interface)
             return
-
         # Get access to parent infos.
         try:
             parent_infos = plugin._tasks[self.extended[0]]
@@ -292,7 +293,9 @@ class Interface(Declarator):
             if path:
                 views = [(path + '.' + v).split(':') for v in vs]
             else:
-                views = [(path + '.' + v).split(':') for v in vs]
+                views = [v.split(':') for v in vs]
+            if any(len(v) != 2 for v in views):
+                raise ValueError()
 
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
@@ -365,28 +368,29 @@ class Interface(Declarator):
         """Remove contributed infos from the plugin.
 
         """
-        try:
-            parent_infos = plugin._tasks[self.extended[0]]
-            for n in self.extended[1::]:
-                parent_infos = parent_infos.interfaces[n]
+        if self.is_registered:
+            try:
+                parent_infos = plugin._tasks[self.extended[0]]
+                for n in self.extended[1::]:
+                    parent_infos = parent_infos.interfaces[n]
 
-        except KeyError:
-            return
+            except KeyError:
+                return
 
-        for i in self.children:
-            i.unregister(plugin)
+            for i in self.children:
+                i.unregister(plugin)
 
-        interface = self.task.split(':')[-1]
-        if ':' not in interface:
-            if interface in parent_infos.interfaces:
-                infos = parent_infos.interfaces[interface]
-                infos.instruments = [i for i in infos.instruments
-                                     if i not in self.instruments]
-            return
+            interface = self.interface.split(':')[-1]
+            if ':' not in self.interface:
+                if interface in parent_infos.interfaces:
+                    infos = parent_infos.interfaces[interface]
+                    infos.instruments = [i for i in infos.instruments
+                                         if i not in self.instruments]
+                return
 
-        try:
-            del parent_infos.interfaces[interface]
-        except KeyError:
-            pass
+            try:
+                del parent_infos.interfaces[interface]
+            except KeyError:
+                pass
 
-        self.is_registered = False
+            self.is_registered = False
