@@ -21,7 +21,7 @@ from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
-from .tools.task_editor import TaskEditor, FoldingTaskEditor
+from .tools.task_editor import TaskEditor, FoldableTaskEditor
 
 
 class _GroupBox(GroupBox):
@@ -57,6 +57,8 @@ enamldef ComplexTaskView(BaseTaskView):
     """View for complex tasks.
 
     """
+    alias editor
+
     refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
@@ -65,7 +67,7 @@ enamldef ComplexTaskView(BaseTaskView):
         if stack.index == 0:
             editor.refresh()
 
-    FoldingTaskEditor: editor:
+    FoldableTaskEditor: editor:
         task = task
         root = root
 
@@ -99,7 +101,6 @@ enamldef RootTaskView(BaseTaskView):
             _cache[task] = view_cls(task=task, root=self)
 
         return _cache[task]
-
 
     func discard_view(task):
         """Take care of destroying the view associated with a given task.

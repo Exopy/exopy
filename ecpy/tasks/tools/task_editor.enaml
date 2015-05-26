@@ -270,7 +270,7 @@ class TaskEditor(Container):
         return EmptyEditorButton(editor=editor)
 
 
-enamldef FoldingTaskEditor(Container):
+enamldef FoldableTaskEditor(Container):
     """Task editor which can be masked.
 
     """
