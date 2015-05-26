@@ -35,7 +35,7 @@ class Declarator(Declarative):
             declared.
 
         """
-        if isinstance(self.parent, GroupDeclarator):
+        if isinstance(self.parent, Declarator):
             return self.parent.get_path()
 
     def get_group(self):
