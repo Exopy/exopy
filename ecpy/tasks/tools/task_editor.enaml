@@ -15,13 +15,13 @@ from __future__ import (division, unicode_literals, print_function,
 from itertools import chain
 from functools import partial
 
-from atom.api import Typed, Unicode, Constant, Bool, Value
-from enaml.core.declarative import d_
-from enaml.widgets.api import Container, Stack, StackItem
+from atom.api import Typed, Unicode, Constant, Bool, Value, Dict
+from enaml.core.declarative import d_, d_func
+from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label
 
-from .base_tasks import ComplexTask
-from ..utils.widgets.list_editor import PopupListMenu
-from ..utils.container_change import ContainerChange
+from ..base_tasks import ComplexTask
+from ...utils.widgets.list_editor import PopupListMenu
+from ...utils.container_change import ContainerChange
 
 
 enamldef TaskEditorButton(PushButton):
@@ -74,7 +74,7 @@ class TaskEditor(Container):
     #: Dictionary of operations used by to alter the children member list.
     operations = Constant()
 
-
+    @d_func
     def refresh(self):
         """Ensure that all child views are visible and correctly parented.
 
@@ -88,6 +88,7 @@ class TaskEditor(Container):
         if self._relayout_requested:
             self.request_relayout()
 
+    @d_func
     def layout_constraints(self):
         """Build the constraints based on the children member order.
 

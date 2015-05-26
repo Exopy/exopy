@@ -17,13 +17,22 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import attrgetter
 
+from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
 from .tools.task_editor import TaskEditor, FoldingTaskEditor
 
 
-enamldef BaseTaskView(GroupBox):
+class _GroupBox(GroupBox):
+    """Overridden just to make destroyed a declarative member.
+
+    """
+
+    destroyed = d_(Event())
+
+
+enamldef BaseTaskView(_GroupBox):
     """Base class for all task views.
 
     """
@@ -48,7 +57,7 @@ enamldef ComplexTaskView(BaseTaskView):
     """View for complex tasks.
 
     """
-    func refresh():
+    refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
         """
@@ -71,7 +80,7 @@ enamldef RootTaskView(BaseTaskView):
     #: Reference to the core plugin of the application.
     attr core
 
-    func refresh():
+    refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
         """
