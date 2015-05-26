@@ -12,14 +12,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, List, Subclass, Dict, Typed
+from atom.api import Atom, List, Subclass, Dict, Coerced
 import enaml
 
-from .base_tasks import BaseTask
-from .task_interface import TaskInterface
+from ..base_tasks import BaseTask
+from ..task_interface import TaskInterface
 
 with enaml.imports():
-    from .base_views import BaseTaskView
+    from ..base_views import BaseTaskView
 
 
 class TaskInfos(Atom):
@@ -40,7 +40,7 @@ class TaskInfos(Atom):
     metadata = Dict()
 
     #: List of instrument supported by this task.
-    instruments = Typed(set, ())
+    instruments = Coerced(set, ())
 
 
 class InterfaceInfos(Atom):
@@ -57,4 +57,4 @@ class InterfaceInfos(Atom):
     interfaces = Dict()
 
     #: List of instrument supported by this task.
-    instruments = Typed(set, ())
+    instruments = Coerced(set, ())

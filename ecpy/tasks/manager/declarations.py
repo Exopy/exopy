@@ -20,7 +20,26 @@ from enaml.core.api import d_
 import enaml
 
 from .infos import TaskInfos, InterfaceInfos
-from ..utils.declarator import Declarator, GroupDeclarator
+from ...utils.declarator import Declarator, GroupDeclarator
+
+
+def check_children(declarator):
+    """Make sure that all the children of a declarator are interfaces.
+
+    Returns
+    -------
+    msg : unicode or None
+        Error message if one wrongly-typed child was found or None
+
+    """
+    # Check children type.
+    if any(not isinstance(i, (Interface, Interfaces))
+           for i in declarator.children):
+        msg = 'Only Interface can be declared as {} children not {}'
+        for err in declarator.children:
+            if not isinstance(err, Interface):
+                break
+        return msg.format(type(declarator).__name__, type(err))
 
 
 class Tasks(GroupDeclarator):
@@ -62,14 +81,20 @@ class Task(Declarator):
 
         """
         # If the task only specifies a name update the matching infos.
-        if ':' not in self.task:
+        if ':' not in self.task and '.' not in self.task:
             if self.task not in plugin._tasks:
-                plugin._delayed = self
+                plugin._delayed.append(self)
                 return
 
             plugin._tasks[self.task].instruments.update(self.instruments)
+            check = check_children(self)
+            if check:
+                traceback[self.task] = check
+                return
+
             for i in self.children:
                 i.register(plugin, traceback)
+            self.is_registered = True
             return
 
         # Determine the path to the task and view.
@@ -91,7 +116,7 @@ class Task(Declarator):
             traceback[err_id] = msg
             return
 
-        # Check that the view does not already exist.
+        # Check that the task does not already exist.
         if task in plugin._tasks or task in traceback:
             i = 1
             while True:
@@ -131,12 +156,9 @@ class Task(Declarator):
             return
 
         # Check children type.
-        if any(not isinstance(i, Interface) for i in self.children):
-            msg = 'Only Interface can be declared as Task children not {}'
-            for err in self.children:
-                if not isinstance(i, Interface):
-                    break
-            traceback[task] = msg.format(type(err))
+        check = check_children(self)
+        if check:
+            traceback[task] = check
             return
 
         # Add group and add to plugin
@@ -147,28 +169,33 @@ class Task(Declarator):
         for i in self.children:
             i.register(plugin, traceback)
 
+        self.is_registered = True
+
     def unregister(self, plugin):
         """Remove contributed infos from the plugin.
 
         """
-        # Unregister children.
-        for i in self.children:
-            i.unregister(plugin)
+        if self.is_registered:
+            # Unregister children.
+            for i in self.children:
+                i.unregister(plugin)
 
-        # If we were just extending the task, clean instruments.
-        if ':' not in self.task:
-            if self.task in plugin._tasks:
-                infos = plugin._tasks[self.task]
-                infos.instruments = [i for i in infos.instruments
-                                     if i not in self.instruments]
-            return
+            # If we were just extending the task, clean instruments.
+            if ':' not in self.task:
+                if self.task in plugin._tasks:
+                    infos = plugin._tasks[self.task]
+                    infos.instruments = [i for i in infos.instruments
+                                         if i not in self.instruments]
+                return
 
-        # Remove infos.
-        task = self.task.split(':')[1]
-        try:
-            del plugin._tasks[task]
-        except KeyError:
-            pass
+            # Remove infos.
+            task = self.task.split(':')[1]
+            try:
+                del plugin._tasks[task]
+            except KeyError:
+                pass
+
+            self.is_registered = False
 
 
 class Interfaces(GroupDeclarator):
@@ -238,14 +265,21 @@ class Interface(Declarator):
             return
 
         # If the interface only specifies a name update the matching infos.
-        if ':' not in self.interface:
+        if ':' not in self.interface and '.' not in self.interface:
             if self.interface not in parent_infos.interfaces:
                 plugin._delayed.append(self)
                 return
             infos = parent_infos.interfaces[self.interface]
             infos.instruments.update(self.instruments)
+
+            check = check_children(self)
+            if check:
+                traceback[self.task] = check
+                return
+
             for i in self.children:
                 i.register(plugin, traceback)
+            self.is_registered = True
             return
 
         # Determine the path to the interface and views.
@@ -315,18 +349,17 @@ class Interface(Declarator):
             return
 
         # Check children type.
-        if any(not isinstance(i, Interface) for i in self.children):
-            msg = 'Only Interface can be declared as Interface children not {}'
-            for err in self.children:
-                if not isinstance(i, Interface):
-                    break
-            traceback[interface] = msg.format(type(err))
+        check = check_children(self)
+        if check:
+            traceback[interface] = check
             return
 
         parent_infos.interfaces[interface] = infos
 
         for i in self.children:
             i.register(plugin, traceback)
+
+        self.is_registered = True
 
     def unregister(self, plugin):
         """Remove contributed infos from the plugin.
@@ -355,3 +388,5 @@ class Interface(Declarator):
             del parent_infos.interfaces[interface]
         except KeyError:
             pass
+
+        self.is_registered = False
