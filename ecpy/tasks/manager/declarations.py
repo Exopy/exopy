@@ -143,6 +143,10 @@ class Task(Declarator):
             msg = '{} has no attribute {}:\n{}'
             traceback[task] = msg.format(t_path, task, format_exc())
             return
+        except TypeError:
+            msg = '{} should a subclass of BaseTask.\n{}'
+            traceback[task] = msg.format(task, format_exc())
+            return
 
         # Get the task view.
         try:
@@ -155,6 +159,10 @@ class Task(Declarator):
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
             traceback[task] = msg.format(v_path, view, format_exc())
+            return
+        except TypeError:
+            msg = '{} view should a subclass of BaseTaskView.\n{}'
+            traceback[task] = msg.format(task, format_exc())
             return
 
         # Check children type.
@@ -275,7 +283,7 @@ class Interface(Declarator):
 
             check = check_children(self)
             if check:
-                traceback[self.task] = check
+                traceback[self.interface] = check
                 return
 
             for i in self.children:
@@ -291,9 +299,9 @@ class Interface(Declarator):
             i_path, interface = (path + '.' + self.interface
                                  if path else self.interface).split(':')
             if path:
-                views = [(path + '.' + v).split(':') for v in vs]
-            else:
-                views = [v.split(':') for v in vs]
+                vs = [path + '.' + v for v in vs]
+
+            views = [v.split(':') for v in vs]
             if any(len(v) != 2 for v in views):
                 raise ValueError()
 
@@ -333,6 +341,10 @@ class Interface(Declarator):
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
             traceback[interface] = msg.format(i_path, interface, format_exc())
+            return
+        except TypeError:
+            msg = 'Interface {} should a subclass of BaseInterface.\n{}'
+            traceback[interface] = msg.format(interface, format_exc())
             return
 
         # Get the views.

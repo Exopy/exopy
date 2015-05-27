@@ -16,8 +16,8 @@ import pytest
 import enaml
 from atom.api import Atom, Dict, List
 
-from ecpy.tasks.manager.infos import TaskInfos
-from ecpy.tasks.manager.declarations import Task, Tasks, Interface, Interfaces
+from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
+from ecpy.tasks.manager.declarations import Task, Tasks, Interface
 
 
 class _DummyPLugin(Atom):
@@ -69,14 +69,6 @@ def test_register_task_decl_extend1(plugin, task_decl):
     task_decl.instruments = ['test']
     task_decl.register(plugin, {})
     assert plugin._tasks['Task'].instruments == set(['test'])
-
-
-def test_register_task_decl_extend2(plugin, task_decl):
-    """Test extending a task by adding interfaces.
-
-    """
-    # XXXX
-    pass
 
 
 def test_register_task_decl_extend3(plugin, task_decl):
@@ -161,6 +153,16 @@ def test_register_task_decl_taskcls2(plugin, task_decl):
     assert 'Task' in tb and 'attribute' in tb['Task']
 
 
+def test_register_task_decl_taskcls3(plugin, task_decl):
+    """Test handling task class issues : wrong type.
+
+    """
+    tb = {}
+    task_decl.task = 'ecpy.tasks.tools.database:TaskDatabase'
+    task_decl.register(plugin, tb)
+    assert 'TaskDatabase' in tb and 'subclass' in tb['TaskDatabase']
+
+
 def test_register_task_decl_view1(plugin, task_decl):
     """Test handling view issues : failed import.
 
@@ -179,6 +181,16 @@ def test_register_task_decl_view2(plugin, task_decl):
     task_decl.view = 'ecpy.tasks.base_views:Task'
     task_decl.register(plugin, tb)
     assert 'RootTask' in tb and 'import' in tb['RootTask']
+
+
+def test_register_task_decl_view3(plugin, task_decl):
+    """Test handling view issues : wrong type.
+
+    """
+    tb = {}
+    task_decl.view = 'ecpy.tasks.tools.database:TaskDatabase'
+    task_decl.register(plugin, tb)
+    assert 'RootTask' in tb and 'subclass' in tb['RootTask']
 
 
 def test_register_task_decl_children(plugin, task_decl):
@@ -237,13 +249,27 @@ def int_decl():
     return task, i
 
 
-def test_interface_decl1():
+def test_interface_decl1(int_decl, plugin):
+    """Test registering an interface with a single view.
+
     """
-    """
-    pass
+    task, interface = int_decl
+    task.register(plugin, {})
+    assert len(plugin._tasks.values()[0].interfaces) == 1
 
 
-def test_interface_decl2(plugin, int_decl):
+def test_interface_decl2(int_decl, plugin):
+    """Test registering an interface with multiple views.
+
+    """
+    task, interface = int_decl
+    interface.views = ['views.loop_iterable_view:IterableLoopLabel',
+                       'views.loop_iterable_view:IterableLoopField']
+    task.register(plugin, {})
+    assert len(plugin._tasks.values()[0].interfaces.values()[0].views) == 2
+
+
+def test_interface_decl3(plugin, int_decl):
     """Test handling not yet registered task.
 
     """
@@ -254,7 +280,50 @@ def test_interface_decl2(plugin, int_decl):
     assert plugin._delayed
 
 
-def test_interface_decl_missing_ext(plugin):
+def test_register_interface_extend_interface1(plugin, int_decl):
+    """Test extending an interface.
+
+    """
+    infos = TaskInfos()
+    infos.interfaces['Test'] = InterfaceInfos()
+    plugin._tasks['Task'] = infos
+
+    task, interface = int_decl
+    task.task = 'Task'
+    interface.interface = 'Test'
+    interface.instruments = ['test']
+
+    task.register(plugin, {})
+    assert plugin._tasks['Task'].interfaces['Test'].instruments == {'test'}
+
+
+def test_register_interface_extend_interface2(plugin, int_decl):
+    """Test extending an interface not yet declared.
+
+    """
+    plugin._tasks['Task'] = TaskInfos()
+
+    task, interface = int_decl
+    task.task = 'Task'
+    interface.interface = 'Test'
+    interface.instruments = ['test']
+
+    task.register(plugin, {})
+    assert plugin._delayed == [interface]
+
+
+def test_register_interface_extend_task(plugin, int_decl):
+    """Test extending a task by adding interfaces.
+
+    """
+    plugin._tasks['Task'] = TaskInfos()
+    task, _ = int_decl
+    task.task = 'Task'
+    task.register(plugin, {})
+    assert plugin._tasks['Task'].interfaces
+
+
+def test_register_interface_decl_missing_ext(plugin):
     """Test handling missing extended, no parent.
 
     """
@@ -263,7 +332,7 @@ def test_interface_decl_missing_ext(plugin):
     assert 'task/interface ' in tb['bar']
 
 
-def test_interface_decl_path_1(int_decl, plugin):
+def test_register_interface_decl_path_1(int_decl, plugin):
     """Test handling wrong path : missing ':'.
 
     """
@@ -274,7 +343,7 @@ def test_interface_decl_path_1(int_decl, plugin):
     assert 'Error 0' in tb
 
 
-def test_interface_decl_path2(int_decl, plugin):
+def test_register_interface_decl_path2(int_decl, plugin):
     """Test handling wrong path : too many ':'.
 
     """
@@ -285,7 +354,7 @@ def test_interface_decl_path2(int_decl, plugin):
     assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_duplicate1(int_decl, plugin):
+def test_register_interface_decl_duplicate1(int_decl, plugin):
     """Test handling duplicate : in plugin.
 
     """
@@ -297,7 +366,7 @@ def test_interface_decl_duplicate1(int_decl, plugin):
     assert 'IterableLoopInterface_duplicate1' in tb
 
 
-def test_interface_decl_duplicate2(int_decl, plugin):
+def test_register_interface_decl_duplicate2(int_decl, plugin):
     """Test handling duplicate : in traceback.
 
     """
@@ -307,8 +376,8 @@ def test_interface_decl_duplicate2(int_decl, plugin):
     assert 'IterableLoopInterface_duplicate1' in tb
 
 
-def test_interface_decl_cls1(int_decl, plugin):
-    """Test handling task class issues : failed import.
+def test_register_interface_decl_cls1(int_decl, plugin):
+    """Test handling interface class issues : failed import.
 
     """
     tb = {}
@@ -318,8 +387,8 @@ def test_interface_decl_cls1(int_decl, plugin):
     assert 'baz' in tb
 
 
-def test_interface_decl_cls2(int_decl, plugin):
-    """Test handling task class issues : undefined in module.
+def test_register_interface_decl_cls2(int_decl, plugin):
+    """Test handling interface class issues : undefined in module.
 
     """
     tb = {}
@@ -329,7 +398,18 @@ def test_interface_decl_cls2(int_decl, plugin):
     assert 'baz' in tb
 
 
-def test_interface_decl_view1(int_decl, plugin):
+def test_register_interface_decl_cls3(plugin, int_decl):
+    """Test handling interface class issues : wrong type.
+
+    """
+    tb = {}
+    task, i = int_decl
+    i.interface = 'loop_task:LoopTask'
+    task.register(plugin, tb)
+    assert 'LoopTask' in tb and 'subclass' in tb['LoopTask']
+
+
+def test_register_interface_decl_view1(int_decl, plugin):
     """Test handling view issues : failed import.
 
     """
@@ -340,7 +420,7 @@ def test_interface_decl_view1(int_decl, plugin):
     assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_view2(int_decl, plugin):
+def test_register_interface_decl_view2(int_decl, plugin):
     """Test handling view issues : undefined in module.
 
     """
@@ -351,7 +431,7 @@ def test_interface_decl_view2(int_decl, plugin):
     assert 'IterableLoopInterface' in tb
 
 
-def test_interface_decl_children(int_decl, plugin):
+def test_register_interface_decl_children1(int_decl, plugin):
     """Test handling child type issue.
 
     """
@@ -363,6 +443,25 @@ def test_interface_decl_children(int_decl, plugin):
         'Interface' in tb['IterableLoopInterface']
 
 
+def test_register_interface_decl_children2(int_decl, plugin):
+    """Test handling child type issue when extending.
+
+    """
+    infos = TaskInfos()
+    infos.interfaces['Test'] = InterfaceInfos()
+    plugin._tasks['Task'] = infos
+
+    task, interface = int_decl
+    task.task = 'Task'
+    interface.interface = 'Test'
+    interface.insert_children(None, [Task()])
+
+    tb = {}
+    task.register(plugin, tb)
+    assert 'Test' in tb and\
+        'Interface' in tb['Test']
+
+
 def test_unregister_interface_decl(int_decl, plugin):
     """Test unregistering an interface.
 
@@ -371,6 +470,16 @@ def test_unregister_interface_decl(int_decl, plugin):
     task.register(plugin, {})
     i.unregister(plugin)
     assert not plugin._tasks['LoopTask'].interfaces
+
+
+def test_unregister_interface_decl_bis(int_decl, plugin):
+    """Test unregistering an task with an interface.
+
+    """
+    task, i = int_decl
+    task.register(plugin, {})
+    task.unregister(plugin)
+    assert not plugin._tasks
 
 
 def test_unregister_interface_decl2(plugin, int_decl):
@@ -394,14 +503,64 @@ def test_unregister_interface_decl3(plugin, int_decl):
     i.unregister(plugin)
     # Would raise an error if the error was not properly catched.
 
-#
-#def test_unregister_interface_decl4(plugin, int_decl):
-#    """Test unregistering an interface simply contributing instruments.
-#
-#    """
-#    plugin._tasks['Task'] = TaskInfos()
-#    task_decl.task = 'Task'
-#    task_decl.instruments = ['test']
-#    task_decl.register(plugin, {})
-#    task_decl.unregister(plugin)
-#    assert not plugin._tasks['Task'].instruments
+
+def test_unregister_interface_decl4(plugin, int_decl):
+    """Test unregistering an interface simply contributing instruments.
+
+    """
+    infos = TaskInfos()
+    infos.interfaces['Test'] = InterfaceInfos()
+    plugin._tasks['Task'] = infos
+
+    task, interface = int_decl
+    task.task = 'Task'
+    interface.interface = 'Test'
+    interface.instruments = ['test']
+
+    task.register(plugin, {})
+    assert plugin._tasks['Task'].interfaces['Test'].instruments == {'test'}
+    task.unregister(plugin)
+    assert not plugin._tasks['Task'].interfaces['Test'].instruments
+
+
+@pytest.fixture
+def nested_int_decl(int_decl):
+    task, interface = int_decl
+    i = Interface(interface='loop_linspace_interface:LinspaceLoopInterface',
+                  views=['views.loop_linspace_view:LinspaceLoopView'])
+    interface.insert_children(None, [i])
+    return task, i
+
+
+def test_nested_interfaces_register(nested_int_decl, plugin):
+    """Test registering and unregistering an interface to an interface.
+
+    """
+    task, interface = nested_int_decl
+    task.register(plugin, {})
+
+    interfaces = plugin._tasks['LoopTask'].interfaces
+    assert interfaces['IterableLoopInterface'].interfaces
+    interface.parent.unregister(plugin)
+
+
+def test_nested_interfaces_extend1(nested_int_decl, plugin):
+    """Test registering, unregistering an interface extending an interface
+    to an interface.
+
+    """
+    infos = TaskInfos()
+    infos.interfaces['Test'] = InterfaceInfos(interfaces={'Nested':
+                                                          InterfaceInfos()})
+    plugin._tasks['Task'] = infos
+
+    task, interface = nested_int_decl
+    task.task = 'Task'
+    interface.parent.interface = 'Test'
+    interface.interface = 'Nested'
+    interface.instruments = ['test']
+
+    task.register(plugin, {})
+    interfaces = plugin._tasks['Task'].interfaces['Test'].interfaces
+    assert interfaces['Nested'].instruments == {'test'}
+    interface.parent.unregister(plugin)
