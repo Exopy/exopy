@@ -65,12 +65,14 @@ class ExtensionsCollector(Atom):
     ext_class = Value()
 
     #: Callable to use to ensure that the provide extension does fit.
-    #: Should return a bool indicating the result of the test, and a message
-    #: explaining what went wrong (or an empty string if test passed).
+    #: Should take the proposed contribution as single argument and return a
+    #: bool indicating the result of the test, and a message  explaining what
+    #: went wrong (or an empty string if test passed).
     validate_ext = Callable()
 
     #: Dictionary storing the constribution of the observed extension point.
-    #: This should not be altered by user code.
+    #: This should not be altered by user code. This is never modified in place
+    #: so user code will get reliable notifications when observing it.
     contributions = Dict()
 
     def start(self):
@@ -144,11 +146,12 @@ class ExtensionsCollector(Atom):
         for extension in extensions:
             for contrib in new_extensions[extension]:
                 if contrib.id in contribs:
-                    msg = "{} '{}' is already registered"
-                    raise ValueError(msg.format(name, contrib.id))
+                    msg = "While loading {}, {} '{}' is already registered"
+                    raise ValueError(msg.format(extension, name, contrib.id))
                 res, msg = self.validate_ext(contrib)
                 if not res:
-                    raise ValueError(msg)
+                    raise ValueError('While loading {},'.format(extension) +
+                                     msg)
                 contribs[contrib.id] = contrib
 
         self.contributions = contribs

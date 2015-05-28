@@ -46,11 +46,14 @@ class TestExtensionsCollector(object):
         assert 'contrib1.contrib' not in plugin.contribs.contributions
         assert not plugin.contribs._extensions
 
+        plugin.contribs.stop()
+        assert not plugin.contribs.contributions
+
     def test_registration2(self):
         """Test contribs update when a new plugin is registered.
 
         """
-
+        self.workbench.register(Contributor2())
         plugin = self.workbench.get_plugin(PLUGIN_ID)
         c = Contributor1()
         self.workbench.register(c)
