@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from traceback import format_exc
-from atom.api import Atom, ForwardTyped, Typed, Unicode, Dict, Property
+from atom.api import Atom, ForwardTyped, Typed, Unicode, Dict, Property, List
 
 from ..utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
@@ -274,6 +274,9 @@ class BaseInterface(HasPrefAtom):
     #: Name of the class of the interface. Used for persistence purposes.
     interface_class = Unicode().tag(pref=True)
 
+    #: Interface anchor. Used for persistence.
+    interface_anchor = List().tag(pref=True)
+
     #: Dict of database entries added by the interface.
     database_entries = Dict()
 
@@ -370,6 +373,12 @@ class TaskInterface(BaseInterface):
     #: A reference to the task to which this interface is linked.
     task = Typed(BaseTask)
 
+    def _post_setattr_task(self, old, new):
+        """Update the interface anchor when the task is set.
+
+        """
+        self.interface_anchor = [new.task_class] if new else []
+
 
 class IInterface(BaseInterface):
     """Base class to use when writing an interface interface.
@@ -387,3 +396,15 @@ class IInterface(BaseInterface):
     @task.getter
     def _get_task(self):
         return self.parent.task
+
+    def _post_setattr_parent(self, old, new):
+        """Reset the task property and update the interface anchor.
+
+        """
+        if new:
+            self.interface_anchor = (self.parent.interface_anchor +
+                                     [self.parent.interface_class])
+        else:
+            self.interface_anchor = []
+        task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
+        task_member.reset(self)

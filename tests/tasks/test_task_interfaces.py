@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import pytest
+
 from atom.api import Bool, Unicode, set_default
 
 from ecpy.tasks.base_tasks import ComplexTask, RootTask
@@ -151,6 +153,7 @@ class TestInterfaceableTaskMixin(object):
         self.mixin.interface = i1
         assert i1.task is self.mixin
         assert self.mixin.database_entries == {'test': 2.0, 'itest': 1.0}
+        assert i1.interface_anchor == [self.mixin.task_class]
 
         self.mixin.interface = i2
         assert i2.task is self.mixin
@@ -310,11 +313,15 @@ class TestInterfaceableInterfaceMixin(object):
         self.mixin.interface = i1
         assert i1.parent is self.mixin
         assert i1.task is self.mixin.task
+        assert i1.interface_anchor ==\
+            self.mixin.interface_anchor + [self.mixin.interface_class]
         assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 1.0}
 
         self.mixin.interface = i2
         assert i2.task is self.mixin.task
         assert i1.parent is None
+        with pytest.raises(AttributeError):
+            i1.task
         assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 2.0,
                                                     'fmt': '', 'feval': 0}
 
