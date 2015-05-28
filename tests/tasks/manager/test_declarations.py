@@ -234,6 +234,13 @@ def test_unregister_task_decl3(plugin, task_decl):
     assert not plugin._tasks['Task'].instruments
 
 
+def test_str_task(task_decl):
+    """Test string representation.
+
+    """
+    str(task_decl)
+
+
 # =============================================================================
 # --- Test interfaces ---------------------------------------------------------
 # =============================================================================

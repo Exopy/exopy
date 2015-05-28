@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from importlib import import_module
 from traceback import format_exc
+from inspect import cleandoc
 
 from atom.api import Unicode, List, Value, Dict
 from enaml.core.api import d_
@@ -21,8 +22,6 @@ import enaml
 
 from .infos import TaskInfos, InterfaceInfos
 from ...utils.declarator import Declarator, GroupDeclarator
-
-# XXXX when importing add except for wrogn type (check exception raise by atom)
 
 
 def check_children(declarator):
@@ -206,6 +205,18 @@ class Task(Declarator):
                 pass
 
             self.is_registered = False
+
+    def __str__(self):
+        """Nice string representation giving attributes values.
+
+        """
+        msg = cleandoc('''{} with:
+                       task: {}, view : {}, metadata: {} and instruments {}
+                       declaring :
+                       {}''')
+        return msg.format(type(self).__name__, self.task, self.view,
+                          self.metadata, self.instruments,
+                          '\n'.join(' - {}'.format(c) for c in self.children))
 
 
 class Interfaces(GroupDeclarator):
@@ -406,3 +417,15 @@ class Interface(Declarator):
                 pass
 
             self.is_registered = False
+
+    def __str__(self):
+        """Nice string representation giving attributes values.
+
+        """
+        msg = cleandoc('''{} with:
+                       interface: {}, view : {}, extended: {}, instruments {}
+                       declaring :
+                       {}''')
+        return msg.format(type(self).__name__, self.task, self.view,
+                          self.extended, self.instruments,
+                          '\n'.join(' - {}'.format(c) for c in self.children))

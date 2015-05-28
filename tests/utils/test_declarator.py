@@ -78,6 +78,14 @@ def test_group_declarator_group(declarators):
     assert declarators[1].get_group() is None
 
 
+def test_group_declarator_str(declarators):
+    """Test the __str__ method.
+
+    """
+    st = str(declarators[0])
+    assert 'GroupDeclarator' in st
+
+
 def test_group_registering1(declarators):
     """Test group registering, unregistering.
 

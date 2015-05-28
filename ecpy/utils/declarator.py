@@ -12,12 +12,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from future.utils import python_2_unicode_compatible
 import re
 
 from atom.api import Unicode, Bool
 from enaml.core.api import Declarative,  d_
 
 
+@python_2_unicode_compatible
 class Declarator(Declarative):
     """Base class for extension object which uses a visitor pattern.
 
@@ -73,6 +75,12 @@ class Declarator(Declarative):
         ----------
         plugin : Plugin
             Plugin to which this Declarator contribute.
+
+        """
+        raise NotImplementedError()
+
+    def __str__(self):
+        """Provide a nice string representation of the object.
 
         """
         raise NotImplementedError()
@@ -140,3 +148,11 @@ class GroupDeclarator(Declarator):
                     ch.unregister(plugin)
 
             self.is_registered = False
+
+    def __str__(self):
+        """Identify the declarator by its path and group.
+
+        """
+        st = '{} whose path is "{}" and group is "{}" declaring :\n{}'
+        return st.format(type(self).__name__, self.path, self.group,
+                         '\n'.join(' - {}'.format(c) for c in self.children))
