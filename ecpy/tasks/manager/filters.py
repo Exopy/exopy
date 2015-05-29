@@ -14,12 +14,11 @@ The filter available by default are declared in the manager manifest.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Subclass, Dict, Unicode
+from atom.api import Subclass, Unicode
 from enaml.core.api import d_func, d_
 
 from ...base_tasks import BaseTask
 from ....utils.declarator import Declarator
-from ....utils.chainmap import ChainMap
 
 
 class TaskFilter(Declarator):
@@ -28,17 +27,17 @@ class TaskFilter(Declarator):
     """
 
     @d_func
-    def filter_tasks(self, py_tasks, template_tasks):
+    def filter_tasks(self, tasks, templates):
         """Filter the task known by the manager.
 
         By default all task are returned.
 
         Parameters
         ----------
-        py_tasks : dict
-            Dictionary of known python tasks stored by groups.
+        tasks : dict
+            Dictionary of known python tasks as name : TaskInfos.
 
-        template_tasks : dict
+        templates : dict
             Dictionary of known templates as name : path
 
         Returns
@@ -47,7 +46,7 @@ class TaskFilter(Declarator):
             List of the name of the task matching the filters criteria.
 
         """
-        return list(ChainMap(*py_tasks.values())) + list(template_tasks.keys())
+        return list(tasks.values()) + list(templates.keys())
 
 
 class SubclassTaskFilter(TaskFilter):
@@ -58,12 +57,12 @@ class SubclassTaskFilter(TaskFilter):
     #: Class from which the task must inherit.
     subclass = d_(Subclass(BaseTask))
 
-    def filter_tasks(self, py_tasks, template_tasks):
+    def filter_tasks(self, tasks, templates):
         """Keep only the task inheriting from the right class.
 
         """
-        return [name for name, decl in ChainMap(*py_tasks.values()).items()
-                if issubclass(decl.task_cls, self.task_class)]
+        return [name for name, infos in tasks.items()
+                if issubclass(infos.cls, self.task_class)]
 
 
 class GroupTaskFilter(TaskFilter):
@@ -74,28 +73,30 @@ class GroupTaskFilter(TaskFilter):
     group = d_(Unicode())
 
     @d_func
-    def filter_tasks(self, py_tasks, template_tasks):
+    def filter_tasks(self, tasks, templates):
         """Keep only the task with the right class attribute.
 
         """
-        return py_tasks[self.group].keys()
+        return [name for name, infos in tasks.items()
+                if infos.group == self.group]
 
 
-class ClassAttrTaskFilter(TaskFilter):
+class MetadataTaskFilter(TaskFilter):
     """Filter keeping only the python tasks with the right class attribute.
 
     """
+    #: Metadata key to match.
+    meta_key = d_(Unicode())
 
-    class_attr = d_(Dict({'name': '', 'value': None}))
+    #: Metadata value to match.
+    meta_value = d_(Unicode())
 
     @d_func
-    def filter_tasks(self, py_tasks, template_tasks):
+    def filter_tasks(self, tasks, templates):
         """Keep only the task with the right class attribute.
 
         """
-        attr_name = self.class_attr['name']
-        attr_val = self.class_attr['value']
-        tasks = [name for name, t_class in ChainMap(*py_tasks.values()).items()
-                 if getattr(t_class, attr_name, None) == attr_val]
+        tasks = [name for name, infos in tasks.items()
+                 if infos.metadata.get(self.meta_key) == self.meta_value]
 
         return tasks
