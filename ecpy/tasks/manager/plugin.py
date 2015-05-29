@@ -86,7 +86,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         self._configs.stpp()
 
     def list_tasks(self, filter='All'):
-        """ List the known tasks using the specified filter.
+        """List the known tasks using the specified filter.
 
         Parameters
         ----------
@@ -102,6 +102,26 @@ class TaskManagerPlugin(HasPrefPlugin):
         t_filter = self._filters.get(filter)
         if t_filter:
             return t_filter.list_tasks(self._tasks, self._templates)
+
+    def get_task_infos(self, task_class_name):
+        """Access a given task infos.
+
+        Parameters
+        ----------
+        task_cls_name : unicode
+            Name of the task class for which to return the actual class.
+
+        Returns
+        -------
+        infos : TaskInfos or None
+            Object containing all the infos about the requested task.
+            This object should never be manipulated directly by user code.
+
+        """
+        if task_cls_name not in self._tasks:
+            return None
+
+        return self._tasks[task_cls_name]
 
     def get_task(self, task_cls_name, view=False):
         """Access a given task class.
@@ -124,11 +144,11 @@ class TaskManagerPlugin(HasPrefPlugin):
             Associated view if requested.
 
         """
-        if task_cls_name not in self._tasks:
+        infos = self.get_task_infos(task_cls_name)
+        if infos is not None:
             answer = None if not view else (None, None)
             return answer
 
-        infos = self._tasks[task_cls_name]
         return infos.cls if not view else (infos.cls, infos.view)
 
     def get_tasks(self, tasks):
@@ -159,6 +179,48 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return tasks_cls, missing
 
+    def get_interface_infos(self, interface_cls_name, anchor):
+        """Access a given interface infos.
+
+        Parameters
+        ----------
+        interface_cls_name : unicode
+            Name of the task class for which to return the actual class.
+
+        interface_anchor : unicode or list
+            Name of the task to which this interface is linked and names of the
+            intermediate interfaces if any (going from the most general ones
+            to the more specialised ones).
+
+        views : bool, optional
+            Whether or not to return the views assoicated with the interface.
+
+        Returns
+        -------
+        infos : InterfaceInfos
+            Object containing all the infos about the requested interface.
+            this object should never be manipulated directly by user code.
+
+        """
+        lookup_dict = self._tasks
+        if not isinstance(interface_anchor, (list, tuple)):
+            interface_anchor = [interface_anchor]
+
+        try:
+            for anchor in interface_anchor:
+                lookup_dict = lookup_dict[anchor]
+        except KeyError:
+            logger = logging.getLogger(__name__)
+            msg = 'Looking for {} (anchor {}) failed to found {}'
+            logger.debug(msg.format(interface_cls_name, interface_anchor,
+                                    anchor))
+            return None if not views else (None, None)
+
+        if interface_cls_name in lookup_dict:
+            return lookup_dict[interface_cls_name]
+        else:
+            return None
+
     def get_interface(self, interface_cls_name, interface_anchor, views=False):
         """Access a given interface class.
 
@@ -185,22 +247,8 @@ class TaskManagerPlugin(HasPrefPlugin):
             List of views associated with the interface.
 
         """
-        lookup_dict = self._tasks
-        if not isinstance(interface_anchor, (list, tuple)):
-            interface_anchor = [interface_anchor]
-
-        try:
-            for anchor in interface_anchor:
-                lookup_dict = lookup_dict[anchor]
-        except KeyError:
-            logger = logging.getLogger(__name__)
-            msg = 'Looking for {} (anchor {}) failed to found {}'
-            logger.debug(msg.format(interface_cls_name, interface_anchor,
-                                    anchor))
-            return None if not views else (None, None)
-
-        if interface_cls_name in lookup_dict:
-            infos = lookup_dict[interface_cls_name]
+        infos = self.get_interface_infos(interface_cls_name, anchor)
+        if infos is not None:
             return infos.cls if not views else (infos.cls, infos.views)
         else:
             return None if not views else (None, None)
