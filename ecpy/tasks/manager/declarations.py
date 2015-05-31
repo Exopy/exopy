@@ -429,3 +429,10 @@ class Interface(Declarator):
         return msg.format(type(self).__name__, self.task, self.view,
                           self.extended, self.instruments,
                           '\n'.join(' - {}'.format(c) for c in self.children))
+
+
+# TODO implement
+class TaskConfig(Declarator):
+    """
+    """
+    pass

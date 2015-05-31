@@ -1,0 +1,135 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget dedicated to the construction of new tasks.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import (Atom, Instance, Str, observe, ForwardTyped, Bool,
+                      ForwardInstance)
+from enaml.core.api import Include
+from enaml.core.object import Object
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
+                               Label, MultilineField)
+
+from .browsing import TaskSelector
+
+
+# XXXX clean
+
+# Circular import protection
+def task_manager():
+    from .plugin import TaskManagerPlugin
+    return TaskManagerPlugin
+
+
+def abstract_config_task():
+    from .config.base_task_config import AbstractConfigTask
+    return AbstractConfigTask
+
+
+class _TaskBuilderModel(Atom):
+    """ Simple model for the TaskBuilder dialog.
+
+    """
+    # Task manager.
+    manager = ForwardTyped(task_manager)
+
+    # Name of the currently selected task.
+    task_name = Str()
+
+    # Currently in use task config.
+    task_config = ForwardInstance(abstract_config_task)
+    config_view = Instance(Object)
+
+    # Bool indicating whether or not the task can be built.
+    ok_ready = Bool()
+
+    def _observe_task_name(self, change):
+        """ Observer requesting the appropriate config for a task.
+
+        """
+        self.ok_ready = False
+        config, view = self.manager.config_request(change['value'])
+        self.task_config = config
+        self.config_view = view(model=config)
+
+    @observe('task_config.config_ready')
+    def _config_complete(self, change):
+        """ Observe the config to notify the ui that config is ready.
+
+        """
+        self.ok_ready = change['value']
+
+enamldef BuilderView(Dialog): dial:
+    """ Simple Dialog to create a task.
+
+    """
+    attr manager
+    attr model = _TaskBuilderModel(manager=manager)
+    title = 'Select the task you want to add'
+
+    Container:
+        constraints << [hbox(selector,
+                             *tuple(list(conf.objects) + [vbox(ok,
+                                                            cancel,
+                                                            spacer)]))]
+        TaskSelector: selector:
+            hug_width = 'strong'
+            manager << dial.manager
+            selected_task >> model.task_name
+        Include: conf:
+            objects  << [model.config_view] if model.config_view else []
+        PushButton: ok:
+            text = 'Ok'
+            enabled << model.ok_ready
+            clicked ::
+                dial.accept()
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+
+enamldef TemplateSelectorView(Dialog): dial:
+    """ Simple dialog to select a template to build.
+
+    """
+    attr manager
+    attr path
+    Container:
+        constraints = [hbox(selector,
+                            vbox(name, doc),
+                            vbox(ok, cancel, spacer))]
+        TaskSelector: selector:
+            display_filters = False
+            selected_filter = 'Template'
+            hug_width = 'strong'
+            hug_height = 'ignore'
+            manager << dial.manager
+        Label: name:
+            text << manager.selected_task
+            text ::
+                tasks, _ = self.manager.tasks_request([text])
+                new_path, _, new_doc = tasks[text]
+                path = new_path
+                doc.text = new_doc
+        MultilineField: doc:
+            read_only = True
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(name.text)
+            clicked ::
+                dial.accept()
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()

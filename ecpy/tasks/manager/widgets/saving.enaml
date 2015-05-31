@@ -1,0 +1,162 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets dedicated to saving tasks.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+from atom.api import (Atom, List, Str, Unicode, Bool, ForwardTyped, observe)
+from enaml.widgets.api import (Container, Field, MultilineField, CheckBox,
+                               PushButton, Dialog)
+from enaml.layout.api import align, hbox, vbox, spacer
+from enaml.stdlib.message_box import question
+from textwrap import fill
+
+from hqc_meas.utils.widgets.qt_list_str_widget import QtListStrWidget
+
+# Protection from circular imports
+def task_manager():
+    from .plugin import TaskManagerPlugin
+    return TaskManager
+
+
+# XXXX cleanup
+
+# TODO allow to access any folder known to the manager.
+class TemplateTaskSaver(Atom):
+    """ Simple model for the Template saver dialog.
+
+    """
+    manager = ForwardTyped(task_manager)
+    template_filenames = List(Unicode())
+
+    template_folder = Unicode()
+    template_filename = Unicode()
+    template_doc = Str()
+    ok_ready = Bool(False)
+
+    show_result = Bool(False)
+
+    def __init__(self, **kwargs):
+        super(TemplateTaskSaver, self).__init__(**kwargs)
+        self.template_folder = self.manager.template_folders[0]
+        paths = self.manager._template_tasks.values()
+        self.template_filenames = [os.path.split(path)[1] for path in paths]
+        self.manager.observe('_template_tasks', self._update_filenames)
+
+    #--- Public API -----------------------------------------------------------
+
+    def accept_template_info(self, ui):
+        """ Whether or not the provided infos allows to save the template.
+
+        Parameters
+        ----------
+            ui :
+                Widget calling this method, used as a parent for the dialogs
+                this method might need to open.
+
+        """
+        if '.ini' not in self.template_filename:
+            filename = self.template_filename + '.ini'
+        else:
+            filename = self.template_filename
+
+        if filename in self.template_tasks:
+            message = cleandoc("""You entered a template name which already
+                        exists, do you want to erase the existing file
+                        """)
+            result = question(message=fill(message.replace('\n', ' '), 80),
+                              title='Overwrite confirm :',
+                              parent=ui)
+            if result and result.action == 'reject':
+                return False
+
+        return True
+
+    #--- Private API ----------------------------------------------------------
+
+    def _update_filenames(self, change):
+        """ Observer updating the filenames.
+
+        """
+        paths = change['value'].values()
+        self.template_filenames = [os.path.split(path)[1] for path in paths]
+
+    def _observe_template_filename(self, change):
+        """ Observer displaying templates infos is the user select an existing
+        template.
+
+        """
+        filename = change['value']
+        if filename in self.template_filenames:
+            name = [key for key, val in self.manager._template_tasks
+                    if os.path.split(val)[1] == filename][0]
+            _, _, doc = self.manager.request_tasks([name])
+
+            self.template_doc = doc
+
+    @observe('template_filename', 'template_doc')
+    def _ready_to_save(self, change):
+        """ Observer vaidating that the uiser gave the minimal infos to save.
+        """
+        if self.template_doc != '' and self.template_filename != '':
+            self.ok_ready = True
+        else:
+            self.ok_ready = False
+
+
+enamldef TemplateSaverDialog(Dialog): dial:
+    """ Simple dialog to save a template.
+
+    """
+    attr model
+
+    Container:
+        constraints = [vbox(
+                       hbox(list, vbox(name, doc, res)),
+                       hbox(spacer.flex(), cancel, ok))
+                       ]
+        QtListStrWidget: list:
+            items << model.template_filenames
+            selected_item := model.template_filename
+            operations = []
+        Field: name:
+            text := model.template_filename
+        MultilineField: doc:
+            text := model.template_doc
+        CheckBox: res:
+            text = 'Show result'
+            checked >> model.show_result
+        PushButton: cancel:
+            hug_width = 'strong'
+            text = 'Cancel'
+            clicked::
+                dial.reject()
+        PushButton: ok:
+            hug_width = 'strong'
+            text = 'Ok'
+            enabled << model.ok_ready
+            clicked ::
+                if model.accept_template_info(dial):
+                    dial.accept()
+
+enamldef ScintillaDialog(Dialog): dial:
+    """ Simple dialog to display a template file.
+    """
+    alias text : sci.text
+
+    Container:
+        constraints = [vbox(sci, ok),
+                       align('right', sci, ok)]
+        MultilineField: sci:
+            read_only = True
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                dial.accept()

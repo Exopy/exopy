@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""
+"""Plugin centralizing the collect and managment of tasks and interfaces.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -35,7 +35,7 @@ TEMPLATE_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..',
 
 
 class TaskManagerPlugin(HasPrefPlugin):
-    """Plugin responsible for collectingand providing tasks.
+    """Plugin responsible for collecting and providing tasks.
 
     """
     #: Dictionary containing all the registering errors.
@@ -415,6 +415,8 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         self._register_task_decls(extensions)
 
+    # XXXX refactor in plugin tools as I need it also for config and will also
+    # need it for instruments.
     def _register_task_decls(self, extensions):
         """Register the task declaration linked to some extensions.
 
