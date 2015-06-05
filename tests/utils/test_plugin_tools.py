@@ -117,3 +117,12 @@ class TestExtensionsCollector(object):
 
         assert plugin.contribs.contributed_by('contrib1.contrib') is \
             c.extensions[0]
+
+
+class TestDeclaratorCollector(object):
+    """Test the ExtensionsCollector behaviour.
+
+    """
+    def setup(self):
+        self.workbench = Workbench()
+        self.workbench.register(ModularManifest())

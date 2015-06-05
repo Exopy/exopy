@@ -44,6 +44,10 @@ class TaskManagerPlugin(HasPrefPlugin):
     #: Folders containings templates which should be loaded.
     templates_folders = List(default=[TEMPLATE_PATH]).tag(pref=True)
 
+    #: Known templates (store full path to .ini).
+    #: This should not be manipulated by user code.
+    templates = Dict()
+
     #: List of the filters.
     filters = List()
 
@@ -81,7 +85,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         """
         self._unbind_observers()
         self._tasks.clear()
-        self._templates.clear()
+        self.templates.clear()
         self._filters.stop()
         self._configs.stpp()
 
@@ -101,7 +105,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         """
         t_filter = self._filters.get(filter)
         if t_filter:
-            return t_filter.list_tasks(self._tasks, self._templates)
+            return t_filter.list_tasks(self._tasks, self.templates)
 
     def get_task_infos(self, task_class_name):
         """Access a given task infos.
@@ -361,13 +365,6 @@ class TaskManagerPlugin(HasPrefPlugin):
     #: Private storage keeping track of which extension declared which object.
     _extensions = Typed(defaultdict, (list,))
 
-    #: Template tasks (store full path to .ini)
-    _template = Dict()
-
-    #: Temporary list in which declarations which cannot yet be taken into
-    #: account because another declaration has not yet been registered.
-    _delayed = List()
-
     #: Contributed task filters.
     _filters = Typed(ExtensionsCollector)
 
@@ -381,6 +378,8 @@ class TaskManagerPlugin(HasPrefPlugin):
         """Refresh the list of template tasks.
 
         """
+        # XXXX rework to handle in an nicer fashion same template in multiple
+        # folders
         templates = {}
         for path in self.templates_folders:
             if os.path.isdir(path):
