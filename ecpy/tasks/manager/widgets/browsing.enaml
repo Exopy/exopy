@@ -12,26 +12,24 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, ForwardTyped, List, Unicode
-from enaml.layout.api import hbox, spacer
 from enaml.core.api import Conditional, Include
-from enaml.widgets.api import (PushButton, ObjectCombo, Action, Container,
-                               Dialog)
+from enaml.widgets.api import ObjectCombo, Container
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 
-# Circular import protection
-def task_manager():
-    from .plugin import TaskManagerPlugin
-    return TaskManagerPlugin
 
 # XXXX would be nicer with regex but I never managed to get the regex right.
 def normalize_name(name):
-    """Normalize names by replacing '_' by spaces, removing the extension,
-    and adding spaces between 'aA' sequences.
+    """Normalize names.
+
+    For tasks, replaces '_' by spaces and add spaces between 'aA' sequences.
+    For templates, only the extension file is removed.
 
     """
-    if name.endswith('.ini') or name.endswith('Task'):
+    if name.endswith('.ini')
+        return name[:-4]
+
+    if name.endswith('Task'):
         name = name[:-4] + '\0'
     aux = ''
     for i, char in enumerate(name):
@@ -69,7 +67,7 @@ enamldef TaskSelector(Container):
     #: Flag indicating whether or not to display the filter selection dialog.
     attr display_filters : bool = True
 
-    #:
+    #: Currently selected filter.
     attr selected_filter = 'All'
     selected_filter ::
         if selected_filter:

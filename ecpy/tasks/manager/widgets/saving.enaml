@@ -11,14 +11,17 @@
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
-from atom.api import (Atom, List, Str, Unicode, Bool, ForwardTyped, observe)
+
+from textwrap import fill
+
+from atom.api import (Atom, Unicode, Bool, ForwardTyped, observe)
 from enaml.widgets.api import (Container, Field, MultilineField, CheckBox,
                                PushButton, Dialog)
 from enaml.layout.api import align, hbox, vbox, spacer
 from enaml.stdlib.message_box import question
-from textwrap import fill
 
-from hqc_meas.utils.widgets.qt_list_str_widget import QtListStrWidget
+from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+
 
 # Protection from circular imports
 def task_manager():
@@ -26,31 +29,34 @@ def task_manager():
     return TaskManager
 
 
-# XXXX cleanup
-
-# TODO allow to access any folder known to the manager.
-class TemplateTaskSaver(Atom):
-    """ Simple model for the Template saver dialog.
+class TemplateSaverModel(Atom):
+    """Model for the Template saver dialog.
 
     """
+    #: Reference to the task manager.
     manager = ForwardTyped(task_manager)
-    template_filenames = List(Unicode())
 
-    template_folder = Unicode()
-    template_filename = Unicode()
-    template_doc = Str()
-    ok_ready = Bool(False)
+    #: Currently selected folder in which to save the
+    folder = Unicode()
 
+    #: File in which to save the template.
+    filename = Unicode()
+
+    #: Documentation for the template.
+    doc = Unicode()
+
+    #: Flag indicating whether or not enough informations have been provided
+    #: to porceed with saving.
+    ready = Bool(False)
+
+    #: Flag signaling that the result of the saving procedure should be
+    #: displayed.
     show_result = Bool(False)
 
     def __init__(self, **kwargs):
         super(TemplateTaskSaver, self).__init__(**kwargs)
-        self.template_folder = self.manager.template_folders[0]
-        paths = self.manager._template_tasks.values()
-        self.template_filenames = [os.path.split(path)[1] for path in paths]
-        self.manager.observe('_template_tasks', self._update_filenames)
-
-    #--- Public API -----------------------------------------------------------
+        self.folder = self.manager.template_folders[0]
+        self.manager.observe('templates', self._update_filenames)
 
     def accept_template_info(self, ui):
         """ Whether or not the provided infos allows to save the template.
@@ -77,85 +83,98 @@ class TemplateTaskSaver(Atom):
             if result and result.action == 'reject':
                 return False
 
-        return True
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
-    #--- Private API ----------------------------------------------------------
-
-    def _update_filenames(self, change):
-        """ Observer updating the filenames.
-
-        """
-        paths = change['value'].values()
-        self.template_filenames = [os.path.split(path)[1] for path in paths]
-
-    def _observe_template_filename(self, change):
+    def _post_setattr_filename(self, old, new):
         """ Observer displaying templates infos is the user select an existing
         template.
 
         """
-        filename = change['value']
-        if filename in self.template_filenames:
-            name = [key for key, val in self.manager._template_tasks
-                    if os.path.split(val)[1] == filename][0]
-            _, _, doc = self.manager.request_tasks([name])
+        if new in self.template_filenames:
+            _, _, doc = self.manager.request_task(name)
 
-            self.template_doc = doc
+            self.doc = doc
 
-    @observe('template_filename', 'template_doc')
-    def _ready_to_save(self, change):
-        """ Observer vaidating that the uiser gave the minimal infos to save.
-        """
-        if self.template_doc != '' and self.template_filename != '':
-            self.ok_ready = True
         else:
-            self.ok_ready = False
+            self.ready = (self.doc != '' and self.filename != '')
+
+    def _post_setattr_doc(self, new, old):
+        """Check whether the last update to the doc member made the saving
+        possible.
+
+        """
+        self.ready = (self.doc != '' and self.filename != '')
 
 
 enamldef TemplateSaverDialog(Dialog): dial:
     """ Simple dialog to save a template.
 
     """
-    attr model
+    #: Reference to the task manager.
+    attr manager
+
+    #: Internal model.
+    attr _model = TemplateSaverModel(manager=manager)
+
+    func get_infos():
+        """Return the selected path and documentation for the template.
+
+        """
+        # This is necessary as the user may have selected an existing template
+        # for which the folder may be contained in the filename
+        filename = _model.filename.split(os.path.sep)[-1]
+        return os.path.join(_model.folder, filename), _model.doc
 
     Container:
         constraints = [vbox(
-                       hbox(list, vbox(name, doc, res)),
+                       hbox(li, vbox(name, doc, res)),
                        hbox(spacer.flex(), cancel, ok))
                        ]
-        QtListStrWidget: list:
-            items << model.template_filenames
-            selected_item := model.template_filename
-            operations = []
+
+        QtListStrWidget: li:
+            items << list(model.manager.templates)
+            selected_item := model.filename
+
         Field: name:
-            text := model.template_filename
+            text := model.filename
+
         MultilineField: doc:
-            text := model.template_doc
+            text := model.doc
+
         CheckBox: res:
             text = 'Show result'
             checked >> model.show_result
+
         PushButton: cancel:
             hug_width = 'strong'
             text = 'Cancel'
             clicked::
                 dial.reject()
+
         PushButton: ok:
             hug_width = 'strong'
             text = 'Ok'
-            enabled << model.ok_ready
+            enabled << model.ready
             clicked ::
                 if model.accept_template_info(dial):
                     dial.accept()
 
-enamldef ScintillaDialog(Dialog): dial:
-    """ Simple dialog to display a template file.
+
+enamldef TemplateViewer(Dialog): dial:
+    """Dialog to display a template file.
+
     """
     alias text : sci.text
 
     Container:
         constraints = [vbox(sci, ok),
                        align('right', sci, ok)]
+
         MultilineField: sci:
             read_only = True
+
         PushButton: ok:
             text = 'Ok'
             clicked ::

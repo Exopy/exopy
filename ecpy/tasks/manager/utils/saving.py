@@ -12,11 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from traceback import format_exc
+
+from enaml.stdlib.message_box import critical
+
 from ..templates import save_template
 
 import enaml
 with enaml.imports():
-    from ..widgets.save import (TemplateSaverDialog, ScintillaDialog)
+    from ..widgets.save import (TemplateSaverDialog, TemplateViewer)
 
 
 def save_task(event):
@@ -48,9 +52,7 @@ def save_task(event):
         saver = TemplateSaverDialog(event.parameters.get('widget'),
                                     manager=manager)
 
-        if saver.exec_():
-            full_path = saver.get_path()
-        else:
+        if not saver.exec_():
             return
 
     task = event.parameters['task']
@@ -61,12 +63,16 @@ def save_task(event):
         return preferences
 
     else:
-        doc = saver.template_doc
-
-        save_template(full_path, preferences.dict(), doc)
+        path, doc = saver.get_infos()
+        try:
+            save_template(path, preferences.dict(), doc)
+        except OSError:
+            critical(event.parameters.get('widget'),
+                     title='Failed to save',
+                     message='Saving failed:\n' + format_exc())
 
         if saver.show_result:
             with open(full_path) as f:
                 t = '\n'.join(f.readlines())
-                ScintillaDialog(event.parameters.get('widget'),
-                                text=t).exec_()
+                TemplateViewer(event.parameters.get('widget'),
+                               text=t).exec_()
