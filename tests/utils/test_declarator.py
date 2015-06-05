@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+from future.utils import python_2_unicode_compatible
 
 from atom.api import Bool
 from enaml.core.api import Declarative
@@ -20,6 +21,7 @@ from enaml.core.api import Declarative
 from ecpy.utils.declarator import Declarator, GroupDeclarator
 
 
+@python_2_unicode_compatible
 class TestDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 
@@ -31,6 +33,9 @@ class TestDeclarator(Declarator):
 
     def unregister(self, plugin):
         self.unregistered = True
+
+    def __str__(self):
+        return 'Declarator'
 
 
 def test_unparented_declarator_get_path():

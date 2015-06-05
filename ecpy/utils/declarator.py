@@ -89,6 +89,7 @@ class Declarator(Declarative):
 PATH_VALIDATOR = re.compile('^(\.?\w+)*$')
 
 
+@python_2_unicode_compatible
 class GroupDeclarator(Declarator):
     """Declarator used to group an ensemble of declarator.
 
