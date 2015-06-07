@@ -12,8 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from ast import literal_eval
 from traceback import format_exc
-from atom.api import Atom, ForwardTyped, Typed, Unicode, Dict, Property, List
+from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property
 
 from ..utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
@@ -127,8 +128,8 @@ class InterfaceableMixin(Atom):
                                                                dependencies)
 
         if 'interface' in config:
-            inter_class_name = config['interface'].pop('interface_class')
-            inter_class = dependencies['interfaces'][inter_class_name]
+            iclass = config['interface'].pop('interface_class')
+            inter_class = dependencies['interfaces'][literal_eval(iclass)]
             new.interface = inter_class.build_from_config(config['interface'],
                                                           dependencies)
 
@@ -271,11 +272,9 @@ class BaseInterface(HasPrefAtom):
     #: Class attribute indicating whether this interface has views or not.
     has_view = False
 
-    #: Name of the class of the interface. Used for persistence purposes.
-    interface_class = Unicode().tag(pref=True)
-
-    #: Interface anchor. Used for persistence.
-    interface_anchor = List().tag(pref=True)
+    #: Name of the class of the interface and anchor (ie task or interface with
+    #: this interface is used with). Used for persistence purposes.
+    interface_class = Tuple().tag(pref=True)
 
     #: Dict of database entries added by the interface.
     database_entries = Dict()
@@ -356,12 +355,6 @@ class BaseInterface(HasPrefAtom):
         interface.update_members_from_preferences(config)
         return interface
 
-    def _default_interface_class(self):
-        """ Default value for the class_name member.
-
-        """
-        return type(self).__name__
-
 
 class TaskInterface(BaseInterface):
     """Base class to use when writing a task interface.
@@ -377,7 +370,8 @@ class TaskInterface(BaseInterface):
         """Update the interface anchor when the task is set.
 
         """
-        self.interface_anchor = [new.task_class] if new else []
+        self.interface_class = ((type(self).__name__, [new.task_class]) if new
+                                else ())
 
 
 class IInterface(BaseInterface):
@@ -402,9 +396,10 @@ class IInterface(BaseInterface):
 
         """
         if new:
-            self.interface_anchor = (self.parent.interface_anchor +
-                                     [self.parent.interface_class])
+            self.interface_class = (type(self).__name__,
+                                    self.parent.interface_class[1] +
+                                    [self.parent.interface_class[0]])
         else:
-            self.interface_anchor = []
+            self.interface_anchor = ()
         task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
         task_member.reset(self)

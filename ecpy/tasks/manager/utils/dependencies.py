@@ -12,19 +12,23 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from ast import literal_eval
+
 
 def collect_tasks_and_interfaces(workbench, flat_walk):
-    """ Collector function for the build-dependencies extensions.
+    """Collector function for the build-dependencies extensions.
 
     """
     # Here we use direct call to plugin methods as this is internal to the
     # plugin
     manager = workbench.get_plugin('ecpy.tasks.manager')
 
-    # XXXXX rework
     t_res = manager.get_tasks(flat_walk['task_class'])
-    i_res = manager.interfaces_request(flat_walk['interface_class'],
-                                       use_i_names=True)
+
+    interfaces = list(flat_walk['interface_class'])
+    if interfaces and not isinstance(interfaces[0], tuple):
+        interfaces = [literal_eval(ic) for ic in interfaces]
+    i_res = manager.interfaces_request(interfaces)
 
     if t_res[1] or i_res[1]:
         mess = 'Missing tasks: {}, missing interfaces: {}'.format(t_res[1],
