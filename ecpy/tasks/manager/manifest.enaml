@@ -1,0 +1,152 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Plugin centralizing the collect and managment of tasks and interfaces.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+from ecpy.app.api import Preferences, State, BuildDependency
+
+from .utils.building import create_task, build_root
+from .utils.saving import save_task
+from .utils.dependencies import collect_tasks_and_interfaces
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def manager_plugin_factory():
+    """ Factory funcion for the instr manager plugin.
+
+    """
+    from .plugin import TaskManagerPlugin
+    return TaskManagerPlugin()
+
+
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
+
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef TaskManagerManifest(PluginManifest):
+    """
+    """
+    id = 'ecpy.tasks'
+    factory = manager_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'declarations'
+        description = DECLARATIONS_DESC
+
+    ExtensionPoint:
+        id = 'configs'
+        description = DECLARATIONS_DESC
+
+    ExtensionPoint:
+        id = 'filters'
+        description = DECLARATIONS_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'tasks_dep'
+        point = 'ecpy.app.dependencies.build'
+        BuildDependency:
+            id = 'ecpy.tasks.build_dependencies'
+            walk_members = ['task_class', 'interface_class']
+            collect = collect_tasks_and_interfaces
+
+    Extension:
+        id = 'prefs'
+        point = 'ecpy.app.preferences.plugin'
+        Preferences:
+            pass
+
+    Extension:
+        id = 'state'
+        point = 'ecpy.app.states.state'
+        State:
+            id = 'ecpy.tasks'
+            description = MANAGER_STATE_DESCRIPTION
+            sync_members = ['templates_folders', 'templates', 'filters',
+                            'auto_task_path', 'auto_task_names']
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'ecpy.tasks.get_task_infos'
+            description = GET_TASK_INFOS_DESCRIPTION
+            handler = get_task_infos_handler
+        Command:
+            id = 'ecpy.tasks.get_task'
+            description = GET_TASK_DESCRIPTION
+            handler = get_task_handler
+        Command:
+            id = 'ecpy.tasks.get_tasks'
+            description = GET_TASKS_DESCRIPTION
+            handler = get_tasks_handler
+        Command:
+            id = 'ecpy.tasks.get_interface_infos'
+            description = GET_INTERFACE_INFOS_DESCRIPTION
+            handler = get_interface_infos_handler
+        Command:
+            id = 'ecpy.tasks.get_interface'
+            description = GET_INTERFACE_DESCRIPTION
+            handler = get_interface_handler
+        Command:
+            id = 'ecpy.tasks.get_interfaces'
+            description = GET_INTERFACES_DESCRIPTION
+            handler = get_interfaces_handler
+        Command:
+            id = 'ecpy.tasks.list_tasks'
+            description = LIST_TASKS_DESCRIPTION
+            handler = list_task_handler
+        Command:
+            id = 'ecpy.tasks.get_config'
+            description = GET_CONFIG_DESCRIPTION
+            handler = get_config_handler
+        Command:
+            id = 'ecpy.tasks.save'
+            description = SAVE_TASK_DESCRIPTION
+            handler = save_task
+        Command:
+            id = 'ecpy.tasks.create_task'
+            description = CREATE_TASK_DESCRIPTION
+            handler = create_task
+        Command:
+            id = 'ecpy.tasks.build_task'
+            description = BUILD_TASK_DESCRIPTION
+            handler = build_task_handler
+        Command:
+            id = 'ecpy.tasks.build_root'
+            description = BUILD_ROOT_DESCRIPTION
+            handler = build_root
