@@ -18,9 +18,10 @@ from collections import defaultdict
 from atom.api import List, Dict, Typed, Unicode
 from watchdog.observers import Observer
 
-from .declarations import Task, Interface, Tasks, Interfaces
+from .declarations import Task, Interface, Tasks, Interfaces, TaskConfig
 from .filters import TaskFilter
-from ...utils.plugin_tools import HasPrefPlugin, ExtensionsCollector
+from ...utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+                                   DeclaratorCollector)
 from ...utils.watchdog import SystematicFileUpdater
 
 
@@ -28,7 +29,7 @@ TASK_EXT_POINT = 'ecpy.tasks.declarations'
 
 FILTERS_POINT = 'ecpy.tasks.filters'
 
-CONFIG_POINT = 'ecpy.tasks.config'
+CONFIG_POINT = 'ecpy.tasks.configs'
 
 TEMPLATE_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..',
                                               'templates'))
@@ -38,9 +39,6 @@ class TaskManagerPlugin(HasPrefPlugin):
     """Plugin responsible for collecting and providing tasks.
 
     """
-    #: Dictionary containing all the registering errors.
-    errors = Dict()
-
     #: Folders containings templates which should be loaded.
     templates_folders = List(default=[TEMPLATE_PATH]).tag(pref=True)
 
@@ -65,16 +63,24 @@ class TaskManagerPlugin(HasPrefPlugin):
         if not os.path.isdir(TEMPLATE_PATH):
             os.mkdir(TEMPLATE_PATH)
 
-        self._filters = ExtensionsCollector(point=FILTERS_POINT,
+        self._filters = ExtensionsCollector(workbench=self.workbench,
+                                            point=FILTERS_POINT,
                                             ext_cls=TaskFilter,
                                             validate_ext=lambda w, e: True, '')
         self._filters.start()
-        # XXXX
-#        self._configs = ExtensionsCollector(point=CONFIG_POINT,
-#                                            ext_cls=TaskFilter,
-#                                            validate_ext=lambda w, e: True, '')
+        self._configs = DeclaratorCollector(workbench=self.workbench,
+                                            point=CONFIG_POINT,
+                                            ext_cls=TaskConfig)
+
+        self._configs.start()
+        self._tasks = DeclaratorCollector(workbench=self.workbench,
+                                          point=TASK_EXT_POINT,
+                                          ext_cls=(Tasks, Task, Interfaces,
+                                                   Interface)
+                                          )
+        self._tasks.start()
+
         self._refresh_templates()
-        self._load_tasks()
         if self.auto_task_path:
             self.load_auto_task_names()
         self._bind_observers()
@@ -84,7 +90,7 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         self._unbind_observers()
-        self._tasks.clear()
+        self._tasks.stop()
         self.templates.clear()
         self._filters.stop()
         self._configs.stpp()
@@ -105,7 +111,8 @@ class TaskManagerPlugin(HasPrefPlugin):
         """
         t_filter = self._filters.get(filter)
         if t_filter:
-            return t_filter.list_tasks(self._tasks, self.templates)
+            return t_filter.list_tasks(self._tasks.contributions,
+                                       self.templates)
 
     def get_task_infos(self, task_class_name):
         """Access a given task infos.
@@ -122,10 +129,10 @@ class TaskManagerPlugin(HasPrefPlugin):
             This object should never be manipulated directly by user code.
 
         """
-        if task_cls_name not in self._tasks:
+        if task_cls_name not in self._tasks.contributions:
             return None
 
-        return self._tasks[task_cls_name]
+        return self._tasks.contributions[task_cls_name]
 
     def get_task(self, task_cls_name, view=False):
         """Access a given task class.
@@ -206,7 +213,7 @@ class TaskManagerPlugin(HasPrefPlugin):
             this object should never be manipulated directly by user code.
 
         """
-        lookup_dict = self._tasks
+        lookup_dict = self._tasks.contributions
         if not isinstance(interface_anchor, (list, tuple)):
             interface_anchor = [interface_anchor]
 
@@ -257,17 +264,14 @@ class TaskManagerPlugin(HasPrefPlugin):
         else:
             return None if not views else (None, None)
 
-    def get_interfaces(interfaces, anchors):
+    def get_interfaces(interfaces_with_anchors):
         """Access an ensemble of interface classes.
 
         Parameters
         ----------
-        interfaces : list(unicode)
-            Names of the interface classes for which to return the actual
-            classes.
-
-        anchor : list(list(unicode))
-            Anchor corresponding to each requested interface.
+        interfaces_with_anchors : list(tuple(unicode, list(unicode)))
+            List of pairs (name of the interface class, corrisponding anchor)
+            for which to return the actual classes.
 
         Returns
         -------
@@ -280,17 +284,17 @@ class TaskManagerPlugin(HasPrefPlugin):
         """
         interfaces_cls = {}
         missing = []
-        for i, a in zip(interfaces, anchors):
+        for i, a in interfaces_with_anchors:
             i_cls = self.get_interface(i, a)
             if i_cls:
-                interfaces_cls[i] = i_cls
+                interfaces_cls[(i, a)] = i_cls
             else:
                 missing.append(i)
 
         return interfaces_cls, missing
 
     def get_config(self, task):
-        """ Access the proper config for a task.
+        """Access the proper config for a task.
 
         Parameters
         ----------
@@ -304,26 +308,26 @@ class TaskManagerPlugin(HasPrefPlugin):
             visualisation.
 
         """
-        # XXXXX rework once config are back in the game
         if isinstance(task, type):
             task = task.__name__
 
         templates = self._template_tasks
         if task in self._template_tasks:
-            return IniConfigTask(manager=self,
-                                 template_path=templates[task]), IniView
+            config = IniConfigTask(manager=self,
+                                   template_path=templates[task])
+            return config, IniView(config=config)
 
-        elif task in self._tasks:
-            configs = self._configs
+        elif task in self._tasks.contributions:
+            configs = self._configs.contributions
             # Look up the hierarchy of the selected task to get the appropriate
             # TaskConfig
-            task_class = self._tasks[task].cls
-            for t_class in type.mro(task_class):
+            task_class = self._tasks.contributions[task].cls
+            for t_class in (t.__name__ for t in type.mro(task_class)):
                 if t_class in configs:
-                    config = configs[t_class][0]
-                    view = configs[t_class][1]
-                    return config(manager=self,
-                                  task_class=task_class), view
+                    infos = configs[t_class]
+                    c = config(manager=self,
+                               task_class=task_class)
+                    return c, view(config=c)
 
         return None, None
 
@@ -360,7 +364,7 @@ class TaskManagerPlugin(HasPrefPlugin):
     # =========================================================================
 
     #: Dictionary storing all known tasks declarartion, using TaskInfos.
-    _tasks = Dict()
+    _tasks = Typed(DeclaratorCollector)
 
     #: Private storage keeping track of which extension declared which object.
     _extensions = Typed(defaultdict, (list,))
@@ -369,7 +373,7 @@ class TaskManagerPlugin(HasPrefPlugin):
     _filters = Typed(ExtensionsCollector)
 
     #: Contributed task configs.
-    _configs = Typed(ExtensionsCollector)
+    _configs = Typed(DeclaratorCollector)
 
     #: Watchdog observer tracking changes to the templates folders.
     _observer = Typed(Observer, ())
@@ -397,83 +401,6 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         self._template = templates
 
-    def _load_tasks(self):
-        """Load all the task definitions contributed by extensions.
-
-        """
-        workbench = self.workbench
-        point = workbench.get_extension_point(self.point)
-        extensions = point.extensions
-
-        # If no extension remain clear everything
-        if not extensions:
-            # Force a notification to be emitted.
-            self._tasks.clear()
-            self._extensions.clear()
-            return
-
-        self._register_task_decls(extensions)
-
-    # XXXX refactor in plugin tools as I need it also for config and will also
-    # need it for instruments.
-    def _register_task_decls(self, extensions):
-        """Register the task declaration linked to some extensions.
-
-        Handle multiple registerin attempts.
-
-        """
-        # Get the tasks and interfaces declarations for all extensions.
-        new_extensions = defaultdict(list)
-        old_extensions = self._extensions
-        for extension in extensions:
-            if extension not in old_extensions:
-                declarators = self._get_task_decls(extension)
-            new_extensions[extension].extend(declarators)
-
-        # Register all contributions.
-        tb = {}
-        for extension in new_extensions:
-            for declarator in new_extensions[extension]:
-                declarator.regsiter(self, tb)
-
-        old = 0
-        while self._delayed and old != len(self._delayed):
-            for declarator in self._delayed:
-                declarator.register(self, tb)
-
-        if self._delayed:
-            msg = 'Some declarations have not been registered : {}'
-            tb['Missing declarations'] = msg.format(self._delayed)
-
-        self.errors.update(tb)
-        self._extensions.update(new_extensions)
-
-    def _get_task_decls(self, extension):
-        """Get the task declarations declared by an extension.
-
-        """
-        workbench = self.workbench
-        contribs = extension.get_children((Task, Interface, Tasks, Interfaces))
-        if extension.factory is not None and not contribs:
-            for contrib in extension.factory(workbench):
-                if not isinstance(contrib,
-                                  (Task, Interface, Tasks, Interfaces)):
-                    msg = "Extension '{}' should create {} not {}."
-                    valids = ('Task', 'Interface', 'Tasks', 'Interfaces')
-                    raise TypeError(msg.format(extension.qualified_id,
-                                               valids, type(contrib).__name__))
-                contribs.append(contrib)
-
-        return contribs
-
-    def _unregister_task_decls(self, extensions):
-        """Unregister the task declaration linked to some extensions.
-
-        """
-        for extension in extensions:
-            for declarator in extensions[extension]:
-                declarator.unregsiter(self)
-
     def _post_setattr_template_folders(self):
         """Ensure that the template observer always watch the right folder.
 
@@ -489,19 +416,6 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         self._refresh_template_tasks()
-
-    def _update_tasks(self, change):
-        """Update the known tasks when a contribution is added/removed.
-
-        """
-        old = change.get('oldvalue')
-        new = change['value']
-        added = new - old
-        removed = old - new
-        self._unregister_task_decls((ext for ext in self._extensions
-                                     if ext in removed))
-
-        self._register_task_decls(added)
 
     def _update_filters(self, change):
         """Update the available list of filters.
@@ -519,10 +433,6 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         self._observer.start()
 
-        workbench = self.workbench
-        point = workbench.get_extension_point(TASK_EXT_POINT)
-        point.observe('extensions', self._update_tasks)
-
         self._filters.observe('contributions', self._update_filters)
 
     def _unbind_observers(self):
@@ -530,10 +440,6 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         self._filters.unobserve('contributions', self._update_filters)
-
-        workbench = self.workbench
-        point = workbench.get_extension_point(TASK_EXT_POINT)
-        point.unobserve('extensions', self._update_tasks)
 
         self._observer.unschedule_all()
         self._observer.stop()
