@@ -21,19 +21,11 @@ with enaml.imports():
     from ..widgets.building import (BuilderView, TemplateSelector)
 
 
-def build_root_handler(event):
-    """ Handler for the 'hqc_meas.task_manager.build_root' command.
-
-    """
-    manager = event.workbench.get_plugin('hqc_meas.task_manager')
-    return build_root(manager, **event.parameters)
-
-
 def create_task(event):
     """Open a dialog to include a task in a task hierarchy.
 
-    Parameters are passed through the parameters attributes of the event
-    object.
+    This function is meant to be used as a Command handler. Parameters are
+    passed through the parameters attributes of the event object.
 
     Parameters:
     ----------
@@ -56,11 +48,48 @@ def create_task(event):
         return None
 
 
+def build_task_from_config(config, build_dep, as_root=False):
+    """ Rebuild a task hierarchy from a dictionary.
+
+    Parameters
+    ----------
+    config : dict
+        Dictionary representing the task hierarchy.
+
+    build_dep :
+        Source of the build dependencies of the hierarchy. This can either
+        be the application workbench or a dict of dependencies.
+
+    as_root : bool, optional
+        Allow to force building a ComplexTask as a RootTask
+
+    Returns
+    -------
+    task :
+        Newly built task.
+
+    """
+    if not isinstance(build_dep, dict):
+        core = build_dep.get_plugin('enaml.workbench.core')
+        cmd = 'ecpy.app.dependencies.collect_from_config'
+        dep_source = core.invoke_command(cmd, {'config': config})
+        if isinstance(dep_source, Exception):
+            return None
+
+    cls = config.pop('task_class')
+
+    if as_root:
+        return RootTask.build_from_config(config, dep_source)
+    else:
+        task_class = dep_source['tasks'][cls]
+        return task_class.build_from_config(config, dep_source)
+
+
 def build_root(event):
     """Create a new RootTask.
 
-    Parameters are passed through the parameters attributes of the event
-    object.
+    This function is meant to be used as a Command handler. Parameters are
+    passed through the parameters attributes of the event object.
 
     Parameters
     ----------
@@ -96,13 +125,5 @@ def build_root(event):
         config, _ = load_template(path)
 
     if config:
-        build_dep = event.parameters.get('build_dep')
-        if build_dep is None:
-            core = event.workbench.get_plugin('enaml.workbench.core')
-            cmd = 'ecpy.app.dependencies.collect_from_config'
-            build_dep = core.invoke_command(cmd, {'config': config})
-        if isinstance(build_dep, Exception):
-            return None
-
-        config.pop('task_class')
-        return RootTask.build_from_config(config, build_dep)
+        build_dep = event.parameters.get('build_dep', event.workbench)
+        build_task_from_config(config, build_dep, True)
