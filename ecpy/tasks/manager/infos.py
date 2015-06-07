@@ -16,7 +16,7 @@ from atom.api import Atom, List, Subclass, Dict, Coerced
 import enaml
 
 from ..base_tasks import BaseTask
-from ..task_interface import TaskInterface
+from ..task_interface import BaseInterface
 
 with enaml.imports():
     from ..base_views import BaseTaskView
@@ -48,7 +48,7 @@ class InterfaceInfos(Atom):
 
     """
     #: Class representing this interface.
-    cls = Subclass(TaskInterface)
+    cls = Subclass(BaseInterface)
 
     #: Widgets associated with this interface.
     views = List()
@@ -58,3 +58,14 @@ class InterfaceInfos(Atom):
 
     #: List of instrument supported by this task.
     instruments = Coerced(set, ())
+
+
+class ConfigInfos(Atom):
+    """An object used to store the informations about a task configurer.
+
+    """
+    #: Class representing this configurer.
+    cls = Subclass(BaseTask)
+
+    #: Widget associated with this configurer.
+    view = Subclass(BaseTaskView)
