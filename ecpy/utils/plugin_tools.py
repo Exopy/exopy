@@ -187,7 +187,7 @@ class ExtensionsCollector(BaseCollector):
         this object.
 
         """
-        name = self.point.split('.')[-1]
+        tb = {}
         workbench = self.workbench
         point = workbench.get_extension_point(self.point)
         extensions = point.extensions
@@ -206,7 +206,10 @@ class ExtensionsCollector(BaseCollector):
             if extension in old_extensions:
                 contribs = old_extensions[extension]
             else:
-                contribs = self._load_contributions(extension)
+                try:
+                    contribs = self._load_contributions(extension)
+                except TypeError as e:
+                    tb['Extension ' + extension.qualified_id] = '{}'.format(e)
             new_extensions[extension].extend(contribs)
 
         # Create mapping between contrib id and declaration.
@@ -214,16 +217,26 @@ class ExtensionsCollector(BaseCollector):
         for extension in extensions:
             for contrib in new_extensions[extension]:
                 if contrib.id in contribs:
-                    msg = "While loading {}, {} '{}' is already registered"
-                    raise ValueError(msg.format(extension, name, contrib.id))
+                    msg = "{} attempted to register already registered '{}'"
+                    pattern = 'Duplicate ' + contrib.id + '_{}'
+                    i = 0
+                    while pattern.format(i) in tb:
+                        i += 1
+                    tb[pattern.format(i)] = \
+                        msg.format(extension.qualified_id, contrib.id)
                 res, msg = self.validate_ext(contrib)
                 if not res:
-                    raise ValueError('While loading {},'.format(extension) +
-                                     msg)
+                    ext = 'While loading {},'.format(extension.qualified_id)
+                    tb[contrib.id] = ext + msg
                 contribs[contrib.id] = contrib
 
         self.contributions = contribs
         self._extensions = new_extensions
+        if tb:
+            core = self.workbench.get_plugin('enaml.workbench.core')
+            core.invoke_command('ecpy.app.errors.signal',
+                                {'kind': 'extension', 'point': self.point,
+                                 'errors': tb})
 
     def _load_contributions(self, extension):
         """ Load the contributed objects for the given extension.
@@ -265,9 +278,6 @@ class DeclaratorCollector(BaseCollector):
     contribute Declarator.
 
     """
-    #: Dictionary containing all the registering errors.
-    errors = Dict()
-
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
@@ -300,15 +310,18 @@ class DeclaratorCollector(BaseCollector):
 
         """
         # Get the tasks and interfaces declarations for all extensions.
+        tb = {}
         new_extensions = defaultdict(list)
         old_extensions = self._extensions
         for extension in extensions:
             if extension not in old_extensions:
-                declarators = self._get_decls(extension)
+                try:
+                    declarators = self._get_decls(extension)
+                except TypeError as e:
+                    tb['Extension ' + extension.qualified_id] = '{}'.format(e)
             new_extensions[extension].extend(declarators)
 
         # Register all contributions.
-        tb = {}
         for extension in new_extensions:
             for declarator in new_extensions[extension]:
                 declarator.regsiter(self, tb)
@@ -322,8 +335,12 @@ class DeclaratorCollector(BaseCollector):
             msg = 'Some declarations have not been registered : {}'
             tb['Missing declarations'] = msg.format(self._delayed)
 
-        self.errors.update(tb)
         self._extensions.update(new_extensions)
+        if tb:
+            core = self.workbench.get_plugin('enaml.workbench.core')
+            core.invoke_command('ecpy.app.errors.signal',
+                                {'kind': 'extension', 'point': self.point,
+                                 'errors': tb})
 
     def _get_decls(self, extension):
         """Get the task declarations declared by an extension.
