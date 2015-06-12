@@ -45,6 +45,7 @@ class PackagesPlugin(Plugin):
         self.packages.clear()
         self._registered = []
 
+    # XXXX refactor to use errors plugin.
     def collect_and_register(self):
         """Iter over packages and register the manifest they are providing.
 
