@@ -538,7 +538,7 @@ def nested_int_decl(int_decl):
     interface.insert_children(None, [i])
     return task, i
 
-
+# XXXX this is part broken as the class is not a subclass of IInterface
 def test_nested_interfaces_register(nested_int_decl, plugin):
     """Test registering and unregistering an interface to an interface.
 

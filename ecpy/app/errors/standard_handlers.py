@@ -6,16 +6,8 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Widgets used to display errors messages received by the plugin.
+"""Standard handlers for basic errors.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
-
-
-
-
-enamldef ErrorsDialog(Dialog):
-    """
-    """
-    pass

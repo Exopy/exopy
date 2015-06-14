@@ -12,11 +12,32 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from collections import defaultdict
+from inspect import cleandoc
+
 from atom.api import List, Typed, Int
 from enaml.workbench.api import Plugin
 
 from .errors import ErrorHandler
-from ..utils.plugin_tools import ExtensionCollector
+from .widgets import ErrorsDialog
+from .standard_handlers import handle_unkwown_error
+from ..utils.plugin_tools import ExtensionsCollector
+
+
+ERR_HANDLER_POINT = 'ecpy.app.errors.handler'
+
+
+def check_handler(handler):
+    """Ensure that the handler does implement a handle method and provide a
+    description.
+
+    """
+    if not handler.description:
+        return False, 'Handler %s does not provide a description' % handler.id
+
+    if handler.handle is ErrorHandler.handle:
+        msg = 'Handler %s does not implement a handle method'
+        return False, msg % handler.id
 
 
 class ErrorPlugin(Plugin):
@@ -30,14 +51,21 @@ class ErrorPlugin(Plugin):
     errors = List()
 
     def start(self):
+        """Collect extensions.
+
         """
-        """
-        pass
+        self._errors_handlers = ExtensionsCollector(workbench=self.workbench,
+                                                    point=ERR_HANDLER_POINT,
+                                                    ext_type=ErrorHandler,
+                                                    validate_ext=check_handler)
+        self._errors_handlers.start()
 
     def stop(self):
+        """Stop the extension collector and clear the list of handlers.
+
         """
-        """
-        pass
+        self._errors_handlers.stop()
+        self.errors = []
 
     def signal(self, kind, **kwargs):
         """Signal an error occured in the system.
@@ -52,13 +80,50 @@ class ErrorPlugin(Plugin):
             Arguments to pass to the error handler.
 
         """
-        pass
+        if self._gathering_counter:
+            self._delayed[kind].append(kwargs)
+            return
+
+        widget = self._handle(kind, kwargs)
+
+        if widget:
+            # Show dialog in application modal mode
+            dial = ErrorsDialog(errors={kind: widget})
+            dial.exec_()
+
+    def report(self, kind=None):
+        """Show a widget summarizing all the errors.
+
+        Parameters
+        ----------
+        kind : unicode, optional
+            If specified only the error related to the specified kind will
+            be reported.
+
+        """
+        errors = {}
+        if kind:
+            if kind not in self._errors_handlers:
+                msg = '''{} is not a registered error kind (it has no
+                    associated handler)'''.format(kind)
+                self.signal(None,
+                            {'message': cleandoc(msg).replace('\n', ' ')})
+                return
+
+            errors[kind] = self._errors_handlers[kind].report()
+
+        else:
+            for kind in self._errors_handlers:
+                errors[kind] = self._errors_handlers[kind].report()
+
+        dial = ErrorsDialog(errors=errors)
+        dial.exec_()
 
     def enter_error_gathering(self):
         """In gathering mode, error handling is differed till exiting the mode.
 
         """
-        pass
+        self._gathering_counter += 1
 
     def exit_error_gathering(self):
         """Upon leaving gathering mode, errors are handled.
@@ -70,18 +135,31 @@ class ErrorPlugin(Plugin):
         counterpart.
 
         """
-        pass
+        self._gathering_counter -= 1
+        if self._gathering_counter < 1:
+            # handle all delayed errors
+            errors = {}
+            for kind in self._delayed:
+                errors[kind] = self._handle(kind, self._delayed[kind])
+
+            self._delayed = {}
+            dial = ErrorsDialog(errors=errors)
+            dial.exec_()
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
     #: Contributed error handlers.
-    _errors_handlers = Typed(ExtensionCollector)
+    _errors_handlers = Typed(ExtensionsCollector)
 
     #: Counter keeping track of how many times the gathering mode was entered
     #: the mode is exited only when the value reaches 0.
     _gathering_counter = Int()
+
+    #: List of pairs (kind, kwargs) representing the error reports received
+    #: while the gathering mode was active.
+    _delayed = Typed(defaultdict, list)
 
     def _update_errors(self, change):
         """Update th lis of supported errors when the registered handlers
@@ -89,3 +167,14 @@ class ErrorPlugin(Plugin):
 
         """
         self.errors = list(self._errors_handlers.contributions)
+
+    def _handle(self, kind, infos):
+        """Generic handler for unregistered kind of errors.
+
+        """
+        if kind in self._errors_handlers:
+            handler = self._errors_handlers[kind]
+            return handler.handle(infos)
+
+        else:
+            return handle_unkwown_error(kind=kind, infos=infos)
