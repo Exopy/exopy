@@ -27,13 +27,16 @@ class ErrorHandler(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def handle(self, infos):
+    def handle(self, workbench, infos):
         """Handle the report by taking any appropriate measure.
 
         The error should always be logged to be sure that a trace remains.
 
         Parameters
         ----------
+        workbench :
+            Reference to the application workbench.
+
         infos : dict or list
             Informations about the error to handle. Should also accept a list
             of such description. The format of the infos should be described in
@@ -48,7 +51,7 @@ class ErrorHandler(Declarative):
         raise NotImplementedError()
 
     @d_func
-    def report(self):
+    def report(self, workbench):
         """Provide a report about all errors that occurred.
 
         Implementing this method is optional.

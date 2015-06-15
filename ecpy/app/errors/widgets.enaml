@@ -12,10 +12,45 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-
+from enaml.core.api import Looper, Include
+from enaml.widgets.api import Container, MultilineField, Notebook, Dialog, Page
 
 
 enamldef ErrorsDialog(Dialog):
+    """Dialog presenting all the errors reported in a notebook.
+
     """
+    #: Errors by kind. For each kind the handler returned a Container
+    #: widget which we display in a notebook page.
+    attr errors : dict
+
+    title = 'Application errors'
+
+    Container:
+        Notebook:
+            Looper:
+                iterable = sorted(errors)
+                Page:
+                    title = loop_item
+                    Include:
+                        objects = [errors[loop_item]]
+
+
+enamldef UnknownErrorWidget(Container):
+    """Widget used to display messages for errors for which no specific handler
+    was found.
+
     """
-    pass
+    #: Kind of the errror for which no handler was found.
+    attr kind
+
+    #: Message presenting all the infos in a nice formatted version.
+    attr msg
+
+    MultilineField:
+        text =\
+            'No handler was found for %s, the formatted infos are below' % kind
+        read_only = True
+
+    MultilineField:
+        text = msg

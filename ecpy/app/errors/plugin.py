@@ -14,12 +14,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 from collections import defaultdict
 from inspect import cleandoc
+from pprint import pformat
+from traceback import format_exc
 
 from atom.api import List, Typed, Int
 from enaml.workbench.api import Plugin
 
 from .errors import ErrorHandler
-from .widgets import ErrorsDialog
+from .widgets import ErrorsDialog, UnknownErrorWidget
 from .standard_handlers import handle_unkwown_error
 from ..utils.plugin_tools import ExtensionsCollector
 
@@ -169,12 +171,29 @@ class ErrorPlugin(Plugin):
         self.errors = list(self._errors_handlers.contributions)
 
     def _handle(self, kind, infos):
-        """Generic handler for unregistered kind of errors.
+        """Dispatch error report to appropriate handler.
 
         """
         if kind in self._errors_handlers:
             handler = self._errors_handlers[kind]
-            return handler.handle(infos)
+            return handler.handle(self.workbench, infos)
 
         else:
-            return handle_unkwown_error(kind=kind, infos=infos)
+            return handle_unkwown_error(self.workbench, kind, infos)
+
+    def _handle_unknwon(self, kind, infos):
+        """Generic handler for unregistered kind of errors.
+
+        """
+        try:
+            # Delayed handling of errors
+            if not isinstance(infos, dict):
+                msg = '\n\n'.join((pformat(i) for i in infos))
+
+            else:
+                msg = pformat(infos)
+
+        except Exception:
+            msg = 'Failed to format the errors infos.\n' + format_exc()
+
+        return UnknownErrorWidget(kind=kind, msg=msg)
