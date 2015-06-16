@@ -23,8 +23,7 @@ from enaml.workbench.api import Plugin
 
 from .errors import ErrorHandler
 from .widgets import ErrorsDialog, UnknownErrorWidget
-from .standard_handlers import handle_unkwown_error
-from ..utils.plugin_tools import ExtensionsCollector
+from ...utils.plugin_tools import ExtensionsCollector
 
 
 ERR_HANDLER_POINT = 'ecpy.app.errors.handler'
@@ -40,12 +39,14 @@ def check_handler(handler):
     if not handler.description:
         return False, 'Handler %s does not provide a description' % handler.id
 
-    if handler.handle.__func__ is ErrorHandler.handle.__func__:
+    if handler.handle.im_func is ErrorHandler.handle.__func__:
         msg = 'Handler %s does not implement a handle method'
         return False, msg % handler.id
 
+    return True, ''
 
-class ErrorPlugin(Plugin):
+
+class ErrorsPlugin(Plugin):
     """Plugin in charge of collecting of the errors.
 
     It will always log the errors, and will notify the user according to their
@@ -61,7 +62,7 @@ class ErrorPlugin(Plugin):
         """
         self._errors_handlers = ExtensionsCollector(workbench=self.workbench,
                                                     point=ERR_HANDLER_POINT,
-                                                    ext_type=ErrorHandler,
+                                                    ext_class=ErrorHandler,
                                                     validate_ext=check_handler)
         self._errors_handlers.start()
 
@@ -177,12 +178,12 @@ class ErrorPlugin(Plugin):
         """Dispatch error report to appropriate handler.
 
         """
-        if kind in self._errors_handlers:
-            handler = self._errors_handlers[kind]
+        if kind in self._errors_handlers.contributions:
+            handler = self._errors_handlers.contributions[kind]
             return handler.handle(self.workbench, infos)
 
         else:
-            return handle_unkwown_error(self.workbench, kind, infos)
+            return self._handle_unknwon(kind, infos)
 
     def _handle_unknwon(self, kind, infos):
         """Generic handler for unregistered kind of errors.

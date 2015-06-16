@@ -44,11 +44,13 @@ enamldef NestedStartupContributor(PluginManifest):
         point = 'ecpy.app.startup'
         AppStartup:
             id = 'test_nested.startup1'
-            run = partial(run_and_register, self)
+            run => (workbench, cmd_args):
+                run_and_register(self, workbench, cmd_args)
             priority = 0
         AppStartup:
             id = 'test_nested.startup2'
-            run = partial(run_and_register, self)
+            run => (workbench, cmd_args):
+                run_and_register(self, workbench, cmd_args)
             priority = 1
 
 
@@ -71,11 +73,13 @@ enamldef StartupContributor(PluginManifest):
             point = 'ecpy.app.startup'
             AppStartup:
                 id = 'test.startup1'
-                run = startup
+                run => (workbench, cmd_args):
+                    startup(workbench, cmd_args)
                 priority = 0
             AppStartup:
                 id = 'test.startup2'
-                run = partial(run_and_register, self)
+                run => (workbench, cmd_args):
+                    run_and_register(self, workbench, cmd_args)
                 priority = 1
 
 
@@ -91,23 +95,21 @@ enamldef ClosingContributor(PluginManifest): man:
     attr accept = False
     id = id_
 
-    func validate(window, event):
-        """Allow closing based on a manifest attribute value.
-
-        """
-        man = window.workbench.get_manifest(id_)
-        man.called = True
-        if man.accept:
-            event.accept()
-        else:
-            event.ignore()
-
     Extension:
         id = 'closing'
         point = 'ecpy.app.closing'
         AppClosing:
             id = id_
-            validate = man.validate
+            validate => (window, event):
+                """Allow closing based on a manifest attribute value.
+
+                """
+                man = window.workbench.get_manifest(id_)
+                man.called = True
+                if man.accept:
+                    event.accept()
+                else:
+                    event.ignore()
 
 
 enamldef ClosingContributor1(ClosingContributor):
@@ -145,11 +147,13 @@ enamldef NestedClosedContributor(PluginManifest):
         point = 'ecpy.app.closed'
         AppClosed:
             id = 'test_nested.closed1'
-            clean = partial(clean_and_register, self)
+            clean => (workbench):
+                clean_and_register(self, workbench)
             priority = 0
         AppClosed:
             id = 'test_nested.closed2'
-            clean = partial(clean_and_register, self)
+            clean => (workbench):
+                clean_and_register(self, workbench)
             priority = 1
 
 def closed(workbench):
@@ -171,9 +175,11 @@ enamldef ClosedContributor(PluginManifest):
         point = 'ecpy.app.closed'
         AppClosed:
             id = 'test.closed1'
-            clean = closed
+            clean => (workbench):
+                closed(workbench)
             priority = 0
         AppClosed:
             id = 'test.closed2'
-            clean = partial(clean_and_register, self)
+            clean => (workbench):
+                clean_and_register(self, workbench)
             priority = 1

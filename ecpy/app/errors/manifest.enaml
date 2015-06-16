@@ -150,7 +150,7 @@ an 'errors' dictionary describing the errors that occured.
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 
-enamldef ErrorsPluginManifest(PluginManifest):
+enamldef ErrorsManifest(PluginManifest):
     """Plugin centralizing the handling of errors.
 
     """
@@ -189,11 +189,11 @@ enamldef ErrorsPluginManifest(PluginManifest):
             handler = exit_error_gathering_handler
 
     Extension:
-        id : 'err_handlers'
-        point 'ecpy.app.errors.handler'
+        id = 'err_handlers'
+        point = 'ecpy.app.errors.handler'
         ErrorHandler:
             id = 'error'
-            desc = ERROR_DESCRIPTION
+            description = ERROR_DESCRIPTION
             handle => (workbench, infos):
 
                 try:
@@ -214,7 +214,7 @@ enamldef ErrorsPluginManifest(PluginManifest):
         ErrorHandler:
             attr errors
             id = 'registering'
-            desc = REGISTERING_ERR_DESCRIPTION
+            description = REGISTERING_ERR_DESCRIPTION
             handle => (workbench, infos):
                 try:
                     if not isinstance(infos, Mapping):
@@ -252,7 +252,7 @@ enamldef ErrorsPluginManifest(PluginManifest):
         ErrorHandler:
             attr errors = defaultdict(dict)
             id = 'extensions'
-            desc = EXTENSION_ERR_DESCRIPTION
+            description = EXTENSION_ERR_DESCRIPTION
             handle => (workbench, infos):
                 try:
                     if not isinstance(infos, Mapping):

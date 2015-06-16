@@ -32,7 +32,7 @@ def validate_startup(startup):
 
     """
     msg = "AppStartup '%s' does not declare a run method"
-    return startup.run.__func__ is AppStartup.run.__func__, msg % startup.id
+    return startup.run.im_func is AppStartup.run.__func__, msg % startup.id
 
 
 def validate_closing(closing):
@@ -40,7 +40,7 @@ def validate_closing(closing):
 
     """
     msg = "AppClosing '%s' does not declare a validate method"
-    return (closing.validate.__func__ is AppClosing.validate.__func__,
+    return (closing.validate.im_func is AppClosing.validate.__func__,
             msg % closing.id)
 
 
@@ -49,7 +49,7 @@ def validate_closed(closed):
 
     """
     msg = "AppClosed '%s' does not declare a clean method"
-    return closed.clean.__func__ is AppClosed.clean.__func__, msg % closed.id
+    return closed.clean.im_func is AppClosed.clean.__func__, msg % closed.id
 
 
 class AppPlugin(Plugin):

@@ -17,9 +17,13 @@ from enaml.widgets.window import CloseEvent
 import enaml
 
 with enaml.imports():
+    from enaml.workbench.core.core_manifest import CoreManifest
+
+    from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.app_extensions import AppStartup
-    from ecpy.app.app_plugin import validate_startup
+    from ecpy.app.app_extensions import AppStartup, AppClosing, AppClosed
+    from ecpy.app.app_plugin import (validate_startup, validate_closing,
+                                     validate_closed)
     from .app_helpers import (StartupContributor, ClosingContributor1,
                               ClosingContributor2, ClosedContributor)
 
@@ -29,7 +33,20 @@ def test_validate_startup():
 
     """
     assert not validate_startup(AppStartup())[0]
-    assert not validate_startup(AppStartup(run=lambda x: x))[0]
+
+
+def test_validate_closing():
+    """Check that validate start up identify wrong startup.
+
+    """
+    assert not validate_closing(AppClosing())[0]
+
+
+def test_validate_closed():
+    """Check that validate start up identify wrong startup.
+
+    """
+    assert not validate_closed(AppClosed())[0]
 
 
 class FalseWindow(object):
@@ -50,6 +67,8 @@ class TestAppPlugin(object):
     def setup(self):
         self.workbench = Workbench()
         self.workbench.register(AppManifest())
+        self.workbench.register(CoreManifest())
+        self.workbench.register(ErrorsManifest())
 
     def test_app_start_up(self):
         """Test running startups leading to new startup registrations.
