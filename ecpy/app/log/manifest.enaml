@@ -230,8 +230,9 @@ enamldef LogManifest(PluginManifest):
         point = 'ecpy.app.startup'
         AppStartup:
             id = 'ecpy.app.logging'
-            run = start_logging
             priority = 1
+            run => (workbench, cmd_args):
+                start_logging(workbenc, cmd_args)
 
     Extension:
         id = 'state'

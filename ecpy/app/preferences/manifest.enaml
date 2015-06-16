@@ -265,8 +265,9 @@ enamldef PreferencesManifest(PluginManifest):
         point = 'ecpy.app.startup'
         AppStartup:
             id = 'ecpy.app.directory'
-            run = check_app_folder
             priority = 0
+            run => (workbench, cmd_args):
+                check_app_folder(workbench, cmd_args)
 
     Extension:
         id = 'commands'

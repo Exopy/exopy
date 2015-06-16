@@ -19,8 +19,8 @@ also drivers classes and intsrument profiles (runtime)
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (Callable, List, Dict, Unicode)
-from enaml.core.declarative import Declarative, d_
+from atom.api import (List, Dict, Unicode)
+from enaml.core.api import Declarative, d_, d_func
 
 
 class BuildDependency(Declarative):
@@ -40,14 +40,35 @@ class BuildDependency(Declarative):
     #: a static representation such as a configuration file).
     walk_members = d_(List())
 
-    #: Callable in charge of collecting the identified build dependencies.
-    #: It should take as arguments the workbench of the application and a dict
-    #: in the format {name: set()}. It should return a dict holding the
-    #: dependencies (as dictionaries) in categories. If there is no dependence
-    #: for a given category this category should be absent from the dict.
-    #: The input falt_walk should be left untouched. In case of failure it
-    #: should raise a ValueError.
-    collect = d_(Callable())
+    @d_func
+    def collect(self, workbench, flat_walk):
+        """Collect the identified build dependencies.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        flat_walk : dict
+            Dict in the format {name: set()} listing the dependencies. The key
+            correspond to the walk_members declared by all BuildDependency.
+            This object must not be modified in the process of collecting the
+            dependencies.
+
+        Returns
+        -------
+        deps : dict
+            Dictionary holding the dependencies (as dictionaries) in
+            categories (walk_members). If there is no dependence for a given
+            category this category should be absent from the dict.
+
+        Raises
+        ------
+        ValueError :
+            Raised if one dependency cannot be found.
+
+        """
+        pass
 
 
 class RuntimeDependency(Declarative):
@@ -67,12 +88,32 @@ class RuntimeDependency(Declarative):
     #: trying to determine its build dependencies
     walk_callables = d_(Dict())
 
-    #: Callable in charge of collecting the identified build dependencies.
-    #: It should take as arguments the workbench of the application, a dict
-    #: in the format {name: set()} and the calling plugin id. It should return
-    #: a dict holding the dependencies (as dictionaries) in categories. If
-    #: there is no dependence for a given category this category should be
-    #: absent from the dict.
-    #: The input falt_walk should be left untouched. In case of failure it
-    #: should raise a ValueError.
-    collect = d_(Callable())
+    @d_func
+    def collect(self, workbench, flat_walk):
+        """Collect the identified runtime dependencies.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        flat_walk : dict
+            Dict in the format {name: set()} listing the dependencies. The key
+            correspond to the walk_members declared by all BuildDependency.
+            This object must not be modified in the process of collecting the
+            dependencies.
+
+        Returns
+        -------
+        deps : dict
+            Dictionary holding the dependencies (as dictionaries) in
+            categories (walk_members). If there is no dependence for a given
+            category this category should be absent from the dict.
+
+        Raises
+        ------
+        ValueError :
+            Raised if one dependency cannot be found.
+
+        """
+        pass

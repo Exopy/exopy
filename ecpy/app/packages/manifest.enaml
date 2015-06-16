@@ -38,18 +38,6 @@ def packages_plugin_factory():
 
 
 # =============================================================================
-# --- Startup handler ---------------------------------------------------------
-# =============================================================================
-
-def collect_and_register_packages(workbench, cmd_args):
-    """Start up handler in charge of collecting and registering packages.
-
-    """
-    plugin = workbench.get_plugin(PLUGIN_ID)
-    plugin.collect_and_register()
-
-
-# =============================================================================
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 
@@ -69,5 +57,7 @@ enamldef PackagesManifest(PluginManifest):
         point = 'ecpy.app.startup'
         AppStartup:
             id = 'ecpy.app.packages'
-            run = collect_and_register_packages
             priority = 5
+            run => (workbench, cmd_args):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                plugin.collect_and_register()

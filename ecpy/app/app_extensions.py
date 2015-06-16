@@ -12,8 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Callable, Unicode, Int
-from enaml.core.declarative import Declarative, d_
+from atom.api import Unicode, Int
+from enaml.core.api import Declarative, d_, d_func
 
 
 class AppStartup(Declarative):
@@ -27,14 +27,26 @@ class AppStartup(Declarative):
     #: The globally unique identifier for the start-up.
     id = d_(Unicode())
 
-    #: A callable(workbench) called during app start-up.
-    run = d_(Callable())
-
     #: The priority determine the order in which AppStartup are called. The
     #: **lowest** this number the sooner the object will be called. Two
     #: AppStartup with the same priority are called in the order in which they
     #: have been discovered.
     priority = d_(Int(20))
+
+    @d_func
+    def run(self, workbench, cmd_args):
+        """Function called during app start-up.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        cmd_args :
+            Commandline arguments passed by the user.
+
+        """
+        pass
 
 
 class AppClosing(Declarative):
@@ -57,10 +69,24 @@ class AppClosing(Declarative):
     #: The globally unique identifier for the closing.
     id = d_(Unicode())
 
-    #: A callable(window, event) performing checks ensuring that the
-    #: application can be safely exited. If it is not the case the event
-    #: (CloseEvent) should be ignored (by calling the ignore method).
-    validate = d_(Callable())
+    @d_func
+    def validate(self, window, event):
+        """Check that the application can be safely exited.
+
+        If it is not the case the event should be ignored (by calling the
+        ignore method)
+
+        Parameters
+        ----------
+        window :
+            Reference to the main application window.
+
+        event : enaml.widgets.window.ClosedEvent
+            Closing event whose ignore method should be called to prevent
+            application closing.
+
+        """
+        pass
 
 
 class AppClosed(Declarative):
@@ -86,11 +112,20 @@ class AppClosed(Declarative):
     #: The globally unique identifier for the closing.
     id = d_(Unicode())
 
-    #: A callable(workbench) to call to perform clean up operation.
-    clean = d_(Callable())
-
     #: The priority determine the order in which AppClosed are called. The
     #: **lowest** this number the sooner the object will be called. Two
     #: AppClosed with the same priority are called in the order in which they
     #: have been discovered.
     priority = d_(Int(20))
+
+    @d_func
+    def clean(self, workbench):
+        """Function called during application closing.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        """
+        pass

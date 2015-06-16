@@ -12,7 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from funcsigs import signature
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 
@@ -29,32 +28,28 @@ CLOSED_POINT = 'ecpy.app.closed'
 
 
 def validate_startup(startup):
-    """Assert that the startup does declare a run member.
+    """Assert that the startup does declare a run method.
 
     """
-    msg = "AppStartup '%s' does not declare a run callable"
-    if not bool(startup.run):
-        return bool(startup.run), msg % startup.id
-
-    msg = "AppStartup %s run function signature must be (workbench, cmd_args)"
-    sig = signature(startup.run)
-    return len(sig.parameters) == 2, msg % startup.id
+    msg = "AppStartup '%s' does not declare a run method"
+    return startup.run.__func__ is AppStartup.run.__func__, msg % startup.id
 
 
 def validate_closing(closing):
-    """Assert that the closing does declare a validate member.
+    """Assert that the closing does declare a validate method.
 
     """
-    msg = "AppStartup '%s' does not declare a validate callable"
-    return bool(closing.validate), msg % closing.id
+    msg = "AppClosing '%s' does not declare a validate method"
+    return (closing.validate.__func__ is AppClosing.validate.__func__,
+            msg % closing.id)
 
 
 def validate_closed(closed):
-    """Assert that the closed does declare a clean member.
+    """Assert that the closed does declare a clean method.
 
     """
-    msg = "AppStartup '%s' does not declare a clean callable"
-    return bool(closed.clean), msg % closed.id
+    msg = "AppClosed '%s' does not declare a clean method"
+    return closed.clean.__func__ is AppClosed.clean.__func__, msg % closed.id
 
 
 class AppPlugin(Plugin):

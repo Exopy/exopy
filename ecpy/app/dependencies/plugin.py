@@ -15,7 +15,6 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 from inspect import cleandoc
-from funcsigs import signature
 from traceback import format_exc
 
 from ...utils.configobj_ops import flatten_config
@@ -38,13 +37,8 @@ def validate_build_dep(contrib):
         msg = "BuildDependency '%s' does not declare any dependencies"
         return False, msg % contrib.id
 
-    if not contrib.collect:
+    if contrib.collect is BuildDependency.collect:
         msg = "BuildDependency '%s' does not declare a collect function"
-        return False, msg % contrib.id
-
-    if len(signature(contrib.collect).parameters) != 2:
-        msg = cleandoc("""BuildDependency '%s' collect function must have
-                       signature (workbench, flat_walk)""")
         return False, msg % contrib.id
 
     return True, ''
@@ -58,13 +52,8 @@ def validate_runtime_dep(contrib):
         msg = "RuntimeDependency '%s' does not declare any dependencies"
         return False, msg % contrib.id
 
-    if not contrib.collect:
+    if contrib.collect.__func__ is RuntimeDependency.collect.__func__:
         msg = "RuntimeDependency '%s' does not declare a collect function"
-        return False, msg % contrib.id
-
-    if len(signature(contrib.collect).parameters) != 3:
-        msg = cleandoc("""BuildDependency '%s' collect function must have
-                       signature (workbench, flat_walk, plugin_id)""")
         return False, msg % contrib.id
 
     return True, ''
