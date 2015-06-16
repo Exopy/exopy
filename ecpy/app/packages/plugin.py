@@ -45,13 +45,17 @@ class PackagesPlugin(Plugin):
         self.packages.clear()
         self._registered = []
 
-    # XXXX refactor to use errors plugin.
     def collect_and_register(self):
         """Iter over packages and register the manifest they are providing.
 
         """
+        # Getting core plugin to signal errors.
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        cmd = 'ecpy.app.errors.signal'
+
         packages = dict()
         registered = []
+        core.invoke_command('ecpy.app.errors.enter_gathering_mode', {})
         for ep in pkg_resources.iter_entry_points('ecpy_package_extension'):
 
             # Check that all dependencies are satisfied.
@@ -61,7 +65,8 @@ class PackagesPlugin(Plugin):
                 msg = 'Could not load extension package %s : %s'
                 msg = msg % (ep.name, format_exc())
                 packages[ep.name] = msg
-                logger.warn(msg)
+                core.invoke_command(cmd, dict(kind='package', id=ep.name,
+                                              message=msg))
                 continue
 
             # Get all manifests
@@ -71,14 +76,16 @@ class PackagesPlugin(Plugin):
                 msg = 'Package %s entry point must return a list, not %s'
                 msg = msg % (ep.name, str(type(manifests)))
                 packages[ep.name] = msg
-                logger.warn(msg)
+                core.invoke_command(cmd, dict(kind='package', id=ep.name,
+                                              message=msg))
                 continue
 
             if any(not issubclass(m, PluginManifest) for m in manifests):
                 msg = 'Package %s entry point must only return PluginManifests'
                 msg = msg % ep.name
                 packages[ep.name] = msg
-                logger.warn(msg)
+                core.invoke_command(cmd, dict(kind='package', id=ep.name,
+                                              message=msg))
                 continue
 
             for manifest in manifests:
@@ -86,7 +93,9 @@ class PackagesPlugin(Plugin):
                 try:
                     self.workbench.register(inst)
                 except ValueError:
-                    logger.warn(format_exc())
+                    core.invoke_command(cmd,
+                                        dict(kind='registering', id=inst.id,
+                                             message=format_exc()))
                     continue
 
                 packages[ep.name][inst.id] = 'Successfully registered'
@@ -97,6 +106,7 @@ class PackagesPlugin(Plugin):
 
         self.packages = packages
         self._registered = registered
+        core.invoke_command('ecpy.app.errors.exit_gathering_mode', {})
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
