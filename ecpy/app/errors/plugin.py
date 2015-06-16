@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import logging
 from collections import defaultdict
 from inspect import cleandoc
 from pprint import pformat
@@ -28,6 +29,8 @@ from ..utils.plugin_tools import ExtensionsCollector
 
 ERR_HANDLER_POINT = 'ecpy.app.errors.handler'
 
+logger = logging.getLogger(__name__)
+
 
 def check_handler(handler):
     """Ensure that the handler does implement a handle method and provide a
@@ -37,7 +40,7 @@ def check_handler(handler):
     if not handler.description:
         return False, 'Handler %s does not provide a description' % handler.id
 
-    if handler.handle is ErrorHandler.handle:
+    if handler.handle.__func__ is ErrorHandler.handle.__func__:
         msg = 'Handler %s does not implement a handle method'
         return False, msg % handler.id
 
@@ -195,5 +198,8 @@ class ErrorPlugin(Plugin):
 
         except Exception:
             msg = 'Failed to format the errors infos.\n' + format_exc()
+
+        logger.debug('No handler found for "%s" kind of error:\n %s',
+                     kind, msg)
 
         return UnknownErrorWidget(kind=kind, msg=msg)

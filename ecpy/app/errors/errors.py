@@ -23,7 +23,8 @@ class ErrorHandler(Declarative):
     #: Id of the error. When signaling errors it will referred to as the kind.
     id = d_(Unicode())
 
-    #: Short description of what this handler can do.
+    #: Short description of what this handler can do. The keyword for the
+    #: handle method should be specified.
     description = d_(Unicode())
 
     @d_func

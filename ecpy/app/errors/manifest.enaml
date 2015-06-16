@@ -11,3 +11,282 @@
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
+
+import logging
+from pprint import pformat
+from traceback import format_exc
+from collections import defaultdict, Mapping
+
+from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
+from enaml.workbench.core.api import Command
+from enaml.widgets.api import MultilineField
+
+from .errors import ErrorHandler
+from .widgets import BasicErrorsDisplay
+from ...utils.mapping_utils import recursive_update
+
+PLUGIN_ID ='ecpy.app.errors'
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def errors_plugin_factory():
+    """ Factory function for the LogPlugin.
+
+    """
+    from .plugin import ErrorsPlugin
+    return ErrorsPlugin()
+
+
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
+
+def signal_handler(event):
+    """Handler for the signal command.
+
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    return plugin.signal(**event.parameters)
+
+
+def report_handler(event):
+    """Handler for the report command.
+
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    return plugin.report(**event.parameters)
+
+
+def enter_error_gathering_handler(event):
+    """Handler for the enter_error_gathering command.
+
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    return plugin.enter_error_gathering()
+
+
+def exit_error_gathering_handler(event):
+    """Handler for the exit_error_gathering command.
+
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    return plugin.exit_error_gathering()
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+HANDLER_EXT_DESCRIPTION = \
+'''Plugins can contribute ErrorHandler to this point to add a new way of
+signaling errors.'''
+
+
+SIGNAL_HANDLER_DESCRIPTION = \
+"""Signal that an error occured.
+
+Parameters
+----------
+kind : unicode
+    The kind of the error which occured. It should match a registered
+    ErrorHandler id.
+
+**kwargs :
+    Keyword arguments depending on the handler, refer to the handler
+    description for more details.
+
+"""
+
+
+REPORT_HANDLER_DESCRIPTION = \
+"""Display a report of all the errors.
+
+Parameters
+----------
+kind : unicode, optional
+    A kind of error to which restrict the report.
+
+"""
+
+
+ENTER_ERROR_GATHERING_DESCRIPTION =\
+"""Start gathering errors to generate a single report.
+
+"""
+
+
+EXIT_ERROR_GATHERING_DESCRIPTION =\
+"""Exit gathering mode when called as many times as enter, errors are processed
+and reported.
+
+"""
+
+
+ERROR_DESCRIPTION =\
+'''Generic error handler, log and warn user (popup window).
+
+The handler expect to find a 'message' key in the passed infos.
+'''
+
+
+REGISTERING_ERR_DESCRIPTION =\
+'''Specific handler for plugin registering errors.
+
+The handler expect to find the 'id' of the manifest whose registering failed,
+and a 'message' key.
+'''
+
+
+EXTENSION_ERR_DESCRIPTION =\
+"""Specific handler for extension loading errors.
+
+The handler expects the 'point' to which the extension was contributing and
+an 'errors' dictionary describing the errors that occured.
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef ErrorsPluginManifest(PluginManifest):
+    """Plugin centralizing the handling of errors.
+
+    """
+    id = PLUGIN_ID
+    factory = errors_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'handler'
+        description = HANDLER_EXT_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'ecpy.app.errors.signal'
+            description = SIGNAL_HANDLER_DESCRIPTION
+            handler = signal_handler
+        Command:
+            id = 'ecpy.app.errors.report'
+            description = REPORT_HANDLER_DESCRIPTION
+            handler = report_handler
+        Command:
+            id = 'ecpy.app.errors.enter_error_gathering'
+            description = ENTER_ERROR_GATHERING_DESCRIPTION
+            handler = enter_error_gathering_handler
+        Command:
+            id = 'ecpy.app.errors.exit_error_gathering'
+            description = EXIT_ERROR_GATHERING_DESCRIPTION
+            handler = exit_error_gathering_handler
+
+    Extension:
+        id : 'err_handlers'
+        point 'ecpy.app.errors.handler'
+        ErrorHandler:
+            id = 'error'
+            desc = ERROR_DESCRIPTION
+            handle => (workbench, infos):
+
+                try:
+                    if not isinstance(infos, Mapping):
+                        msg = '\n\n'.join(_format(i) for i in infos)
+                        msg = 'Errors occured :\n' + msg
+                    else:
+                        msg = 'An erorr occurred :\n' + _format(infos)
+                except Exception:
+                    msg = 'Failed to format error message :\n' + format_exc()
+                logger.debug(msg)
+                return MultilineField(read_only=True, text=msg)
+
+            func _format(infos):
+                def_msg =  'No message found, infos are {}'
+                return infos.get('message', def_msg.format(pformat(infos)))
+
+        ErrorHandler:
+            attr errors
+            id = 'registering'
+            desc = REGISTERING_ERR_DESCRIPTION
+            handle => (workbench, infos):
+                try:
+                    if not isinstance(infos, Mapping):
+                        err = {i[id]: _format(i) for i in infos}
+                        errors.update(err)
+                        return BasicErrorsDisplay(errors=err,
+                                                  kind='Manifests')
+                    else:
+                        msg = _format(infos)
+                        errors[infos.id] = msg
+                        return MultilineField(text=msg, read_only=True)
+                except Exception:
+                    try:
+                        msg = ('Failed to handle registering error, infos were'
+                               ':\n' + pformat(infos))
+                    except Exception:
+                        msg = ('Failed to handle registering error, and to'
+                               'format infos:\n' + format_exc())
+                    core = workbench.get_plugin('enaml.workbench.core')
+                    core.invoke_command('ecpy.app.errors.signal',
+                                        dict(message=msg))
+
+            report => (workbench):
+                if errors:
+                    return BasicErrorsDisplay(errors=errors,
+                                              kind='Manifests')
+                else:
+                    msg = 'No manifest registering error occured.'
+                    return MultilineField(text=msg)
+
+            func _format(infos):
+                return ('Failed to register manifest {}'.format(infos[id]) +
+                        infos['message'])
+
+        ErrorHandler:
+            attr errors = defaultdict(dict)
+            id = 'extensions'
+            desc = EXTENSION_ERR_DESCRIPTION
+            handle => (workbench, infos):
+                try:
+                    if not isinstance(infos, Mapping):
+                        err = {}
+                        for i in infos:
+                            recursive_update(err, _format(i))
+                    else:
+                        err = _format(infos)
+
+                    logger.debug('Errors occured when loading extsnions for'
+                                 'the following extension points:\n%s',
+                                 pformat(err))
+
+                    recursive_update(errors, err)
+                    if len(err) == 1:
+                        return BasicErrorsDisplay(errors=err,
+                                                  kind=err.keys()[0])
+                    else:
+                        return HierarchicalErrorDisplay(errors=err,
+                                                        kind='Extensions')
+                except Exception:
+                    try:
+                        msg = ('Failed to handle extension errors, infos were'
+                               ':\n' + pformat(infos))
+                    except Exception:
+                        msg = ('Failed to handle extension errors, and to'
+                               'format infos:\n' + format_exc())
+                    core = workbench.get_plugin('enaml.workbench.core')
+                    core.invoke_command('ecpy.app.errors.signal',
+                                        dict(message=msg))
+
+            report => (workbench):
+                return HierarchicalErrorDisplay(errors=errors,
+                                                kind='Extensions')
+
+            func _format(infos):
+                return {infos['point']: infos['errors']}

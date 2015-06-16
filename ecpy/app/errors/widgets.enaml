@@ -54,3 +54,65 @@ enamldef UnknownErrorWidget(Container):
 
     MultilineField:
         text = msg
+
+
+enamldef BasicErrorsDisplay(Container):
+    """Display the errors as a list with a panel for the message.
+
+    """
+    #: Dict listing the errors as id: message.
+    attr errors
+
+    #: Currently selected error.
+    alias selected : lis.selected_item
+    selected = errors.keys()[0] if errors else selected
+
+    #: Kind of the errors.
+    alias kind : lis_lab.text
+
+
+    constraints = [vbox(hbox(lis_lab, che_lab), hbox(lis, che)),
+                   align('left', lis_lab, lis),
+                   align('left', che_lab, che)]
+
+    Label: lis_lab:
+        pass
+    QtListStrWidget: lis:
+        items = sorted(errors.keys())
+        hug_height = 'ignore'
+
+    Label: che_lab:
+        text << _selected if selected else ''
+    MultilineField: che:
+        text << errors[selected] if errors and selected else ''
+        read_only = True
+
+
+# XXXX refactor later
+enamldef HierarchicalErrorsDisplay(Container): main:
+    """
+    """
+    #: Dict listing the errors as point: errors.
+    attr errors
+
+    #: Currently selected point.
+    alias selected : lis.selected_item
+    selected = errors.keys()[0] if errors else selected
+
+    #: Kind of the errors.
+    alias kind : lis_lab.text
+
+
+    constraints = [vbox(hbox(lis_lab, che_lab), hbox(lis, che)),
+                   align('left', lis_lab, lis),
+                   align('left', che_lab, che)]
+
+    Label: lis_lab:
+        pass
+    QtListStrWidget: lis:
+        items = sorted(errors.keys())
+        hug_height = 'ignore'
+
+    BasicErrorsDisplay:
+        errors << main.errors.get(selected, {})
+        kind << selected
