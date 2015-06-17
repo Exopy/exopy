@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.core.api import Looper, Include
+from enaml.layout.api import vbox, hbox, align
 from enaml.widgets.api import (Container, MultilineField, Notebook, Dialog,
                                Page, Label)
 
@@ -31,6 +32,7 @@ enamldef ErrorsDialog(Dialog):
 
     Container:
         Notebook:
+            tabs_closable = False
             Looper:
                 iterable = sorted(errors)
                 Page:
@@ -50,13 +52,13 @@ enamldef UnknownErrorWidget(Container):
     #: Message presenting all the infos in a nice formatted version.
     attr msg
 
-    MultilineField:
+    Label:
         text =\
             'No handler was found for %s, the formatted infos are below' % kind
-        read_only = True
 
     MultilineField:
         text = msg
+        read_only = True
 
 
 enamldef BasicErrorsDisplay(Container):
@@ -85,7 +87,7 @@ enamldef BasicErrorsDisplay(Container):
         hug_height = 'ignore'
 
     Label: che_lab:
-        text << _selected if selected else ''
+        text << selected if selected else ''
     MultilineField: che:
         text << errors[selected] if errors and selected else ''
         read_only = True

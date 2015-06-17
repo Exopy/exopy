@@ -231,7 +231,7 @@ enamldef ErrorsManifest(PluginManifest):
                         msg = ('Failed to handle registering error, infos were'
                                ':\n' + pformat(infos))
                     except Exception:
-                        msg = ('Failed to handle registering error, and to'
+                        msg = ('Failed to handle registering error, and to '
                                'format infos:\n' + format_exc())
                     core = workbench.get_plugin('enaml.workbench.core')
                     core.invoke_command('ecpy.app.errors.signal',
@@ -262,14 +262,15 @@ enamldef ErrorsManifest(PluginManifest):
                     else:
                         err = _format(infos)
 
-                    logger.debug('Errors occured when loading extsnions for'
+                    logger.debug('Errors occured when loading extsnions for '
                                  'the following extension points:\n%s',
                                  pformat(err))
 
                     recursive_update(errors, err)
                     if len(err) == 1:
-                        return BasicErrorsDisplay(errors=err,
-                                                  kind=err.keys()[0])
+                        kind = err.keys()[0]
+                        return BasicErrorsDisplay(errors=err[kind],
+                                                  kind=kind)
                     else:
                         return HierarchicalErrorDisplay(errors=err,
                                                         kind='Extensions')
@@ -278,7 +279,7 @@ enamldef ErrorsManifest(PluginManifest):
                         msg = ('Failed to handle extension errors, infos were'
                                ':\n' + pformat(infos))
                     except Exception:
-                        msg = ('Failed to handle extension errors, and to'
+                        msg = ('Failed to handle extension errors, and to '
                                'format infos:\n' + format_exc())
                     core = workbench.get_plugin('enaml.workbench.core')
                     core.invoke_command('ecpy.app.errors.signal',

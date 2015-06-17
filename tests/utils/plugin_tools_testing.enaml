@@ -9,17 +9,27 @@
 """Manifests used when testing plugin tools module content.
 
 """
-from  atom.api import Typed, Unicode
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from future.utils import python_2_unicode_compatible
+
+from  atom.api import Typed, Unicode, Bool, Enum
 from enaml.workbench.api import (PluginManifest, Plugin, Extension,
                                  ExtensionPoint)
-from  enaml.core.declarative import Declarative, d_
+from  enaml.core.api import Declarative, d_
 
-from ecpy.utils.plugin_tools import ExtensionsCollector
+from ecpy.utils.declarator import Declarator
+from ecpy.utils.plugin_tools import ExtensionsCollector, DeclaratorsCollector
 
 
 POINT = 'test.contrib'
 
 PLUGIN_ID = 'test'
+
+# =============================================================================
+# --- ExtensionCollector testing ----------------------------------------------
+# =============================================================================
 
 class Contribution(Declarative):
     """Dummy class representing a contribution to an extension point.
@@ -30,12 +40,36 @@ class Contribution(Declarative):
     task = d_(Unicode())
 
 
+@python_2_unicode_compatible
+class TestDeclarator(Declarator):
+    """Dummy Declarator simply taking note that it registered and unregistered.
+
+    """
+    fail_register = Bool()
+
+    is_registered = Bool()
+
+    unregistered = Bool()
+
+    def register(self, plugin, traceback):
+        if self.fail_register:
+            traceback['test']= ''
+        else:
+            self.is_registered = True
+
+    def unregister(self, plugin):
+        self.unregistered = True
+
+    def __str__(self):
+        return 'Declarator'
+
+
 def validate_contrib(contrib):
 
      return bool(contrib.task), 'Contribution does not declare a task'
 
 
-class ModularPlugin(Plugin):
+class ExtensionPlugin(Plugin):
     """Plugin delegating the handling of the contribution to its extension
     point.
 
@@ -59,47 +93,33 @@ class ModularPlugin(Plugin):
         self.contribs.stop()
 
 
-enamldef ModularManifest(PluginManifest):
-    """Manifest for the ModularPlugin.
+enamldef ExtensionManifest(PluginManifest):
+    """Manifest for the ExtensionPlugin.
 
     """
     id = 'test'
-    factory = ModularPlugin
+    factory = ExtensionPlugin
 
     ExtensionPoint:
         id = POINT
 
 
 enamldef Contributor1(PluginManifest):
-    """Contributor to ModularPlugin.
+    """Contributor to ExtensionPlugin.
 
     """
-    id = u'contrib1'
+    id = 'contrib1'
 
     Extension:
         id = 'contrib'
-        point = u'test.contrib'
+        point = 'test.contrib'
         Contribution:
             id = 'contrib1.contrib'
             task = 'Do'
 
 
-enamldef Contributor1bis(PluginManifest):
-    """Contributor to ModularPlugin with the same id as Contributor1.
-
-    """
-    id = u'contrib1bis'
-
-    Extension:
-        id = 'contrib'
-        point = u'test.contrib'
-        Contribution:
-            id = 'contrib1.contrib'
-            task = 'For'
-
-
 enamldef Contributor2(PluginManifest):
-    """Contributor to ModularPlugin using a factory function.
+    """Contributor to ExtensionPlugin using a factory function.
 
     """
     id = u'contrib2'
@@ -112,7 +132,7 @@ enamldef Contributor2(PluginManifest):
 
 
 enamldef Contributor3(PluginManifest):
-    """Contributor to ModularPlugin forgetting to declare a task.
+    """Contributor to ExtensionPlugin forgetting to declare a task.
 
     """
     id = u'contrib3'
@@ -125,7 +145,7 @@ enamldef Contributor3(PluginManifest):
 
 
 enamldef Contributor4(PluginManifest):
-    """Contributor to ModularPlugin using a factory function but returning
+    """Contributor to ExtensionPlugin using a factory function but returning
     wrong type.
 
     """
@@ -135,3 +155,136 @@ enamldef Contributor4(PluginManifest):
         id = 'contrib'
         point = u'test.contrib'
         factory = lambda w: [None]
+
+# =============================================================================
+# --- DeclaratorCollector testing ---------------------------------------------
+# =============================================================================
+
+@python_2_unicode_compatible
+class TestDeclarator(Declarator):
+    """Dummy Declarator simply taking note that it registered and unregistered.
+
+    """
+    id = d_(Unicode())
+
+    fail_register = d_(Bool())
+
+    delay = d_(Enum(False, True, 'Always'))
+
+    def register(self, collector, traceback):
+        if self.fail_register:
+            traceback[self.id]= ''
+        elif self.delay:
+            collector._delayed.append(self)
+            if self.delay != 'Always':
+                self.delay = False
+        else:
+            collector.contributions[self.id] = self
+
+    def unregister(self, collector):
+        try:
+           del collector.contributions[self.id]
+        except KeyError:
+            pass
+
+    def __str__(self):
+        return 'Declarator'
+
+
+class DeclaratorPlugin(Plugin):
+    """Plugin delegating the handling of the contribution to its extension
+    point.
+
+    """
+    contribs = Typed(DeclaratorsCollector)
+
+    def start(self):
+        """Instantiate the ExtensionCollector.
+
+        """
+        self.contribs = DeclaratorsCollector(workbench=self.workbench,
+                                             point=POINT,
+                                             ext_class=[TestDeclarator])
+        self.contribs.start()
+
+    def stop(self):
+        """Clean the ExtensionCollector.
+
+        """
+        self.contribs.stop()
+
+
+enamldef DeclaratorManifest(PluginManifest):
+    """Manifest for the DeclaratorPlugin.
+
+    """
+    id = 'test'
+    factory = DeclaratorPlugin
+
+    ExtensionPoint:
+        id = POINT
+
+
+enamldef DContributor1(PluginManifest):
+    """Contributor to DeclaratorPlugin.
+
+    """
+    id = 'contrib1'
+
+    Extension:
+        id = 'contrib'
+        point = 'test.contrib'
+        TestDeclarator:
+            id = 'contrib1'
+
+
+enamldef DContributor2(PluginManifest):
+    """Contributor to ExtensionPlugin using a factory function.
+
+    """
+    id = 'contrib2'
+
+    Extension:
+        id = 'contrib'
+        point = 'test.contrib'
+        factory = lambda w: [TestDeclarator(id='contrib2', delay=True)]
+
+
+
+enamldef DContributor3(PluginManifest):
+    """Contributor to ExtensionPlugin using a factory function but returning
+    wrong type.
+
+    """
+    id = 'contrib3'
+
+    Extension:
+        id = 'contrib'
+        point = 'test.contrib'
+        factory = lambda w: [None]
+
+
+enamldef DContributor4(PluginManifest):
+    """Contributor to DeclaratorPlugin.
+
+    """
+    id = 'contrib4'
+
+    Extension:
+        id = 'contrib'
+        point = 'test.contrib'
+        TestDeclarator:
+            fail_register = True
+
+
+enamldef DContributor5(PluginManifest):
+    """Contributor to DeclaratorPlugin.
+
+    """
+    id = 'contrib4'
+
+    Extension:
+        id = 'contrib'
+        point = 'test.contrib'
+        TestDeclarator:
+            delay = 'Always'

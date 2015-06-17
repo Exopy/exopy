@@ -21,7 +21,7 @@ from watchdog.observers import Observer
 from .declarations import Task, Interface, Tasks, Interfaces, TaskConfig
 from .filters import TaskFilter
 from ...utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
-                                   DeclaratorCollector)
+                                   DeclaratorsCollector)
 from ...utils.watchdog import SystematicFileUpdater
 
 
@@ -68,16 +68,16 @@ class TaskManagerPlugin(HasPrefPlugin):
                                             ext_cls=TaskFilter,
                                             validate_ext=lambda w, e: True, '')
         self._filters.start()
-        self._configs = DeclaratorCollector(workbench=self.workbench,
-                                            point=CONFIG_POINT,
-                                            ext_cls=TaskConfig)
+        self._configs = DeclaratorsCollector(workbench=self.workbench,
+                                             point=CONFIG_POINT,
+                                             ext_cls=TaskConfig)
 
         self._configs.start()
-        self._tasks = DeclaratorCollector(workbench=self.workbench,
-                                          point=TASK_EXT_POINT,
-                                          ext_cls=(Tasks, Task, Interfaces,
-                                                   Interface)
-                                          )
+        self._tasks = DeclaratorsCollector(workbench=self.workbench,
+                                           point=TASK_EXT_POINT,
+                                           ext_cls=(Tasks, Task, Interfaces,
+                                                    Interface)
+                                           )
         self._tasks.start()
 
         self._refresh_templates()
@@ -364,7 +364,7 @@ class TaskManagerPlugin(HasPrefPlugin):
     # =========================================================================
 
     #: Dictionary storing all known tasks declarartion, using TaskInfos.
-    _tasks = Typed(DeclaratorCollector)
+    _tasks = Typed(DeclaratorsCollector)
 
     #: Private storage keeping track of which extension declared which object.
     _extensions = Typed(defaultdict, (list,))
@@ -373,7 +373,7 @@ class TaskManagerPlugin(HasPrefPlugin):
     _filters = Typed(ExtensionsCollector)
 
     #: Contributed task configs.
-    _configs = Typed(DeclaratorCollector)
+    _configs = Typed(DeclaratorsCollector)
 
     #: Watchdog observer tracking changes to the templates folders.
     _observer = Typed(Observer, ())

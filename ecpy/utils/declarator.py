@@ -53,13 +53,16 @@ class Declarator(Declarative):
 
         return self.parent.get_group()
 
-    def register(self, plugin, traceback):
+    def register(self, collector, traceback):
         """Add the contribution of this extension to the plugin.
 
         Parameters
         ----------
-        plugin : Plugin
-            Plugin to which this Declarator contribute.
+        collector : DeclaratorCollector
+            Collector in charge handling the registering of declarators.
+            Contributions should be added to the contributions member (Dict).
+            If a declarator cannot be registered because another one need to be
+            registered first it should add itself to the _delayed member (List)
 
         traceback : dict
             Dictionary in which any issue occuring during registration should
@@ -73,8 +76,8 @@ class Declarator(Declarative):
 
         Parameters
         ----------
-        plugin : Plugin
-            Plugin to which this Declarator contribute.
+        collector : DeclaratorCollector
+            Collector in charge handling the registering of declarators.
 
         """
         raise NotImplementedError()
