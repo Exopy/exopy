@@ -14,6 +14,9 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 from time import sleep
+from contextlib import contextmanager
+
+from enaml.application import deferred_call
 from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window
 
@@ -64,4 +67,27 @@ def close_all_windows():
     sleep(0.1)
     for window in Window.windows:
         window.close()
+    process_app_events()
+
+
+@contextmanager
+def handle_dialog(op='accept', custom=lambda x: x):
+    """Automatically close a dialog opened during the context.
+
+    Parameters
+    ----------
+    op : {'accept', 'reject'}, optional
+        Whether to accept or reject the dialog.
+
+    custom : callable, optional
+        Callable taking as only argument the dialog, called before accepting
+        or rejecting the dialog.
+
+    """
+    def close_dialog():
+        dial = get_window()
+        custom(dial)
+        getattr(dial, op)()
+    deferred_call(close_dialog)
+    yield
     process_app_events()
