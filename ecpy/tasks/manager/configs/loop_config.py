@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Typed, Unicode, Bool)
 
-from .base_config import PyConfigTask, BaseConfigTask
+from .base_config import PyTaskConfig, BaseTaskConfig
 from .base_config_views import BaseConfigView
 
 
-class LoopConfigTask(PyConfigTask):
+class LoopTaskConfig(PyTaskConfig):
     """Special configurer allowing to embed a task into a LoopTask.
 
     """
@@ -29,7 +29,7 @@ class LoopConfigTask(PyConfigTask):
     subtask = Unicode()
 
     #: Configurer for the subtask.
-    subconfig = Typed(BaseConfigTask)
+    subconfig = Typed(BaseTaskConfig)
 
     #: View of the configurer
     subview = Typed(BaseConfigView)

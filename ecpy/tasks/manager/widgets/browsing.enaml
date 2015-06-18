@@ -26,7 +26,7 @@ def normalize_name(name):
     For templates, only the extension file is removed.
 
     """
-    if name.endswith('.ini')
+    if name.endswith('.ini'):
         return name[:-4]
 
     if name.endswith('Task'):

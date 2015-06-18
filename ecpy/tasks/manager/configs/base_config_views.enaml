@@ -48,7 +48,7 @@ enamldef PyConfigView(BaseConfigView): main:
     #: will be included in a loop.
     attr loop
 
-    name_lab.visible = not loop
+    name_label.visible = not loop
     name_field.visible = not loop
 
     constraints << ([vbox(hbox(name_lab, name_field), desc)] if loop

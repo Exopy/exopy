@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import enaml
 
 from ...base_tasks import RootTask
-from ..templates import load_template
+from .templates import load_template
 
 with enaml.imports():
     from ..widgets.building import (BuilderView, TemplateSelector)

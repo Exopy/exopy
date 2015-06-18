@@ -76,6 +76,9 @@ enamldef BuilderView(Dialog): dial:
                 dial.reject()
 
 
+enamldef TemplateSelector(Dialog):
+    pass
+
 # XXXX Re-enable templates later.
 #enamldef TemplateSelectorView(Dialog): dial:
 #    """ Simple dialog to select a template to build.

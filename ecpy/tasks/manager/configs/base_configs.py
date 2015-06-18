@@ -18,7 +18,7 @@ from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped)
 
 from inspect import getdoc
 
-from hqc_meas.tasks.api import BaseTask
+from ...api import BaseTask
 from ..utils.templates import load_template
 from ..utils.building import build_task_from_config
 
@@ -29,7 +29,7 @@ def task_manager():
     return TaskManagerPlugin
 
 
-class BaseConfigTask(Atom):
+class BaseTaskConfig(Atom):
     """Base class for task configurer.
 
     """
@@ -77,7 +77,7 @@ class BaseConfigTask(Atom):
             return ''
 
 
-class PyConfigTask(BaseConfigTask):
+class PyTaskConfig(BaseTaskConfig):
     """ Standard configurer for python tasks.
 
     This configurer is suitable for most python task whose initialisation
@@ -88,14 +88,14 @@ class PyConfigTask(BaseConfigTask):
     task_doc = Unicode()
 
     def __init__(self, **kwargs):
-        super(PyConfigTask, self).__init__(**kwargs)
+        super(PyTaskConfig, self).__init__(**kwargs)
         self.task_doc = getdoc(self.task_class).replace('\n', ' ')
 
     def build_task(self):
         return self.task_class(task_name=self.task_name)
 
 
-class IniConfigTask(BaseConfigTask):
+class TemplateTaskConfig(BaseTaskConfig):
     """Configurer for template task.
 
     This configurer use the data stored about a task hierarchy to rebuild it
@@ -109,7 +109,7 @@ class IniConfigTask(BaseConfigTask):
     template_doc = Unicode()
 
     def __init__(self, **kwargs):
-        super(IniConfigTask, self).__init__(**kwargs)
+        super(TemplateTaskConfig, self).__init__(**kwargs)
         if self.template_path:
             _, doc = load_template(self.template_path)
             self.template_doc = doc
