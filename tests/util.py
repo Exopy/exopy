@@ -48,6 +48,10 @@ def get_window():
     """Convenience function running the event loop and returning the first
     window found in the set of active windows.
 
+    Raises
+    ------
+    UnboundLocalError : if no window exists.
+
     """
     process_app_events()
     sleep(0.1)

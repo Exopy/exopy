@@ -22,7 +22,8 @@ from enaml.workbench.core.api import Command
 from enaml.widgets.api import MultilineField
 
 from .errors import ErrorHandler
-from .widgets import BasicErrorsDisplay
+from ..states.state import State
+from .widgets import BasicErrorsDisplay, HierarchicalErrorsDisplay
 from ...utils.mapping_utils import recursive_update
 
 PLUGIN_ID ='ecpy.app.errors'
@@ -189,20 +190,26 @@ enamldef ErrorsManifest(PluginManifest):
             handler = exit_error_gathering_handler
 
     Extension:
+        id = 'state'
+        point = 'ecpy.app.states.state'
+        State:
+            id = 'ecpy.app.errors'
+            description = 'Give access to the registered handlers ids.'
+            sync_members = ['errors']
+
+    Extension:
         id = 'err_handlers'
         point = 'ecpy.app.errors.handler'
         ErrorHandler:
             id = 'error'
             description = ERROR_DESCRIPTION
             handle => (workbench, infos):
-                try:
-                    if not isinstance(infos, Mapping):
-                        msg = '\n\n'.join([self._format(i) for i in infos])
-                        msg = 'Errors occured :\n' + msg
-                    else:
-                        msg = 'An erorr occurred :\n' + self._format(infos)
-                except Exception:
-                    msg = 'Failed to format error message :\n' + format_exc()
+                if not isinstance(infos, Mapping):
+                    msg = '\n\n'.join([self._format(i) for i in infos])
+                    msg = 'Errors occured :\n' + msg
+                else:
+                    msg = 'An erorr occurred :\n' + self._format(infos)
+
                 logger.debug(msg)
                 return MultilineField(read_only=True, text=msg)
 
@@ -262,8 +269,8 @@ enamldef ErrorsManifest(PluginManifest):
                     return BasicErrorsDisplay(errors=err[kind],
                                               kind=kind)
                 else:
-                    return HierarchicalErrorDisplay(errors=err,
-                                                    kind='Extensions')
+                    return HierarchicalErrorsDisplay(errors=err,
+                                                     kind='Extensions')
 
             report => (workbench):
                 if errors:

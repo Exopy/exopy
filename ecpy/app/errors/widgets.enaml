@@ -30,26 +30,37 @@ enamldef ErrorsDialog(Dialog):
 
     title = 'Application errors'
 
-    Container:
-        Notebook:
-            tabs_closable = False
-            Looper:
-                iterable = sorted(errors)
-                Page:
-                    title = loop_item
-                    # Directly include widgets inheriting from container.
-                    Conditional:
-                        condition = isinstance(errors[loop_item], Container)
-                        Include:
-                            objects = [errors[loop_item]]
+    Conditional:
+        condition = bool(errors)
 
-                    # Add a container for non-Container widgets.
-                    Conditional:
-                        condition = not isinstance(errors[loop_item],
+        Container:
+            Notebook:
+                tabs_closable = False
+                Looper:
+                    iterable = sorted(errors)
+                    Page:
+                        title = loop_item
+                        # Directly include widgets inheriting from container.
+                        Conditional:
+                            condition = isinstance(errors[loop_item],
                                                    Container)
-                        Container:
                             Include:
                                 objects = [errors[loop_item]]
+
+                        # Add a container for non-Container widgets.
+                        Conditional:
+                            condition = not isinstance(errors[loop_item],
+                                                       Container)
+                            Container:
+                                Include:
+                                    objects = [errors[loop_item]]
+
+    Conditional:
+        condition = not bool(errors)
+        Container:
+            MultilineField:
+                text = 'No error occured'
+                read_only = True
 
 
 enamldef UnknownErrorWidget(Container):

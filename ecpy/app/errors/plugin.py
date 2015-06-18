@@ -18,12 +18,15 @@ from inspect import cleandoc
 from pprint import pformat
 from traceback import format_exc
 
+import enaml
 from atom.api import List, Typed, Int
 from enaml.workbench.api import Plugin
 
 from .errors import ErrorHandler
-from .widgets import ErrorsDialog, UnknownErrorWidget
 from ...utils.plugin_tools import ExtensionsCollector
+
+with enaml.imports():
+    from .widgets import ErrorsDialog, UnknownErrorWidget
 
 
 ERR_HANDLER_POINT = 'ecpy.app.errors.handler'
@@ -39,7 +42,9 @@ def check_handler(handler):
     if not handler.description:
         return False, 'Handler %s does not provide a description' % handler.id
 
-    if handler.handle.im_func is ErrorHandler.handle.__func__:
+    func = getattr(handler.handle, 'im_func',
+                   getattr(handler.handle, '__func__', None))
+    if not func or func is ErrorHandler.handle.__func__:
         msg = 'Handler %s does not implement a handle method'
         return False, msg % handler.id
 
@@ -53,7 +58,7 @@ class ErrorsPlugin(Plugin):
     type.
 
     """
-    #: Errors for which a custom handler is regsitered.
+    #: Errors for which a custom handler is registered.
     errors = List()
 
     def start(self):
@@ -65,6 +70,7 @@ class ErrorsPlugin(Plugin):
                                                     ext_class=ErrorHandler,
                                                     validate_ext=check_handler)
         self._errors_handlers.start()
+        self._update_errors(None)
 
     def stop(self):
         """Stop the extension collector and clear the list of handlers.
@@ -107,20 +113,22 @@ class ErrorsPlugin(Plugin):
             be reported.
 
         """
+        handlers = self._errors_handlers.contributions
         errors = {}
         if kind:
-            if kind not in self._errors_handlers:
+            if kind not in handlers:
                 msg = '''{} is not a registered error kind (it has no
                     associated handler)'''.format(kind)
-                self.signal(None,
-                            {'message': cleandoc(msg).replace('\n', ' ')})
+                self.signal('error',
+                            message=cleandoc(msg).replace('\n', ' '))
                 return
 
-            errors[kind] = self._errors_handlers[kind].report()
+            handlers = {kind: handlers[kind]}
 
-        else:
-            for kind in self._errors_handlers:
-                errors[kind] = self._errors_handlers[kind].report()
+        for kind in handlers:
+            report = handlers[kind].report(self.workbench)
+            if report:
+                errors[kind] = report
 
         dial = ErrorsDialog(errors=errors)
         dial.exec_()
@@ -179,7 +187,7 @@ class ErrorsPlugin(Plugin):
     _delayed = Typed(defaultdict, (list,))
 
     def _update_errors(self, change):
-        """Update th lis of supported errors when the registered handlers
+        """Update the list of supported errors when the registered handlers
         change
 
         """
