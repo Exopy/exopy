@@ -48,6 +48,7 @@ class TestPriorityHeap(object):
         self.queue.push(0, 5)
         self.queue.push(0, 6)
         self.queue.remove(5)
+        assert len(self.queue) == 1
         assert self.queue.pop() == 6
 
     def test_pushing_while_iterating(self):

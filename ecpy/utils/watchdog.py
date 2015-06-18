@@ -35,6 +35,6 @@ class SystematicFileUpdater(FileSystemEventHandler):
             self.handler()
 
     def on_moved(self, event):
-        super(SystematicFileUpdater, self).on_deleted(event)
+        super(SystematicFileUpdater, self).on_moved(event)
         if isinstance(event, FileMovedEvent):
             self.handler()

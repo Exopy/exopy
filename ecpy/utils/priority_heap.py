@@ -29,6 +29,7 @@ class PriorityHeap(object):
     __slots__ = ('_heap', '_map', '_counter')
 
     def __init__(self):
+        super(PriorityHeap, self).__init__()
         self._heap = []
         self._map = {}
         self._counter = 0
