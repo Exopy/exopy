@@ -191,12 +191,26 @@ def test_registering_issue(monkeypatch, workbench):
 
 
 def test_reporting_single_package_error(workbench):
+    """Check handling a single package error.
+
     """
-    """
-    pass
+    plugin = workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['package']
+
+    assert handler.handle(workbench, {'id': 'test', 'message': 'test'})
+
+    with pytest.raises(Exception):
+        handler.handle(workbench, {})
 
 
 def test_reporting_multiple_package_error(workbench):
+    """Check handling multiple package errors.
+
     """
-    """
-    pass
+    plugin = workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['package']
+
+    assert handler.handle(workbench, [{'id': 'test', 'message': 'test'}])
+
+    with pytest.raises(Exception):
+        handler.handle(workbench, {})
