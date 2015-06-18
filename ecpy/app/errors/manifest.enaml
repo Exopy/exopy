@@ -195,13 +195,12 @@ enamldef ErrorsManifest(PluginManifest):
             id = 'error'
             description = ERROR_DESCRIPTION
             handle => (workbench, infos):
-
                 try:
                     if not isinstance(infos, Mapping):
-                        msg = '\n\n'.join(_format(i) for i in infos)
+                        msg = '\n\n'.join([self._format(i) for i in infos])
                         msg = 'Errors occured :\n' + msg
                     else:
-                        msg = 'An erorr occurred :\n' + _format(infos)
+                        msg = 'An erorr occurred :\n' + self._format(infos)
                 except Exception:
                     msg = 'Failed to format error message :\n' + format_exc()
                 logger.debug(msg)
@@ -212,30 +211,22 @@ enamldef ErrorsManifest(PluginManifest):
                 return infos.get('message', def_msg.format(pformat(infos)))
 
         ErrorHandler:
-            attr errors
+            attr errors = {}
             id = 'registering'
             description = REGISTERING_ERR_DESCRIPTION
             handle => (workbench, infos):
-                try:
-                    if not isinstance(infos, Mapping):
-                        err = {i[id]: _format(i) for i in infos}
-                        errors.update(err)
-                        return BasicErrorsDisplay(errors=err,
-                                                  kind='Manifests')
-                    else:
-                        msg = _format(infos)
-                        errors[infos.id] = msg
-                        return MultilineField(text=msg, read_only=True)
-                except Exception:
-                    try:
-                        msg = ('Failed to handle registering error, infos were'
-                               ':\n' + pformat(infos))
-                    except Exception:
-                        msg = ('Failed to handle registering error, and to '
-                               'format infos:\n' + format_exc())
-                    core = workbench.get_plugin('enaml.workbench.core')
-                    core.invoke_command('ecpy.app.errors.signal',
-                                        dict(message=msg))
+                err = {}
+                if not isinstance(infos, Mapping):
+                    # Explicit loop to avoid weird scoping issues.
+                    for i in infos:
+                        err[i['id']] = self._format(i)
+                    errors.update(err)
+                    return BasicErrorsDisplay(errors=err,
+                                              kind='Manifests')
+                else:
+                    msg = self._format(infos)
+                    errors[infos['id']] = msg
+                    return MultilineField(text=msg, read_only=True)
 
             report => (workbench):
                 if errors:
@@ -246,7 +237,7 @@ enamldef ErrorsManifest(PluginManifest):
                     return MultilineField(text=msg)
 
             func _format(infos):
-                return ('Failed to register manifest {}'.format(infos[id]) +
+                return ('Failed to register manifest {}'.format(infos['id']) +
                         infos['message'])
 
         ErrorHandler:
@@ -254,40 +245,32 @@ enamldef ErrorsManifest(PluginManifest):
             id = 'extensions'
             description = EXTENSION_ERR_DESCRIPTION
             handle => (workbench, infos):
-                try:
-                    if not isinstance(infos, Mapping):
-                        err = {}
-                        for i in infos:
-                            recursive_update(err, _format(i))
-                    else:
-                        err = _format(infos)
+                if not isinstance(infos, Mapping):
+                    err = {}
+                    for i in infos:
+                        recursive_update(err, self._format(i))
+                else:
+                    err = self._format(infos)
 
-                    logger.debug('Errors occured when loading extsnions for '
-                                 'the following extension points:\n%s',
-                                 pformat(err))
+                logger.debug('Errors occured when loading extensions for '
+                             'the following extension points:\n%s',
+                             pformat(err))
 
-                    recursive_update(errors, err)
-                    if len(err) == 1:
-                        kind = err.keys()[0]
-                        return BasicErrorsDisplay(errors=err[kind],
-                                                  kind=kind)
-                    else:
-                        return HierarchicalErrorDisplay(errors=err,
-                                                        kind='Extensions')
-                except Exception:
-                    try:
-                        msg = ('Failed to handle extension errors, infos were'
-                               ':\n' + pformat(infos))
-                    except Exception:
-                        msg = ('Failed to handle extension errors, and to '
-                               'format infos:\n' + format_exc())
-                    core = workbench.get_plugin('enaml.workbench.core')
-                    core.invoke_command('ecpy.app.errors.signal',
-                                        dict(message=msg))
+                recursive_update(errors, err)
+                if len(err) == 1:
+                    kind = err.keys()[0]
+                    return BasicErrorsDisplay(errors=err[kind],
+                                              kind=kind)
+                else:
+                    return HierarchicalErrorDisplay(errors=err,
+                                                    kind='Extensions')
 
             report => (workbench):
-                return HierarchicalErrorDisplay(errors=errors,
-                                                kind='Extensions')
+                if errors:
+                    return HierarchicalErrorDisplay(errors=errors,
+                                                    kind='Extensions')
+                    msg = 'No extensions registering error occured.'
+                    return MultilineField(text=msg)
 
             func _format(infos):
                 return {infos['point']: infos['errors']}

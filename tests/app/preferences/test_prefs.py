@@ -25,6 +25,7 @@ from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.app_manifest import AppManifest
+    from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.preferences.manifest import PreferencesManifest
     from .pref_utils import (PrefContributor, BadPrefContributor,
                              PrefContributor2)
@@ -40,6 +41,7 @@ class TestPreferencesPlugin(object):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(AppManifest())
+        self.workbench.register(ErrorsManifest())
 
     def test_app_startup1(self, tmpdir, windows):
         """Test app start-up when no app_directory.ini exists.

@@ -37,7 +37,9 @@ def validate_build_dep(contrib):
         msg = "BuildDependency '%s' does not declare any dependencies"
         return False, msg % contrib.id
 
-    if contrib.collect is BuildDependency.collect:
+    func = getattr(contrib.collect, 'im_func',
+                   getattr(contrib.collect, '__func__', None))
+    if not func or func is BuildDependency.collect.__func__:
         msg = "BuildDependency '%s' does not declare a collect function"
         return False, msg % contrib.id
 
@@ -52,7 +54,9 @@ def validate_runtime_dep(contrib):
         msg = "RuntimeDependency '%s' does not declare any dependencies"
         return False, msg % contrib.id
 
-    if contrib.collect.__func__ is RuntimeDependency.collect.__func__:
+    func = getattr(contrib.collect, 'im_func',
+                   getattr(contrib.collect, '__func__', None))
+    if not func or func is RuntimeDependency.collect.__func__:
         msg = "RuntimeDependency '%s' does not declare a collect function"
         return False, msg % contrib.id
 

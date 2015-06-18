@@ -35,7 +35,11 @@ enamldef BuildDep(PluginManifest):
         BuildDependency:
             id = 'test.build_dep'
             walk_members = ['test']
-            collect = lambda workbench, flat_walk : {'test': {}}
+            attr err : bool = False
+            collect => (workbench, flat_walk):
+                if err:
+                    raise Exception()
+                return {'test': {}}
 
 enamldef RuntimeDep(PluginManifest):
     """Runtime dependency contributor.
@@ -49,4 +53,8 @@ enamldef RuntimeDep(PluginManifest):
         RuntimeDependency:
             id = 'test.runtime_dep'
             walk_members = ['test_run']
-            collect = lambda workbench, flat_walk, caller : {'test_run': {}}
+            attr err : bool = False
+            collect => (workbench, flat_walk, caller):
+                if err:
+                    raise Exception()
+                return {'test_run': {}}

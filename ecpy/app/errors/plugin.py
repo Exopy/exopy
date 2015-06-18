@@ -143,14 +143,25 @@ class ErrorsPlugin(Plugin):
         """
         self._gathering_counter -= 1
         if self._gathering_counter < 1:
-            # handle all delayed errors
-            errors = {}
-            for kind in self._delayed:
-                errors[kind] = self._handle(kind, self._delayed[kind])
+            # Make sure to also gather additional errors signal during errors
+            # handling
+            self._gathering_counter += 1
 
-            self._delayed = {}
-            dial = ErrorsDialog(errors=errors)
-            dial.exec_()
+            # Handle all delayed errors
+            errors = {}
+            while self._delayed:
+                delayed = self._delayed.copy()
+                self._delayed.clear()
+                for kind in delayed:
+                    res = self._handle(kind, delayed[kind])
+                    if res:
+                        errors[kind] = res
+
+            self._gathering_counter = 0
+
+            if errors:
+                dial = ErrorsDialog(errors=errors)
+                dial.exec_()
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -165,7 +176,7 @@ class ErrorsPlugin(Plugin):
 
     #: List of pairs (kind, kwargs) representing the error reports received
     #: while the gathering mode was active.
-    _delayed = Typed(defaultdict, list)
+    _delayed = Typed(defaultdict, (list,))
 
     def _update_errors(self, change):
         """Update th lis of supported errors when the registered handlers
@@ -180,7 +191,18 @@ class ErrorsPlugin(Plugin):
         """
         if kind in self._errors_handlers.contributions:
             handler = self._errors_handlers.contributions[kind]
-            return handler.handle(self.workbench, infos)
+            try:
+                return handler.handle(self.workbench, infos)
+            except Exception:
+                try:
+                    msg = ('Failed to handle %s error, infos were:\n' % kind
+                           + pformat(infos) + '\nError was :\n' + format_exc())
+                except Exception:
+                    msg = ('Failed to handle %s error, and to ' % kind +
+                           'format infos:\n' + format_exc())
+                core = self.workbench.get_plugin('enaml.workbench.core')
+                core.invoke_command('ecpy.app.errors.signal',
+                                    dict(kind='error', message=msg))
 
         else:
             return self._handle_unknwon(kind, infos)

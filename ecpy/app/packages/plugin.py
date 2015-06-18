@@ -55,7 +55,7 @@ class PackagesPlugin(Plugin):
 
         packages = dict()
         registered = []
-        core.invoke_command('ecpy.app.errors.enter_gathering_mode', {})
+        core.invoke_command('ecpy.app.errors.enter_error_gathering', {})
         for ep in pkg_resources.iter_entry_points('ecpy_package_extension'):
 
             # Check that all dependencies are satisfied.
@@ -106,7 +106,7 @@ class PackagesPlugin(Plugin):
 
         self.packages = packages
         self._registered = registered
-        core.invoke_command('ecpy.app.errors.exit_gathering_mode', {})
+        core.invoke_command('ecpy.app.errors.exit_error_gathering', {})
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

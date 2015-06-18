@@ -232,7 +232,7 @@ enamldef LogManifest(PluginManifest):
             id = 'ecpy.app.logging'
             priority = 1
             run => (workbench, cmd_args):
-                start_logging(workbenc, cmd_args)
+                start_logging(workbench, cmd_args)
 
     Extension:
         id = 'state'

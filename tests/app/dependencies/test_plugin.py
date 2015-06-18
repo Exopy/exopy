@@ -12,10 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from types import MethodType
+
 import pytest
 import enaml
 from enaml.workbench.api import Workbench
 from configobj import ConfigObj
+
+from ecpy.app.dependencies.dependencies import (BuildDependency,
+                                                RuntimeDependency)
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -39,7 +44,7 @@ def test_validate_build_dep():
         id = 'test'
     bdep = BDep()
     bdep.walk_members = None
-    bdep.collect = None
+    bdep.collect = BuildDependency.collect
 
     assert validate_build_dep(bdep)[0] is False
     assert 'dependencies' in validate_build_dep(bdep)[1]
@@ -48,11 +53,7 @@ def test_validate_build_dep():
     assert validate_build_dep(bdep)[0] is False
     assert 'collect' in validate_build_dep(bdep)[1]
 
-    bdep.collect = lambda x: x
-    assert validate_build_dep(bdep)[0] is False
-    assert 'signature' in validate_build_dep(bdep)[1]
-
-    bdep.collect = lambda w, f: w
+    bdep.collect = MethodType(lambda w, f: w, bdep)
     assert validate_build_dep(bdep)[0]
 
 
@@ -65,7 +66,7 @@ def test_validate_runtime_dep():
     rdep = RDep()
     rdep.walk_members = None
     rdep.walk_callables = None
-    rdep.collect = None
+    rdep.collect = RuntimeDependency.collect
 
     assert validate_runtime_dep(rdep)[0] is False
     assert 'dependencies' in validate_runtime_dep(rdep)[1]
@@ -79,11 +80,7 @@ def test_validate_runtime_dep():
     assert validate_runtime_dep(rdep)[0] is False
     assert 'collect' in validate_runtime_dep(rdep)[1]
 
-    rdep.collect = lambda x: x
-    assert validate_runtime_dep(rdep)[0] is False
-    assert 'signature' in validate_runtime_dep(rdep)[1]
-
-    rdep.collect = lambda w, f, p: w
+    rdep.collect = MethodType(lambda w, f, p: w, rdep)
     assert validate_runtime_dep(rdep)[0]
 
 
@@ -98,7 +95,7 @@ def dependent_object(request):
     return Obj()
 
 
-class TestCollectingFromoObject(object):
+class TestCollectingFromObject(object):
     """Test collecting dependencies of live objects.
 
     """
@@ -165,17 +162,11 @@ class TestCollectingFromoObject(object):
         """
         plugin = self.workbench.get_plugin('ecpy.app.dependencies')
 
-        def b_raise(w, f):
-            raise Exception()
-
         for b in plugin.build_deps.contributions.values():
-            monkeypatch.setattr(b, 'collect', b_raise)
-
-        def r_raise(w, f, c):
-            raise Exception()
+            monkeypatch.setattr(b, 'err', True)
 
         for r in plugin.run_deps.contributions.values():
-            monkeypatch.setattr(r, 'collect', r_raise)
+            monkeypatch.setattr(r, 'err', True)
 
         core = self.workbench.get_plugin('enaml.workbench.core')
         res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
@@ -207,7 +198,6 @@ class TestCollectingFromConfig(object):
         self.workbench.register(CoreManifest())
         self.workbench.register(DependenciesManifest())
         self.workbench.register(BuildDep())
-        self.workbench.register(RuntimeDep())
 
     def teardown(self):
         self.workbench.unregister('ecpy.app.dependencies')
@@ -229,11 +219,8 @@ class TestCollectingFromConfig(object):
         """
         plugin = self.workbench.get_plugin('ecpy.app.dependencies')
 
-        def b_raise(w, f):
-            raise Exception()
-
         for b in plugin.build_deps.contributions.values():
-            monkeypatch.setattr(b, 'collect', b_raise)
+            monkeypatch.setattr(b, 'err', True)
 
         core = self.workbench.get_plugin('enaml.workbench.core')
         res, dep = core.invoke_command(COLLECT_CONFIG,

@@ -23,13 +23,14 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 from collections import Mapping
 from traceback import format_exc
+from pprint import pformat
 
 from enaml.workbench.api import PluginManifest, Extension
 from enaml.widgets.api import MultilineField
 
 from ..app_extensions import AppStartup
 from ..errors.errors import ErrorHandler
-from ..errors.widgets import BaseErrorDisplay
+from ..errors.widgets import BasicErrorsDisplay
 
 PLUGIN_ID = 'ecpy.app.packages'
 logger = logging.getLogger(__name__)
@@ -84,33 +85,23 @@ enamldef PackagesManifest(PluginManifest):
         id = 'error'
         point = 'ecpy.app.errors.handler'
         ErrorHandler:
-            attr errors
-            id = package
-            desc = PACKAGE_ERROR_DESCRIPTION
+            attr errors = {}
+            id = 'package'
+            description = PACKAGE_ERROR_DESCRIPTION
             handle => (workbench, infos):
-                try:
-                    if not isinstance(infos, Mapping):
-                        for i in infos:
-                            logger.debug(i['message'])
-                            err[i['id']] = i['message']
-                        errors.update(infos)
-                        return BaseErrorDisplay(kind='Packages',
-                                                errors=err)
-                    else:
-                        logger.debug(infos['message'])
-                        errors[infos['id']] = infos['message']
-                        return MultilineField(text=infos['message'],
-                                              read_only=True)
-                 except Exception:
-                     try:
-                        msg = ('Failed to handle package error, infos were'
-                               ':\n' + pformat(infos))
-                    except Exception:
-                        msg = ('Failed to handle package error, and to'
-                               'format infos:\n' + format_exc())
-                     core = workbench.get_plugin('enaml.workbench.core')
-                     core.invoke_command('ecpy.app.errors.signal',
-                                         dict(kind='error', message))
+                if not isinstance(infos, Mapping):
+                    err = {}
+                    for i in infos:
+                        logger.debug(i['message'])
+                        err[i['id']] = i['message']
+                    errors.update(infos)
+                    return BasicErrorsDisplay(kind='Packages',
+                                              errors=err)
+                else:
+                    logger.debug(infos['message'])
+                    errors[infos['id']] = infos['message']
+                    return MultilineField(text=infos['message'],
+                                          read_only=True)
 
             report => (workbench):
                 return BaseErrorDisplay(kind='Packages', errors=errors)
