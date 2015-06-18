@@ -370,7 +370,7 @@ class TaskInterface(BaseInterface):
         """Update the interface anchor when the task is set.
 
         """
-        self.interface_class = ((type(self).__name__, [new.task_class]) if new
+        self.interface_class = ((type(self).__name__, (new.task_class,)) if new
                                 else ())
 
 
@@ -398,8 +398,8 @@ class IInterface(BaseInterface):
         if new:
             self.interface_class = (type(self).__name__,
                                     self.parent.interface_class[1] +
-                                    [self.parent.interface_class[0]])
+                                    (self.parent.interface_class[0],))
         else:
-            self.interface_anchor = ()
+            self.interface_class = (type(self).__name__,)
         task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
         task_member.reset(self)

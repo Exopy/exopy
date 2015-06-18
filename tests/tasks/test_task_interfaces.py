@@ -153,7 +153,7 @@ class TestInterfaceableTaskMixin(object):
         self.mixin.interface = i1
         assert i1.task is self.mixin
         assert self.mixin.database_entries == {'test': 2.0, 'itest': 1.0}
-        assert i1.interface_anchor == [self.mixin.task_class]
+        assert i1.interface_class[1] == (self.mixin.task_class,)
 
         self.mixin.interface = i2
         assert i2.task is self.mixin
@@ -269,11 +269,9 @@ class TestInterfaceableTaskMixin(object):
         """
         self.mixin.interface = InterfaceTest(answer=True)
         self.root.update_preferences_from_members()
-        bis = RootTask.build_from_config(self.root.preferences,
-                                         {'tasks': {'Mixin': Mixin,
-                                                    'RootTask': RootTask},
-                                          'interfaces': {'InterfaceTest':
-                                                         InterfaceTest}})
+        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
+                'interfaces': {('InterfaceTest', ('Mixin',)): InterfaceTest}}
+        bis = RootTask.build_from_config(self.root.preferences, deps)
 
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest'
 
@@ -289,7 +287,7 @@ class TestInterfaceableTaskMixin(object):
                       'interface_class': None,
                       'has_fmt': False},
                      {'task_class': None,
-                      'interface_class': 'InterfaceTest2',
+                      'interface_class': ('InterfaceTest2', ('Mixin',)),
                       'has_fmt': True}]
 
 
@@ -313,8 +311,8 @@ class TestInterfaceableInterfaceMixin(object):
         self.mixin.interface = i1
         assert i1.parent is self.mixin
         assert i1.task is self.mixin.task
-        assert i1.interface_anchor ==\
-            self.mixin.interface_anchor + [self.mixin.interface_class]
+        assert i1.interface_class[1] ==\
+            (self.mixin.interface_class[1] + (self.mixin.interface_class[0],))
         assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 1.0}
 
         self.mixin.interface = i2
@@ -427,11 +425,9 @@ class TestInterfaceableInterfaceMixin(object):
         mixin = Mixin()
         mixin.interface = InterfaceTest3()
         aux.add_child_task(0, mixin)
-        bis = RootTask.build_from_config(aux.preferences,
-                                         {'tasks': {'Mixin': Mixin,
-                                                    'RootTask': RootTask},
-                                          'interfaces': {'InterfaceTest3':
-                                                         InterfaceTest3}})
+        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
+                'interfaces': {('InterfaceTest3', ('Mixin',)): InterfaceTest3}}
+        bis = RootTask.build_from_config(aux.preferences, deps)
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest3'
 
     def test_build_from_config2(self):
@@ -441,13 +437,13 @@ class TestInterfaceableInterfaceMixin(object):
         """
         self.mixin.interface = IIinterfaceTest1(answer=True)
         self.root.update_preferences_from_members()
-        bis = RootTask.build_from_config(self.root.preferences,
-                                         {'tasks': {'Mixin': Mixin,
-                                                    'RootTask': RootTask},
-                                          'interfaces': {'InterfaceTest3':
-                                                         InterfaceTest3,
-                                                         'IIinterfaceTest1':
-                                                         IIinterfaceTest1}})
+        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
+                'interfaces': {('InterfaceTest3', ('Mixin',)): InterfaceTest3,
+                               ('IIinterfaceTest1',
+                                ('Mixin', 'InterfaceTest3')): IIinterfaceTest1
+                               }
+                }
+        bis = RootTask.build_from_config(self.root.preferences, deps)
 
         interface = bis.children[0].interface.interface
         assert type(interface).__name__ == 'IIinterfaceTest1'
@@ -467,10 +463,11 @@ class TestInterfaceableInterfaceMixin(object):
                       'interface_class': None,
                       'has_fmt': False},
                      [{'task_class': None,
-                       'interface_class': 'InterfaceTest3',
+                       'interface_class': ('InterfaceTest3', ('Mixin',)),
                        'has_fmt': False},
                       {'task_class': None,
-                       'interface_class': 'IIinterfaceTest2',
+                       'interface_class': ('IIinterfaceTest2',
+                                           ('Mixin', 'InterfaceTest3')),
                        'has_fmt': True}
                       ]
                      ]
