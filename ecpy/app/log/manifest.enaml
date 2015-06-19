@@ -19,11 +19,9 @@ import logging
 from enaml.workbench.api import PluginManifest, Extension
 from enaml.workbench.core.api import Command
 
-from ecpy.app.app_extensions import AppStartup
-from ecpy.app.states.state import State
-
+from ...utils.plugin_tools import make_handler
+from ..api import AppStartup, State
 from .tools import (DayRotatingTimeHandler, StreamToLogRedirector)
-
 
 PLUGIN_ID ='ecpy.app.logging'
 
@@ -82,50 +80,6 @@ def start_logging(workbench, cmd_args):
     logger.info('Log system started.')
     # Clean up upon application exit.
     atexit.register(logging.shutdown)
-
-
-# =============================================================================
-# --- Command handlers --------------------------------------------------------
-# =============================================================================
-
-def add_handler(event):
-    """Handler for the add_handler command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.add_handler(**event.parameters)
-
-
-def remove_handler(event):
-    """Handler for the remove_handler command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.remove_handler(**event.parameters)
-
-
-def add_filter(event):
-    """Handler for the add_filter command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.add_filter(**event.parameters)
-
-
-def remove_filter(event):
-    """Handler for the remove_filter command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.remove_filter(**event.parameters)
-
-
-def set_formatter(event):
-    """Handler for the set_formatter command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.set_formatter(**event.parameters)
 
 
 # =============================================================================
@@ -247,20 +201,20 @@ enamldef LogManifest(PluginManifest):
         Command:
             id = 'ecpy.app.logging.add_handler'
             description = ADD_HANDLER_DESCRIPTION
-            handler = add_handler
+            handler = make_handler(PLUGIN_ID, 'add_handler')
         Command:
             id = 'ecpy.app.logging.remove_handler'
             description = REMOVE_HANDLER_DESCRIPTION
-            handler = remove_handler
+            handler =  make_handler(PLUGIN_ID, 'remove_handler')
         Command:
             id = 'ecpy.app.logging.add_filter'
             description = ADD_FILTER_DESCRIPTION
-            handler = add_filter
+            handler =  make_handler(PLUGIN_ID, 'add_filter')
         Command:
             id = 'ecpy.app.logging.remove_filter'
             description = REMOVE_FILTER_DESCRIPTION
-            handler = remove_filter
+            handler =  make_handler(PLUGIN_ID, 'remove_filter')
         Command:
             id = 'ecpy.app.logging.set_formatter'
             description = SET_FORMATTER_DESCRIPTION
-            handler = set_formatter
+            handler =  make_handler(PLUGIN_ID, 'set_formatter')

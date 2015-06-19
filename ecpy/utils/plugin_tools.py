@@ -49,6 +49,19 @@ class HasPrefPlugin(Plugin):
                             {'plugin_id': self.manifest.id})
 
 
+def make_handler(id, method_name):
+    """Generate a generic handler calling a plugin method.
+
+    """
+
+    def handler(event):
+        pl = event.workbench.get_plugin(id)
+        return getattr(pl, method_name)(**event.parameters)
+
+    handler.__name__ += str('_' + method_name)  # Python 2 needs a bytes string
+    return handler
+
+
 @python_2_unicode_compatible
 class ClassTuple(tuple):
     """Special tuple meant to hold classes.
