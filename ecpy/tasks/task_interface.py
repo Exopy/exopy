@@ -282,8 +282,8 @@ class BaseInterface(HasPrefAtom):
     def check(self, *args, **kwargs):
         """Check that everything is alright before starting a measurement.
 
-        By default tries to format all members tagged with 'format' and try to
-        eval all members tagged with 'eval'. If the tag value is 'Warn', the
+        By default tries to format all members tagged with 'fmt' and try to
+        eval all members tagged with 'feval'. If the tag value is 'Warn', the
         test will considered passed but a traceback entry will be filled.
 
         """
