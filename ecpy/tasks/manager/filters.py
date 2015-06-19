@@ -53,7 +53,6 @@ class SubclassTaskFilter(TaskFilter):
     """Filter keeping only the python tasks which are subclass of task_class.
 
     """
-
     #: Class from which the task must inherit.
     subclass = d_(Subclass(BaseTask))
 
@@ -62,7 +61,7 @@ class SubclassTaskFilter(TaskFilter):
 
         """
         return [name for name, infos in tasks.items()
-                if issubclass(infos.cls, self.task_class)]
+                if issubclass(infos.cls, self.subclass)]
 
 
 class GroupTaskFilter(TaskFilter):

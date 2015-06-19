@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Plugin centralizing the collect and managment of tasks and interfaces.
+"""Plugin centralizing the collect and management of tasks and interfaces.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -16,11 +16,17 @@ from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
-from ecpy.app.api import Preferences, State, BuildDependency
+from ...app.api import Preferences, State, BuildDependency
+from ...utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
 from .utils.dependencies import collect_tasks_and_interfaces
+from .filters import GroupTaskFilter, SubclassTaskFilter, MetadataTaskFilter
+
+from ..tasks.logic.declarations import LogicTasks
+
+PLUGIN_ID ='ecpy.tasks'
 
 # =============================================================================
 # --- Factories ---------------------------------------------------------------
@@ -35,16 +41,82 @@ def manager_plugin_factory():
 
 
 # =============================================================================
-# --- Command handlers --------------------------------------------------------
-# =============================================================================
-
-
-
-# =============================================================================
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
 
+DECLARATIONS_DESC =\
+"""
+"""
 
+
+CONFIGS_DESC =\
+"""
+"""
+
+
+FILTERS_DESC =\
+"""
+"""
+
+
+GET_TASK_INFOS_DESCRIPTION =\
+"""
+"""
+
+
+GET_TASK_DESCRIPTION =\
+"""
+"""
+
+
+GET_TASKS_DESCRIPTION =\
+"""
+"""
+
+
+GET_INTERFACE_INFOS_DESCRIPTION =\
+"""
+"""
+
+
+GET_INTERFACE_DESCRIPTION =\
+"""
+"""
+
+
+GET_INTERFACES_DESCRIPTION =\
+"""
+"""
+
+
+LIST_TASKS_DESCRIPTION =\
+"""
+"""
+
+
+GET_CONFIG_DESCRIPTION =\
+"""
+"""
+
+
+SAVE_TASK_DESCRIPTION =\
+"""
+"""
+
+
+CREATE_TASK_DESCRIPTION =\
+"""
+"""
+
+
+BUILD_TASK_DESCRIPTION =\
+"""
+"""
+
+
+BUILD_ROOT_DESCRIPTION =\
+"""
+"""
 
 # =============================================================================
 # --- Manifest ----------------------------------------------------------------
@@ -53,7 +125,7 @@ def manager_plugin_factory():
 enamldef TaskManagerManifest(PluginManifest):
     """
     """
-    id = 'ecpy.tasks'
+    id = PLUGIN_ID
     factory = manager_plugin_factory
 
     # =========================================================================
@@ -66,15 +138,28 @@ enamldef TaskManagerManifest(PluginManifest):
 
     ExtensionPoint:
         id = 'configs'
-        description = DECLARATIONS_DESC
+        description = CONFIGS_DESC
 
     ExtensionPoint:
         id = 'filters'
-        description = DECLARATIONS_DESC
+        description = FILTERS_DESC
 
     # =========================================================================
     # --- Extensions ----------------------------------------------------------
     # =========================================================================
+
+    Extension:
+        id = 'tasks_decl'
+        point 'ecpy.tasks.declarations'
+        LogicTasks:
+            pass
+
+    Extension:
+        id = 'filters'
+        point = 'ecpy.tasks.filters'
+        GroupTaskFilter:
+            id = 'Logic'
+            group = 'logic'
 
     Extension:
         id = 'tasks_dep'
@@ -82,7 +167,8 @@ enamldef TaskManagerManifest(PluginManifest):
         BuildDependency:
             id = 'ecpy.tasks.build_dependencies'
             walk_members = ['task_class', 'interface_class']
-            collect = collect_tasks_and_interfaces
+            collect => (workbench, flat_walk):
+                collect_tasks_and_interfaces(workbench, flat_walk)
 
     Extension:
         id = 'prefs'
@@ -105,35 +191,35 @@ enamldef TaskManagerManifest(PluginManifest):
         Command:
             id = 'ecpy.tasks.get_task_infos'
             description = GET_TASK_INFOS_DESCRIPTION
-            handler = get_task_infos_handler
+            handler = make_handler(PLUGIN_ID, 'get_task_infos')
         Command:
             id = 'ecpy.tasks.get_task'
             description = GET_TASK_DESCRIPTION
-            handler = get_task_handler
+            handler =  make_handler(PLUGIN_ID, 'get_task')
         Command:
             id = 'ecpy.tasks.get_tasks'
             description = GET_TASKS_DESCRIPTION
-            handler = get_tasks_handler
+            handler =  make_handler(PLUGIN_ID, 'get_tasks')
         Command:
             id = 'ecpy.tasks.get_interface_infos'
             description = GET_INTERFACE_INFOS_DESCRIPTION
-            handler = get_interface_infos_handler
+            handler =  make_handler(PLUGIN_ID, 'get_interface_infos')
         Command:
             id = 'ecpy.tasks.get_interface'
             description = GET_INTERFACE_DESCRIPTION
-            handler = get_interface_handler
+            handler =  make_handler(PLUGIN_ID, 'get_interface')
         Command:
             id = 'ecpy.tasks.get_interfaces'
             description = GET_INTERFACES_DESCRIPTION
-            handler = get_interfaces_handler
+            handler = make_handler(PLUGIN_ID, 'get_interfaces')
         Command:
             id = 'ecpy.tasks.list_tasks'
             description = LIST_TASKS_DESCRIPTION
-            handler = list_task_handler
+            handler = make_handler(PLUGIN_ID, 'list_tasks')
         Command:
             id = 'ecpy.tasks.get_config'
             description = GET_CONFIG_DESCRIPTION
-            handler = get_config_handler
+            handler = make_handler(PLUGIN_ID, 'get_config')
         Command:
             id = 'ecpy.tasks.save'
             description = SAVE_TASK_DESCRIPTION
