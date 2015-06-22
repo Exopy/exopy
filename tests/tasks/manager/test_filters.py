@@ -19,35 +19,47 @@ from ecpy.tasks.manager.infos import TaskInfos
 from ecpy.tasks.manager.filters import (TaskFilter, GroupTaskFilter,
                                         SubclassTaskFilter, MetadataTaskFilter)
 
+
 @pytest.fixture
 def tasks():
-    pass
+    return {'SimpleTask': TaskInfos(cls=SimpleTask, metadata={'meta': True}),
+            'ComplexTask': TaskInfos(cls=ComplexTask, group='Complex',
+                                     metadata={'meta': False})}
 
 
 @pytest.fixture
 def templates():
-    pass
+    return {'Template1': ''}
 
 
 def test_task_filter(tasks, templates):
+    """Test the default task filter.
+
     """
-    """
-    pass
+    filtered = TaskFilter().filter(tasks, templates)
+    assert sorted(filtered) == sorted(list(tasks) + list(templates))
 
 
 def test_group_task_filter(tasks, templates):
+    """Test filtering by group.
+
     """
-    """
-    pass
+    filtered = GroupTaskFilter(group='Complex').filter(tasks, templates)
+    assert sorted(filtered) == ['ComplexTask']
 
 
 def test_subclass_task_filter(tasks, templates):
+    """Test filtering by subclass.
+
     """
-    """
-    pass
+    filtered = SubclassTaskFilter(subclass=SimpleTask).filter(tasks, templates)
+    assert sorted(filtered) == ['SimpleTask']
 
 
 def test_meta_task_filter(tasks, templates):
+    """Test filtering by metadata.
+
     """
-    """
-    pass
+    filtered = MetadataTaskFilter(meta_key='meta',
+                                  meta_value=True).filter(tasks, templates)
+    assert sorted(filtered) == ['SimpleTask']

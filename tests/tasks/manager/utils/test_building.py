@@ -32,7 +32,7 @@ def test_build_from_config(task_workbench):
     pass
 
 
-def test_build_from_configas_root(task_workbench):
+def test_build_from_config_as_root(task_workbench):
     """
     """
     pass
