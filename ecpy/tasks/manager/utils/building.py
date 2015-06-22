@@ -49,7 +49,7 @@ def create_task(event):
 
 
 def build_task_from_config(config, build_dep, as_root=False):
-    """ Rebuild a task hierarchy from a dictionary.
+    """Rebuild a task hierarchy from a dictionary.
 
     Parameters
     ----------

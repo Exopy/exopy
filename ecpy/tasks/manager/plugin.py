@@ -60,19 +60,33 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         super(TaskManagerPlugin, self).start()
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        core.invoke_command('ecpy.app.errors.enter_error_gathering')
+
         if not os.path.isdir(TEMPLATE_PATH):
-            os.mkdir(TEMPLATE_PATH)
+            try:
+                os.mkdir(TEMPLATE_PATH)
+            except Exception as e:
+                if TEMPLATE_PATH in self.templates_folders:
+                    self.templates_folders.remove(TEMPLATE_PATH)
+                core = self.workbench.get_plugin('enaml.workbench.core')
+                msg = 'Failed to create template folder : %s' % e
+                core.invoke_command('ecpy.app.errors.signal',
+                                    dict(kind='error',
+                                         message=msg))
 
         self._filters = ExtensionsCollector(workbench=self.workbench,
                                             point=FILTERS_POINT,
                                             ext_cls=TaskFilter,
                                             validate_ext=lambda w, e: True, '')
         self._filters.start()
+
         self._configs = DeclaratorsCollector(workbench=self.workbench,
                                              point=CONFIG_POINT,
                                              ext_cls=TaskConfig)
 
         self._configs.start()
+
         self._tasks = DeclaratorsCollector(workbench=self.workbench,
                                            point=TASK_EXT_POINT,
                                            ext_cls=(Tasks, Task, Interfaces,
@@ -84,6 +98,9 @@ class TaskManagerPlugin(HasPrefPlugin):
         if self.auto_task_path:
             self.load_auto_task_names()
         self._bind_observers()
+
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
     def stop(self):
         """Discard collected tasks and remove observers.
@@ -114,7 +131,7 @@ class TaskManagerPlugin(HasPrefPlugin):
             return t_filter.list_tasks(self._tasks.contributions,
                                        self.templates)
 
-    def get_task_infos(self, task_class_name):
+    def get_task_infos(self, task_cls_name):
         """Access a given task infos.
 
         Parameters
@@ -156,7 +173,7 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         infos = self.get_task_infos(task_cls_name)
-        if infos is not None:
+        if infos is None:
             answer = None if not view else (None, None)
             return answer
 
@@ -349,8 +366,10 @@ class TaskManagerPlugin(HasPrefPlugin):
         if not path:
             path = self.auto_task_path
         if not os.path.isfile(path):
-            logger = logging.getLogger(__name__)
-            logger.warn('Path {} does not point to a real file.'.format(path))
+            core = self.workbench.get_plugin('enaml.workbench.core')
+            msg = 'Path {} does not point to a real file.'.format(path)
+            core.invoke_command('ecpy.app.errors.signal',
+                                dict(kind='error', message=msg))
             return False
 
         with open(path) as f:

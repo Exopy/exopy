@@ -24,7 +24,7 @@ with enaml.imports():
 
 
 def save_task(event):
-    """ Save a task in an .ini file.
+    """Save a task in memory or in an .ini file.
 
     Parameters
     ----------
