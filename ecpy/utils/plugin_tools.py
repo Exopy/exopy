@@ -175,7 +175,7 @@ class ExtensionsCollector(BaseCollector):
     #: Should take the proposed contribution as single argument and return a
     #: bool indicating the result of the test, and a message  explaining what
     #: went wrong (or an empty string if test passed).
-    validate_ext = Callable()
+    validate_ext = Callable(lambda e: (True, ''))
 
     def contributed_by(self, contrib_id):
         """Find the extension declaring a contribution.
