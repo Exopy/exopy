@@ -26,7 +26,7 @@ from .filters import GroupTaskFilter, SubclassTaskFilter, MetadataTaskFilter
 
 from ..tasks.logic.declarations import LogicTasks
 
-PLUGIN_ID ='ecpy.tasks'
+PLUGIN_ID = 'ecpy.tasks'
 
 # =============================================================================
 # --- Factories ---------------------------------------------------------------
@@ -274,29 +274,6 @@ task : BaseTask
 """
 
 
-BUILD_TASK_DESCRIPTION =\
-"""Rebuild a task hierarchy from a dictionary.
-
-Parameters
-----------
-config : dict
-    Dictionary representing the task hierarchy.
-
-build_dep :
-    Source of the build dependencies of the hierarchy. This can either
-    be the application workbench or a dict of dependencies.
-
-as_root : bool, optional
-    Allow to force building a ComplexTask as a RootTask
-
-Returns
--------
-task :
-    Newly built task.
-
-"""
-
-
 BUILD_ROOT_DESCRIPTION =\
 """Create a new RootTask.
 
@@ -328,7 +305,7 @@ task : RootTask
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 
-enamldef TaskManagerManifest(PluginManifest):
+enamldef TasksManagerManifest(PluginManifest):
     """
     """
     id = PLUGIN_ID
@@ -356,7 +333,7 @@ enamldef TaskManagerManifest(PluginManifest):
 
     Extension:
         id = 'tasks_decl'
-        point 'ecpy.tasks.declarations'
+        point = 'ecpy.tasks.declarations'
         LogicTasks:
             pass
 
@@ -368,7 +345,7 @@ enamldef TaskManagerManifest(PluginManifest):
             group = 'logic'
 
     Extension:
-        id = 'tasks_dep'
+        id = 'build_deps'
         point = 'ecpy.app.dependencies.build'
         BuildDependency:
             id = 'ecpy.tasks.build_dependencies'
@@ -434,10 +411,6 @@ enamldef TaskManagerManifest(PluginManifest):
             id = 'ecpy.tasks.create_task'
             description = CREATE_TASK_DESCRIPTION
             handler = create_task
-        Command:
-            id = 'ecpy.tasks.build_task'
-            description = BUILD_TASK_DESCRIPTION
-            handler = build_task_handler
         Command:
             id = 'ecpy.tasks.build_root'
             description = BUILD_ROOT_DESCRIPTION

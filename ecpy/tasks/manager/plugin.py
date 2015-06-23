@@ -77,20 +77,19 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         self._filters = ExtensionsCollector(workbench=self.workbench,
                                             point=FILTERS_POINT,
-                                            ext_cls=TaskFilter,
-                                            validate_ext=lambda w, e: True, '')
+                                            ext_class=TaskFilter)
         self._filters.start()
 
         self._configs = DeclaratorsCollector(workbench=self.workbench,
                                              point=CONFIG_POINT,
-                                             ext_cls=TaskConfig)
+                                             ext_class=TaskConfig)
 
         self._configs.start()
 
         self._tasks = DeclaratorsCollector(workbench=self.workbench,
                                            point=TASK_EXT_POINT,
-                                           ext_cls=(Tasks, Task, Interfaces,
-                                                    Interface)
+                                           ext_class=(Tasks, Task, Interfaces,
+                                                      Interface)
                                            )
         self._tasks.start()
 
@@ -207,7 +206,7 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return tasks_cls, missing
 
-    def get_interface_infos(self, interface_cls_name, anchor):
+    def get_interface_infos(self, interface_cls_name, interface_anchor):
         """Access a given interface infos.
 
         Parameters
@@ -242,7 +241,7 @@ class TaskManagerPlugin(HasPrefPlugin):
             msg = 'Looking for {} (anchor {}) failed to found {}'
             logger.debug(msg.format(interface_cls_name, interface_anchor,
                                     anchor))
-            return None if not views else (None, None)
+            return None
 
         if interface_cls_name in lookup_dict:
             return lookup_dict[interface_cls_name]
@@ -275,13 +274,13 @@ class TaskManagerPlugin(HasPrefPlugin):
             List of views associated with the interface.
 
         """
-        infos = self.get_interface_infos(interface_cls_name, anchor)
+        infos = self.get_interface_infos(interface_cls_name, interface_anchor)
         if infos is not None:
             return infos.cls if not views else (infos.cls, infos.views)
         else:
             return None if not views else (None, None)
 
-    def get_interfaces(interfaces_with_anchors):
+    def get_interfaces(self, interfaces_with_anchors):
         """Access an ensemble of interface classes.
 
         Parameters
@@ -330,9 +329,10 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         templates = self._template_tasks
         if task in self._template_tasks:
-            config = IniConfigTask(manager=self,
-                                   template_path=templates[task])
-            return config, IniView(config=config)
+            infos = configs = self._configs.contributions['TemplateTaskConfig']
+            config = infos.cls(manager=self,
+                               template_path=templates[task])
+            return config, infos.view(config=config)
 
         elif task in self._tasks.contributions:
             configs = self._configs.contributions
@@ -342,9 +342,9 @@ class TaskManagerPlugin(HasPrefPlugin):
             for t_class in (t.__name__ for t in type.mro(task_class)):
                 if t_class in configs:
                     infos = configs[t_class]
-                    c = config(manager=self,
-                               task_class=task_class)
-                    return c, view(config=c)
+                    c = infos.cls(manager=self,
+                                  task_class=task_class)
+                    return c, infos.view(config=c)
 
         return None, None
 
@@ -418,7 +418,7 @@ class TaskManagerPlugin(HasPrefPlugin):
                 logger = logging.getLogger(__name__)
                 logger.warn('{} is not a valid directory'.format(path))
 
-        self._template = templates
+        self.templates = templates
 
     def _post_setattr_template_folders(self):
         """Ensure that the template observer always watch the right folder.

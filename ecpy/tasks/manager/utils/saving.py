@@ -16,11 +16,11 @@ from traceback import format_exc
 
 from enaml.stdlib.message_box import critical
 
-from ..templates import save_template
+from .templates import save_template
 
 import enaml
 with enaml.imports():
-    from ..widgets.save import (TemplateSaverDialog, TemplateViewer)
+    from ..widgets.saving import (TemplateSaverDialog, TemplateViewer)
 
 
 def save_task(event):

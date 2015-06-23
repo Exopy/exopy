@@ -12,13 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import pytest
 
+def test_lifecycle(task_workbench):
+    """Test the task manager life cycle.
 
-def test_lifecyle():
     """
-    """
-    pass
+    plugin = task_workbench.get_plugin('ecpy.tasks')
 
 
 def test_list_tasks():

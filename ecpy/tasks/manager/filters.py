@@ -25,6 +25,8 @@ class TaskFilter(Declarator):
     """Base class for all task filters.
 
     """
+    #: Unique id of this filter (also used as a name).
+    id = d_(Unicode())
 
     @d_func
     def filter_tasks(self, tasks, templates):
