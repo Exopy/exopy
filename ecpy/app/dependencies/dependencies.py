@@ -40,16 +40,33 @@ class BuildDependency(Declarative):
     def collect(self, workbench, obj, getter, dependencies, errors):
         """Collect the identified build dependencies and list runtime ones.
 
-
-
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
 
+        obj :
+            Object whose build dependencies should be collected and runtime
+            ones identified.
+
+        getter : callable(obj, name)
+            Callable to use to access obj attribute. Attribute must be accessed
+            using this function rather than the usual '.' syntax as the passed
+            object might be a dictionary like object.
+
+        dependencies : dict
+            Dictionary in which to write the build dependencies. Dependencies
+            should be groupped by collector.
+            ex : dependencies[self.id][key] = value
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
 
         Returns
         -------
+        runtime_collectors : list
+            List of runtime dependencies that this object have.
 
         """
         pass
@@ -73,23 +90,23 @@ class RuntimeDependency(Declarative):
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
 
-        flat_walk : dict
-            Dict in the format {name: set()} listing the dependencies. The key
-            correspond to the walk_members declared by all BuildDependency.
-            This object must not be modified in the process of collecting the
-            dependencies.
+        obj :
+            Object whose build dependencies should be collected and runtime
+            ones identified.
 
-        Returns
-        -------
-        deps : dict
-            Dictionary holding the dependencies (as dictionaries) in
-            categories (walk_members). If there is no dependence for a given
-            category this category should be absent from the dict.
+        getter : callable(obj, name)
+            Callable to use to access obj attribute. Attribute must be accessed
+            using this function rather than the usual '.' syntax as the passed
+            object might be a dictionary like object.
 
-        Raises
-        ------
-        ValueError :
-            Raised if one dependency cannot be found.
+        dependencies : dict
+            Dictionary in which to write the build dependencies. Dependencies
+            should be groupped by collector.
+            ex : dependencies[self.id][key] = value
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
 
         """
         pass

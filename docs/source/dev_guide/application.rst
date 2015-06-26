@@ -201,17 +201,21 @@ either as a build or as a runtime dependency you need to contribute either a
 or a |RuntimeDependecy| object to the 'ecpy.app.dependencies.runtime'
 extension point.
 
+.. note::
+
+    An object introducing a new kind of build dependency should have a dep_type
+    attribute which should be an atom.Constant and which must be saved if the
+    object can be saved under the .ini format.
+
 A |BuildDependency| needs:
-- an 'id' which must be unique and can be the id of the plugin but does not
-  have to.
-- 'collect': a callable to gather all the identified dependencies. (Refer to
-  the API docs for more details).
+- an 'id' which must be unique and must match the name used for dep_type
+  attribute value of the object this dependency collector is meant to act on.
+- 'collect': a callable getting the build dependency of an object and
+  identifying its runtime dependencies.
 
 A |RuntimeDependecy| needs:
-- an 'id' which must be unique and can be the id of the plugin but does not
-  have to.
-- 'collect': a callable to gather all the identified dependencies. (Refer to
-  the API docs for more details).
+- an 'id' which must be unique.
+- 'collect': a callable getting the runtime dependency of an object.
 
 
 Customizing logging
