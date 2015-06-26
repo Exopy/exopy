@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import Typed
 from enaml.workbench.api import Plugin
-from inspect import cleandoc
-from traceback import format_exc
+from operator import getitem
 
-from ...utils.configobj_ops import flatten_config
-from ...utils.walks import flatten_walk
+from configobj import Section
+
+from ...utils.configobj_ops import traverse_config
 from ...utils.plugin_tools import ExtensionsCollector
 
 from .dependencies import BuildDependency, RuntimeDependency
@@ -97,12 +97,12 @@ class DependenciesPlugin(Plugin):
         self.build_deps.stop()
         self.run_deps.stop()
 
-    def collect_dependencies(self, obj, dependencies=['build', 'runtime'],
-                             ids=[], caller=None):
-        """Build a dict of dependencies for a given obj.
+    def collect_dependencies(self, obj, dependencies=['build'], owner=None):
+        """Build a dictionary of dependencies for a given object.
 
-        NB : This assumes the obj has a walk method similar to the one found
-        in ComplexTask
+        The object must either be a configobj.Section object or have a traverse
+        method yielding the object and all its subcomponent suceptible to add
+        more dependencies.
 
         Parameters
         ----------
@@ -110,12 +110,11 @@ class DependenciesPlugin(Plugin):
             Obj for which dependencies should be computed.
 
         dependencies : {['build'], ['runtime'], ['build', 'runtime']}
-            Kind of dependencies which should be gathered.
+            Kind of dependencies which should be gathered. Note that only
+            build dependencies can be retrieved from a configobj.Section
+            object.
 
-        ids : list, optional
-            List of dependencies ids to use when collecting.
-
-        caller : optional
+        owner : optional
             Calling plugin. Used for some runtime dependencies needing to know
             the ressource owner.
 
@@ -124,10 +123,10 @@ class DependenciesPlugin(Plugin):
         result : bool
             Flag indicating the success of the operation.
 
-        dependencies : dict
+        dependencies : dict|tuple[dict]
             In case of success:
             - Dicts holding all the classes or other dependencies to build, run
-              or build and run a task without any access to the workbench.
+              or build and run the object without any access to the workbench.
               If a single kind of dependencies is requested a single dict is
               returned otherwise a tuple of two is returned one for the build
               ones and one for the runtime ones
@@ -137,109 +136,40 @@ class DependenciesPlugin(Plugin):
               error message.
 
         """
-        # Use a set to avoid collecting several times the same entry, which
-        # could happen if an entry is both a build and a runtime dependency.
-        members = set()
-        callables = {}
-        if 'runtime' in dependencies and caller is None:
-            msg = '''Cannot collect runtime dependencies without knowing the
-                caller plugin'''
-            return False, {'runtime': cleandoc(msg)}
+        if isinstance(obj, Section):
+            ite = traverse_config(obj)
+            getter = getitem
+        else:
+            ite = obj.traverse()
+            getter = getattr
 
-        if 'build' in dependencies:
-            if ids:
-                b = self.build_deps.contributions
-                build_deps = [dep for id, dep in b.iteritems()
-                              if id in ids]
-            else:
-                build_deps = self.build_deps.contributions.values()
-
-            for build_dep in build_deps:
-                members.update(set(build_dep.walk_members))
-
-        if 'runtime' in dependencies:
-            if ids:
-                r = self.run_deps.contributions
-                runtime_deps = [dep for id, dep in r.iteritems()
-                                if id in ids]
-            else:
-                runtime_deps = self.run_deps.contributions.values()
-
-            for runtime_dep in runtime_deps:
-                members.update(set(runtime_dep.walk_members))
-                callables.update(runtime_dep.walk_callables)
-
-        walk = obj.walk(members, callables)
-        flat_walk = flatten_walk(walk, list(members) + callables.keys())
+        builds = self.build_deps.contributions
+        runtimes = self.runtime_deps.contributions
 
         deps = ({}, {})
-        errors = {}
-        if 'build' in dependencies:
-            for build_dep in build_deps:
-                try:
-                    deps[0].update(build_dep.collect(self.workbench,
-                                                     flat_walk))
-                except Exception:
-                    errors[build_dep.id] = format_exc()
+        errors = ({}, {})
+        need_runtime = 'runtime' in dependencies
+        for component in ite:
+            dep_type = getter(component, 'dep_type')
+            runtimes = builds[dep_type].collect(self.workbench, component,
+                                                getter, deps[0], errors[0])
 
-        if 'runtime' in dependencies:
-            for runtime_dep in runtime_deps:
-                try:
-                    deps[1].update(runtime_dep.collect(self.workbench,
-                                                       flat_walk, caller))
-                except Exception:
-                    errors[runtime_dep.id] = format_exc()
+            if need_runtime:
+                for runtime in runtimes:
+                    runtime.colect(self.workbench, owner, component, getter,
+                                   deps[1], errors[1])
 
-        if errors:
-            return False, errors
+        if any(errors):
+            if 'build' in dependencies and 'runtime' in dependencies:
+                return False, errors
+            elif 'build' in dependencies:
+                return False, errors[0]
+            else:
+                return False, errors[1]
 
         if 'build' in dependencies and 'runtime' in dependencies:
-            return True, (deps[0], deps[1])
+            return True, deps
         elif 'build' in dependencies:
             return True, deps[0]
         else:
             return True, deps[1]
-
-    def collect_build_dep_from_config(self, config):
-        """Read a ConfigObj object to determine all the build dependencies of
-        an object and get them in a dict.
-
-        Parameters
-        ----------
-        config : Section
-            Section representing the object.
-
-        Returns
-        -------
-        result : bool
-            Flag indicating the success of the operation.
-
-        build_dep : nested dict or None
-            In case of success:
-            - Dictionary holding all the build dependencies of an obj.
-              With this dict and the config the obj can be reconstructed
-              without accessing the workbech.
-            Otherwise:
-            - dict holding the id of the dependency and the asssociated
-              error message.
-
-        """
-        members = []
-        for build_dep in self.build_deps.contributions.values():
-            members.extend(build_dep.walk_members)
-
-        flat_config = flatten_config(config, members)
-
-        build_deps = {}
-        errors = {}
-        for build_dep in self.build_deps.contributions.values():
-            try:
-                build_deps.update(build_dep.collect(self.workbench,
-                                                    flat_config))
-            except Exception:
-                    errors[build_dep.id] = format_exc()
-
-        if errors:
-            return False, errors
-        else:
-            return True, build_deps

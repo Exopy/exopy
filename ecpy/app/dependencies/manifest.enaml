@@ -42,15 +42,6 @@ def collect_dependencies(event):
         event.parameters['caller'] = event.trigger.manifest.id
     return manager.collect_dependencies(**event.parameters)
 
-
-def collect_build_dep_from_config(event):
-    """Handler for the 'ecpy.app.dependencies.collect_from_config' command.
-
-    """
-    manager = event.workbench.get_plugin(PLUGIN_ID)
-    return manager.collect_build_dep_from_config(**event.parameters)
-
-
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
@@ -73,7 +64,7 @@ in ComplexTask
 
 Parameters
 ----------
-obj : object with a walk method
+obj : Section, or traversable object.
     Obj for which dependencies should be computed.
 
 dependencies : {['build'], ['runtime'], ['build', 'runtime']}
@@ -82,7 +73,7 @@ dependencies : {['build'], ['runtime'], ['build', 'runtime']}
 ids : list, optional
     List of dependencies ids to use when collecting.
 
-caller : optional
+owner : optional
     Calling plugin. Used for some runtime dependencies needing to know
     the ressource owner.
 
@@ -99,32 +90,6 @@ dependencies : dict
       returned otherwise two are returned one for the build ones and
       one for the runtime ones
 
-    Otherwise:
-    - dict holding the id of the dependency and the asssociated
-      error message.
-
-"""
-
-
-COLLECT_BUILD_DEP_FROM_CONFIG_DESCRIPTION=\
-"""Read a ConfigObj object to determine all the build dependencies of
-an object and get them in a dict.
-
-Parameters
-----------
-config : Section
-    Section representing the object.
-
-Returns
--------
-result : bool
-    Flag indicating the success of the operation.
-
-build_dep : nested dict or None
-    In case of success:
-    - Dictionary holding all the build dependencies of an obj.
-      With this dict and the config the obj can be reconstructed
-      without accessing the workbech.
     Otherwise:
     - dict holding the id of the dependency and the asssociated
       error message.
@@ -167,7 +132,3 @@ enamldef DependenciesManifest(PluginManifest):
             id = 'ecpy.app.dependencies.collect'
             description = COLLECT_DEPENDENCIES_DESCRIPTION
             handler = collect_dependencies
-        Command:
-            id = 'ecpy.app.dependencies.collect_from_config'
-            description = COLLECT_BUILD_DEP_FROM_CONFIG_DESCRIPTION
-            handler = collect_build_dep_from_config

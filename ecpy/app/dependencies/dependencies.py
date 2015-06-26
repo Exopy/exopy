@@ -19,7 +19,7 @@ also drivers classes and intsrument profiles (runtime)
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (List, Dict, Unicode)
+from atom.api import (Unicode)
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -32,40 +32,24 @@ class BuildDependency(Declarative):
     DependenciesPlugin (ecpy.app.dependencies).
 
     """
-    #: Unique id for this extension.
+    #: Unique id for this extension. Should match the dep_type attribute value
+    #: of the object it is meant for.
     id = d_(Unicode())
 
-    #: List of members names to inspect when trying to determine the build
-    #: dependencies of a structure (either by inspecting the live object or
-    #: a static representation such as a configuration file).
-    walk_members = d_(List())
-
     @d_func
-    def collect(self, workbench, flat_walk):
-        """Collect the identified build dependencies.
+    def collect(self, workbench, obj, getter, dependencies, errors):
+        """Collect the identified build dependencies and list runtime ones.
+
+
 
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
 
-        flat_walk : dict
-            Dict in the format {name: set()} listing the dependencies. The key
-            correspond to the walk_members declared by all BuildDependency.
-            This object must not be modified in the process of collecting the
-            dependencies.
 
         Returns
         -------
-        deps : dict
-            Dictionary holding the dependencies (as dictionaries) in
-            categories (walk_members). If there is no dependence for a given
-            category this category should be absent from the dict.
-
-        Raises
-        ------
-        ValueError :
-            Raised if one dependency cannot be found.
 
         """
         pass
@@ -79,14 +63,6 @@ class RuntimeDependency(Declarative):
     """
     #: Unique id for this extension.
     id = d_(Unicode())
-
-    #: List of members names to inspect when trying to determine the runtime
-    #: dependencies of a structure.
-    walk_members = d_(List())
-
-    #: Dict of name callables to call on each element of a structure when
-    #: trying to determine its build dependencies
-    walk_callables = d_(Dict())
 
     @d_func
     def collect(self, workbench, flat_walk):

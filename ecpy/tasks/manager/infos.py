@@ -22,7 +22,29 @@ with enaml.imports():
     from ..base_views import BaseTaskView
 
 
-class TaskInfos(Atom):
+INSTR_RUNTIME_ID = 'ecpy.instruments.runtime_deps'
+
+
+class TaskDependentInfos(Atom):
+    """Base infos for tasks and interfaces.
+
+    """
+    #: List of instrument supported by this task.
+    instruments = Coerced(set, ())
+
+    #: Build and runtime dependencies ids of this task.
+    dependencies = Dict({'build': ['ecpy.tasks.build_deps'],
+                         'runtime': []})
+
+    def _post_setattr_dependencies(self, old, new):
+        if new:
+            if INSTR_RUNTIME_ID not in self.dependencies['runtime']:
+                self.dependencies['runtime'].append(INSTR_RUNTIME_ID)
+        elif INSTR_RUNTIME_ID in self.dependencies['runtime']:
+            self.dependencies['runtime'].remove(INSTR_RUNTIME_ID)
+
+
+class TaskInfos(TaskDependentInfos):
     """An object used to store informations about a task.
 
     """
@@ -39,11 +61,8 @@ class TaskInfos(Atom):
     #: etc
     metadata = Dict()
 
-    #: List of instrument supported by this task.
-    instruments = Coerced(set, ())
 
-
-class InterfaceInfos(Atom):
+class InterfaceInfos(TaskDependentInfos):
     """An object used to store informations about an interface.
 
     """
@@ -55,9 +74,6 @@ class InterfaceInfos(Atom):
 
     #: List of interfaces supported by this task.
     interfaces = Dict()
-
-    #: List of instrument supported by this task.
-    instruments = Coerced(set, ())
 
 
 class ConfigInfos(Atom):

@@ -25,6 +25,8 @@ from .infos import TaskInfos, InterfaceInfos, ConfigInfos
 from ...utils.declarator import Declarator, GroupDeclarator
 
 
+# XXXX modify to allow dependencies declarations
+
 def check_children(declarator):
     """Make sure that all the children of a declarator are interfaces.
 
