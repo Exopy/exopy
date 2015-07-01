@@ -15,10 +15,13 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 from collections import defaultdict
+from traceback import format_exc
+
 from atom.api import List, Dict, Typed, Unicode
 from watchdog.observers import Observer
 
-from .declarations import Task, Interface, Tasks, Interfaces, TaskConfig
+from .declarations import (Task, Interface, Tasks, Interfaces, TaskConfig,
+                           TaskConfigs)
 from .filters import TaskFilter
 from ...utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
                                    DeclaratorsCollector)
@@ -31,7 +34,9 @@ FILTERS_POINT = 'ecpy.tasks.filters'
 
 CONFIG_POINT = 'ecpy.tasks.configs'
 
-TEMPLATE_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..',
+FOLDER_PATH = os.path.dirname(__file__)
+
+TEMPLATE_PATH = os.path.realpath(os.path.join(FOLDER_PATH, '..',
                                               'templates'))
 
 
@@ -50,7 +55,8 @@ class TaskManagerPlugin(HasPrefPlugin):
     filters = List()
 
     #: Path to the file in which the names for the tasks are located.
-    auto_task_path = Unicode().tag(pref=True)
+    auto_task_path = Unicode(os.path.join(FOLDER_PATH,
+                                          'tasknames.txt')).tag(pref=True)
 
     #: List of names to use when creating a new task.
     auto_task_names = List()
@@ -66,11 +72,16 @@ class TaskManagerPlugin(HasPrefPlugin):
         if not os.path.isdir(TEMPLATE_PATH):
             try:
                 os.mkdir(TEMPLATE_PATH)
-            except Exception as e:
+            except Exception:
                 if TEMPLATE_PATH in self.templates_folders:
                     self.templates_folders.remove(TEMPLATE_PATH)
                 core = self.workbench.get_plugin('enaml.workbench.core')
-                msg = 'Failed to create template folder : %s' % e
+                msg = 'Failed to create template folder.'
+                # Python 2 windows issue
+                try:
+                    msg += 'Traceback : %s' % format_exc()
+                except UnicodeError:
+                    msg += 'Failed to format error message.'
                 core.invoke_command('ecpy.app.errors.signal',
                                     dict(kind='error',
                                          message=msg))
@@ -82,7 +93,8 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         self._configs = DeclaratorsCollector(workbench=self.workbench,
                                              point=CONFIG_POINT,
-                                             ext_class=TaskConfig)
+                                             ext_class=(TaskConfig,
+                                                        TaskConfigs))
 
         self._configs.start()
 
@@ -109,7 +121,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         self._tasks.stop()
         self.templates.clear()
         self._filters.stop()
-        self._configs.stpp()
+        self._configs.stop()
 
     def list_tasks(self, filter='All'):
         """List the known tasks using the specified filter.
