@@ -210,12 +210,12 @@ extension point.
 A |BuildDependency| needs:
 - an 'id' which must be unique and must match the name used for dep_type
   attribute value of the object this dependency collector is meant to act on.
-- 'collect': a callable getting the build dependency of an object and
+- 'collect': a method getting the build dependency of an object and
   identifying its runtime dependencies.
 
 A |RuntimeDependecy| needs:
 - an 'id' which must be unique.
-- 'collect': a callable getting the runtime dependency of an object.
+- 'collect': a method getting the runtime dependency of an object.
 
 
 Customizing logging

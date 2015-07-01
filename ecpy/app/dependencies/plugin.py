@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 from operator import getitem
+from collections import defaultdict
 
 from configobj import Section
 
@@ -33,10 +34,6 @@ def validate_build_dep(contrib):
     """Validate that a runtime dependency does declare everything it should.
 
     """
-    if not contrib.walk_members:
-        msg = "BuildDependency '%s' does not declare any dependencies"
-        return False, msg % contrib.id
-
     func = getattr(contrib.collect, 'im_func',
                    getattr(contrib.collect, '__func__', None))
     if not func or func is BuildDependency.collect.__func__:
@@ -50,10 +47,6 @@ def validate_runtime_dep(contrib):
     """Validate that a runtime dependency does declare everything it should.
 
     """
-    if not contrib.walk_members and not contrib.walk_callables:
-        msg = "RuntimeDependency '%s' does not declare any dependencies"
-        return False, msg % contrib.id
-
     func = getattr(contrib.collect, 'im_func',
                    getattr(contrib.collect, '__func__', None))
     if not func or func is RuntimeDependency.collect.__func__:
@@ -137,39 +130,51 @@ class DependenciesPlugin(Plugin):
 
         """
         if isinstance(obj, Section):
-            ite = traverse_config(obj)
+            gen = traverse_config(obj)
             getter = getitem
         else:
-            ite = obj.traverse()
+            gen = obj.traverse()
             getter = getattr
 
         builds = self.build_deps.contributions
-        runtimes = self.runtime_deps.contributions
+        runtimes = self.run_deps.contributions
 
-        deps = ({}, {})
-        errors = ({}, {})
+        deps = (defaultdict(dict), defaultdict(dict))
+        errors = (defaultdict(dict), defaultdict(dict))
         need_runtime = 'runtime' in dependencies
-        for component in ite:
+        if need_runtime and not owner:
+            gen = ()
+            msg = ('A owner plugin must be specified when collecting runtime '
+                   + 'dependencies.')
+            errors[1]['owner'] = msg
+
+        for component in gen:
             dep_type = getter(component, 'dep_type')
-            runtimes = builds[dep_type].collect(self.workbench, component,
-                                                getter, deps[0], errors[0])
+            try:
+                collector = builds[dep_type]
+            except KeyError:
+                msg = 'No matching collector for dep_type : {}'
+                errors[0][dep_type] = msg.format(dep_type)
+                break
+            run_ids = collector.collect(self.workbench, component,
+                                        getter, deps[0], errors[0])
 
-            if need_runtime:
-                for runtime in runtimes:
-                    runtime.colect(self.workbench, owner, component, getter,
-                                   deps[1], errors[1])
+            if need_runtime and run_ids:
+                if any(r not in runtimes for r in run_ids):
+                    msg = 'No collector matching the ids : %s'
+                    errors[1]['runtime'] = msg % [r for r in run_ids
+                                                  if r not in runtimes]
+                    break
+                for r in run_ids:
+                    runtimes[r].collect(self.workbench, owner, component,
+                                        getter, deps[1], errors[1])
 
-        if any(errors):
-            if 'build' in dependencies and 'runtime' in dependencies:
-                return False, errors
-            elif 'build' in dependencies:
-                return False, errors[0]
-            else:
-                return False, errors[1]
+        res = not any(errors)
+        answer = errors if any(errors) else deps
 
         if 'build' in dependencies and 'runtime' in dependencies:
-            return True, deps
+            return res, answer
         elif 'build' in dependencies:
-            return True, deps[0]
+            return res, answer[0]
         else:
-            return True, deps[1]
+            return res, answer[1]

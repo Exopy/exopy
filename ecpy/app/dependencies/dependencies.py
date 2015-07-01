@@ -54,18 +54,18 @@ class BuildDependency(Declarative):
             using this function rather than the usual '.' syntax as the passed
             object might be a dictionary like object.
 
-        dependencies : dict
+        dependencies : defaultdict(dict)
             Dictionary in which to write the build dependencies. Dependencies
             should be groupped by collector.
             ex : dependencies[self.id][key] = value
 
-        errors : dict
+        errors : defaultdict(dict)
             Dictionary in which to write the errors that occured during
             collection.
 
         Returns
         -------
-        runtime_collectors : list
+        runtime_collectors : list, optional
             List of runtime dependencies that this object have.
 
         """
@@ -82,13 +82,17 @@ class RuntimeDependency(Declarative):
     id = d_(Unicode())
 
     @d_func
-    def collect(self, workbench, flat_walk):
+    def collect(self, workbench, owner, obj, getter, dependencies, errors):
         """Collect the identified runtime dependencies.
 
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
+
+        owner :
+            Calling plugin. Used for some runtime dependencies needing to know
+            the ressource owner.
 
         obj :
             Object whose build dependencies should be collected and runtime
@@ -99,12 +103,12 @@ class RuntimeDependency(Declarative):
             using this function rather than the usual '.' syntax as the passed
             object might be a dictionary like object.
 
-        dependencies : dict
+        dependencies : defaultdict(dict)
             Dictionary in which to write the build dependencies. Dependencies
             should be groupped by collector.
             ex : dependencies[self.id][key] = value
 
-        errors : dict
+        errors : defaultdict(dict)
             Dictionary in which to write the errors that occured during
             collection.
 

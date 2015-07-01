@@ -33,8 +33,6 @@ with enaml.imports():
 
 COLLECT = 'ecpy.app.dependencies.collect'
 
-COLLECT_CONFIG = 'ecpy.app.dependencies.collect_from_config'
-
 
 def test_validate_build_dep():
     """Check the validation of BuildDependency object.
@@ -43,13 +41,8 @@ def test_validate_build_dep():
     class BDep(object):
         id = 'test'
     bdep = BDep()
-    bdep.walk_members = None
     bdep.collect = BuildDependency.collect
 
-    assert validate_build_dep(bdep)[0] is False
-    assert 'dependencies' in validate_build_dep(bdep)[1]
-
-    bdep.walk_members = ['t']
     assert validate_build_dep(bdep)[0] is False
     assert 'collect' in validate_build_dep(bdep)[1]
 
@@ -64,19 +57,11 @@ def test_validate_runtime_dep():
     class RDep(object):
         id = 'test'
     rdep = RDep()
-    rdep.walk_members = None
-    rdep.walk_callables = None
     rdep.collect = RuntimeDependency.collect
 
     assert validate_runtime_dep(rdep)[0] is False
-    assert 'dependencies' in validate_runtime_dep(rdep)[1]
-
-    rdep.walk_members = ['t']
-    assert validate_runtime_dep(rdep)[0] is False
     assert 'collect' in validate_runtime_dep(rdep)[1]
 
-    rdep.walk_members = None
-    rdep.walk_callables = {1: 2}
     assert validate_runtime_dep(rdep)[0] is False
     assert 'collect' in validate_runtime_dep(rdep)[1]
 
@@ -85,12 +70,18 @@ def test_validate_runtime_dep():
 
 
 @pytest.fixture
-def dependent_object(request):
+def dependent_object():
 
     class Obj(object):
 
-        def walk(self, members, callables):
-            return [{m: '' for m in members}, [{c: '' for c in callables}]]
+        dep_type = 'test'
+
+        val = 'r'
+
+        run = 2
+
+        def traverse(self):
+            yield self
 
     return Obj()
 
@@ -117,8 +108,7 @@ class TestCollectingFromObject(object):
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['build']})
+        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object})
         assert res
         assert dep.keys() == ['test']
 
@@ -140,21 +130,13 @@ class TestCollectingFromObject(object):
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
         res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'caller': 'ecpy.test'})
+                                                 'dependencies': ['build',
+                                                                  'runtime'],
+                                                 'owner': 'ecpy.test'})
 
         assert res
         assert dep[0].keys() == ['test']
         assert dep[1].keys() == ['test_run']
-
-    def test_collecting_by_id(self, dependent_object):
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'ids': ['test.build_dep'],
-                                                 'caller': 'ecpy.test'})
-
-        assert res
-        assert dep[0].keys() == ['test']
-        assert not dep[1]
 
     def test_handling_errors(self, monkeypatch, dependent_object):
         """Test handling errors occuring when collecting dependencies.
@@ -170,19 +152,48 @@ class TestCollectingFromObject(object):
 
         core = self.workbench.get_plugin('enaml.workbench.core')
         res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'caller': 'ecpy.test'})
+                                                 'dependencies': ['build',
+                                                                  'runtime'],
+                                                 'owner': 'ecpy.test'})
 
         assert not res
-        assert 'test.build_dep' in dep and 'test.runtime_dep' in dep
+        assert 'test' in dep[0] and 'test_run' in dep[1]
 
-    def test_handling_missing_caller(self):
+    def test_handling_missing_caller(self, dependent_object):
         """Test handling a missing caller when runtime dependencies are
         requested.
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
         res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': 'runtime'})
+                                                 'dependencies': ['runtime']})
+        assert not res
+        assert 'owner' in dep
+
+    def test_handling_unknown_dep_type(self, dependent_object):
+        """Test handling an unknown dep_type.
+
+        """
+        dependent_object.dep_type = 'Unknown'
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object})
+        assert not res
+        assert 'Unknown' in dep
+
+    def test_handling_missing_runtime_collector(self, monkeypatch,
+                                                dependent_object):
+        """Test handling an unknown dep_type.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+
+        for b in plugin.build_deps.contributions.values():
+            monkeypatch.setattr(b, 'run', ('unkwown',))
+
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                                 'dependencies': ['runtime'],
+                                                 'owner': object()})
         assert not res
         assert 'runtime' in dep
 
@@ -208,8 +219,10 @@ class TestCollectingFromConfig(object):
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT_CONFIG,
-                                       {'config': ConfigObj()})
+        res, dep = core.invoke_command(COLLECT,
+                                       {'obj': ConfigObj({'val': '1',
+                                                          'dep_type': 'test'})}
+                                       )
         assert res
         assert dep.keys() == ['test']
 
@@ -223,8 +236,10 @@ class TestCollectingFromConfig(object):
             monkeypatch.setattr(b, 'err', True)
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT_CONFIG,
-                                       {'config': ConfigObj()})
+        res, dep = core.invoke_command(COLLECT,
+                                       {'obj': ConfigObj({'val': '1',
+                                                          'dep_type': 'test'})}
+                                       )
 
         assert not res
-        assert 'test.build_dep' in dep
+        assert 'test' in dep
