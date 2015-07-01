@@ -18,9 +18,9 @@ from enaml.core.api import Conditional, Include
 from enaml.layout.api import hbox, vbox
 
 from ..widgets.browsing import TaskSelector
-from .base_config_view import BaseConfigView
+from .base_config_views import BaseConfigView
 
-enamldef LoopView(BaseConfigView): view:
+enamldef LoopConfigView(BaseConfigView): view:
 
     constraints << [vbox(hbox(name_lab, name_field, sub),
                          hbox(*tuple(simple.items + embed.items))),

@@ -17,9 +17,11 @@ import enaml
 
 from ..base_tasks import BaseTask
 from ..task_interface import BaseInterface
+from .configs.base_configs import BaseTaskConfig
 
 with enaml.imports():
     from ..base_views import BaseTaskView
+    from .configs.base_config_views import BaseConfigView
 
 
 INSTR_RUNTIME_ID = 'ecpy.instruments.runtime_deps'
@@ -81,7 +83,7 @@ class ConfigInfos(Atom):
 
     """
     #: Class representing this configurer.
-    cls = Subclass(BaseTask)
+    cls = Subclass(BaseTaskConfig)
 
     #: Widget associated with this configurer.
-    view = Subclass(BaseTaskView)
+    view = Subclass(BaseConfigView)

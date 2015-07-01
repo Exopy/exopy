@@ -439,6 +439,13 @@ class Interface(Declarator):
                           '\n'.join(' - {}'.format(c) for c in self.children))
 
 
+class TaskConfigs(GroupDeclarator):
+    """GroupDeclarator for task configs.
+
+    """
+    pass
+
+
 @python_2_unicode_compatible
 class TaskConfig(Declarator):
     """Declarator used to declare a task config.

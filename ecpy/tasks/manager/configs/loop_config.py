@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Typed, Unicode, Bool)
 
-from .base_config import PyTaskConfig, BaseTaskConfig
+from .base_configs import PyTaskConfig, BaseTaskConfig
 from .base_config_views import BaseConfigView
 
 

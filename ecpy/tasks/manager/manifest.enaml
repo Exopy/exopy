@@ -22,7 +22,9 @@ from ...utils.plugin_tools import make_handler
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
 from .utils.dependencies import collect_task, collect_interface
-from .filters import GroupTaskFilter, SubclassTaskFilter, MetadataTaskFilter
+from .filters import (TaskFilter, GroupTaskFilter, SubclassTaskFilter,
+                      MetadataTaskFilter)
+from .declarations import Tasks, Task, TaskConfigs, TaskConfig
 
 from ..tasks.logic.declarations import LogicTasks
 
@@ -334,15 +336,40 @@ enamldef TasksManagerManifest(PluginManifest):
     Extension:
         id = 'tasks_decl'
         point = 'ecpy.tasks.declarations'
+        Tasks:
+            path = 'ecpy.tasks'
+            Task:
+                task = 'base_tasks:ComplexTask'
+                view = 'base_views:ComplexTaskView'
+            Task:
+                task = 'base_tasks:RootTask'
+                view = 'base_views:RootTaskView'
+
         LogicTasks:
             pass
 
     Extension:
         id = 'filters'
         point = 'ecpy.tasks.filters'
+        TaskFilter:
+            id = 'All'
         GroupTaskFilter:
             id = 'Logic'
             group = 'logic'
+
+    Extension:
+        id = 'configs'
+        point = 'ecpy.tasks.configs'
+        TaskConfigs:
+            path = 'ecpy.tasks.manager.configs'
+            TaskConfig:
+                config = 'base_configs:PyTaskConfig'
+                view = 'base_config_views:PyConfigView'
+                task = 'BaseTask'
+            TaskConfig:
+                config = 'loop_config:LoopTaskConfig'
+                view = 'loop_config_view:LoopConfigView'
+                task = 'LoopTask'
 
     Extension:
         id = 'build_deps'
