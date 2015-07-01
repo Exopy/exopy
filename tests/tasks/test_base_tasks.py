@@ -267,8 +267,8 @@ def test_update_preferences_from_members():
     assert root.preferences['children_0']['name'] == 'worker1'
 
 
-def test_walking():
-    """Test walking a task hierarchy to collect infos.
+def test_traverse():
+    """Test traversing a task hierarchy to collect infos.
 
     """
     root = RootTask()
@@ -282,16 +282,11 @@ def test_walking():
     root.add_child_task(0, task1)
     root.add_child_task(1, task3)
 
-    walk = root.walk(('name', 'default_path'),
-                     {'type': lambda t: type(t).__name__})
-    assert walk == [{'name': 'Root', 'default_path': '', 'type': 'RootTask'},
-                    [{'name': 'task1', 'default_path': None,
-                      'type': 'ComplexTask'},
-                     {'name': 'task2', 'default_path': None,
-                      'type': 'SimpleTask'}],
-                    [{'name': 'task3', 'default_path': None,
-                      'type': 'ComplexTask'}]
-                    ]
+    flat = list(root.traverse())
+    assert flat == [root, task1, task2, task3]
+
+    flat = list(root.traverse(0))
+    assert flat == [root, task1, task3]
 
 
 def test_access_exceptions():
@@ -345,7 +340,8 @@ def test_build_complex_from_config():
               'children_0': {'name': 'test_child',
                              'task_class': 'SimpleTask'}}
     task = ComplexTask.build_from_config(config,
-                                         {'tasks': {'SimpleTask': SimpleTask}})
+                                         {'ecpy.task':
+                                             {'SimpleTask': SimpleTask}})
     assert task.name == 'test'
     assert len(task.children) == 1
     assert task.children[0].name == 'test_child'
@@ -359,13 +355,13 @@ def test_gather_children():
 
     class SuperComplexTask(ComplexTask):
 
-        subtask = Value().tag(child=True)
+        subtask = Value().tag(child=2)
 
-        subtasks = List().tag(child=True)
+        subtasks = List().tag(child=1)
 
+    t = SimpleTask()
     sct = SuperComplexTask(subtask=1, subtasks=[2, 3],
-                           children=[SimpleTask()])
-    children = sct._gather_children()
+                           children=[t])
+    children = list(sct.gather_children())
 
-    assert len(children) == 4
-    assert 1 in children and 2 in children and 3 in children
+    assert children == [2, 3, 1, t]

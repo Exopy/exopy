@@ -14,31 +14,54 @@ from __future__ import (division, unicode_literals, print_function,
 
 from ast import literal_eval
 
+from future.builtins import str
 
-def collect_tasks_and_interfaces(workbench, flat_walk):
-    """Collector function for the build-dependencies extensions.
+#: Id used to identify dependencies type.
+TASK_DEP_TYPE = 'ecpy.task'
+
+#: Id used to identify dependencies type.
+INTERFACE_DEP_TYPE = 'ecpy.tasks.interface'
+
+
+def collect_task(workbench, obj, getter, dependencies, errors):
+    """Collector function working on tasks and saved task representation.
 
     """
     # Here we use direct call to plugin methods as this is internal to the
     # plugin
     manager = workbench.get_plugin('ecpy.tasks.manager')
 
-    t_res = manager.get_tasks(flat_walk['task_class'])
+    t_cls_name = getter(obj, 'task_class')
+    t_infos = manager.get_task_info(t_cls_name)
 
-    interfaces = list(flat_walk['interface_class'])
-    if interfaces and not isinstance(interfaces[0], tuple):
-        interfaces = [literal_eval(ic) for ic in interfaces]
-    i_res = manager.interfaces_request(interfaces)
+    if t_infos is None:
+        errors[TASK_DEP_TYPE][t_cls_name] = 'Unknown task.'
+        return
 
-    if t_res[1] or i_res[1]:
-        mess = 'Missing tasks: {}, missing interfaces: {}'.format(t_res[1],
-                                                                  i_res[1])
-        raise ValueError(mess)
+    dependencies[TASK_DEP_TYPE][t_cls_name] = t_infos.cls
 
-    dependencies = {}
-    if flat_walk['task_class']:
-        dependencies['tasks'] = t_res[0]
-    if flat_walk['interface_class']:
-        dependencies['interfaces'] = i_res[0]
+    return t_infos.dependencies
 
-    return dependencies
+
+def collect_interface(workbench, obj, getter, dependencies, errors):
+    """Collector function working on interfaces and saved interfaces.
+
+    """
+    # Here we use direct call to plugin methods as this is internal to the
+    # plugin
+    manager = workbench.get_plugin('ecpy.tasks.manager')
+
+    interface_anchor = getter(obj, 'interface_class')
+    if not isinstance(interface_anchor, tuple):
+        interface_anchor = literal_eval(interface_anchor)
+
+    i_infos = manager.get_interface_infos(*interface_anchor)
+
+    if i_infos is None:
+        msg = 'Unknown interface.'
+        errors[INTERFACE_DEP_TYPE][str(interface_anchor)] = msg
+        return
+
+    dependencies[INTERFACE_DEP_TYPE][interface_anchor] = i_infos.cls
+
+    return i_infos.dependencies

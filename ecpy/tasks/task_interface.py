@@ -14,10 +14,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 from ast import literal_eval
 from traceback import format_exc
-from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property
+from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property, Constant
 
 from ..utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
+
+
+#: Id used to identify dependencies type.
+DEP_TYPE = 'ecpy.tasks.interface'
 
 
 class InterfaceableMixin(Atom):
@@ -75,34 +79,21 @@ class InterfaceableMixin(Atom):
         else:
             return self.i_perform(*args, **kwargs)
 
-    def answer(self, members, callables):
-        """Retrieve informations about a task.
-
-        Reimplemented here to also explore the interface.
-
-        Parameters
-        ----------
-        members : list(str)
-            List of members names whose values should be returned.
-
-        callables : dict(str, callable)
-            Dict of name callable to invoke on the task or interface to get
-            some infos.
-
-        Returns
-        -------
-        infos : list
-            List holding the main object and its interface answers
+    def traverse(self, depth=-1):
+        """First yield self then interface and finally next values.
 
         """
-        # I assume the interface does not override any task member.
-        # For the callables only the not None answer will be updated.
-        answers = super(InterfaceableMixin, self).answer(members, callables)
+        it = super(InterfaceableMixin, self).traverse(depth)
+        yield it.next()
+        interface = self.interface
+        if depth == 0:
+            yield interface
+        else:
+            for i in interface.traverse(depth - 1):
+                yield i
 
-        if self.interface:
-            interface_answers = self.interface.answer(members, callables)
-
-        return [answers, interface_answers]
+        for c in it:
+            yield c
 
     @classmethod
     def build_from_config(cls, config, dependencies):
@@ -129,7 +120,7 @@ class InterfaceableMixin(Atom):
 
         if 'interface' in config:
             iclass = config['interface'].pop('interface_class')
-            inter_class = dependencies['interfaces'][literal_eval(iclass)]
+            inter_class = dependencies[DEP_TYPE][literal_eval(iclass)]
             new.interface = inter_class.build_from_config(config['interface'],
                                                           dependencies)
 
@@ -272,6 +263,9 @@ class BaseInterface(HasPrefAtom):
     #: Class attribute indicating whether this interface has views or not.
     has_view = False
 
+    #: Identifier for the build dependency collector
+    dep_type = Constant(DEP_TYPE).tag(pref=True)
+
     #: Name of the class of the interface and anchor (ie task or interface with
     #: this interface is used with). Used for persistence purposes.
     interface_class = Tuple().tag(pref=True)
@@ -321,30 +315,16 @@ class BaseInterface(HasPrefAtom):
         """
         raise NotImplementedError()
 
-    def answer(self, members, callables):
+    def traverse(self, depth=-1):
         """Method used by to retrieve information about a task.
 
         Parameters
         ----------
-        members : list(str)
-            List of members names whose values should be returned.
-
-        callables : dict(str, callable)
-            Dict of name callable to invoke on the task or interface to get
-            some infos.
-
-        Returns
-        -------
-        infos : dict
-            Dict holding all the answers for the specified members and
-            callables. Contrary to what happens for task this one will never
-            contain None as a value.
+        depth : int
+            How deep should we stop traversing.
 
         """
-        answers = {m: getattr(self, m, None) for m in members}
-        answers.update({k: c(self) for k, c in callables.iteritems()})
-
-        return answers
+        yield self
 
     @classmethod
     def build_from_config(cls, config, dependencies):

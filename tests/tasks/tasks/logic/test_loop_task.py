@@ -109,9 +109,10 @@ class TestLoopTask(object):
         self.root.update_preferences_from_members()
 
         new = RootTask.build_from_config(self.root.preferences,
-                                         {'tasks': {'RootTask': RootTask,
-                                                    'LoopTask': LoopTask,
-                                                    'CheckTask': CheckTask}})
+                                         {'ecpy.task': {'RootTask': RootTask,
+                                                        'LoopTask': LoopTask,
+                                                        'CheckTask': CheckTask}
+                                          })
 
         assert new.children[0].task.name == 'check'
 
@@ -119,9 +120,10 @@ class TestLoopTask(object):
         prefs = self.root.preferences
         del prefs['children_0']['task']
         new = RootTask.build_from_config(prefs,
-                                         {'tasks': {'RootTask': RootTask,
-                                                    'LoopTask': LoopTask,
-                                                    'CheckTask': CheckTask}})
+                                         {'ecpy.task': {'RootTask': RootTask,
+                                                        'LoopTask': LoopTask,
+                                                        'CheckTask': CheckTask}
+                                          })
 
         assert not new.children[0].task
 

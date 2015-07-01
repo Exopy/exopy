@@ -21,7 +21,7 @@ from ...utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
-from .utils.dependencies import collect_tasks_and_interfaces
+from .utils.dependencies import collect_task, collect_interface
 from .filters import GroupTaskFilter, SubclassTaskFilter, MetadataTaskFilter
 
 from ..tasks.logic.declarations import LogicTasks
@@ -348,10 +348,14 @@ enamldef TasksManagerManifest(PluginManifest):
         id = 'build_deps'
         point = 'ecpy.app.dependencies.build'
         BuildDependency:
-            id = 'ecpy.tasks.build_dependencies'
-            walk_members = ['task_class', 'interface_class']
-            collect => (workbench, flat_walk):
-                collect_tasks_and_interfaces(workbench, flat_walk)
+            id = 'ecpy.task'
+            collect => (workbench, obj, getter, dependencies, errors):
+                collect_task(workbench, obj, getter, dependencies, errors)
+        BuildDependency:
+            id = 'ecpy.tasks.interface'
+            collect => (workbench, obj, getter, dependencies, errors):
+                collect_interfaces(workbench, obj, getter, dependencies,
+                                   errors)
 
     Extension:
         id = 'prefs'

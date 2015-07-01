@@ -258,9 +258,10 @@ class TestInterfaceableTaskMixin(object):
         """
         aux = RootTask()
         aux.add_child_task(0, IMixin())
+        print(aux.preferences)
         bis = RootTask.build_from_config(aux.preferences,
-                                         {'tasks': {'IMixin': IMixin,
-                                                    'RootTask': RootTask}})
+                                         {'ecpy.task': {'IMixin': IMixin,
+                                                        'RootTask': RootTask}})
         assert type(bis.children[0]).__name__ == 'IMixin'
 
     def test_build_from_config2(self):
@@ -269,26 +270,21 @@ class TestInterfaceableTaskMixin(object):
         """
         self.mixin.interface = InterfaceTest(answer=True)
         self.root.update_preferences_from_members()
-        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
-                'interfaces': {('InterfaceTest', ('Mixin',)): InterfaceTest}}
+        deps = {'ecpy.task': {'Mixin': Mixin, 'RootTask': RootTask},
+                'ecpy.tasks.interface':
+                    {('InterfaceTest', ('Mixin',)): InterfaceTest}}
         bis = RootTask.build_from_config(self.root.preferences, deps)
 
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest'
 
-    def test_answer(self):
-        """Test walking a task with interface.
+    def test_traverse(self):
+        """Test traversing a task with interface.
 
         """
         self.mixin.interface = InterfaceTest2()
 
-        w = self.mixin.answer(['task_class', 'interface_class'],
-                              {'has_fmt': lambda t: hasattr(t, 'fmt')})
-        assert w == [{'task_class': 'Mixin',
-                      'interface_class': None,
-                      'has_fmt': False},
-                     {'task_class': None,
-                      'interface_class': ('InterfaceTest2', ('Mixin',)),
-                      'has_fmt': True}]
+        w = list(self.mixin.traverse())
+        assert w == [self.mixin, self.mixin.interface]
 
 
 class TestInterfaceableInterfaceMixin(object):
@@ -425,8 +421,9 @@ class TestInterfaceableInterfaceMixin(object):
         mixin = Mixin()
         mixin.interface = InterfaceTest3()
         aux.add_child_task(0, mixin)
-        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
-                'interfaces': {('InterfaceTest3', ('Mixin',)): InterfaceTest3}}
+        deps = {'ecpy.task': {'Mixin': Mixin, 'RootTask': RootTask},
+                'ecpy.tasks.interface':
+                    {('InterfaceTest3', ('Mixin',)): InterfaceTest3}}
         bis = RootTask.build_from_config(aux.preferences, deps)
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest3'
 
@@ -437,11 +434,12 @@ class TestInterfaceableInterfaceMixin(object):
         """
         self.mixin.interface = IIinterfaceTest1(answer=True)
         self.root.update_preferences_from_members()
-        deps = {'tasks': {'Mixin': Mixin, 'RootTask': RootTask},
-                'interfaces': {('InterfaceTest3', ('Mixin',)): InterfaceTest3,
-                               ('IIinterfaceTest1',
-                                ('Mixin', 'InterfaceTest3')): IIinterfaceTest1
-                               }
+        deps = {'ecpy.task': {'Mixin': Mixin, 'RootTask': RootTask},
+                'ecpy.tasks.interface':
+                    {('InterfaceTest3', ('Mixin',)): InterfaceTest3,
+                     ('IIinterfaceTest1',
+                      ('Mixin', 'InterfaceTest3')): IIinterfaceTest1
+                     }
                 }
         bis = RootTask.build_from_config(self.root.preferences, deps)
 
@@ -450,24 +448,20 @@ class TestInterfaceableInterfaceMixin(object):
         assert self.root.children[0].database_entries ==\
             {'test': 2.0, 'itest': 1.0}
 
-    def test_answer(self):
-        """Test walking a task with an interfaceable interface.
+    def test_traverse(self):
+        """Test traversing a task with an interfaceable interface.
 
         """
-        self.mixin.interface = IIinterfaceTest2()
+        class Test(InterfaceableInterfaceMixin, IIinterfaceTest2):
+            pass
+
+        iaux = IIinterfaceTest1()
+        self.mixin.interface = Test()
+        self.mixin.interface.interface = iaux
 
         task = self.root.children[0]
-        w = task.answer(['task_class', 'interface_class'],
-                        {'has_fmt': lambda t: hasattr(t, 'fmt')})
-        assert w == [{'task_class': 'Mixin',
-                      'interface_class': None,
-                      'has_fmt': False},
-                     [{'task_class': None,
-                       'interface_class': ('InterfaceTest3', ('Mixin',)),
-                       'has_fmt': False},
-                      {'task_class': None,
-                       'interface_class': ('IIinterfaceTest2',
-                                           ('Mixin', 'InterfaceTest3')),
-                       'has_fmt': True}
-                      ]
-                     ]
+        w = list(task.traverse())
+        assert w == [task, self.mixin, self.mixin.interface, iaux]
+
+        w = list(task.traverse(1))
+        assert w == [task, self.mixin, self.mixin.interface]

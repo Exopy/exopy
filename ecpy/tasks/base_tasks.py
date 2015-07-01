@@ -20,7 +20,7 @@ import logging
 import threading
 from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
-                      Tuple, Coerced, set_default)
+                      Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
 from inspect import cleandoc
 from textwrap import fill
@@ -30,8 +30,9 @@ from future.utils import istext
 from future.builtins import str as text
 from multiprocessing.synchronize import Event
 from datetime import date
+from collections import Iterable
 
-from ..utils.atom_util import member_from_str, tagged_members
+from ..utils.atom_util import (tagged_members, update_members_from_preferences)
 from ..utils.container_change import ContainerChange
 from .tools.database import TaskDatabase
 from .tools.decorators import (make_parallel, make_wait, make_stoppable,
@@ -44,6 +45,10 @@ from .tools.shared_resources import SharedDict, SharedCounter
 PREFIX = '_a'
 
 
+#: Id used to identify dependencies type.
+DEP_TYPE = 'ecpy.task'
+
+
 class BaseTask(Atom):
     """Base  class defining common members of all Tasks.
 
@@ -51,6 +56,9 @@ class BaseTask(Atom):
     members and methods.
 
     """
+    #: Identifier for the build dependency collector
+    dep_type = Constant(DEP_TYPE).tag(pref=True)
+
     #: Name of the class, used for persistence.
     task_class = Unicode().tag(pref=True)
 
@@ -178,28 +186,20 @@ class BaseTask(Atom):
         """
         raise NotImplementedError()
 
-    def answer(self, members, callables):
-        """Retrieve information about a task.
+    def traverse(self, depth=-1):
+        """Yield a task and all of its components.
+
+        The base implementation simply yields the task itself.
 
         Parameters
         ----------
-        members : list(str)
-            List of members names whose values should be returned.
-
-        callables : dict(str, callable)
-            Dict of name callable to invoke on the task or interface to get
-            some infos.
-
-        Returns
-        -------
-        infos : dict
-            Dict holding all the answers for the specified members and
-            callables.
+        depth : int
+            How deep should we explore the tree of tasks. When this number
+            reaches zero deeper children should not be explored but simply
+            yielded.
 
         """
-        answers = {m: getattr(self, m, None) for m in members}
-        answers.update({k: c(self) for k, c in callables.iteritems()})
-        return answers
+        yield self
 
     def register_in_database(self):
         """ Register the task entries into the database.
@@ -620,14 +620,7 @@ class SimpleTask(BaseTask):
 
         """
         task = cls()
-        for name, member in tagged_members(task, 'pref').iteritems():
-
-            if name not in config:
-                continue
-
-            value = config[name]
-            converted = member_from_str(member, value)
-            setattr(task, name, converted)
+        update_members_from_preferences(task, config)
 
         return task
 
@@ -638,7 +631,10 @@ class ComplexTask(BaseTask):
     """
     #: List of all the children of the task. The list should not be manipulated
     #: directly by user code.
-    children = List().tag(child=True)
+    #: The tag 'child' is used to mark that a member can contain child tasks
+    #: and is used gather children for operation which must occur on all of
+    #: them.
+    children = List().tag(child=100)
 
     #: Signal emitted when the list of children change the payload will be a
     # ContainerChange instance.
@@ -659,7 +655,7 @@ class ComplexTask(BaseTask):
 
         """
         test, traceback = super(ComplexTask, self).check(*args, **kwargs)
-        for child in self._gather_children():
+        for child in self.gather_children():
             check = child.check(*args, **kwargs)
             test = test and check[0]
             traceback.update(check[1])
@@ -750,34 +746,39 @@ class ComplexTask(BaseTask):
                                  removed=[(index, child)])
         self.children_changed(change)
 
-    def walk(self, members=[], callables={}):
-        """Explore the tasks hierarchy looking for informations..
+    def gather_children(self):
+        """Build a flat list of all children task.
 
-        Missing values will be filled with None.
-
-        Parameters
-        ----------
-        members : list(str)
-            Names of the members whose value should be retrieved.
-
-        callables : dict(callable)
-            Dict {name: callables} to call on every task in the hierarchy. Each
-            callable should take as single argument the task.
-
-        Returns
-        -------
-        answer : list
-            List summarizing the result of the exploration.
+        Children tasks are ordered according to their 'child' tag value.
 
         """
-        answer = [self.answer(members, callables)]
-        for task in self._gather_children():
-            if isinstance(task, SimpleTask):
-                answer.append(task.answer(members, callables))
-            elif task:
-                answer.append(task.walk(members, callables))
+        children = []
+        tagged = tagged_members(self, 'child')
+        for name in sorted(tagged, key=lambda m: tagged[m].metadata['child']):
 
-        return answer
+            child = getattr(self, name)
+            if child:
+                if isinstance(child, Iterable):
+                    children.extend(child)
+                else:
+                    children.append(child)
+
+        return children
+
+    def traverse(self, depth=-1):
+        """Reimplemented to yield all child task.
+
+        """
+        yield self
+
+        if depth == 0:
+            for c in self.gather_children():
+                yield c
+
+        else:
+            for c in self.gather_children():
+                for subc in c.traverse(depth - 1):
+                    yield subc
 
     def register_in_database(self):
         """Create a node in the database and register all entries.
@@ -790,7 +791,7 @@ class ComplexTask(BaseTask):
         self.database.create_node(self.path, self.name)
 
         # ComplexTask defines children so we always get something
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.register_in_database()
 
     def unregister_from_database(self):
@@ -802,7 +803,7 @@ class ComplexTask(BaseTask):
         """
         super(ComplexTask, self).unregister_from_database()
 
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.unregister_from_database()
 
         self.database.delete_node(self.path, self.name)
@@ -856,7 +857,7 @@ class ComplexTask(BaseTask):
             else:
                 self.preferences[name] = repr(val)
 
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.update_preferences_from_members()
 
     @classmethod
@@ -885,48 +886,35 @@ class ComplexTask(BaseTask):
 
         """
         task = cls()
-        for name, member in task.members().iteritems():
+        update_members_from_preferences(task, config)
+        for name, member in tagged_members(task, 'child').items():
 
-            # First we set the preference members
-            meta = member.metadata
-            if meta and 'pref' in meta:
+            if isinstance(member, List):
+                i = 0
+                pref = name + '_{}'
+                validated = []
+                while True:
+                    child_name = pref.format(i)
+                    if child_name not in config:
+                        break
+                    child_config = config[child_name]
+                    child_class_name = child_config.pop('task_class')
+                    child_cls = dependencies[DEP_TYPE][child_class_name]
+                    child = child_cls.build_from_config(child_config,
+                                                        dependencies)
+                    validated.append(child)
+                    i += 1
+
+            else:
                 if name not in config:
                     continue
+                child_config = config[name]
+                child_class_name = child_config.pop('task_class')
+                child_class = dependencies[DEP_TYPE][child_class_name]
+                validated = child_class.build_from_config(child_config,
+                                                          dependencies)
 
-                # member_from_str handle containers
-                value = config[name]
-                validated = member_from_str(member, value)
-
-                setattr(task, name, validated)
-
-            # Then we deal with the child tasks
-            elif meta and 'child' in meta:
-                if isinstance(member, List):
-                    i = 0
-                    pref = name + '_{}'
-                    validated = []
-                    while True:
-                        child_name = pref.format(i)
-                        if child_name not in config:
-                            break
-                        child_config = config[child_name]
-                        child_class_name = child_config.pop('task_class')
-                        child_class = dependencies['tasks'][child_class_name]
-                        child = child_class.build_from_config(child_config,
-                                                              dependencies)
-                        validated.append(child)
-                        i += 1
-
-                else:
-                    if name not in config:
-                        continue
-                    child_config = config[name]
-                    child_class_name = child_config.pop('task_class')
-                    child_class = dependencies['tasks'][child_class_name]
-                    validated = child_class.build_from_config(child_config,
-                                                              dependencies)
-
-                setattr(task, name, validated)
+            setattr(task, name, validated)
 
         return task
 
@@ -938,35 +926,12 @@ class ComplexTask(BaseTask):
     #: it and necessity to observe its _access_exs.
     _last_removed = Tuple(default=(None, None, False))
 
-    #: Last access exceptions desactivayed from a child.
+    #: Last access exceptions desactivated from a child.
     _last_exs = Coerced(set)
 
     #: List of access_exs, linked to access exs in child, disabled because
     #: child disabled some access_exs.
     _disabled_exs = List()
-
-    def _gather_children(self):
-        """Build a flat list of all children task.
-
-        The children tasks are garanteed to always appear last in that
-        list.
-
-        """
-        children = []
-        for name in tagged_members(self, 'child'):
-            if name == 'children':
-                continue
-
-            child = getattr(self, name)
-            if child:
-                if isinstance(child, list):
-                    children.extend(child)
-                else:
-                    children.append(child)
-
-        children.extend(self.children)
-
-        return children
 
     def _child_path(self):
         """Convenience function returning the path to set for child task.
@@ -978,7 +943,7 @@ class ComplexTask(BaseTask):
         """Update the path of all children.
 
         """
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.path = self._child_path()
             if isinstance(child, ComplexTask):
                 child._update_children_path()
@@ -1008,7 +973,7 @@ class ComplexTask(BaseTask):
             return
 
         self.has_root = True
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.depth = self.depth + 1
             child.database = self.database
             child.path = self.path + '/' + self.name
@@ -1169,7 +1134,7 @@ class RootTask(ComplexTask):
         BaseTask.register_in_database(self)
 
         # ComplexTask defines children so we always get something
-        for child in self._gather_children():
+        for child in self.gather_children():
             child.register_in_database()
 
     # =========================================================================

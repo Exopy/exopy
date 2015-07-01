@@ -34,7 +34,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
     #: Task to call before other child tasks with current loop value. This task
     #: is simply a convenience and can be set to None.
-    task = Typed(SimpleTask).tag(child=True)
+    task = Typed(SimpleTask).tag(child=50)
 
     database_entries = set_default({'point_number': 11, 'index': 1,
                                     'value': 0})
