@@ -35,4 +35,6 @@ def test_traverse_configobj():
                        'config_test.ini'))
 
     ite = traverse_config(config)
-    assert len(set(ite)) == 7
+    assert len(list(ite)) == 8
+
+    assert len(list(traverse_config(config, 0))) == 4

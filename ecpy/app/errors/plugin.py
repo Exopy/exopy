@@ -203,8 +203,8 @@ class ErrorsPlugin(Plugin):
                 return handler.handle(self.workbench, infos)
             except Exception:
                 try:
-                    msg = ('Failed to handle %s error, infos were:\n' % kind
-                           + pformat(infos) + '\nError was :\n' + format_exc())
+                    msg = ('Failed to handle %s error, infos were:\n' % kind +
+                           pformat(infos) + '\nError was :\n' + format_exc())
                 except Exception:
                     msg = ('Failed to handle %s error, and to ' % kind +
                            'format infos:\n' + format_exc())

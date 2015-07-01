@@ -86,11 +86,12 @@ class InterfaceableMixin(Atom):
         it = super(InterfaceableMixin, self).traverse(depth)
         yield it.next()
         interface = self.interface
-        if depth == 0:
-            yield interface
-        else:
-            for i in interface.traverse(depth - 1):
-                yield i
+        if interface:
+            if depth == 0:
+                yield interface
+            else:
+                for i in interface.traverse(depth - 1):
+                    yield i
 
         for c in it:
             yield c

@@ -25,6 +25,7 @@ from .errors import ErrorHandler
 from ..states.state import State
 from .widgets import BasicErrorsDisplay, HierarchicalErrorsDisplay
 from ...utils.mapping_utils import recursive_update
+from ...utils.plugin_tools import make_handler
 
 PLUGIN_ID ='ecpy.app.errors'
 logger = logging.getLogger(__name__)
@@ -40,41 +41,6 @@ def errors_plugin_factory():
     from .plugin import ErrorsPlugin
     return ErrorsPlugin()
 
-
-# =============================================================================
-# --- Command handlers --------------------------------------------------------
-# =============================================================================
-
-def signal_handler(event):
-    """Handler for the signal command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.signal(**event.parameters)
-
-
-def report_handler(event):
-    """Handler for the report command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.report(**event.parameters)
-
-
-def enter_error_gathering_handler(event):
-    """Handler for the enter_error_gathering command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.enter_error_gathering()
-
-
-def exit_error_gathering_handler(event):
-    """Handler for the exit_error_gathering command.
-
-    """
-    plugin = event.workbench.get_plugin(PLUGIN_ID)
-    return plugin.exit_error_gathering()
 
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
@@ -175,19 +141,19 @@ enamldef ErrorsManifest(PluginManifest):
         Command:
             id = 'ecpy.app.errors.signal'
             description = SIGNAL_HANDLER_DESCRIPTION
-            handler = signal_handler
+            handler = make_handler(PLUGIN_ID, 'signal')
         Command:
             id = 'ecpy.app.errors.report'
             description = REPORT_HANDLER_DESCRIPTION
-            handler = report_handler
+            handler = make_handler(PLUGIN_ID, 'report')
         Command:
             id = 'ecpy.app.errors.enter_error_gathering'
             description = ENTER_ERROR_GATHERING_DESCRIPTION
-            handler = enter_error_gathering_handler
+            handler = make_handler(PLUGIN_ID, 'enter_error_gathering')
         Command:
             id = 'ecpy.app.errors.exit_error_gathering'
             description = EXIT_ERROR_GATHERING_DESCRIPTION
-            handler = exit_error_gathering_handler
+            handler = make_handler(PLUGIN_ID, 'exit_error_gathering')
 
     Extension:
         id = 'state'

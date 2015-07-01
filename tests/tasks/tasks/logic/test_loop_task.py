@@ -98,6 +98,14 @@ class TestLoopTask(object):
             assert subtask2.get_from_database('rep_new')
         assert 'value' in self.task.database_entries
 
+    def test_traverse(self, linspace_interface):
+        """Test traversing a with interfaces ComplexTask.
+
+        """
+        self.task.interface = linspace_interface
+        self.task.add_child_task(0, CheckTask(name='check'))
+        assert len(list(self.task.traverse())) == 3
+
     def test_saving_building_from_config(self):
         """Done here as the LoopTask is a viable case of a member tagged with
         child.

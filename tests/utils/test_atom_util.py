@@ -9,7 +9,7 @@
 """Test the Atom utility functions and HasPrefAtom object.
 
 """
-from atom.api import Str, Float, Enum, List, Dict, Typed, Int
+from atom.api import Str, Float, Enum, List, Dict, Typed, Int, Value, Constant
 from ecpy.utils.atom_util import (tagged_members, member_from_str, HasPrefAtom)
 
 
@@ -26,6 +26,8 @@ class _Aux(HasPrefAtom):
     enum_float = Enum(1.0, 2.0).tag(pref=True)
     list_ = List(Float()).tag(pref=True)
     dict_ = Dict(Str(), Float()).tag(pref=True)
+    value = Value().tag(pref=True)
+    const = Constant('r').tag(pref=True)
 
     atom = Typed(_Aaux, ()).tag(pref=True)
 
@@ -36,7 +38,7 @@ def test_tagged_members1():
     aux = _Aux()
     members = sorted(tagged_members(aux, 'pref').keys())
     test = sorted(['string', 'float_n', 'enum', 'enum_float', 'list_',
-                   'dict_', 'atom'])
+                   'dict_', 'atom', 'value', 'const'])
     assert members == test
 
 
@@ -50,7 +52,7 @@ def test_tagged_members3():
     aux = _Aux()
     members = sorted(tagged_members(aux).keys())
     test = sorted(['string', 'float_n', 'enum', 'enum_float', 'list_',
-                   'dict_', 'atom', 'no_tag'])
+                   'dict_', 'atom', 'no_tag', 'value', 'const'])
     assert members == test
 
 
@@ -86,6 +88,12 @@ def test_member_from_str6():
     assert member_from_str(member, '{"a": 1.0}') == {'a': 1.0}
 
 
+def test_member_from_str7():
+    aux = _Aux()
+    member = aux.get_member('value')
+    assert member_from_str(member, 'test.test') == 'test.test'
+
+
 def test_update_members_from_pref():
     aux = _Aux()
     pref = {'float_n': '1.0',
@@ -93,7 +101,8 @@ def test_update_members_from_pref():
             'enum_float': '1.0',
             'list_': "[2.0, 5.0]",
             'dict_': "{'a': 1.0}",
-            'atom': {'int_': '2'}}
+            'atom': {'int_': '2'},
+            'const': 'r'}
     aux.update_members_from_preferences(pref)
     assert aux.float_n == 1.0
     assert aux.enum == 'a'

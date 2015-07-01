@@ -773,12 +773,14 @@ class ComplexTask(BaseTask):
 
         if depth == 0:
             for c in self.gather_children():
-                yield c
+                if c:
+                    yield c
 
         else:
             for c in self.gather_children():
-                for subc in c.traverse(depth - 1):
-                    yield subc
+                if c:
+                    for subc in c.traverse(depth - 1):
+                        yield subc
 
     def register_in_database(self):
         """Create a node in the database and register all entries.

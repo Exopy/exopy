@@ -52,9 +52,9 @@ def traverse_config(config, depth=-1):
 
     if depth == 0:
         for s in config.sections:
-            yield s
+            yield config[s]
 
     else:
         for s in config.sections:
-            for c in traverse_config(s, depth - 1):
+            for c in traverse_config(config[s], depth - 1):
                 yield c
