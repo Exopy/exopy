@@ -14,7 +14,7 @@ The filter available by default are declared in the manager manifest.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Subclass, Unicode
+from atom.api import Value, Subclass, Unicode, set_default
 from enaml.core.api import d_func, d_
 
 from ..base_tasks import BaseTask
@@ -48,7 +48,7 @@ class TaskFilter(Declarator):
             List of the name of the task matching the filters criteria.
 
         """
-        return list(tasks.values()) + list(templates.keys())
+        return list(tasks.keys()) + list(templates.keys())
 
 
 class SubclassTaskFilter(TaskFilter):
@@ -66,22 +66,6 @@ class SubclassTaskFilter(TaskFilter):
                 if issubclass(infos.cls, self.subclass)]
 
 
-class GroupTaskFilter(TaskFilter):
-    """Filter keeping only the python tasks from the right group.
-
-    """
-    #: Group to which the tasks must belong.
-    group = d_(Unicode())
-
-    @d_func
-    def filter_tasks(self, tasks, templates):
-        """Keep only the task with the right class attribute.
-
-        """
-        return [name for name, infos in tasks.items()
-                if infos.group == self.group]
-
-
 class MetadataTaskFilter(TaskFilter):
     """Filter keeping only the python tasks with the right class attribute.
 
@@ -90,7 +74,7 @@ class MetadataTaskFilter(TaskFilter):
     meta_key = d_(Unicode())
 
     #: Metadata value to match.
-    meta_value = d_(Unicode())
+    meta_value = d_(Value())
 
     @d_func
     def filter_tasks(self, tasks, templates):
@@ -101,3 +85,16 @@ class MetadataTaskFilter(TaskFilter):
                  if infos.metadata.get(self.meta_key) == self.meta_value]
 
         return tasks
+
+
+class GroupTaskFilter(MetadataTaskFilter):
+    """Filter keeping only the python tasks from the right group.
+
+    """
+    #: Group to which the tasks must belong.
+    group = d_(Unicode())
+
+    meta_key = set_default('group')
+
+    def _post_setattr_group(self, old, new):
+        self.meta_value = new
