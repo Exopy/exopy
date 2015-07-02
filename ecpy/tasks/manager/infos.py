@@ -6,7 +6,8 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Enaml objects used to declare tasks and interfaces in a plugin manifest.
+"""Enaml objects used to declare tasks, interfaces and configs in a plugin
+manifest.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -24,29 +25,31 @@ with enaml.imports():
     from .configs.base_config_views import BaseConfigView
 
 
-INSTR_RUNTIME_ID = 'ecpy.instruments.runtime_deps'
+INSTR_RUNTIME_ID = 'ecpy.instruments'
 
 
-class TaskDependentInfos(Atom):
+class ObjectDependentInfos(Atom):
     """Base infos for tasks and interfaces.
 
     """
     #: List of instrument supported by this task.
     instruments = Coerced(set, ())
 
-    #: Build and runtime dependencies ids of this task.
-    dependencies = Dict({'build': ['ecpy.tasks.build_deps'],
-                         'runtime': []})
+    #: Runtime dependencies ids of this object.
+    dependencies = List()
 
-    def _post_setattr_dependencies(self, old, new):
+    #: List of interfaces supported by this object.
+    interfaces = Dict()
+
+    def _post_setattr_instruments(self, old, new):
         if new:
-            if INSTR_RUNTIME_ID not in self.dependencies['runtime']:
-                self.dependencies['runtime'].append(INSTR_RUNTIME_ID)
-        elif INSTR_RUNTIME_ID in self.dependencies['runtime']:
-            self.dependencies['runtime'].remove(INSTR_RUNTIME_ID)
+            if INSTR_RUNTIME_ID not in self.dependencies:
+                self.dependencies.append(INSTR_RUNTIME_ID)
+        elif INSTR_RUNTIME_ID in self.dependencies:
+            self.dependencies.remove(INSTR_RUNTIME_ID)
 
 
-class TaskInfos(TaskDependentInfos):
+class TaskInfos(ObjectDependentInfos):
     """An object used to store informations about a task.
 
     """
@@ -56,15 +59,12 @@ class TaskInfos(TaskDependentInfos):
     #: Widget associated with this task.
     view = Subclass(BaseTaskView)
 
-    #: List of interfaces supported by this task.
-    interfaces = Dict()
-
     #: Metadata associated with this task such as group, looping capabilities,
     #: etc
     metadata = Dict()
 
 
-class InterfaceInfos(TaskDependentInfos):
+class InterfaceInfos(ObjectDependentInfos):
     """An object used to store informations about an interface.
 
     """
@@ -74,7 +74,7 @@ class InterfaceInfos(TaskDependentInfos):
     #: Widgets associated with this interface.
     views = List()
 
-    #: List of interfaces supported by this task.
+    #: List of interfaces supported by this interface.
     interfaces = Dict()
 
 
