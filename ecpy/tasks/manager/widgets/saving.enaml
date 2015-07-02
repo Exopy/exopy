@@ -68,8 +68,8 @@ class TemplateSaverModel(Atom):
                 this method might need to open.
 
         """
-        if '.ini' not in self.template_filename:
-            filename = self.template_filename + '.ini'
+        if '.template.ini' not in self.template_filename:
+            filename = self.template_filename + '.template.ini'
         else:
             filename = self.template_filename
 

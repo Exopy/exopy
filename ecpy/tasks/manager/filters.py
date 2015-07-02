@@ -14,7 +14,7 @@ The filter available by default are declared in the manager manifest.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Value, Subclass, Unicode, set_default
+from atom.api import Value, Subclass, Unicode, Property, set_default
 from enaml.core.api import d_func, d_
 
 from ..base_tasks import BaseTask
@@ -48,7 +48,7 @@ class TaskFilter(Declarator):
             List of the name of the task matching the filters criteria.
 
         """
-        return list(tasks.keys()) + list(templates.keys())
+        return list(tasks) + list(templates)
 
 
 class SubclassTaskFilter(TaskFilter):
@@ -58,6 +58,7 @@ class SubclassTaskFilter(TaskFilter):
     #: Class from which the task must inherit.
     subclass = d_(Subclass(BaseTask))
 
+    @d_func
     def filter_tasks(self, tasks, templates):
         """Keep only the task inheriting from the right class.
 
@@ -96,5 +97,7 @@ class GroupTaskFilter(MetadataTaskFilter):
 
     meta_key = set_default('group')
 
-    def _post_setattr_group(self, old, new):
-        self.meta_value = new
+    meta_value = Property()
+
+    def _get_meta_value(self):
+        return self.group

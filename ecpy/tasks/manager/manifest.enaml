@@ -341,9 +341,6 @@ enamldef TasksManagerManifest(PluginManifest):
             Task:
                 task = 'base_tasks:ComplexTask'
                 view = 'base_views:ComplexTaskView'
-            Task:
-                task = 'base_tasks:RootTask'
-                view = 'base_views:RootTaskView'
 
         LogicTasks:
             pass
@@ -353,6 +350,14 @@ enamldef TasksManagerManifest(PluginManifest):
         point = 'ecpy.tasks.filters'
         TaskFilter:
             id = 'All'
+        TaskFilter:
+            id = 'Templates'
+            filter_tasks => (tasks, templates):
+                return list(templates)
+        TaskFilter:
+            id = 'Python'
+            filter_tasks => (tasks, templates):
+                return list(tasks)
         GroupTaskFilter:
             id = 'Logic'
             group = 'logic'
@@ -366,6 +371,10 @@ enamldef TasksManagerManifest(PluginManifest):
                 config = 'base_configs:PyTaskConfig'
                 view = 'base_config_views:PyConfigView'
                 task = 'BaseTask'
+            TaskConfig:
+                config = 'base_configs:TemplateTaskConfig'
+                view = 'base_config_views:TemplateConfigView'
+                task = '__template__'
             TaskConfig:
                 config = 'loop_config:LoopTaskConfig'
                 view = 'loop_config_view:LoopConfigView'

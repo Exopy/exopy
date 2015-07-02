@@ -137,17 +137,17 @@ class TaskManagerPlugin(HasPrefPlugin):
             Tasks selected by the filter, or None if the filter does not exist.
 
         """
-        t_filter = self._filters.get(filter)
+        t_filter = self._filters.contributions.get(filter)
         if t_filter:
-            return t_filter.list_tasks(self._tasks.contributions,
-                                       self.templates)
+            return t_filter.filter_tasks(self._tasks.contributions,
+                                         self.templates)
 
-    def get_task_infos(self, task_cls_name):
+    def get_task_infos(self, task):
         """Access a given task infos.
 
         Parameters
         ----------
-        task_cls_name : unicode
+        task : unicode
             Name of the task class for which to return the actual class.
 
         Returns
@@ -157,17 +157,17 @@ class TaskManagerPlugin(HasPrefPlugin):
             This object should never be manipulated directly by user code.
 
         """
-        if task_cls_name not in self._tasks.contributions:
+        if task not in self._tasks.contributions:
             return None
 
-        return self._tasks.contributions[task_cls_name]
+        return self._tasks.contributions[task]
 
-    def get_task(self, task_cls_name, view=False):
+    def get_task(self, task, view=False):
         """Access a given task class.
 
         Parameters
         ----------
-        task_cls_name : unicode
+        task : unicode
             Name of the task class for which to return the actual class.
 
         view : bool, optional
@@ -183,7 +183,7 @@ class TaskManagerPlugin(HasPrefPlugin):
             Associated view if requested.
 
         """
-        infos = self.get_task_infos(task_cls_name)
+        infos = self.get_task_infos(task)
         if infos is None:
             answer = None if not view else (None, None)
             return answer
@@ -218,18 +218,16 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return tasks_cls, missing
 
-    def get_interface_infos(self, interface_cls_name, interface_anchor):
+    def get_interface_infos(self, interface):
         """Access a given interface infos.
 
         Parameters
         ----------
-        interface_cls_name : unicode
-            Name of the task class for which to return the actual class.
-
-        interface_anchor : unicode or list
-            Name of the task to which this interface is linked and names of the
-            intermediate interfaces if any (going from the most general ones
-            to the more specialised ones).
+        interface : tuple[unicode|tuple|list]
+            - Name of the task class for which to return the actual class.
+            - Name of the task to which this interface is linked and names of
+              the intermediate interfaces if any (going from the most general
+              ones to the more specialised ones).
 
         views : bool, optional
             Whether or not to return the views assoicated with the interface.
@@ -242,12 +240,13 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         """
         lookup_dict = self._tasks.contributions
+        interface_cls_name, interface_anchor = interface
         if not isinstance(interface_anchor, (list, tuple)):
             interface_anchor = [interface_anchor]
 
         try:
             for anchor in interface_anchor:
-                lookup_dict = lookup_dict[anchor]
+                lookup_dict = lookup_dict[anchor].interfaces
         except KeyError:
             logger = logging.getLogger(__name__)
             msg = 'Looking for {} (anchor {}) failed to found {}'
@@ -260,18 +259,16 @@ class TaskManagerPlugin(HasPrefPlugin):
         else:
             return None
 
-    def get_interface(self, interface_cls_name, interface_anchor, views=False):
+    def get_interface(self, interface, views=False):
         """Access a given interface class.
 
         Parameters
         ----------
-        interface_cls_name : unicode
-            Name of the task class for which to return the actual class.
-
-        interface_anchor : unicode or list
-            Name of the task to which this interface is linked and names of the
-            intermediate interfaces if any (going from the most general ones
-            to the more specialised ones).
+        interface: tuple[unicode|tuple|list]
+            - Name of the task class for which to return the actual class.
+            - Name of the task to which this interface is linked and names of
+              the intermediate interfaces if any (going from the most general
+              ones to the more specialised ones).
 
         views : bool, optional
             Whether or not to return the views assoicated with the interface.
@@ -286,18 +283,18 @@ class TaskManagerPlugin(HasPrefPlugin):
             List of views associated with the interface.
 
         """
-        infos = self.get_interface_infos(interface_cls_name, interface_anchor)
+        infos = self.get_interface_infos(interface)
         if infos is not None:
             return infos.cls if not views else (infos.cls, infos.views)
         else:
             return None if not views else (None, None)
 
-    def get_interfaces(self, interfaces_with_anchors):
+    def get_interfaces(self, interfaces):
         """Access an ensemble of interface classes.
 
         Parameters
         ----------
-        interfaces_with_anchors : list(tuple(unicode, list(unicode)))
+        interfaces : list[tuple[unicode|tuple|list]]
             List of pairs (name of the interface class, corrisponding anchor)
             for which to return the actual classes.
 
@@ -312,10 +309,10 @@ class TaskManagerPlugin(HasPrefPlugin):
         """
         interfaces_cls = {}
         missing = []
-        for i, a in interfaces_with_anchors:
-            i_cls = self.get_interface(i, a)
+        for i in interfaces:
+            i_cls = self.get_interface(i)
             if i_cls:
-                interfaces_cls[(i, a)] = i_cls
+                interfaces_cls[i] = i_cls
             else:
                 missing.append(i)
 
@@ -339,9 +336,9 @@ class TaskManagerPlugin(HasPrefPlugin):
         if isinstance(task, type):
             task = task.__name__
 
-        templates = self._template_tasks
-        if task in self._template_tasks:
-            infos = configs = self._configs.contributions['TemplateTaskConfig']
+        templates = self.templates
+        if task in templates:
+            infos = configs = self._configs.contributions['__template__']
             config = infos.cls(manager=self,
                                template_path=templates[task])
             return config, infos.view(config=config)
@@ -360,35 +357,22 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return None, None
 
-    def load_auto_task_names(self, path=None):
+    def load_auto_task_names(self):
         """ Generate a list of task names from a file.
 
-        Parameters
-        ----------
-        path : unicode, optional
-            Path from which to load the default task names. If not provided
-            the auto_task_path is used.
-
-        Returns
-        -------
-        result : bool
-            Flag indicating whether or not the operation succeeded
-
         """
-        if not path:
-            path = self.auto_task_path
+        path = self.auto_task_path
         if not os.path.isfile(path):
             core = self.workbench.get_plugin('enaml.workbench.core')
             msg = 'Path {} does not point to a real file.'.format(path)
             core.invoke_command('ecpy.app.errors.signal',
                                 dict(kind='error', message=msg))
-            return False
+            return
 
         with open(path) as f:
             aux = f.readlines()
 
         self.auto_task_names = [l.rstrip() for l in aux]
-        return True
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -419,34 +403,36 @@ class TaskManagerPlugin(HasPrefPlugin):
         for path in self.templates_folders:
             if os.path.isdir(path):
                 filenames = sorted(f for f in os.listdir(path)
-                                   if f.endswith('.ini') and
+                                   if f.endswith('.template.ini') and
                                    (os.path.isfile(os.path.join(path, f))))
 
                 for filename in filenames:
                     template_path = os.path.join(path, filename)
                     # Beware redundant names are overwrited
-                    templates[filename] = template_path
+                    name = filename[:-len('.template.ini')]
+                    templates[name] = template_path
             else:
                 logger = logging.getLogger(__name__)
                 logger.warn('{} is not a valid directory'.format(path))
 
         self.templates = templates
 
-    def _post_setattr_template_folders(self):
+    def _post_setattr_templates_folders(self, old, new):
         """Ensure that the template observer always watch the right folder.
 
         """
         self._observer.unschedule_all()
 
         for folder in self.templates_folders:
-            handler = SystematicFileUpdater(self._update_templates)
-            self._observer.schedule(handler, folder, recursive=True)
+            if os.path.isdir(folder):
+                handler = SystematicFileUpdater(self._update_templates)
+                self._observer.schedule(handler, folder, recursive=True)
 
     def _update_templates(self):
         """Simply refresh the templates task.
 
         """
-        self._refresh_template_tasks()
+        self._refresh_templates()
 
     def _update_filters(self, change):
         """Update the available list of filters.
