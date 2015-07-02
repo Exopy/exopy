@@ -431,10 +431,10 @@ class Interface(Declarator):
 
         """
         msg = cleandoc('''{} with:
-                       interface: {}, view : {}, extended: {}, instruments {}
+                       interface: {}, views : {}, extended: {}, instruments {}
                        declaring :
                        {}''')
-        return msg.format(type(self).__name__, self.task, self.view,
+        return msg.format(type(self).__name__, self.interface, self.views,
                           self.extended, self.instruments,
                           '\n'.join(' - {}'.format(c) for c in self.children))
 
@@ -483,16 +483,16 @@ class TaskConfig(Declarator):
                 msg = msg % ('view', self.view)
             else:
                 err_id = 'Error %d' % len(traceback)
-                msg = msg % ('task', self.config)
+                msg = msg % ('config', self.config)
 
             traceback[err_id] = msg
             return
 
         if not self.task:
-            traceback[config] = 'Missing supported declaration.'
+            traceback[config] = 'Missing supported task.'
 
         # Check that the configurer does not already exist.
-        if self.task in collector.contributions or config in traceback:
+        if config in traceback:
             i = 1
             while True:
                 err_id = '%s_duplicate%d' % (config, i)
@@ -500,7 +500,12 @@ class TaskConfig(Declarator):
                     break
 
             msg = 'Duplicate definition of {}, found in {}'
-            traceback[err_id] = msg.format(config, c_path)
+            traceback[err_id] = msg.format(self.task, c_path)
+            return
+
+        if self.task in collector.contributions:
+            msg = 'Duplicate definition for {}, found in {}'
+            traceback[config] = msg.format(self.task, c_path)
             return
 
         infos = ConfigInfos()
@@ -542,7 +547,7 @@ class TaskConfig(Declarator):
 
         self.is_registered = True
 
-    def unregister(self, collector, traceback):
+    def unregister(self, collector):
         """Remove contributed infos from the collector.
 
         """

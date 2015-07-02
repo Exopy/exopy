@@ -17,7 +17,7 @@ import enaml
 from atom.api import Atom, Dict, List
 
 from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
-from ecpy.tasks.manager.declarations import Task, Tasks, Interface
+from ecpy.tasks.manager.declarations import Task, Tasks, Interface, TaskConfig
 
 
 class _DummyCollector(Atom):
@@ -575,3 +575,167 @@ def test_nested_interfaces_extend1(nested_int_decl, collector):
     interfaces = collector.contributions['Task'].interfaces['Test'].interfaces
     assert interfaces['Nested'].instruments == {'test'}
     interface.parent.unregister(collector)
+
+
+def test_str_interface(int_decl):
+    str(int_decl[1])
+
+
+# =============================================================================
+# --- Test configs ------------------------------------------------------------
+# =============================================================================
+
+@pytest.fixture
+def config_decl():
+    return TaskConfig(
+        config='ecpy.tasks.manager.configs.base_configs:PyTaskConfig',
+        view='ecpy.tasks.manager.configs.base_config_views:PyConfigView',
+        task='BaseTask')
+
+
+def test_register_config_decl(collector, config_decl):
+    """Test registering the root task.
+
+    """
+    config_decl.register(collector, {})
+    infos = collector.contributions['BaseTask']
+    from ecpy.tasks.manager.configs.base_configs import PyTaskConfig
+    with enaml.imports():
+        from ecpy.tasks.manager.configs.base_config_views import PyConfigView
+    assert infos.cls is PyTaskConfig
+    assert infos.view is PyConfigView
+
+
+def test_register_config_decl_task(collector, config_decl):
+    """Test registering a config decl declaraing no supported tasks.
+
+    """
+    tb = {}
+    config_decl.task = ''
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb
+
+
+def test_register_config_decl_path_1(collector, config_decl):
+    """Test handling wrong path : missing ':'.
+
+    """
+    tb = {}
+    config_decl.config = 'ecpy.tasks'
+    config_decl.register(collector, tb)
+    assert 'Error 0' in tb
+
+
+def test_register_config_decl_path2(collector, config_decl):
+    """Test handling wrong path : too many ':'.
+
+    """
+    tb = {}
+    config_decl.view = 'ecpy.tasks:tasks:Task'
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb
+
+
+def test_register_config_decl_duplicate1(collector, config_decl):
+    """Test handling duplicate config for a task.
+
+    """
+    collector.contributions['BaseTask'] = None
+    tb = {}
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb
+
+
+def test_register_config_decl_duplicate2(collector, config_decl):
+    """Test handling duplicate : in traceback.
+
+    """
+    tb = {'PyTaskConfig': 'rr'}
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig_duplicate1' in tb
+
+
+def test_register_config_decl_cls1(collector, config_decl):
+    """Test handling task class issues : failed import.
+
+    """
+    tb = {}
+    config_decl.config = 'ecpy.tasks.foo:Task'
+    config_decl.register(collector, tb)
+    assert 'Task' in tb and 'import' in tb['Task']
+
+
+def test_register_task_decl_cls2(collector, config_decl):
+    """Test handling task class issues : undefined in module.
+
+    """
+    tb = {}
+    config_decl.config = 'ecpy.tasks.base_tasks:Task'
+    config_decl.register(collector, tb)
+    assert 'Task' in tb and 'attribute' in tb['Task']
+
+
+def test_register_task_decl_cls3(collector, config_decl):
+    """Test handling task class issues : wrong type.
+
+    """
+    tb = {}
+    config_decl.config = 'ecpy.tasks.tools.database:TaskDatabase'
+    config_decl.register(collector, tb)
+    assert 'TaskDatabase' in tb and 'subclass' in tb['TaskDatabase']
+
+
+def test_register_config_decl_view1(collector, config_decl):
+    """Test handling view issues : failed import.
+
+    """
+    tb = {}
+    config_decl.view = 'ecpy.tasks.foo:Task'
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb and 'import' in tb['PyTaskConfig']
+
+
+def test_register_config_decl_view2(collector, config_decl):
+    """Test handling view issues : undefined in module.
+
+    """
+    tb = {}
+    config_decl.view = 'ecpy.tasks.base_views:Task'
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb and 'import' in tb['PyTaskConfig']
+
+
+def test_register_config_decl_view3(collector, config_decl):
+    """Test handling view issues : wrong type.
+
+    """
+    tb = {}
+    config_decl.view = 'ecpy.tasks.tools.database:TaskDatabase'
+    config_decl.register(collector, tb)
+    assert 'PyTaskConfig' in tb and 'subclass' in tb['PyTaskConfig']
+
+
+def test_unregister_config_decl1(collector, config_decl):
+    """Test unregistering a task.
+
+    """
+    config_decl.register(collector, {})
+    config_decl.unregister(collector)
+    assert not collector.contributions
+
+
+def test_unregister_config_decl2(collector, config_decl):
+    """Test unregistering a task which already disappeared.
+
+    """
+    config_decl.register(collector, {})
+    collector.contributions = {}
+    config_decl.unregister(collector)
+    # Would raise an error if the error was not properly catched.
+
+
+def test_str_config(config_decl):
+    """Test string representation.
+
+    """
+    str(config_decl)
