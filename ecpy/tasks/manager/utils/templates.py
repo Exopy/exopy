@@ -28,7 +28,7 @@ def load_template(path):
         data : ConfigObj
             The data needed to rebuild the tasks.
 
-        doc : str
+        doc : unicode
             The doc of the template.
 
     """
@@ -46,9 +46,9 @@ def save_template(path, data, doc):
     ----------
         path : unicode
             Path of the file to which save the template
-        data : dict(str : str)
+        data : dict
             Dictionnary containing the tempate parameters
-        doc : str
+        doc : unicode
             The template doc
 
     """
