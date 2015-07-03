@@ -38,7 +38,7 @@ def create_task(event):
         Task selected by the user to be added to a hierarchy.
 
     """
-    manager = event.workench.get_plugin('ecpy.tasks.manager')
+    manager = event.workbench.get_plugin('ecpy.tasks')
     dialog = BuilderView(manager=manager,
                          parent=event.parameters.get('widget'))
     result = dialog.exec_()
@@ -72,17 +72,17 @@ def build_task_from_config(config, build_dep, as_root=False):
     if not isinstance(build_dep, dict):
         core = build_dep.get_plugin('enaml.workbench.core')
         cmd = 'ecpy.app.dependencies.collect'
-        res, deps = core.invoke_command(cmd, {'obj': config})
+        res, build_dep = core.invoke_command(cmd, {'obj': config})
         if not res:
             return None
 
     cls = config.pop('task_class')
 
     if as_root:
-        return RootTask.build_from_config(config, deps)
+        return RootTask.build_from_config(config, build_dep)
     else:
-        task_class = deps['ecpy.task'][cls]
-        return task_class.build_from_config(config, deps)
+        task_class = build_dep['ecpy.task'][cls]
+        return task_class.build_from_config(config, build_dep)
 
 
 def build_root(event):
@@ -116,7 +116,7 @@ def build_root(event):
         pass
 
     elif mode == 'from template':
-        manager = event.workbench.get_plugin('ecpy.tasks.manager')
+        manager = event.workbench.get_plugin('ecpy.tasks')
         view = TemplateSelector(event.parameters.get('widget'),
                                 manager=manager)
         result = view.exec_()
