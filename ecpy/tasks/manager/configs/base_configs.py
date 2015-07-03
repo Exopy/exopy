@@ -45,6 +45,12 @@ class BaseTaskConfig(Atom):
     #: Bool indicating if the build can be done.
     ready = Bool(False)
 
+    def __init__(self, **kwargs):
+        super(BaseTaskConfig, self).__init__(**kwargs)
+        # Force check to ensure that the possible default value of task_name
+        # is tested.
+        self.check_parameters()
+
     def check_parameters(self):
         """The only parameter required is a valid task name.
 
@@ -92,7 +98,7 @@ class PyTaskConfig(BaseTaskConfig):
         self.task_doc = getdoc(self.task_class).replace('\n', ' ')
 
     def build_task(self):
-        return self.task_class(task_name=self.task_name)
+        return self.task_class(name=self.task_name)
 
 
 class TemplateTaskConfig(BaseTaskConfig):
@@ -119,5 +125,5 @@ class TemplateTaskConfig(BaseTaskConfig):
 
         """
         config, _ = load_template(self.template_path)
-        built_task = build_task_from_config(config, self.manager)
+        built_task = build_task_from_config(config, self.manager.workbench)
         return built_task

@@ -95,3 +95,19 @@ def handle_dialog(op='accept', custom=lambda x: x):
     deferred_call(close_dialog)
     yield
     process_app_events()
+
+
+def show_and_close_widget(widget):
+    """Show a widget in a window and then close it.
+
+    """
+    try:
+        win = Window()
+        win.insert_children(None, [widget])
+        win.show()
+        process_app_events()
+        win.close()
+        process_app_events()
+    except Exception:
+        close_all_windows()
+        raise

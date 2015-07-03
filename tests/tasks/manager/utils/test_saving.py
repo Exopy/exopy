@@ -68,7 +68,6 @@ def test_saving_as_template(app, tmpdir, task_workbench, task,
     with handle_dialog('accept', answer_dialog):
         core.invoke_command(CMD, dict(task=task, mode='template'))
 
-    process_app_events()
     get_window().accept()
     process_app_events()
 

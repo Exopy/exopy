@@ -51,7 +51,7 @@ enamldef PyConfigView(BaseConfigView): main:
     name_label.visible = not loop
     name_field.visible = not loop
 
-    constraints << ([vbox(hbox(name_lab, name_field), desc)] if loop
+    constraints << ([vbox(hbox(name_label, name_field), desc)] if loop
                     else [vbox(desc)])
 
     GroupBox: desc:
@@ -66,7 +66,7 @@ enamldef TemplateConfigView(BaseConfigView):
     """View for the template configurer.
 
     """
-    constraints << [vbox(hbox(name_lab, name_field),
+    constraints << [vbox(hbox(name_label, name_field),
                          hbox(p_lab, p_val),
                          desc)]
 

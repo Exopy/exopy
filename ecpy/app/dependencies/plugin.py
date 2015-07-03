@@ -144,8 +144,8 @@ class DependenciesPlugin(Plugin):
         need_runtime = 'runtime' in dependencies
         if need_runtime and not owner:
             gen = ()
-            msg = ('A owner plugin must be specified when collecting runtime '
-                   + 'dependencies.')
+            msg = ('A owner plugin must be specified when collecting' +
+                   'runtime  dependencies.')
             errors[1]['owner'] = msg
 
         for component in gen:

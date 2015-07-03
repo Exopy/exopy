@@ -71,18 +71,18 @@ def build_task_from_config(config, build_dep, as_root=False):
     """
     if not isinstance(build_dep, dict):
         core = build_dep.get_plugin('enaml.workbench.core')
-        cmd = 'ecpy.app.dependencies.collect_from_config'
-        dep_source = core.invoke_command(cmd, {'config': config})
-        if isinstance(dep_source, Exception):
+        cmd = 'ecpy.app.dependencies.collect'
+        res, deps = core.invoke_command(cmd, {'obj': config})
+        if not res:
             return None
 
     cls = config.pop('task_class')
 
     if as_root:
-        return RootTask.build_from_config(config, dep_source)
+        return RootTask.build_from_config(config, deps)
     else:
-        task_class = dep_source['tasks'][cls]
-        return task_class.build_from_config(config, dep_source)
+        task_class = deps['ecpy.task'][cls]
+        return task_class.build_from_config(config, deps)
 
 
 def build_root(event):
