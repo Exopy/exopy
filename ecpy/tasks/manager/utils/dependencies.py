@@ -16,6 +16,7 @@ from ast import literal_eval
 
 from future.builtins import str
 
+
 #: Id used to identify dependencies type.
 TASK_DEP_TYPE = 'ecpy.task'
 
@@ -29,10 +30,10 @@ def collect_task(workbench, obj, getter, dependencies, errors):
     """
     # Here we use direct call to plugin methods as this is internal to the
     # plugin
-    manager = workbench.get_plugin('ecpy.tasks.manager')
+    manager = workbench.get_plugin('ecpy.tasks')
 
     t_cls_name = getter(obj, 'task_class')
-    t_infos = manager.get_task_info(t_cls_name)
+    t_infos = manager.get_task_infos(t_cls_name)
 
     if t_infos is None:
         errors[TASK_DEP_TYPE][t_cls_name] = 'Unknown task.'
@@ -49,13 +50,13 @@ def collect_interface(workbench, obj, getter, dependencies, errors):
     """
     # Here we use direct call to plugin methods as this is internal to the
     # plugin
-    manager = workbench.get_plugin('ecpy.tasks.manager')
+    manager = workbench.get_plugin('ecpy.tasks')
 
     interface_anchor = getter(obj, 'interface_class')
     if not isinstance(interface_anchor, tuple):
         interface_anchor = literal_eval(interface_anchor)
 
-    i_infos = manager.get_interface_infos(*interface_anchor)
+    i_infos = manager.get_interface_infos(interface_anchor)
 
     if i_infos is None:
         msg = 'Unknown interface.'
