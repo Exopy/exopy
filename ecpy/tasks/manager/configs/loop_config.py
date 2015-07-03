@@ -58,10 +58,10 @@ class LoopTaskConfig(PyTaskConfig):
         """
         if self.use_subtask:
             loopable_task = self.subconfig.build_task()
-            return self.task_class(task_name=self.task_name,
+            return self.task_class(name=self.task_name,
                                    task=loopable_task)
         else:
-            return self.task_class(task_name=self.task_name)
+            return self.task_class(name=self.task_name)
 
     def _post_setattr_subtask(self, old, new):
         """handler getting the right config and config view for the subtask.

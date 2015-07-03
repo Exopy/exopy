@@ -20,9 +20,15 @@ from enaml.layout.api import hbox, vbox
 from ..widgets.browsing import TaskSelector
 from .base_config_views import BaseConfigView
 
-enamldef LoopConfigView(BaseConfigView): view:
 
-    constraints << [vbox(hbox(name_lab, name_field, sub),
+enamldef LoopConfigView(BaseConfigView): view:
+    """View for the LoopTaskConfig.
+
+    Another config view can be embedded when use_subtask is checked.
+
+    """
+
+    constraints << [vbox(hbox(name_label, name_field, sub),
                          hbox(*tuple(simple.items + embed.items))),
                     ]
 
@@ -31,7 +37,7 @@ enamldef LoopConfigView(BaseConfigView): view:
         checked := config.use_subtask
 
     Conditional: simple:
-        condition << not model.use_subtask
+        condition << not config.use_subtask
         MultilineField:
             text = config.task_doc
 

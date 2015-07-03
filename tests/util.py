@@ -97,15 +97,23 @@ def handle_dialog(op='accept', custom=lambda x: x):
     process_app_events()
 
 
+def show_widget(widget):
+    """Show a widget in a window
+
+    """
+    win = Window()
+    win.insert_children(None, [widget])
+    win.show()
+    process_app_events()
+    return win
+
+
 def show_and_close_widget(widget):
     """Show a widget in a window and then close it.
 
     """
     try:
-        win = Window()
-        win.insert_children(None, [widget])
-        win.show()
-        process_app_events()
+        win = show_widget(widget)
         win.close()
         process_app_events()
     except Exception:
