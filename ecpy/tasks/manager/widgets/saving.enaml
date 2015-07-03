@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
 from textwrap import fill
 
 from atom.api import (Atom, Unicode, Bool, ForwardTyped, observe)
@@ -20,13 +21,14 @@ from enaml.widgets.api import (Container, Field, MultilineField, CheckBox,
 from enaml.layout.api import align, hbox, vbox, spacer
 from enaml.stdlib.message_box import question
 
-from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ..utils.templates import load_template
 
 
 # Protection from circular imports
 def task_manager():
-    from .plugin import TaskManagerPlugin
-    return TaskManager
+    from ..plugin import TaskManagerPlugin
+    return TaskManagerPlugin
 
 
 class TemplateSaverModel(Atom):
@@ -49,39 +51,34 @@ class TemplateSaverModel(Atom):
     #: to porceed with saving.
     ready = Bool(False)
 
-    #: Flag signaling that the result of the saving procedure should be
-    #: displayed.
-    show_result = Bool(False)
-
     def __init__(self, **kwargs):
-        super(TemplateTaskSaver, self).__init__(**kwargs)
-        self.folder = self.manager.template_folders[0]
-        self.manager.observe('templates', self._update_filenames)
+        super(TemplateSaverModel, self).__init__(**kwargs)
+        self.folder = self.manager.templates_folders[0]
 
     def accept_template_info(self, ui):
         """ Whether or not the provided infos allows to save the template.
 
         Parameters
         ----------
-            ui :
-                Widget calling this method, used as a parent for the dialogs
-                this method might need to open.
+        ui :
+            Widget calling this method, used as a parent for the dialogs
+            this method might need to open.
 
         """
-        if '.template.ini' not in self.template_filename:
-            filename = self.template_filename + '.template.ini'
-        else:
-            filename = self.template_filename
+        if not self.filename.endswith('.template.ini'):
+            self.filename +=  '.template.ini'
 
-        if filename in self.template_tasks:
+        if filename in self.manager.templates:
             message = cleandoc("""You entered a template name which already
-                        exists, do you want to erase the existing file
+                        exists, do you want to erase the existing file ?
                         """)
             result = question(message=fill(message.replace('\n', ' '), 80),
-                              title='Overwrite confirm :',
+                              title='Confirm overwrite :',
                               parent=ui)
             if result and result.action == 'reject':
                 return False
+
+        return True
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -92,10 +89,9 @@ class TemplateSaverModel(Atom):
         template.
 
         """
-        if new in self.template_filenames:
-            _, _, doc = self.manager.request_task(name)
-
-            self.doc = doc
+        if new in self.manager.templates:
+             _, doc = load_template(self.manager.templates[new])
+             self.doc = doc
 
         else:
             self.ready = (self.doc != '' and self.filename != '')
@@ -114,6 +110,9 @@ enamldef TemplateSaverDialog(Dialog): dial:
     """
     #: Reference to the task manager.
     attr manager
+
+    #: Whether or not to disply the resulting file.
+    alias show_result : res.checked
 
     #: Internal model.
     attr _model = TemplateSaverModel(manager=manager)
@@ -134,18 +133,17 @@ enamldef TemplateSaverDialog(Dialog): dial:
                        ]
 
         QtListStrWidget: li:
-            items << list(model.manager.templates)
-            selected_item := model.filename
+            items << list(manager.templates)
+            selected_item := _model.folder
 
         Field: name:
-            text := model.filename
+            text := _model.filename
 
         MultilineField: doc:
-            text := model.doc
+            text := _model.doc
 
         CheckBox: res:
             text = 'Show result'
-            checked >> model.show_result
 
         PushButton: cancel:
             hug_width = 'strong'
@@ -156,9 +154,9 @@ enamldef TemplateSaverDialog(Dialog): dial:
         PushButton: ok:
             hug_width = 'strong'
             text = 'Ok'
-            enabled << model.ready
+            enabled << _model.ready
             clicked ::
-                if model.accept_template_info(dial):
+                if _model.accept_template_info(dial):
                     dial.accept()
 
 
@@ -166,6 +164,8 @@ enamldef TemplateViewer(Dialog): dial:
     """Dialog to display a template file.
 
     """
+    title = 'Saved template'
+
     alias text : sci.text
 
     Container:

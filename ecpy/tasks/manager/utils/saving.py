@@ -45,10 +45,9 @@ def save_task(event):
         A dict is returned if the mode is 'config'.
 
     """
-    full_path = u''
     mode = event.parameters['mode']
     if mode == 'template':
-        manager = event.workbench.get_plugin('ecpy.tasks.manager')
+        manager = event.workbench.get_plugin('ecpy.tasks')
         saver = TemplateSaverDialog(event.parameters.get('widget'),
                                     manager=manager)
 
@@ -57,7 +56,7 @@ def save_task(event):
 
     task = event.parameters['task']
     task.update_preferences_from_members()
-    preferences = task.task_preferences
+    preferences = task.preferences
 
     if mode == 'config':
         return preferences
@@ -65,14 +64,15 @@ def save_task(event):
     else:
         path, doc = saver.get_infos()
         try:
-            save_template(path, preferences.dict(), doc)
+            print(path)
+            save_template(path, preferences, doc)
         except OSError:
             critical(event.parameters.get('widget'),
                      title='Failed to save',
-                     message='Saving failed:\n' + format_exc())
+                     text='Saving failed:\n' + format_exc())
 
         if saver.show_result:
-            with open(full_path) as f:
+            with open(path) as f:
                 t = '\n'.join(f.readlines())
                 TemplateViewer(event.parameters.get('widget'),
                                text=t).exec_()
