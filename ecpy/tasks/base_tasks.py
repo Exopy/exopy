@@ -1047,9 +1047,11 @@ class RootTask(ComplexTask):
 
     # Setting default values for the root task.
     has_root = set_default(True)
-    name = set_default('Root')
-    depth = set_default(0)
-    path = set_default('root')
+
+    # Those must not be modified so freeze them
+    name = Constant('Root')
+    depth = Constant(0)
+    path = Constant('root')
     database_entries = set_default({'default_path': '', 'meas_id': '',
                                     'meas_name': '', 'meas_date': ''})
 

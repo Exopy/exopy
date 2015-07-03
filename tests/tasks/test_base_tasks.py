@@ -348,6 +348,22 @@ def test_build_complex_from_config():
     assert isinstance(task.children[0], SimpleTask)
 
 
+def test_build_root_from_config():
+    """Test building a RootTask from config.
+
+    """
+    config = {'name': 'test',
+              'children_0': {'name': 'test_child',
+                             'task_class': 'SimpleTask'}}
+    task = RootTask.build_from_config(config,
+                                      {'ecpy.task':
+                                          {'SimpleTask': SimpleTask}})
+    assert task.name == 'Root'
+    assert len(task.children) == 1
+    assert task.children[0].name == 'test_child'
+    assert isinstance(task.children[0], SimpleTask)
+
+
 def test_gather_children():
     """Test _gather_children method in all corner cases.
 
