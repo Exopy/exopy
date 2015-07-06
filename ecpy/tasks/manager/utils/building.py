@@ -43,7 +43,7 @@ def create_task(event):
                          parent=event.parameters.get('widget'))
     result = dialog.exec_()
     if result:
-        return dialog.build_task()
+        return dialog.config.build_task()
     else:
         return None
 

@@ -90,8 +90,10 @@ def handle_dialog(op='accept', custom=lambda x: x):
     """
     def close_dialog():
         dial = get_window()
-        custom(dial)
-        getattr(dial, op)()
+        try:
+            custom(dial)
+        finally:
+            getattr(dial, op)()
     deferred_call(close_dialog)
     yield
     process_app_events()

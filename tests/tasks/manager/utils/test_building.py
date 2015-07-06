@@ -20,17 +20,22 @@ from ecpy.tasks.manager.utils.building import build_task_from_config
 from ....util import handle_dialog
 
 
-#def test_create_task1(task_workbench):
-#    """Test creating a task.
-#
-#    """
-#    core = task_workbench.get_plugin('enaml.workbench.core')
-#
-#    def answer_dialog(dial):
-#        pass
-#
-#    with handle_dialog('accept', answer_dialog):
-#        res = core.invoke_command('ecpy.tasks.create')
+def test_create_task1(app, task_workbench):
+    """Test creating a task.
+
+    """
+    core = task_workbench.get_plugin('enaml.workbench.core')
+
+    def answer_dialog(dial):
+        selector = dial.children[0].children[0]
+        selector.selected_filter = 'Logic'
+        selector.selected_task = 'WhileTask'
+        dial.config.task_name = 'Test'
+        assert dial.config.ready
+
+    with handle_dialog('accept', answer_dialog):
+        res = core.invoke_command('ecpy.tasks.create_task')
+        assert res
 
 
 def test_create_task2(app, task_workbench):

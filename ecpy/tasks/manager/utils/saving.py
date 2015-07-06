@@ -64,7 +64,6 @@ def save_task(event):
     else:
         path, doc = saver.get_infos()
         try:
-            print(path)
             save_template(path, preferences, doc)
         except OSError:
             critical(event.parameters.get('widget'),

@@ -54,8 +54,8 @@ enamldef BuilderView(Dialog): dial:
             hug_width = 'strong'
             selected_task ::
                 if selected_task:
-                    conf, view = manager.get_config(selected_task)
-                    dial.config = conf
+                    config, view = manager.get_config(selected_task)
+                    dial.config = config
                     conf.objects = [view]
                 else:
                     dial.config = None
