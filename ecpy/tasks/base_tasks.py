@@ -38,7 +38,8 @@ from .tools.database import TaskDatabase
 from .tools.decorators import (make_parallel, make_wait, make_stoppable,
                                smooth_crash)
 from .tools.string_evaluation import safe_eval
-from .tools.shared_resources import SharedDict, SharedCounter
+from .tools.shared_resources import (SharedCounter, ThreadPoolResource,
+                                     InstrsResource, FilesResource)
 
 
 #: Prefix for placeholders in string formatting and evaluation.
@@ -1022,19 +1023,20 @@ class RootTask(ComplexTask):
     #: measure resuming.
     resume = Value()
 
-    #: Dict like object used to store references to all running threads.
-    #: Keys are pools ids, values list of threads. Keys are never deleted.
-    threads = Typed(SharedDict, (list,))
-
-    #: Dict like object used to store references to used instruments.
-    #: Keys are instrument profile names, values instr instance. Keys are never
-    #: deleted.
-    instrs = Typed(SharedDict, ())
-
-    #: Dict like object used to store file handle.
-    #: Keys are file handle id as defined by the first user of the file.
-    #: Keys can be deleted.
-    files = Typed(SharedDict, ())
+    #: Dictionary used to store references to resources that may need to be
+    #: shared between task and which must be released when all tasks have been
+    #: performed.
+    #: Each key is associated to a different kind of resource. Resources must
+    #: be stored in SharedDict instances. A function taking as single argument
+    #: the resource must be stored alongside the resource (each dictionary
+    #: value must be a tuple of length 2). The releasing function must be safe
+    #: to call on an already released resource.
+    #: By default three kind of resources exists:
+    #: - threads : currently running threads grouped by pool.
+    #:   ({pool: [threads, releaser]})
+    #: - instrs : used instruments referenced by profiles.
+    #: - files : currently opened files by path.
+    resources = Dict()
 
     #: Counter keeping track of the active threads.
     active_threads_counter = Typed(SharedCounter, kwargs={'count': 1})
@@ -1100,36 +1102,14 @@ class RootTask(ComplexTask):
             log.exception(mes)
             self.should_stop.set()
         finally:
-            # Wait for all threads to terminate.
-            for pool_name in self.threads:
-                with self.threads.safe_access(pool_name) as pool:
-                    for thread in pool:
-                        try:
-                            thread.join()
-                        except Exception:
-                            log = logging.getLogger(__name__)
-                            mes = 'Failed to close join thread : %s'
-                            log.exception(mes, thread)
+            self.release_resources()
 
-            # Close connection to all instruments.
-            instrs = self.instrs
-            for instr_profile in instrs:
-                try:
-                    instrs[instr_profile].finalize()
-                except Exception:
-                    log = logging.getLogger(__name__)
-                    mes = 'Failed to close connection to instr : %s'
-                    log.exception(mes, instrs[instr_profile])
+    def release_resources(self):
+        """Release all the resources used by tasks.
 
-            # Close all opened files.
-            files = self.files
-            for file_id in files:
-                try:
-                    files[file_id].close()
-                except Exception:
-                    log = logging.getLogger(__name__)
-                    mes = 'Failed to close file handler : %s'
-                    log.exception(mes, files[file_id])
+        """
+        for _, resource in self.resources.items():
+            resource.release()
 
     def register_in_database(self):
         """Don't create a node for the root task.
@@ -1177,3 +1157,11 @@ class RootTask(ComplexTask):
 
         if p_count == 0:
             self.paused.clear()
+
+    def _default_resources(self):
+        """Default resources.
+
+        """
+        return {'threads': ThreadPoolResource(),
+                'instrs': InstrsResource(),
+                'files': FilesResource()}

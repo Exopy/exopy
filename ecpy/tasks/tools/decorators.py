@@ -54,12 +54,9 @@ def handle_stop_pause(root):
                 return True
             if not pause_flag.is_set():
                 if current_thread().ident == root.thread_id:
-                    # Prevent some issues if a stupid user changes a
-                    # value on an instr previously set by a task.
-                    instrs = root.instrs
-                    for instr_id in instrs:
-                        instrs[instr_id].owner = ''
-                        instrs[instr_id].clear_cache()
+                    # Prevent issues if a user alter a resource while in pause.
+                    for _, resource in root.resources.items():
+                        resource.reset()
                     root.resume.set()
                     root.paused_threads_counter.decrement()
                     break
@@ -140,7 +137,8 @@ def make_parallel(perform, pool):
                         args=args,
                         kwargs=kwargs)
 
-        pools = obj.root.threads
+        pools = obj.root.resources['threads']
+
         with pools.safe_access(pool) as threads:
             threads.append(thread)
 
@@ -177,7 +175,7 @@ def make_wait(perform, wait, no_wait):
     if wait:
         def wrapper(obj, *args, **kwargs):
 
-            all_threads = obj.root.threads
+            all_threads = obj.root.resources['threads']
             while True:
                 threads = []
                 # Get all the threads we should be waiting upon.
@@ -207,7 +205,7 @@ def make_wait(perform, wait, no_wait):
     elif no_wait:
         def wrapper(obj, *args, **kwargs):
 
-            all_threads = obj.root.threads
+            all_threads = obj.root.resources['threads']
             with all_threads.locked():
                 pools = [k for k in all_threads if k not in no_wait]
 
@@ -239,7 +237,7 @@ def make_wait(perform, wait, no_wait):
     else:
         def wrapper(obj, *args, **kwargs):
 
-            all_threads = obj.root.threads
+            all_threads = obj.root.resources['threads']
             while True:
                 threads = []
                 with all_threads.locked():

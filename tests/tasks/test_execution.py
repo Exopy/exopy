@@ -153,7 +153,7 @@ class TestTaskExecution(object):
         assert not root.should_pause.is_set()
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
-        assert root.threads['test']
+        assert root.resources['threads']['test']
 
     def test_handle_task_exception_in_thread(self):
         """Test handling an exception occuring in a thread (test smooth_crash).
@@ -205,7 +205,7 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.threads['test']
+        assert not root.resources['threads']['test']
 
     @pytest.mark.timeout(1)
     def test_root_perform_wait_single(self):
@@ -238,8 +238,8 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.threads['test']
-        assert root.threads['aux']
+        assert not root.resources['threads']['test']
+        assert root.resources['threads']['aux']
 
     @pytest.mark.timeout(1)
     def test_root_perform_no_wait_single(self):
@@ -272,8 +272,8 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.threads['test']
-        assert root.threads['aux']
+        assert not root.resources['threads']['test']
+        assert root.resources['threads']['aux']
 
     @pytest.mark.timeout(1)
     def test_stop(self):
@@ -338,7 +338,7 @@ class TestTaskExecution(object):
 
         root = self.root
         dummy = Dummy()
-        root.instrs['test'] = dummy
+        root.resources['instrs']['test'] = dummy
         par = CheckTask(name='test', custom=pause)
         comp = ComplexTask(name='comp', stoppable=False,
                            parallel={'activated': True, 'pool': 'test'})
@@ -435,11 +435,11 @@ class TestTaskExecution(object):
 
         root = self.root
         thread = FalseThread()
-        root.threads['test'] = [thread]
+        root.resources['threads']['test'] = [thread]
         instr = FalseInstr()
-        root.instrs['a'] = instr
+        root.resources['instrs']['a'] = instr
         stream = FalseFile()
-        root.files['b'] = stream
+        root.resources['files']['b'] = stream
 
         root.perform()
 
