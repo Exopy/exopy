@@ -80,9 +80,10 @@ enamldef TaskSelector(Container):
         else:
             self.tasks = manager.list_tasks()
 
+    #: Alias for the items in the list str widget.
     alias tasks : t_select.items
-    tasks = manager.list_tasks(selected_filter)
 
+    #: Alias for the list selected item.
     alias selected_task : t_select.selected_item
 
     Conditional:
@@ -93,3 +94,4 @@ enamldef TaskSelector(Container):
 
     QtListStrWidget: t_select:
         to_string = normalize_name
+        items = sorted(manager.list_tasks(selected_filter))
