@@ -185,12 +185,19 @@ class TaskEditor(Container):
             elif change.added:
 
                 # Add all of the children that were added:
+                new_widgets = []
                 for index, child in change.added:
-                    self._add_view(child)
+                    button = TaskEditorButton(task=child, editor=self)
+                    view = self.root.view_for(child)
+                    self._children_buttons[child] = (button, view)
+                    new_widgets.extend((button, view))
+
+                self.insert_children(None, new_widgets)
+                for n in new_widgets:
+                    n.show()
 
             elif change.removed:
                 # Remove all of the children that were deleted:
-                nodes = self._nodes_for(nid)
                 for _, task in change.removed:
                     self._remove_view(task)
 
@@ -200,7 +207,7 @@ class TaskEditor(Container):
 
             if root:
                 # Make sure the _empty_button is correctly parented.
-                if self.items:
+                if self._children_buttons:
                     self._empty_button.set_parent(None)
                 else:
                     self._empty_button.set_parent(self)
@@ -219,16 +226,6 @@ class TaskEditor(Container):
 
             # Next we repopulate the container.
             self._populate()
-
-    def _add_view(self, task):
-        """Add a view for the specified task.
-
-        """
-        button = TaskEditorButton(task=task, editor=self)
-        view = self.root.view_for(task)
-        self._children_buttons[task] = (button, view)
-
-        self.insert_children(None, [button, view])
 
     def _remove_view(self, task):
         """Remove the view associated with a task.
@@ -288,7 +285,7 @@ enamldef FoldableTaskEditor(Container):
 
     PushButton:
         text = '-'
-        constraints = [height == 5]
+        constraints = [height == 10]
         clicked ::
             ind = int(not stack.index)
             stack.index = ind

@@ -26,6 +26,18 @@ with enaml.imports():
 from ...util import show_widget, process_app_events, handle_dialog
 
 
+def test_root_viewdcefe(app, task_workbench):
+    """Test the behavior of the root task view.
+
+    """
+    task = RootTask()
+    view = RootTaskView(task=task,
+                        core=task_workbench.get_plugin('enaml.workbench.core'))
+
+    show_widget(view)
+    app.start()
+
+
 def test_root_view(windows, task_workbench):
     """Test the behavior of the root task view.
 
@@ -41,10 +53,12 @@ def test_root_view(windows, task_workbench):
     assert editor.task is task
     assert editor.root is view
 
+    TASK_NAME = 'Foo'
+
     def answer_dialog(dial):
         selector = dial.selector
         selector.selected_task = 'ComplexTask'
-        dial.config.task_name = 'Test'
+        dial.config.task_name = TASK_NAME
         process_app_events()
 
     with handle_dialog('accept', answer_dialog):
@@ -52,18 +66,22 @@ def test_root_view(windows, task_workbench):
     process_app_events()
     assert task.children
     assert type(task.children[0]) is ComplexTask
-    assert len(editor._children) == 1
+    assert len(editor._children_buttons) == 1
     sleep(DIALOG_SLEEP)
 
-    editor.operations['add'](0, 'after')
+    TASK_NAME = 'Bar'
+    with handle_dialog('accept', answer_dialog):
+        editor.operations['add'](0, 'after')
     process_app_events()
     sleep(DIALOG_SLEEP)
 
-    task.children[0].add_child_task(0, ComplexTask())
+    task.children[0].add_child_task(0, ComplexTask(name='Test'))
     process_app_events()
     sleep(DIALOG_SLEEP)
 
     editor.operations['move'](0, 1)
 
-    editor.operations['remove'](1)
+    editor.operations['remove'](0)
+    print(editor._children_buttons.keys()[0].children)
+    print(view._cache)
     assert len(view._cache) == 2

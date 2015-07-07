@@ -55,7 +55,7 @@ enamldef BaseTaskView(_GroupBox):
     title << task.name
 
 
-enamldef ComplexTaskView(BaseTaskView):
+enamldef ComplexTaskView(BaseTaskView): main:
     """View for complex tasks.
 
     """
@@ -68,8 +68,8 @@ enamldef ComplexTaskView(BaseTaskView):
             editor.refresh()
 
     FoldableTaskEditor: editor:
-        task = task
-        root = root
+        task = main.task
+        root = main.root
 
 
 enamldef RootTaskView(BaseTaskView): main:
