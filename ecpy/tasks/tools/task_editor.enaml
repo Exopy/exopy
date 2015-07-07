@@ -18,6 +18,7 @@ from functools import partial
 from atom.api import Typed, Unicode, Constant, Bool, Value, Dict
 from enaml.core.declarative import d_, d_func
 from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label
+from enaml.layout.api import vbox, grid
 
 from ..base_tasks import ComplexTask
 from ...utils.widgets.list_editor import PopupListMenu
@@ -57,8 +58,10 @@ enamldef EmptyEditorButton(PushButton):
 
     text = 'Add a first task'
 
-    clicked::
-        pass
+    clicked ::
+        task = editor.root.create_new_task()
+        if task:
+            editor.task.add_child_task(0, task)
 
 
 class TaskEditor(Container):
@@ -81,7 +84,7 @@ class TaskEditor(Container):
         """
         self._relayout_requested = False
         self._no_relayout = True
-        for _, view in self._children.values():
+        for _, view in self._children_buttons.values():
             view.set_parent(self)
             view.refresh()
         self._no_relayout = False
@@ -95,7 +98,7 @@ class TaskEditor(Container):
         """
         items = self.task.children
         if items:
-            children = self._children
+            children = self._children_buttons
             rows = [children[o] for o in items]
             return [grid(*rows, row_align='top')]
         else:
@@ -110,24 +113,24 @@ class TaskEditor(Container):
 
         super(Container, self).initialize()
 
-        task.observe('children', self._update_views)
-        task.observe('children_changed', self._update_views)
+        self.task.observe('children', self._update_views)
+        self.task.observe('children_changed', self._update_views)
 
     def destroy(self):
         """Overriden destroyer to remove observers.
 
         """
-        task.unobserve('children', self._update_views)
-        task.unobserve('children_changed', self._update_views)
+        self.task.unobserve('children', self._update_views)
+        self.task.unobserve('children_changed', self._update_views)
         super(Container, self).destroy()
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    #: Dictionary mappping the tasks found in children_member to the pair
+    #: Dictionary mappping the tasks found in the children member to the pair
     #: button view used to edit them.
-    _children = Dict()
+    _children_buttons = Dict()
 
     #: Flag preventing relayout. Used to avoid multiple relayouts during
     #: refreshing
@@ -148,9 +151,9 @@ class TaskEditor(Container):
             for i in items:
                 button = TaskEditorButton(task=i, editor=self)
                 view = self.root.view_for(i)
-                self._children[i] = (button, view)
+                self._children_buttons[i] = (button, view)
 
-            self.insert_children(None, chain(self._children.values()))
+            self.insert_children(None, chain(self._children_buttons.values()))
 
         else:
             self._empty_button.set_parent(self)
@@ -209,7 +212,7 @@ class TaskEditor(Container):
             # care of discarding the views that need to be discarded.
 
             # First we destroy all the buttons.
-            for b, _ in self._children.values():
+            for b, _ in self._children_buttons.values():
                 b.destroy()
 
             self._empty_button.set_parent(None)
@@ -221,18 +224,17 @@ class TaskEditor(Container):
         """Add a view for the specified task.
 
         """
-        button = TaskEditorButton(task=i, editor=self)
+        button = TaskEditorButton(task=task, editor=self)
         view = self.root.view_for(task)
-        self._children[task] = (button, view)
+        self._children_buttons[task] = (button, view)
 
-        button.set_parent(self)
-        view.set_parent(self)
+        self.insert_children(None, [button, view])
 
     def _remove_view(self, task):
         """Remove the view associated with a task.
 
         """
-        button, view = self._children.pop(task)
+        button, view = self._children_buttons.pop(task)
         button.destroy()
         self.root.discard_view(task)
 
@@ -244,7 +246,7 @@ class TaskEditor(Container):
             """Handler for the add entry of the menu.
 
             """
-            task = self.root.get_new_task()
+            task = self.root.create_new_task()
             if task:
                 if position == 'after':
                     index += 1
@@ -256,7 +258,7 @@ class TaskEditor(Container):
             """
             self.task.move_child_task(old, new)
 
-        def remove(self, index):
+        def remove(index):
             """Handler for the remove entry of the menu.
 
             """
@@ -265,9 +267,9 @@ class TaskEditor(Container):
         return {'add': add, 'move': move, 'remove': remove}
 
     def _default__empty_button(self):
+        """Button used to add the fist task.
         """
-        """
-        return EmptyEditorButton(editor=editor)
+        return EmptyEditorButton(editor=self)
 
 
 enamldef FoldableTaskEditor(Container):
@@ -297,7 +299,7 @@ enamldef FoldableTaskEditor(Container):
 
         StackItem:
             TaskEditor: editor:
-                pass
+                name = 'task_editor'
 
         StackItem:
             Container:

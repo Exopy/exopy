@@ -18,7 +18,7 @@ from contextlib import contextmanager
 
 from enaml.application import deferred_call
 from enaml.qt.qt_application import QtApplication
-from enaml.widgets.api import Window
+from enaml.widgets.api import Window, Dialog
 
 
 APP_PREFERENCES = os.path.join('app', 'preferences')
@@ -44,9 +44,14 @@ def process_app_events():
     qapp.processEvents()
 
 
-def get_window():
+def get_window(cls=Window):
     """Convenience function running the event loop and returning the first
     window found in the set of active windows.
+
+    Parameters
+    ----------
+    cls : type, optional
+        Type of the window which should be returned.
 
     Raises
     ------
@@ -56,9 +61,11 @@ def get_window():
     process_app_events()
     sleep(0.1)
     for w in Window.windows:
-        break
+        if isinstance(w, cls):
+            w_ = w
+            break
 
-    return w
+    return w_
 
 
 def close_all_windows():
@@ -75,7 +82,7 @@ def close_all_windows():
 
 
 @contextmanager
-def handle_dialog(op='accept', custom=lambda x: x):
+def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog):
     """Automatically close a dialog opened during the context.
 
     Parameters
@@ -87,12 +94,18 @@ def handle_dialog(op='accept', custom=lambda x: x):
         Callable taking as only argument the dialog, called before accepting
         or rejecting the dialog.
 
+    cls : type, optional
+
+
     """
     def close_dialog():
-        dial = get_window()
+        dial = get_window(cls)
         try:
             custom(dial)
         finally:
+            process_app_events()
+            from .conftest import DIALOG_SLEEP
+            sleep(DIALOG_SLEEP)
             getattr(dial, op)()
     deferred_call(close_dialog)
     yield

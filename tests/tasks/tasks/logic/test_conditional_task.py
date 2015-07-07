@@ -6,18 +6,22 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Test of the task interface system.
+"""Test of the conditional task.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import enaml
 from multiprocessing import Event
 
 from ecpy.tasks.base_tasks import RootTask
 from ecpy.tasks.tasks.logic.conditional_task import ConditionalTask
+with enaml.imports():
+    from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
 
 from ...execution_testing import CheckTask
+from ....util import show_and_close_widget
 
 
 class TestConditionTask(object):
@@ -75,3 +79,9 @@ class TestConditionTask(object):
 
         self.task.perform()
         assert not self.check.perform_called
+
+
+def test_view():
+    """
+    """
+    show_and_close_widget(ConditionalView())

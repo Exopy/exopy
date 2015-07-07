@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Test of the task interface system.
+"""Test of the loop exceptions tasks.
 
 """
 from __future__ import (division, unicode_literals, print_function,

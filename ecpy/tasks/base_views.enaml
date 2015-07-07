@@ -28,7 +28,9 @@ class _GroupBox(GroupBox):
     """Overridden just to make destroyed a declarative member.
 
     """
-
+    #: An event fired when an object has been destroyed. It is triggered
+    #: once during the object lifetime, just before the object is
+    #: removed from the tree structure.
     destroyed = d_(Event())
 
 
@@ -57,8 +59,6 @@ enamldef ComplexTaskView(BaseTaskView):
     """View for complex tasks.
 
     """
-    alias editor
-
     refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
@@ -72,7 +72,7 @@ enamldef ComplexTaskView(BaseTaskView):
         root = root
 
 
-enamldef RootTaskView(BaseTaskView):
+enamldef RootTaskView(BaseTaskView): main:
     """Special view for the root task.
 
     This view must always exists as it is responsible for managing the views
@@ -82,12 +82,20 @@ enamldef RootTaskView(BaseTaskView):
     #: Reference to the core plugin of the application.
     attr core
 
+    root = main
+
     refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
         """
         self.show()
         editor.refresh()
+
+    func create_new_task():
+        """Create a new task to answer into the hierarchy.
+
+        """
+        return core.invoke_command('ecpy.tasks.create_task', dict(widget=self))
 
     func view_for(task):
         """Create a widget for the specified view.
@@ -96,8 +104,10 @@ enamldef RootTaskView(BaseTaskView):
 
         """
         if task not in _cache:
-            cmd = 'ecpy.task.get_task_view'
-            view_cls = core.invoke_command(cmd, {'task': type(task).__name__})
+            cmd = 'ecpy.tasks.get_task'
+            _, view_cls = core.invoke_command(cmd,
+                                              {'task': type(task).__name__,
+                                               'view': True})
             _cache[task] = view_cls(task=task, root=self)
 
         return _cache[task]
@@ -112,7 +122,7 @@ enamldef RootTaskView(BaseTaskView):
         except KeyError:
             pass
 
-    destroyed::
+    destroyed ::
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
@@ -123,11 +133,12 @@ enamldef RootTaskView(BaseTaskView):
                 view.destroy()
 
     TaskEditor: editor:
-        task = task
+        task = main.task
+        root = main
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
     #: Dictionary used to store the view associated with each task.
-    attr _cache
+    attr _cache : dict = {}
