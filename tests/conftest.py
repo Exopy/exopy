@@ -21,7 +21,30 @@ from enaml.qt.qt_application import QtApplication
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
                    ecpy_path)
 
+#: Global variable storing the application folder path
 ECPY = ''
+
+
+#: Global variable linked to the --dial-sleep cmd line option.
+DIALOG_SLEEP = 0
+
+
+def pytest_addoption(parser):
+    """Add command line options.
+
+    """
+    parser.addoption("--dial-sleep", action='store', type=float,
+                     help="Time to sleep after showing a dialog")
+
+
+def pytest_configure(config):
+    """Turn the --dial-sleep command line into a global variable.
+
+    """
+    s = config.getoption('--dial-sleep')
+    if s is not None:
+        global DIALOG_SLEEP
+        DIALOG_SLEEP = s
 
 
 @pytest.yield_fixture(scope='session', autouse=True)

@@ -27,7 +27,8 @@ def normalize_name(name):
 
     """
     if name.endswith('.ini'):
-        return name[:-4]
+        name, _ = name.split('.', 1)
+        return name.capitalize()
 
     if name.endswith('Task'):
         name = name[:-4] + '\0'

@@ -65,10 +65,10 @@ class TemplateSaverModel(Atom):
             this method might need to open.
 
         """
-        if not self.filename.endswith('.template.ini'):
-            self.filename +=  '.template.ini'
+        if not self.filename.endswith('.task.ini'):
+            self.filename +=  '.task.ini'
 
-        if filename in self.manager.templates:
+        if self.filename in self.manager.templates:
             message = cleandoc("""You entered a template name which already
                         exists, do you want to erase the existing file ?
                         """)

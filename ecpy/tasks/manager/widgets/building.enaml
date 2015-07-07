@@ -20,6 +20,7 @@ from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
                                Label, MultilineField)
 
 from .browsing import TaskSelector
+from ..utils.templates import load_template
 
 
 # Circular import protection
@@ -43,7 +44,21 @@ enamldef BuilderView(Dialog): dial:
     #: Config object corresponding to the currently selected task.
     attr config
 
+    #: Reference to the task selector.
+    alias selector : selector
+
     title = 'Select the task you want to add'
+
+    func _update():
+        if selector.selected_task:
+            config, view = manager.get_config(selector.selected_task)
+            dial.config = config
+            conf.objects = [view]
+        else:
+            dial.config = None
+            conf.objects = []
+
+    activated :: _update()
 
     Container:
         constraints << [hbox(selector,
@@ -52,14 +67,7 @@ enamldef BuilderView(Dialog): dial:
                                                             spacer)]))]
         TaskSelector: selector:
             hug_width = 'strong'
-            selected_task ::
-                if selected_task:
-                    config, view = manager.get_config(selected_task)
-                    dial.config = config
-                    conf.objects = [view]
-                else:
-                    dial.config = None
-                    conf.objects = []
+            selected_task :: _update()
 
         Include: conf:
             pass
@@ -76,41 +84,56 @@ enamldef BuilderView(Dialog): dial:
                 dial.reject()
 
 
-enamldef TemplateSelector(Dialog):
-    pass
+enamldef TemplateSelector(Dialog): dial:
+    """Simple dialog to select a template.
 
-# XXXX Re-enable templates later.
-#enamldef TemplateSelectorView(Dialog): dial:
-#    """ Simple dialog to select a template to build.
-#
-#    """
-#    attr manager
-#    attr path
-#    Container:
-#        constraints = [hbox(selector,
-#                            vbox(name, doc),
-#                            vbox(ok, cancel, spacer))]
-#        TaskSelector: selector:
-#            display_filters = False
-#            selected_filter = 'Template'
-#            hug_width = 'strong'
-#            hug_height = 'ignore'
-#            manager << dial.manager
-#        Label: name:
-#            text << manager.selected_task
-#            text ::
-#                tasks, _ = self.manager.tasks_request([text])
-#                new_path, _, new_doc = tasks[text]
-#                path = new_path
-#                doc.text = new_doc
-#        MultilineField: doc:
-#            read_only = True
-#        PushButton: ok:
-#            text = 'Ok'
-#            enabled << bool(name.text)
-#            clicked ::
-#                dial.accept()
-#        PushButton: cancel:
-#            text = 'Cancel'
-#            clicked ::
-#                dial.reject()
+    """
+    #: Reference to the task manager.
+    alias manager : selector.manager
+
+    #: Path to the currently selected template.
+    attr path
+
+    #: Reference to the task selector.
+    alias selector : selector
+
+    title = 'Select the template you want to build'
+
+    func _update():
+        if selector.selected_task:
+            name.text = selector.selected_task
+            path = manager.templates[selector.selected_task]
+            _, new_doc = load_template(path)
+            dial.path = path
+            doc.text = new_doc
+
+    initialized :: _update()
+
+    Container:
+        constraints = [hbox(selector,
+                            vbox(name, doc),
+                            vbox(ok, cancel, spacer))]
+
+        TaskSelector: selector:
+            display_filters = False
+            selected_filter = 'Templates'
+            hug_width = 'strong'
+            hug_height = 'ignore'
+            selected_task :: _update()
+
+        Label: name:
+            pass
+
+        MultilineField: doc:
+            read_only = True
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(name.text)
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()

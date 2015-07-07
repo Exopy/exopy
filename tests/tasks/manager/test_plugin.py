@@ -31,6 +31,7 @@ def test_lifecycle(task_workbench):
     assert 'ComplexTask' in plugin._tasks.contributions
     assert 'All' in plugin._filters.contributions
     assert 'BaseTask' in plugin._configs.contributions
+    assert 'All' in plugin.filters
 
     assert plugin.auto_task_names
 
@@ -79,7 +80,7 @@ def test_template_observation(task_workbench, tmpdir, monkeypatch):
     path = tmpdir.mkdir('templates')
     plugin.templates_folders = [str(path), 'dummy']
 
-    template = str(path.join('test.template.ini'))
+    template = str(path.join('test.task.ini'))
     with open(template, 'wb'):
         pass
 

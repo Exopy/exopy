@@ -29,7 +29,7 @@ def create_task(event):
 
     Parameters:
     ----------
-    parent_ui : optional
+    widget : optional
         Optional parent widget for the dialog.
 
     Returns:
@@ -113,7 +113,7 @@ def build_root(event):
     """
     mode = event.parameters['mode']
     if mode == 'from config':
-        pass
+        config = event.parameters['config']
 
     elif mode == 'from template':
         manager = event.workbench.get_plugin('ecpy.tasks')
@@ -126,4 +126,4 @@ def build_root(event):
 
     if config:
         build_dep = event.parameters.get('build_dep', event.workbench)
-        build_task_from_config(config, build_dep, True)
+        return build_task_from_config(config, build_dep, True)

@@ -13,11 +13,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+from future.builtins import str
 from configobj import ConfigObj
 
 from ecpy.tasks.manager.utils.building import build_task_from_config
 
-from ....util import handle_dialog
+from ....util import handle_dialog, process_app_events
 
 
 def test_create_task1(app, task_workbench):
@@ -27,10 +28,11 @@ def test_create_task1(app, task_workbench):
     core = task_workbench.get_plugin('enaml.workbench.core')
 
     def answer_dialog(dial):
-        selector = dial.children[0].children[0]
+        selector = dial.selector
         selector.selected_filter = 'Logic'
         selector.selected_task = 'WhileTask'
         dial.config.task_name = 'Test'
+        process_app_events()
         assert dial.config.ready
 
     with handle_dialog('accept', answer_dialog):
@@ -89,13 +91,36 @@ def test_build_from_config_as_root(task_workbench, task_config):
     assert type(task).__name__ == 'RootTask'
 
 
-def test_build_root_from_config(task_workbench):
+def test_build_root_from_config(task_workbench, task_config):
+    """Test creating a root task from a config dictionary.
+
     """
-    """
-    pass
+    core = task_workbench.get_plugin('enaml.workbench.core')
+
+    task = core.invoke_command('ecpy.tasks.build_root',
+                               dict(mode='from config', config=task_config,
+                                    build_dep={}))
+    assert task.name == 'Root'
 
 
-def test_build_root_from_template(task_workbench):
+def test_build_root_from_template(tmpdir, task_workbench, task_config):
+    """Test creating a root task from a template.
+
     """
-    """
-    pass
+    core = task_workbench.get_plugin('enaml.workbench.core')
+    plugin = task_workbench.get_plugin('ecpy.tasks')
+    path = str(tmpdir.join('temp.task.ini'))
+    task_config.filename = path
+    task_config.write()
+    plugin.templates['temp.task.ini'] = path
+
+    def answer_dialog(dial):
+        selector = dial.selector
+        print(selector.selected_task)
+        selector.selected_task = 'temp.task.ini'
+        assert dial.path == path
+
+    with handle_dialog('accept', answer_dialog):
+        task = core.invoke_command('ecpy.tasks.build_root',
+                                   dict(mode='from template'))
+    assert task.name == 'Root'

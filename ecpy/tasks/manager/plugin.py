@@ -90,6 +90,7 @@ class TaskManagerPlugin(HasPrefPlugin):
                                             point=FILTERS_POINT,
                                             ext_class=TaskFilter)
         self._filters.start()
+        self.filters = list(self._filters.contributions)
 
         self._configs = DeclaratorsCollector(workbench=self.workbench,
                                              point=CONFIG_POINT,

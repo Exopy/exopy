@@ -71,7 +71,7 @@ def test_saving_as_template(app, tmpdir, task_workbench, task,
     get_window().accept()
     process_app_events()
 
-    path = str(tmpdir.join('test.template.ini'))
+    path = str(tmpdir.join('test.task.ini'))
     assert os.path.isfile(path)
     config = ConfigObj(path)
     assert config.initial_comment == ['# This is a test']

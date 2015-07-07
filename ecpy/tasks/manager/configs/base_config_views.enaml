@@ -51,7 +51,7 @@ enamldef PyConfigView(BaseConfigView): main:
     name_label.visible = not loop
     name_field.visible = not loop
 
-    constraints << ([vbox(hbox(name_label, name_field), desc)] if loop
+    constraints << ([vbox(hbox(name_label, name_field), desc)] if not loop
                     else [vbox(desc)])
 
     GroupBox: desc:
