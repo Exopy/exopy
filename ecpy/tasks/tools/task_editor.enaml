@@ -40,7 +40,7 @@ enamldef TaskEditorButton(PushButton):
 
     clicked::
         items = editor.task.children
-        popup = PopupListMenu(self, model=items, index=items.index(task),
+        popup = PopupListMenu(model=items, index=items.index(task),
                               operations=editor.operations)
         popup.popup()
 
@@ -193,8 +193,6 @@ class TaskEditor(Container):
                     new_widgets.extend((button, view))
 
                 self.insert_children(None, new_widgets)
-                for n in new_widgets:
-                    n.show()
 
             elif change.removed:
                 # Remove all of the children that were deleted:
