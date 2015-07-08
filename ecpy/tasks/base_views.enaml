@@ -99,6 +99,12 @@ enamldef RootTaskView(BaseTaskView): main:
         """
         return core.invoke_command('ecpy.tasks.create_task', dict(widget=self))
 
+    # XXXX
+    func get_interfaces_for(task):
+        """
+        """
+        pass
+
     func view_for(task):
         """Create a widget for the specified view.
 
