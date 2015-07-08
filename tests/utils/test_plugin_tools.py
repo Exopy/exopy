@@ -9,6 +9,7 @@
 """Test the plugin tools behaviours.
 
 """
+import pytest
 import enaml
 from enaml.workbench.api import Workbench
 
@@ -85,6 +86,7 @@ class TestExtensionsCollector(object):
 
         assert 'contrib2.contrib' not in plugin.contribs.contributions
 
+    @pytest.mark.ui
     def test_errors1(self, windows):
         """Test uniqueness of contribution id.
 
@@ -96,6 +98,7 @@ class TestExtensionsCollector(object):
         with handle_dialog():
             self.workbench.get_plugin(PLUGIN_ID)
 
+    @pytest.mark.ui
     def test_check_errors2(self, windows):
         """Test use of validate_ext.
 
@@ -195,6 +198,7 @@ class TestDeclaratorCollector(object):
         with handle_dialog():
             self.workbench.get_plugin(PLUGIN_ID)
 
+    @pytest.mark.ui
     def test_declarator_failed_registration(self, windows):
         """Test handling of error when a declarator fail to register.
 
@@ -203,6 +207,7 @@ class TestDeclaratorCollector(object):
         with handle_dialog():
             self.workbench.get_plugin(PLUGIN_ID)
 
+    @pytest.mark.ui
     def test_unsatifiable_requirement(self):
         """Test the case of a declarator always adding itself to _deflayed.
 

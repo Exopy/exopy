@@ -13,6 +13,8 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
+
+import pytest
 import enaml
 
 from ecpy.tasks.manager.configs.base_configs import (PyTaskConfig,
@@ -24,6 +26,7 @@ with enaml.imports():
 from ....util import show_and_close_widget
 
 
+@pytest.mark.ui
 def test_py_task_config(app, task_workbench):
     """Test the basic python task configurer.
 
@@ -55,6 +58,7 @@ def test_py_task_config(app, task_workbench):
     show_and_close_widget(PyConfigView(config=config, loop=True))
 
 
+@pytest.mark.ui
 def test_template_task_config(app, task_workbench):
     """Test the template task configurer.
 

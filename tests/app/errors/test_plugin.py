@@ -81,6 +81,7 @@ def test_life_cycle(workbench):
     assert not len(plugin.errors)
 
 
+@pytest.mark.ui
 def test_signal_command_with_unknown(workbench, windows):
     """Test the signal command with a stupid kind of error.
 
@@ -99,6 +100,7 @@ def test_signal_command_with_unknown(workbench, windows):
     assert getattr(fail, 'called', None)
 
 
+@pytest.mark.ui
 def test_handling_error_in_handlers(workbench):
     """Test handling an error occuring in a specilaized handler.
 
@@ -116,6 +118,7 @@ def test_handling_error_in_handlers(workbench):
         plugin.signal('registering', msg=FailedFormat())
 
 
+@pytest.mark.ui
 def test_gathering_mode(workbench):
     """Test gathering multiple errors.
 
@@ -132,6 +135,7 @@ def test_gathering_mode(workbench):
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
 
+@pytest.mark.ui
 def test_report_command(workbench):
     """Test generating an application errors report.
 

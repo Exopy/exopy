@@ -43,6 +43,7 @@ class TestPreferencesPlugin(object):
         self.workbench.register(AppManifest())
         self.workbench.register(ErrorsManifest())
 
+    @pytest.mark.ui
     def test_app_startup1(self, tmpdir, windows):
         """Test app start-up when no app_directory.ini exists.
 
@@ -68,6 +69,7 @@ class TestPreferencesPlugin(object):
         assert ConfigObj(app_pref)['app_path'] == app_dir
         assert os.path.isdir(app_dir)
 
+    @pytest.mark.ui
     def test_app_startup2(self, tmpdir, windows):
         """Test app start-up when user quit app.
 

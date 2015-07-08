@@ -106,6 +106,7 @@ def test_collecting_registering_and_stopping(monkeypatch, workbench, windows):
         workbench.get_plugin('ecpy.test2')
 
 
+@pytest.mark.ui
 def test_unmet_requirement(monkeypatch, workbench, windows):
     """Test loading an extension package for which some requirements are not
     met.
@@ -127,6 +128,7 @@ def test_unmet_requirement(monkeypatch, workbench, windows):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_wrong_return_type(monkeypatch, workbench):
     """Test handling a wrong return type from the callable returned by load.
 
@@ -148,6 +150,7 @@ def test_wrong_return_type(monkeypatch, workbench):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_non_manifest(monkeypatch, workbench):
     """Test handling a non PluginManifest in the list of manifests.
 
@@ -169,6 +172,7 @@ def test_non_manifest(monkeypatch, workbench):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_registering_issue(monkeypatch, workbench):
     """Test handling an error when registering a manifest.
 
