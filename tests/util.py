@@ -41,7 +41,9 @@ def process_app_events():
     """
     qapp = QtApplication.instance()._qapp
     qapp.flush()
-    qapp.processEvents()
+    while qapp.hasPendingEvents():
+        qapp.processEvents()
+        qapp.flush()
 
 
 def get_window(cls=Window):
@@ -127,8 +129,10 @@ def show_and_close_widget(widget):
     """Show a widget in a window and then close it.
 
     """
+    from .conftest import DIALOG_SLEEP
     try:
         win = show_widget(widget)
+        sleep(DIALOG_SLEEP)
         win.close()
         process_app_events()
     except Exception:
