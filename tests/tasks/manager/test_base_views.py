@@ -18,24 +18,13 @@ from __future__ import (division, unicode_literals, print_function,
 from time import sleep
 
 import enaml
+from enaml.widgets.api import Container
 
 from ecpy.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
 
-from ...util import show_widget, process_app_events, handle_dialog
-
-
-def test_root_viewdcefe(app, task_workbench):
-    """Test the behavior of the root task view.
-
-    """
-    task = RootTask()
-    view = RootTaskView(task=task,
-                        core=task_workbench.get_plugin('enaml.workbench.core'))
-
-    show_widget(view)
-    app.start()
+from ...util import show_widget, process_app_events, handle_dialog, get_window
 
 
 def test_root_view(windows, task_workbench):
@@ -76,12 +65,53 @@ def test_root_view(windows, task_workbench):
     sleep(DIALOG_SLEEP)
 
     task.children[0].add_child_task(0, ComplexTask(name='Test'))
+    get_window().maximize()
     process_app_events()
     sleep(DIALOG_SLEEP)
 
     editor.operations['move'](0, 1)
 
-    editor.operations['remove'](0)
-    print(editor._children_buttons.keys()[0].children)
-    print(view._cache)
+    task.children[1].remove_child_task(0)
     assert len(view._cache) == 2
+
+    editor.operations['remove'](0)
+    assert len(view._cache) == 1
+
+
+def test_swapping(app, task_workbench):
+    """Test moving a view between containers.
+
+    """
+    from ...conftest import DIALOG_SLEEP
+    task = RootTask()
+    view = RootTaskView(task=task,
+                        core=task_workbench.get_plugin('enaml.workbench.core'))
+
+    subtask = ComplexTask(name='Test')
+    subview = view.view_for(subtask)
+
+    task.add_child_task(0, subtask)
+
+    cont = Container()
+
+    show_widget(cont)
+    view.set_parent(cont)
+    view.refresh()
+    process_app_events()
+    assert cont.children == [view]
+    sleep(DIALOG_SLEEP)
+
+    view.set_parent(None)
+    subview.set_parent(cont)
+    subview.refresh()
+    process_app_events()
+    assert cont.children == [subview]
+    sleep(DIALOG_SLEEP)
+
+    subview.set_parent(None)
+    view.set_parent(cont)
+    view.refresh()
+    process_app_events()
+    assert cont.children == [view]
+    assert subview.visible
+    sleep(DIALOG_SLEEP)

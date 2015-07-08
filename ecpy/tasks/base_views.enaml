@@ -59,13 +59,15 @@ enamldef ComplexTaskView(BaseTaskView): main:
     """View for complex tasks.
 
     """
+    #: Reference to the editor.
+    alias editor
+
     refresh => ():
         """Ensure that all children tasks are also properly displayed.
 
         """
         self.show()
-        if stack.index == 0:
-            editor.refresh()
+        editor.refresh()
 
     FoldableTaskEditor: editor:
         task = main.task

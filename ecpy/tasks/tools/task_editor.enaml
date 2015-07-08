@@ -15,10 +15,11 @@ from __future__ import (division, unicode_literals, print_function,
 from itertools import chain
 from functools import partial
 
-from atom.api import Typed, Unicode, Constant, Bool, Value, Dict
+from atom.api import (Typed, Unicode, Constant, Bool, Value, Dict,
+                      set_default)
 from enaml.core.declarative import d_, d_func
 from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label
-from enaml.layout.api import vbox, grid
+from enaml.layout.api import vbox, hbox, align
 
 from ..base_tasks import ComplexTask
 from ...utils.widgets.list_editor import PopupListMenu
@@ -64,6 +65,14 @@ enamldef EmptyEditorButton(PushButton):
             editor.task.add_child_task(0, task)
 
 
+enamldef Dummy(Container):
+
+    attr task
+
+    Label:
+        text = task.name
+
+
 class TaskEditor(Container):
     """Custom container used to edit a list of tasks.
 
@@ -76,6 +85,8 @@ class TaskEditor(Container):
 
     #: Dictionary of operations used by to alter the children member list.
     operations = Constant()
+
+    padding = set_default(2)
 
     @d_func
     def refresh(self):
@@ -99,8 +110,8 @@ class TaskEditor(Container):
         items = self.task.children
         if items:
             children = self._children_buttons
-            rows = [children[o] for o in items]
-            return [grid(*rows, row_align='top')]
+            rows = [hbox(*children[o]) for o in items]
+            return [vbox(*rows)] + [align('top', *children[o]) for o in items]
         else:
             return [vbox(*self.visible_widgets())]
 
@@ -153,7 +164,7 @@ class TaskEditor(Container):
                 view = self.root.view_for(i)
                 self._children_buttons[i] = (button, view)
 
-            self.insert_children(None, chain(self._children_buttons.values()))
+            self.insert_children(None, chain(*self._children_buttons.values()))
 
         else:
             self._empty_button.set_parent(self)
@@ -185,14 +196,15 @@ class TaskEditor(Container):
             elif change.added:
 
                 # Add all of the children that were added:
-                new_widgets = []
                 for index, child in change.added:
                     button = TaskEditorButton(task=child, editor=self)
                     view = self.root.view_for(child)
                     self._children_buttons[child] = (button, view)
-                    new_widgets.extend((button, view))
 
-                self.insert_children(None, new_widgets)
+                    button.set_parent(self)
+                    view.set_parent(self)
+                    button.show()
+                    view.show()
 
             elif change.removed:
                 # Remove all of the children that were deleted:
@@ -203,13 +215,12 @@ class TaskEditor(Container):
                 # Simply need to relayout.
                 self.request_relayout()
 
-            if root:
-                # Make sure the _empty_button is correctly parented.
-                if self._children_buttons:
-                    self._empty_button.set_parent(None)
-                else:
-                    self._empty_button.set_parent(self)
-                    self._empty_button.show()
+            # Make sure the _empty_button is correctly parented.
+            if self._children_buttons:
+                self._empty_button.set_parent(None)
+            else:
+                self._empty_button.set_parent(self)
+                self._empty_button.show()
 
         else:
             # The whole member was replaced so we can just forget about its
@@ -279,7 +290,9 @@ enamldef FoldableTaskEditor(Container):
 
     func refresh():
         if stack.index == 0:
-            editor.referesh()
+            editor.refresh()
+
+    padding = 0
 
     PushButton:
         text = '-'
@@ -298,6 +311,7 @@ enamldef FoldableTaskEditor(Container):
 
         StackItem:
             Container:
+                padding = 2
                 Label:
                     text = 'Folded'
 
