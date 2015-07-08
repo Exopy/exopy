@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+import enaml
 from multiprocessing import Event
 
 from ecpy.tasks.base_tasks import RootTask
@@ -24,7 +25,12 @@ from ecpy.tasks.tasks.logic.loop_linspace_interface\
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
+with enaml.imports():
+    from ecpy.tasks.tasks.logic.views.loop_view import LoopView
+    from ecpy.tasks.base_views import RootTaskView
+
 from ...execution_testing import CheckTask
+from ....util import show_and_close_widget
 
 
 @pytest.fixture
@@ -563,3 +569,26 @@ class TestLoopTask(object):
         self.task.perform()
 
         assert self.task.children[0].perform_called == 1
+
+
+from ...manager.conftest import task_workbench
+
+@pytest.mark.ui
+def test_view(windows, task_workbench):
+    """Test the LoopTask view.
+
+    """
+    root = RootTaskView(core=task_workbench.get_plugin('enaml.workbench.core'))
+    task = LoopTask(name='Test', interface=IterableLoopInterface())
+    show_and_close_widget(LoopView(task=task, root=root))
+
+
+@pytest.mark.ui
+def test_view_with_subtask(windows, task_workbench):
+    """Test the ConditionalTask view.
+
+    """
+    root = RootTaskView(core=task_workbench.get_plugin('enaml.workbench.core'))
+    task = LoopTask(name='Test', interface=LinspaceLoopInterface(),
+                    task=BreakTask(name='Aux'))
+    show_and_close_widget(LoopView(task=task, root=root))

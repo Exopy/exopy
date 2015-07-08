@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+import enaml
 from multiprocessing import Event
 
 from ecpy.tasks.base_tasks import RootTask
@@ -20,6 +21,12 @@ from ecpy.tasks.tasks.logic.loop_task import LoopTask
 from ecpy.tasks.tasks.logic.while_task import WhileTask
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
+
+with enaml.imports():
+    from ecpy.tasks.tasks.logic.views.loop_exceptions_views\
+        import BreakView, ContinueView
+
+from ....util import show_and_close_widget
 
 
 @pytest.fixture(params=(BreakTask, ContinueTask))
@@ -89,3 +96,19 @@ class TestExceptionTasks(object):
         assert not test
         assert len(traceback) == 1
         assert 'root/Test-parent' in traceback
+
+
+@pytest.mark.ui
+def test_break_view(windows):
+    """Test the BreakTask view.
+
+    """
+    show_and_close_widget(BreakView(task=BreakTask(name='Test')))
+
+
+@pytest.mark.ui
+def test_continue_view(windows):
+    """Test the ContinueTask view.
+
+    """
+    show_and_close_widget(ContinueView(task=ContinueTask(name='Test')))

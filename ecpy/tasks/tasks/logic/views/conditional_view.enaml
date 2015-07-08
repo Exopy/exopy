@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.widgets.api import (GroupBox, Label)
-from enaml.layout.api import hbox, vbox
+from enaml.layout.api import hbox, vbox, align
 from inspect import cleandoc
 
 from .....utils.widgets.qt_completers import QtLineCompleter
@@ -25,11 +25,12 @@ enamldef ConditionalView(ComplexTaskView): view:
     """View for ConditionalTask.
 
     """
-    constraints = [vbox(hbox(cond_lab, cond_val), editor)]
+    constraints = [vbox(hbox(cond_lab, cond_val), editor),
+                   align('v_center', cond_val, cond_lab)]
 
     Label: cond_lab:
         text = 'Condition'
     QtLineCompleter: cond_val:
         text := task.condition
-        entries_updater << task.accessible_database_entries
+        entries_updater << task.list_accessible_database_entries
         tool_tip = EVALUATER_TOOLTIP

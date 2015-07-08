@@ -63,7 +63,6 @@ enamldef LoopView(ComplexTaskView): view:
             return [vbox(c_1, *children[4:])]
 
     initialized ::
-        # XXXX
         t = self.task
         i_include = view.find('interface_include')
 
@@ -72,9 +71,9 @@ enamldef LoopView(ComplexTaskView): view:
 
         i_name = t.interface.interface_class
 
-        cmd = 'hqc_meas.task_manager.interface_views_request'
-        i_views, _ = core.invoke_command(cmd, {'interface_classes':
-                                               [i_name]})
+        cmd = 'ecpy.tasks.get_interface'
+        _, i_views = root.core.invoke_command(cmd, {'interface': i_name,
+                                                    'view': True})
 
         i_include.objects = [i_view(interface=t.interface)
                              for i_view in i_views[i_name]]
@@ -86,7 +85,6 @@ enamldef LoopView(ComplexTaskView): view:
         to_string = format_name
         selected << type(task.interface) if task.interface else items[0]
         selected ::
-            # XXXX
             i_include = view.find('interface_include')
             i_include.objects = []
 
@@ -95,9 +93,9 @@ enamldef LoopView(ComplexTaskView): view:
             i_name = interface.interface_class
             task.interface = interface
 
-            cmd = 'hqc_meas.task_manager.interface_views_request'
-            i_views, _ = core.invoke_command(cmd, {'interface_classes':
-                                                   [i_name]})
+            cmd = 'ecpy.tasks.get_interface'
+            _, i_views = root.core.invoke_command(cmd, {'interface': i_name,
+                                                        'view': True})
 
             i_include.objects = [i_view(interface=interface)
                                  for i_view in i_views[i_name]]

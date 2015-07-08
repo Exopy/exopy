@@ -8,7 +8,7 @@
 
 """
 from enaml.widgets.api import (GroupBox, Label)
-from enaml.layout.api import hbox, vbox
+from enaml.layout.api import hbox, vbox, align
 from inspect import cleandoc
 
 from .....utils.widgets.qt_completers import QtLineCompleter
@@ -21,11 +21,12 @@ enamldef WhileView(ComplexTaskView):
 
     """
 
-    constraints = [vbox(hbox(cond_lab, cond_val), editor)]
+    constraints = [vbox(hbox(cond_lab, cond_val), editor),
+                   align('v_center', cond_lab, cond_val)]
 
     Label: cond_lab:
         text = 'Condition'
     QtLineCompleter: cond_val:
         text := task.condition
-        entries_updater << task.accessible_database_entries
+        entries_updater << task.list_accessible_database_entries
         tool_tip = EVALUATER_TOOLTIP

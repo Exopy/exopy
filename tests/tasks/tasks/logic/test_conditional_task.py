@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import pytest
 import enaml
 from multiprocessing import Event
 
@@ -81,7 +82,9 @@ class TestConditionTask(object):
         assert not self.check.perform_called
 
 
-def test_view():
+@pytest.mark.ui
+def test_view(windows):
+    """Test the ConditionalTask view.
+
     """
-    """
-    show_and_close_widget(ConditionalView())
+    show_and_close_widget(ConditionalView(task=ConditionalTask(name='Test')))

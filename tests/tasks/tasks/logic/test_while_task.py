@@ -12,14 +12,21 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import pytest
 from multiprocessing import Event
+
+import pytest
+import enaml
 
 from ecpy.tasks.base_tasks import RootTask
 from ecpy.tasks.tasks.logic.while_task import WhileTask
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
+with enaml.imports():
+    from ecpy.tasks.tasks.logic.views.while_view\
+        import WhileView
+
+from ....util import show_and_close_widget
 from ...execution_testing import CheckTask
 
 
@@ -112,3 +119,11 @@ class TestWhileTask(object):
         self.task.perform()
 
         assert self.task.children[0].perform_called == 1
+
+
+@pytest.mark.ui
+def test_while_view(windows):
+    """Test the ContinueTask view.
+
+    """
+    show_and_close_widget(WhileView(task=WhileTask(name='Test')))

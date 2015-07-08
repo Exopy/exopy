@@ -22,7 +22,7 @@ enamldef LinspaceLoopView(Splitter): view:
     """View for the LinspaceLoopInterface.
 
     """
-
+    #: Reference to the interface this view is linked to.
     attr interface
 
     SplitItem:
@@ -32,7 +32,8 @@ enamldef LinspaceLoopView(Splitter): view:
                 text = 'Start'
             QtLineCompleter: val_start:
                 text := interface.start
-                entries_updater << interface.task.accessible_database_entries
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
                 tool_tip = EVALUATER_TOOLTIP
 
     SplitItem:
@@ -42,7 +43,8 @@ enamldef LinspaceLoopView(Splitter): view:
                 text = 'Stop'
             QtLineCompleter: val_stop:
                 text := interface.stop
-                entries_updater << interface.task.accessible_database_entries
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
                 tool_tip = EVALUATER_TOOLTIP
     SplitItem:
         Container:
@@ -51,5 +53,6 @@ enamldef LinspaceLoopView(Splitter): view:
                 text = 'Step'
             QtLineCompleter: val_step:
                 text := interface.step
-                entries_updater << interface.task.accessible_database_entries
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
                 tool_tip = EVALUATER_TOOLTIP
