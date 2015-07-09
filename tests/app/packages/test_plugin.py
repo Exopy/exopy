@@ -17,8 +17,12 @@ import enaml
 from atom.api import Atom, Bool, Value, Unicode
 from enaml.workbench.api import Workbench
 
+from ...util import handle_dialog, process_app_events
+
 with enaml.imports():
+    from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.app_manifest import AppManifest
+    from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.packages.manifest import PackagesManifest
     from .packages_utils import Manifest1, Manifest2
 
@@ -28,12 +32,14 @@ PACKAGES_ID = 'ecpy.app.packages'
 
 
 @pytest.fixture
-def workbench(request):
+def workbench():
     """Create a workbench and register basic manifests.
 
     """
     workbench = Workbench()
+    workbench.register(CoreManifest())
     workbench.register(AppManifest())
+    workbench.register(ErrorsManifest())
     workbench.register(PackagesManifest())
     return workbench
 
@@ -68,7 +74,7 @@ class FalseEntryPoint(Atom):
         return lambda: self.manifests
 
 
-def test_collecting_registering_and_stopping(monkeypatch, workbench):
+def test_collecting_registering_and_stopping(monkeypatch, workbench, windows):
     """Test basic behavior of PackaggesPlugin.
 
     """
@@ -79,6 +85,7 @@ def test_collecting_registering_and_stopping(monkeypatch, workbench):
 
     app = workbench.get_plugin(APP_ID)
     app.run_app_startup(object())
+    process_app_events()
 
     plugin = workbench.get_plugin(PACKAGES_ID)
 
@@ -99,7 +106,8 @@ def test_collecting_registering_and_stopping(monkeypatch, workbench):
         workbench.get_plugin('ecpy.test2')
 
 
-def test_unmet_requirement(monkeypatch, workbench):
+@pytest.mark.ui
+def test_unmet_requirement(monkeypatch, workbench, windows):
     """Test loading an extension package for which some requirements are not
     met.
 
@@ -109,7 +117,8 @@ def test_unmet_requirement(monkeypatch, workbench):
                                             manifests=[])])
 
     app = workbench.get_plugin(APP_ID)
-    app.run_app_startup(object())
+    with handle_dialog():
+        app.run_app_startup(object())
 
     plugin = workbench.get_plugin(PACKAGES_ID)
 
@@ -119,6 +128,7 @@ def test_unmet_requirement(monkeypatch, workbench):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_wrong_return_type(monkeypatch, workbench):
     """Test handling a wrong return type from the callable returned by load.
 
@@ -129,7 +139,8 @@ def test_wrong_return_type(monkeypatch, workbench):
                                             manifests=[])])
 
     app = workbench.get_plugin(APP_ID)
-    app.run_app_startup(object())
+    with handle_dialog():
+        app.run_app_startup(object())
 
     plugin = workbench.get_plugin(PACKAGES_ID)
 
@@ -139,6 +150,7 @@ def test_wrong_return_type(monkeypatch, workbench):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_non_manifest(monkeypatch, workbench):
     """Test handling a non PluginManifest in the list of manifests.
 
@@ -149,7 +161,8 @@ def test_non_manifest(monkeypatch, workbench):
                                             manifests=[])])
 
     app = workbench.get_plugin(APP_ID)
-    app.run_app_startup(object())
+    with handle_dialog():
+        app.run_app_startup(object())
 
     plugin = workbench.get_plugin(PACKAGES_ID)
 
@@ -159,6 +172,7 @@ def test_non_manifest(monkeypatch, workbench):
     assert not plugin._registered
 
 
+@pytest.mark.ui
 def test_registering_issue(monkeypatch, workbench):
     """Test handling an error when registering a manifest.
 
@@ -169,8 +183,8 @@ def test_registering_issue(monkeypatch, workbench):
                                             manifests=[])])
 
     app = workbench.get_plugin(APP_ID)
-
-    app.run_app_startup(object())
+    with handle_dialog():
+        app.run_app_startup(object())
 
     plugin = workbench.get_plugin(PACKAGES_ID)
 
@@ -178,3 +192,29 @@ def test_registering_issue(monkeypatch, workbench):
     assert 'test2' in plugin.packages
     assert 'ecpy.test1' in plugin.packages['test']
     assert len(plugin.packages['test']) == 1
+
+
+def test_reporting_single_package_error(workbench):
+    """Check handling a single package error.
+
+    """
+    plugin = workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['package']
+
+    assert handler.handle(workbench, {'id': 'test', 'message': 'test'})
+
+    with pytest.raises(Exception):
+        handler.handle(workbench, {})
+
+
+def test_reporting_multiple_package_error(workbench):
+    """Check handling multiple package errors.
+
+    """
+    plugin = workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['package']
+
+    assert handler.handle(workbench, [{'id': 'test', 'message': 'test'}])
+
+    with pytest.raises(Exception):
+        handler.handle(workbench, {})

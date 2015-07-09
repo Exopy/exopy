@@ -1,0 +1,47 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the LoopIterableInterface.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+from enaml.widgets.api import Label
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ....tools.string_evaluation import EVALUATER_TOOLTIP
+
+
+enamldef IterableLoopLabel(Label):
+    """Label for IterableLoopÎnterface.
+
+    """
+    #: Reference to the interface to which this view is linked.
+    attr interface
+
+    #: Reference to the root view.
+    attr root
+
+    attr inline = True
+
+    text = 'Iterable'
+
+
+enamldef IterableLoopField(QtLineCompleter):
+    """Field for IterableLoopÎnterface.
+
+    """
+    #: Reference to the interface to which this view is linked.
+    attr interface
+
+    #: Reference to the root view.
+    attr root
+
+    text := interface.iterable
+    entries_updater << interface.task.list_accessible_database_entries
+    tool_tip = EVALUATER_TOOLTIP

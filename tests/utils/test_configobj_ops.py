@@ -11,9 +11,8 @@
 """
 import os
 from configobj import ConfigObj
-from nose.tools import assert_equal, assert_in
 
-from ecpy.utils.configobj_ops import flatten_config, include_configobj
+from ecpy.utils.configobj_ops import traverse_config, include_configobj
 
 
 def test_include():
@@ -28,20 +27,14 @@ def test_include():
     assert a == {'r': 2, 'a': {'t': 3}}
 
 
-def test_flatten_configobj():
+def test_traverse_configobj():
     """Test looking for specific keys in a ConfigObj object.
 
     """
     config = ConfigObj(os.path.join(os.path.dirname(__file__),
                        'config_test.ini'))
 
-    flat = flatten_config(config, ['task_class', 'selected_profile'])
-    assert_in('task_class', flat)
-    assert_equal(flat['task_class'],
-                 set(['ComplexTask', 'SaveTask', 'LoopTask',
-                      'LockInMeasureTask', 'RFSourceSetFrequencyTask',
-                      'FormulaTask']))
+    ite = traverse_config(config)
+    assert len(list(ite)) == 8
 
-    assert_in('selected_profile', flat)
-    assert_equal(flat['selected_profile'],
-                 set(['Lock8', 'Lock12', 'RF19']))
+    assert len(list(traverse_config(config, 0))) == 4

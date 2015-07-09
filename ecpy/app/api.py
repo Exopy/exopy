@@ -13,9 +13,10 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 __all__ = ['AppStartup', 'AppClosing', 'AppClosed', 'Preferences',
-           'State', 'BuildDependency', 'RuntimeDependency']
+           'State', 'BuildDependency', 'RuntimeDependency', 'ErrorHandler']
 
 from .app_extensions import AppStartup, AppClosing, AppClosed
 from .preferences.preferences import Preferences
 from .states.state import State
 from .dependencies.dependencies import BuildDependency, RuntimeDependency
+from .errors.errors import ErrorHandler

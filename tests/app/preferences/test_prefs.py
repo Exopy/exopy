@@ -18,20 +18,17 @@ import pytest
 from configobj import ConfigObj
 from future.builtins import str
 from enaml.workbench.api import Workbench
-from enaml.application import deferred_call
 
+from ...util import (handle_dialog, ecpy_path)
+from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.app_manifest import AppManifest
+    from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.preferences.manifest import PreferencesManifest
     from .pref_utils import (PrefContributor, BadPrefContributor,
                              PrefContributor2)
-
-from ...util import (process_app_events, get_window,
-                     ecpy_path)
-from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
-
 
 PLUGIN_ID = 'ecpy.app.preferences'
 
@@ -44,7 +41,9 @@ class TestPreferencesPlugin(object):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(AppManifest())
+        self.workbench.register(ErrorsManifest())
 
+    @pytest.mark.ui
     def test_app_startup1(self, tmpdir, windows):
         """Test app start-up when no app_directory.ini exists.
 
@@ -63,19 +62,14 @@ class TestPreferencesPlugin(object):
 
         app_dir = str(tmpdir.join('ecpy'))
 
-        def close_dialog():
-            dial = get_window()
-            assert dial.user_path == os.path.expanduser('~/ecpy')
-            dial.path = app_dir
-            dial.accept()
-        deferred_call(close_dialog)
-        app.run_app_startup(object())
-        process_app_events()
+        with handle_dialog(custom=lambda x: setattr(x, 'path', app_dir)):
+            app.run_app_startup(object())
 
         assert os.path.isfile(app_pref)
         assert ConfigObj(app_pref)['app_path'] == app_dir
         assert os.path.isdir(app_dir)
 
+    @pytest.mark.ui
     def test_app_startup2(self, tmpdir, windows):
         """Test app start-up when user quit app.
 
@@ -92,13 +86,9 @@ class TestPreferencesPlugin(object):
         # Start the app and fake a user answer.
         app = self.workbench.get_plugin('ecpy.app')
 
-        def close_dialog():
-            dial = get_window()
-            dial.reject()
-        deferred_call(close_dialog)
         with pytest.raises(SystemExit):
-            app.run_app_startup(object())
-            process_app_events()
+            with handle_dialog('reject'):
+                app.run_app_startup(object())
 
     def test_app_startup3(self, tmpdir, windows):
         """Test app start-up when a preference file already exists.

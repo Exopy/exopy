@@ -33,9 +33,14 @@ enamldef BuildDep(PluginManifest):
         id = 'build_deps'
         point = BUILD_DEP_POINT
         BuildDependency:
-            id = 'test.build_dep'
-            walk_members = ['test']
-            collect = lambda workbench, flat_walk : {'test': {}}
+            id = 'test'
+            attr err : bool = False
+            attr run = ('test_run',)
+            collect => (workbench, obj, getter, dependencies, errors):
+                if err:
+                    errors['test'][str(obj)] = 'Failed to get val'
+                dependencies['test']['val'] = getter(obj, 'val')
+                return run
 
 enamldef RuntimeDep(PluginManifest):
     """Runtime dependency contributor.
@@ -47,6 +52,9 @@ enamldef RuntimeDep(PluginManifest):
         id = 'runtime_deps'
         point = RUNTIME_DEP_POINT
         RuntimeDependency:
-            id = 'test.runtime_dep'
-            walk_members = ['test_run']
-            collect = lambda workbench, flat_walk, caller : {'test_run': {}}
+            id = 'test_run'
+            attr err : bool = False
+            collect =>  (workbench, owner, obj, getter, dependencies, errors):
+                if err:
+                    errors['test_run'][str(obj)] = 'Failed to get run'
+                dependencies['test_run']['run'] = getter(obj, 'run')

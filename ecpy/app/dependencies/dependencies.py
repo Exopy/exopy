@@ -19,8 +19,8 @@ also drivers classes and intsrument profiles (runtime)
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (Callable, List, Dict, Unicode)
-from enaml.core.declarative import Declarative, d_
+from atom.api import (Unicode)
+from enaml.core.api import Declarative, d_, d_func
 
 
 class BuildDependency(Declarative):
@@ -32,22 +32,44 @@ class BuildDependency(Declarative):
     DependenciesPlugin (ecpy.app.dependencies).
 
     """
-    #: Unique id for this extension.
+    #: Unique id for this extension. Should match the dep_type attribute value
+    #: of the object it is meant for.
     id = d_(Unicode())
 
-    #: List of members names to inspect when trying to determine the build
-    #: dependencies of a structure (either by inspecting the live object or
-    #: a static representation such as a configuration file).
-    walk_members = d_(List())
+    @d_func
+    def collect(self, workbench, obj, getter, dependencies, errors):
+        """Collect the identified build dependencies and list runtime ones.
 
-    #: Callable in charge of collecting the identified build dependencies.
-    #: It should take as arguments the workbench of the application and a dict
-    #: in the format {name: set()}. It should return a dict holding the
-    #: dependencies (as dictionaries) in categories. If there is no dependence
-    #: for a given category this category should be absent from the dict.
-    #: The input falt_walk should be left untouched. In case of failure it
-    #: should raise a ValueError.
-    collect = d_(Callable())
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        obj :
+            Object whose build dependencies should be collected and runtime
+            ones identified.
+
+        getter : callable(obj, name)
+            Callable to use to access obj attribute. Attribute must be accessed
+            using this function rather than the usual '.' syntax as the passed
+            object might be a dictionary like object.
+
+        dependencies : defaultdict(dict)
+            Dictionary in which to write the build dependencies. Dependencies
+            should be groupped by collector.
+            ex : dependencies[self.id][key] = value
+
+        errors : defaultdict(dict)
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        Returns
+        -------
+        runtime_collectors : list, optional
+            List of runtime dependencies that this object have.
+
+        """
+        pass
 
 
 class RuntimeDependency(Declarative):
@@ -59,20 +81,36 @@ class RuntimeDependency(Declarative):
     #: Unique id for this extension.
     id = d_(Unicode())
 
-    #: List of members names to inspect when trying to determine the runtime
-    #: dependencies of a structure.
-    walk_members = d_(List())
+    @d_func
+    def collect(self, workbench, owner, obj, getter, dependencies, errors):
+        """Collect the identified runtime dependencies.
 
-    #: Dict of name callables to call on each element of a structure when
-    #: trying to determine its build dependencies
-    walk_callables = d_(Dict())
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
 
-    #: Callable in charge of collecting the identified build dependencies.
-    #: It should take as arguments the workbench of the application, a dict
-    #: in the format {name: set()} and the calling plugin id. It should return
-    #: a dict holding the dependencies (as dictionaries) in categories. If
-    #: there is no dependence for a given category this category should be
-    #: absent from the dict.
-    #: The input falt_walk should be left untouched. In case of failure it
-    #: should raise a ValueError.
-    collect = d_(Callable())
+        owner :
+            Calling plugin. Used for some runtime dependencies needing to know
+            the ressource owner.
+
+        obj :
+            Object whose build dependencies should be collected and runtime
+            ones identified.
+
+        getter : callable(obj, name)
+            Callable to use to access obj attribute. Attribute must be accessed
+            using this function rather than the usual '.' syntax as the passed
+            object might be a dictionary like object.
+
+        dependencies : defaultdict(dict)
+            Dictionary in which to write the build dependencies. Dependencies
+            should be groupped by collector.
+            ex : dependencies[self.id][key] = value
+
+        errors : defaultdict(dict)
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        pass

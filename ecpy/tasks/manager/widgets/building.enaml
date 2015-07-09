@@ -1,0 +1,139 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets dedicated to the construction of new tasks.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import (Atom, Typed, Unicode, ForwardTyped, Bool, observe)
+from enaml.core.api import Include
+from enaml.widgets.widget import Widget
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
+                               Label, MultilineField)
+
+from .browsing import TaskSelector
+from ..utils.templates import load_template
+
+
+# Circular import protection
+def task_manager():
+    from .plugin import TaskManagerPlugin
+    return TaskManagerPlugin
+
+
+def abstract_config_task():
+    from .config.base_task_config import AbstractConfigTask
+    return AbstractConfigTask
+
+
+enamldef BuilderView(Dialog): dial:
+    """Dialog to select a task and get the associate config.
+
+    """
+    #: Reference to the task manager.
+    alias manager : selector.manager
+
+    #: Config object corresponding to the currently selected task.
+    attr config
+
+    #: Reference to the task selector.
+    alias selector : selector
+
+    title = 'Select the task you want to add'
+
+    func _update():
+        if selector.selected_task:
+            config, view = manager.get_config(selector.selected_task)
+            dial.config = config
+            conf.objects = [view]
+        else:
+            dial.config = None
+            conf.objects = []
+
+    activated :: _update()
+
+    Container:
+        constraints << [hbox(selector,
+                             *tuple(list(conf.objects) + [vbox(ok,
+                                                            cancel,
+                                                            spacer)]))]
+        TaskSelector: selector:
+            hug_width = 'strong'
+            selected_task :: _update()
+
+        Include: conf:
+            pass
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << config.ready if config else False
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+
+enamldef TemplateSelector(Dialog): dial:
+    """Simple dialog to select a template.
+
+    """
+    #: Reference to the task manager.
+    alias manager : selector.manager
+
+    #: Path to the currently selected template.
+    attr path
+
+    #: Reference to the task selector.
+    alias selector : selector
+
+    title = 'Select the template you want to build'
+
+    func _update():
+        if selector.selected_task:
+            name.text = selector.selected_task
+            path = manager.templates[selector.selected_task]
+            _, new_doc = load_template(path)
+            dial.path = path
+            doc.text = new_doc
+
+    initialized :: _update()
+
+    Container:
+        constraints = [hbox(selector,
+                            vbox(name, doc),
+                            vbox(ok, cancel, spacer))]
+
+        TaskSelector: selector:
+            display_filters = False
+            selected_filter = 'Templates'
+            hug_width = 'strong'
+            hug_height = 'ignore'
+            selected_task :: _update()
+
+        Label: name:
+            pass
+
+        MultilineField: doc:
+            read_only = True
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(name.text)
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()

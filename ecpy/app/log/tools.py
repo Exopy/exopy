@@ -222,7 +222,6 @@ class LogModel(Atom):
         """Add a message to the text member.
 
         """
-        print(self._lines, self.buff_size)
         if self._lines > self.buff_size:
             self.text = self.text.split('\n', self._lines - self.buff_size)[-1]
         message = message.strip()

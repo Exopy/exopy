@@ -6,21 +6,22 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Test the walks utility functions.
+"""Test for the mapping utilities functions.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.utils.walks import flatten_walk
+from ecpy.utils.mapping_utils import recursive_update
 
 
-def test_flatten_walk():
+def test_recurvise_update():
+    a = {'a': {'a1': 1}}
+    b = {'b': True}
+    c = {'a': {'a1': 2, 'c': 1}}
 
-    walk = [{'test1': 2, 'test2': 5},
-            [{'test1': 2}, {'test3': 5},
-             [{'test3': 6}]
-             ]
-            ]
-    flat = flatten_walk(walk, ('test1', 'test3'))
-    assert flat == {'test1': set((2,)), 'test3': set((5, 6))}
+    recursive_update(a, b)
+    assert a == {'a': {'a1': 1}, 'b': True}
+
+    recursive_update(a, c)
+    assert a == {'a': {'a1': 2, 'c': 1}, 'b': True}

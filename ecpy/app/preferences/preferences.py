@@ -12,8 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import List, Unicode, Callable
-from enaml.core.declarative import Declarative, d_
+from atom.api import List, Unicode
+from enaml.core.api import Declarative, d_, d_func
 
 
 class Preferences(Declarative):
@@ -37,7 +37,24 @@ class Preferences(Declarative):
 
     #: A callable taking the plugin_id and the preference declaration as arg
     #: and returning an autonomous enaml view (Container) used to edit
-    #: the preferences. It should have a model attribute. The model members
-    #: must correspond to the tagged members the plugin, their values will be
-    #: used to update the preferences.
-    edit_view = d_(Callable())
+    #: the preferences.
+    @d_func
+    def edit_view(self, workbench, id):
+        """Create a view to edit the preferences.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        id : unicode
+            Id of the plugin for which to generate the view.
+
+        Returns
+        -------
+        view : enaml.widgets.api.Container
+            View used to edit the preferences. It should have a model
+            attribute. The model members must correspond to the tagged members
+            the plugin, their values will be used to update the preferences.
+        """
+        pass

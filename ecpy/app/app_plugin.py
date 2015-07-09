@@ -12,7 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from funcsigs import signature
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 
@@ -29,32 +28,42 @@ CLOSED_POINT = 'ecpy.app.closed'
 
 
 def validate_startup(startup):
-    """Assert that the startup does declare a run member.
+    """Assert that the startup does declare a run method.
 
     """
-    msg = "AppStartup '%s' does not declare a run callable"
-    if not bool(startup.run):
-        return bool(startup.run), msg % startup.id
+    func = getattr(startup.run, 'im_func',
+                   getattr(startup.run, '__func__', None))
+    if not func or func is AppStartup.run.__func__:
+        msg = "AppStartup '%s' does not declare a run method"
+        return False, msg % startup.id
 
-    msg = "AppStartup %s run function signature must be (workbench, cmd_args)"
-    sig = signature(startup.run)
-    return len(sig.parameters) == 2, msg % startup.id
+    return True, ''
 
 
 def validate_closing(closing):
-    """Assert that the closing does declare a validate member.
+    """Assert that the closing does declare a validate method.
 
     """
-    msg = "AppStartup '%s' does not declare a validate callable"
-    return bool(closing.validate), msg % closing.id
+    func = getattr(closing.validate, 'im_func',
+                   getattr(closing.validate, '__func__', None))
+    if not func or func is AppClosing.validate.__func__:
+        msg = "AppClosing '%s' does not declare a validate method"
+        return False, msg % closing.id
+
+    return True, ''
 
 
 def validate_closed(closed):
-    """Assert that the closed does declare a clean member.
+    """Assert that the closed does declare a clean method.
 
     """
-    msg = "AppStartup '%s' does not declare a clean callable"
-    return bool(closed.clean), msg % closed.id
+    func = getattr(closed.clean, 'im_func',
+                   getattr(closed.clean, '__func__', None))
+    if not func or func is AppClosed.clean.__func__:
+        msg = "AppClosed '%s' does not declare a clean method"
+        return False, msg % closed.id
+
+    return True, ''
 
 
 class AppPlugin(Plugin):
@@ -116,8 +125,8 @@ class AppPlugin(Plugin):
         """Run all the registered app startups based on their priority.
 
         """
-        for run in self._start_heap:
-            run(self.workbench, cmd_args)
+        for runner in self._start_heap:
+            runner.run(self.workbench, cmd_args)
 
     def validate_closing(self, window, event):
         """Run all closing checks to determine whether or not to close the app.
@@ -132,17 +141,17 @@ class AppPlugin(Plugin):
         """Run all the registered app closed based on their priority.
 
         """
-        for clean in self._clean_heap:
-            clean(self.workbench)
+        for cleaner in self._clean_heap:
+            cleaner.clean(self.workbench)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    #: Priority heap storing contributed AppStartup.run by priority.
+    #: Priority heap storing contributed AppStartup by priority.
     _start_heap = Typed(PriorityHeap, ())
 
-    #: Priority heap storing contributed AppClosed.clean by priority.
+    #: Priority heap storing contributed AppClosed by priority.
     _clean_heap = Typed(PriorityHeap, ())
 
     def _update_heap(self, change):
@@ -162,7 +171,7 @@ class AppPlugin(Plugin):
         added = new - old
 
         for r in removed:
-            heap.remove(getattr(r, attr))
+            heap.remove(r)
 
         for a in added:
-            heap.push(a.priority, getattr(a, attr))
+            heap.push(a.priority, a)

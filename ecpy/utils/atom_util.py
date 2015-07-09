@@ -16,7 +16,7 @@ from __future__ import (division, unicode_literals, print_function,
 from past.builtins import basestring
 from future.utils import bind_method
 from collections import OrderedDict
-from atom.api import Str, Unicode, Enum, Atom
+from atom.api import Str, Unicode, Enum, Atom, Constant
 from ast import literal_eval
 
 
@@ -77,7 +77,13 @@ def member_from_str(member, str_value):
 
     # Otherwise, we eval it!
     else:
-        value = literal_eval(str_value)
+        try:
+            value = literal_eval(str_value)
+        except ValueError:
+            # Silently ignore failed evaluation as we can have a string
+            # assigned to a value.
+            value = str_value
+            pass
 
     return value
 
@@ -116,9 +122,9 @@ def update_members_from_preferences(self, parameters):
     This function will call itself on any tagged HasPrefAtom member.
 
     """
-    for name, member in tagged_members(self, 'pref').iteritems():
+    for name, member in tagged_members(self, 'pref').items():
 
-        if name not in parameters:
+        if name not in parameters or isinstance(member, Constant):
             continue
 
         old_val = getattr(self, name)

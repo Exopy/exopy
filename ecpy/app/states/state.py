@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from atom.api import (List, Unicode)
-from enaml.core.declarative import Declarative, d_
+from enaml.core.api import Declarative, d_
 
 
 class State(Declarative):

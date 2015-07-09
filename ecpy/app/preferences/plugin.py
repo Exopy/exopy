@@ -161,6 +161,7 @@ class PrefPlugin(Plugin):
     def open_editor(self):
         """
         """
+        pass
         # TODO here must build all editors from declaration, open dialog
         # and manage the update if the user validate.
 
@@ -174,6 +175,7 @@ class PrefPlugin(Plugin):
     #: Mapping between plugin_id and the declared preferences.
     _pref_decls = Dict()
 
+    # XXXX refcator using Declarator pattern
     def _refresh_pref_decls(self):
         """Refresh the list of states contributed by extensions.
 
