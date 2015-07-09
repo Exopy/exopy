@@ -74,9 +74,6 @@ class InterfaceInfos(ObjectDependentInfos):
     #: Widgets associated with this interface.
     views = List()
 
-    #: List of interfaces supported by this interface.
-    interfaces = Dict()
-
 
 class ConfigInfos(Atom):
     """An object used to store the informations about a task configurer.

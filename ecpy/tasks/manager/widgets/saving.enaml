@@ -112,10 +112,12 @@ enamldef TemplateSaverDialog(Dialog): dial:
     attr manager
 
     #: Whether or not to disply the resulting file.
-    alias show_result : res.checked
+    attr show_result : bool = False
 
     #: Internal model.
     attr _model = TemplateSaverModel(manager=manager)
+
+    title = 'Save template'
 
     func get_infos():
         """Return the selected path and documentation for the template.
@@ -144,6 +146,7 @@ enamldef TemplateSaverDialog(Dialog): dial:
 
         CheckBox: res:
             text = 'Show result'
+            checked := show_result
 
         PushButton: cancel:
             hug_width = 'strong'

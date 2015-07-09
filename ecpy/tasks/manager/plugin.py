@@ -404,13 +404,13 @@ class TaskManagerPlugin(HasPrefPlugin):
         for path in self.templates_folders:
             if os.path.isdir(path):
                 filenames = sorted(f for f in os.listdir(path)
-                                   if f.endswith('.template.ini') and
+                                   if f.endswith('.task.ini') and
                                    (os.path.isfile(os.path.join(path, f))))
 
                 for filename in filenames:
                     template_path = os.path.join(path, filename)
                     # Beware redundant names are overwrited
-                    name = filename[:-len('.template.ini')]
+                    name = filename[:-len('.task.ini')]
                     templates[name] = template_path
             else:
                 logger = logging.getLogger(__name__)

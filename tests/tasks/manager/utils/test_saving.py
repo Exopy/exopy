@@ -42,7 +42,7 @@ def test_saving_as_config(task_workbench, task):
     assert val == task.preferences
 
 
-def test_saving_as_template(app, tmpdir, task_workbench, task,
+def test_saving_as_template(windows, tmpdir, task_workbench, task,
                             monkeypatch):
     """Test saving a task as a template.
 
@@ -77,7 +77,7 @@ def test_saving_as_template(app, tmpdir, task_workbench, task,
     assert config.initial_comment == ['# This is a test']
 
 
-def test_saving_as_template_fail(app, tmpdir, task_workbench, task,
+def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
                                  monkeypatch):
     """Test saving a task as a template : fail to save.
 
@@ -117,7 +117,7 @@ def test_saving_as_template_fail(app, tmpdir, task_workbench, task,
     assert not os.path.isfile(path)
 
 
-def test_saving_as_template_cancelled(app, task_workbench, task):
+def test_saving_as_template_cancelled(windows, task_workbench, task):
     """Test saving a task as a template : fail to save.
 
     """
