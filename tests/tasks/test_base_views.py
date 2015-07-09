@@ -25,7 +25,8 @@ from ecpy.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
 
-from ...util import show_widget, process_app_events, handle_dialog, get_window
+from .manager.conftest import task_workbench
+from ..util import show_widget, process_app_events, handle_dialog, get_window
 
 
 @pytest.mark.ui
@@ -33,7 +34,7 @@ def test_root_view(windows, task_workbench):
     """Test the behavior of the root task view.
 
     """
-    from ...conftest import DIALOG_SLEEP
+    from ..conftest import DIALOG_SLEEP
     task = RootTask()
     view = RootTaskView(task=task,
                         core=task_workbench.get_plugin('enaml.workbench.core'))
@@ -81,11 +82,11 @@ def test_root_view(windows, task_workbench):
 
 
 @pytest.mark.ui
-def test_swapping(app, task_workbench):
+def test_swapping(windows, task_workbench):
     """Test moving a view between containers.
 
     """
-    from ...conftest import DIALOG_SLEEP
+    from ..conftest import DIALOG_SLEEP
     task = RootTask()
     view = RootTaskView(task=task,
                         core=task_workbench.get_plugin('enaml.workbench.core'))
