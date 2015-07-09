@@ -22,8 +22,11 @@ enamldef LinspaceLoopView(Splitter): view:
     """View for the LinspaceLoopInterface.
 
     """
-    #: Reference to the interface this view is linked to.
+    #: Reference to the interface to which this view is linked.
     attr interface
+
+    #: Reference to the root view.
+    attr root
 
     SplitItem:
         Container:

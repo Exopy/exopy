@@ -21,8 +21,12 @@ enamldef IterableLoopLabel(Label):
     """Label for IterableLoopÎnterface.
 
     """
-
+    #: Reference to the interface to which this view is linked.
     attr interface
+
+    #: Reference to the root view.
+    attr root
+
     attr inline = True
 
     text = 'Iterable'
@@ -32,8 +36,11 @@ enamldef IterableLoopField(QtLineCompleter):
     """Field for IterableLoopÎnterface.
 
     """
-
+    #: Reference to the interface to which this view is linked.
     attr interface
+
+    #: Reference to the root view.
+    attr root
 
     text := interface.iterable
     entries_updater << interface.task.list_accessible_database_entries

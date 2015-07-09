@@ -69,36 +69,22 @@ enamldef LoopView(ComplexTaskView): view:
         if not t.interface:
             t.interface = i_select.items[0]()
 
-        i_name = t.interface.interface_class
-
-        cmd = 'ecpy.tasks.get_interface'
-        _, i_views = root.core.invoke_command(cmd, {'interface': i_name,
-                                                    'view': True})
-
-        i_include.objects = [i_view(interface=t.interface)
-                             for i_view in i_views[i_name]]
+        i_include.objects = root.view_for(t.interface)
 
     Label:
         text = 'Interface'
     ObjectCombo: i_select:
-        items << list(root.interfaces_for(task.task_class))
+        items << list(root.get_interfaces_for(task))
         to_string = format_name
         selected << type(task.interface) if task.interface else items[0]
         selected ::
             i_include = view.find('interface_include')
             i_include.objects = []
 
-            i_class = change['value']
-            interface = i_class()
-            i_name = interface.interface_class
-            task.interface = interface
+            if change['value']:
+                task.interface = change['value']()
 
-            cmd = 'ecpy.tasks.get_interface'
-            _, i_views = root.core.invoke_command(cmd, {'interface': i_name,
-                                                        'view': True})
-
-            i_include.objects = [i_view(interface=interface)
-                                 for i_view in i_views[i_name]]
+                i_include.objects = root.view_for(t.interface)
 
     Label:
         text = 'Timing'
