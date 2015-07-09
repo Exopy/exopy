@@ -66,7 +66,7 @@ def test_template_task_config(app, task_workbench):
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     path = os.path.join(os.path.dirname(__file__),
-                        'test_template.template.ini')
+                        'test_template.task.ini')
     config = TemplateTaskConfig(manager=plugin,
                                 template_path=path)
     assert config.template_doc

@@ -361,6 +361,10 @@ enamldef TasksManagerManifest(PluginManifest):
         GroupTaskFilter:
             id = 'Logic'
             group = 'logic'
+        MetadataTaskFilter:
+            id = 'Loopable'
+            meta_key = 'loopable'
+            meta_value = True
 
     Extension:
         id = 'configs'

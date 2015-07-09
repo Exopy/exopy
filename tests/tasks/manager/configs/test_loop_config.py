@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import pytest
 import enaml
 
@@ -19,7 +21,7 @@ from ecpy.tasks.manager.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
     from ecpy.tasks.manager.configs.loop_config_view import LoopConfigView
 
-from ....util import show_and_close_widget
+from ....util import show_and_close_widget, show_widget, process_app_events
 
 
 @pytest.mark.ui
@@ -53,19 +55,44 @@ def test_loop_config(app, task_workbench):
     show_and_close_widget(LoopConfigView(config=config))
 
 
-# XXXX Complete once we get loopable tasks.
-#def test_loop_config_with_subtask(task_workbench, windows):
-#    """Test the loop config.
-#
-#    """
-#    plugin = task_workbench.get_plugin('ecpy.tasks')
-#
-#    config = LoopTaskConfig(manager=plugin,
-#                            task_class=plugin.get_task('LoopTask'))
-#
-#    show_widget(LoopConfigView(config=config))
-#
-#    config.use_subtask = False
-#    assert not config.ready
-#
-#    config.subtask = '
+@pytest.mark.ui
+def test_loop_config_with_subtask(task_workbench, windows):
+    """Test the loop config.
+
+    """
+    from ....conftest import DIALOG_SLEEP
+    plugin = task_workbench.get_plugin('ecpy.tasks')
+
+    config = LoopTaskConfig(manager=plugin,
+                            task_class=plugin.get_task('LoopTask'),
+                            task_name='Test')
+
+    show_widget(LoopConfigView(config=config))
+    assert config.ready
+    sleep(DIALOG_SLEEP)
+
+    config.use_subtask = True
+    assert not config.ready
+    process_app_events()
+    sleep(DIALOG_SLEEP)
+
+    config.subtask = 'BreakTask'
+    assert config.ready
+    process_app_events()
+    sleep(DIALOG_SLEEP)
+
+    config.subconfig.task_name = ''
+    assert not config.ready
+    process_app_events()
+    sleep(DIALOG_SLEEP)
+
+    config.use_subtask = False
+    assert config.ready
+    process_app_events()
+    sleep(DIALOG_SLEEP)
+
+    config.use_subtask = True
+    config.subtask = 'ContinueTask'
+    task = config.build_task()
+    assert task.name == 'Test'
+    assert type(task.task).__name__ == 'ContinueTask'

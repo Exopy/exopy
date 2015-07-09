@@ -68,7 +68,7 @@ class LoopTaskConfig(PyTaskConfig):
 
         """
         if new:
-            conf, view = self.manager.config_request(new)
+            conf, view = self.manager.get_config(new)
             conf.task_name = self.task_name
             view.loop = True
             conf.observe('ready', self._new_subconfig_status)
@@ -85,4 +85,10 @@ class LoopTaskConfig(PyTaskConfig):
             self.subtask = ''
             self.subconfig = None
             self.subview = None
+        self.check_parameters()
+
+    def _new_subconfig_status(self, change):
+        """Check the parameters when the subconfig status changes.
+
+        """
         self.check_parameters()
