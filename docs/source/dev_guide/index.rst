@@ -3,9 +3,9 @@
 Extending Ecpy
 ==============
 
-Ecpy is designed with the idea that user should be able to extend it to fit 
+Ecpy is designed with the idea that user should be able to extend it to fit
 their own needs. The following section will describe how one should proceed to
-do so. The three first sections describe general concepts which are always 
+do so. The three first sections describe general concepts which are always
 applicable, the following ones are dedicated to the extension of specific part
 of the application.
 
@@ -14,15 +14,20 @@ please refer to its documentation for the specifics of the procedure.
 
 .. toctree::
 	:numbered:
-	
+
 	glossary
 	application
+	tasks
 
 .. note::
 
    When writing code for ecpy, or an extension packages you should follow the
    project style guides described in :ref:`Styles guides`. Of course if you are
-   developing a private extension you are free to do as you see fit but in 
+   developing a private extension you are free to do as you see fit but in
    order for a contribution to Ecpy or one of its official extension package
    to be accepted it must follow those style guides.
-	
+
+.. notes::
+
+	Ecpy is built on top of Atom and Enaml. Please have a look at
+	:ref:`Atom and Enaml` for an explanation on how this influence the code.

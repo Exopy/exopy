@@ -2,8 +2,8 @@
    This file holds some common substitutions (mainly for referencing code).
    To use it add the directive include:: substitutions.rst at the beginning of
    the file.
-  
-.. ============================================================================  
+
+.. ============================================================================
 .. Enaml substitutions
 .. ============================================================================
 
@@ -43,7 +43,7 @@
 
 .. |AppStartup| replace:: :py:class:~ecpy.app.app_extensions.AppStartup
 
-.. |AppClosing| replace:: :py:class:~ecpy.app.app_extensions.AppClosing 
+.. |AppClosing| replace:: :py:class:~ecpy.app.app_extensions.AppClosing
 
 .. |AppClosed| replace:: :py:class:~ecpy.app.app_extensions.AppClosed
 
@@ -52,3 +52,9 @@
 .. |RuntimeDependecy| replace:: :py:class:~ecpy.app.dependencies.dependencies.RuntimeDependecy
 
 .. |Preferences| replace:: :py:class:~ecpy.app.preferences.preferences.Preferences
+
+|SimpleTask| or |ComplexTask|
+
+- |write_in_database| :
+- |format_string|:
+- |format_and_eval_string|:

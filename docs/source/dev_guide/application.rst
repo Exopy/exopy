@@ -1,4 +1,4 @@
-.. _application:
+.. _dev_application:
 
 .. include:: substitutions.rst
 
