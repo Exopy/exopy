@@ -32,5 +32,5 @@ enamldef ConditionalView(ComplexTaskView): view:
         text = 'Condition'
     QtLineCompleter: cond_val:
         text := task.condition
-        entries_updater << task.list_accessible_database_entries
+        entries_updater = task.list_accessible_database_entries
         tool_tip = EVALUATER_TOOLTIP

@@ -53,8 +53,14 @@
 
 .. |Preferences| replace:: :py:class:~ecpy.app.preferences.preferences.Preferences
 
-|SimpleTask| or |ComplexTask|
+.. |SimpleTask| replace:: :py:class:~ecpy.tasks.base_tasks.SimpleTask
 
-- |write_in_database| :
-- |format_string|:
-- |format_and_eval_string|:
+.. |ComplexTask| replace:: :py:class:~ecpy.tasks.base_tasks.ComplexTask
+
+.. |write_in_database| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.write_in_database
+
+.. |format_string| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.format_string
+
+.. |format_and_eval_string| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.format_and_eval_string
+
+.. |BaseTaskView| replace:: :py:class:~ecpy.tasks.base_views.BaseTaskView
