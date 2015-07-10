@@ -7,35 +7,35 @@
 .. Enaml substitutions
 .. ============================================================================
 
-.. |Workbench| replace:: :py:class:~enaml.workbench.workbench.Workbench
+.. |Workbench| replace:: :py:class:`~enaml.workbench.workbench.Workbench`
 
-.. |PluginManifest| replace:: :py:class:~enaml.workbench.plugin_manifest.PluginManifest
+.. |PluginManifest| replace:: :py:class:`~enaml.workbench.plugin_manifest.PluginManifest`
 
-.. |Plugin| replace:: :py:class:~enaml.workbench.plugin.Plugin
+.. |Plugin| replace:: :py:class:`~enaml.workbench.plugin.Plugin`
 
-.. |Plugin.start| replace:: :py:meth:~enaml.workbench.plugin.Plugin.start
+.. |Plugin.start| replace:: :py:meth:`~enaml.workbench.plugin.Plugin.start`
 
-.. |Plugin.stop| replace:: :py:meth:~enaml.wokbench.plugin.Plugin.stop
+.. |Plugin.stop| replace:: :py:meth:`~enaml.wokbench.plugin.Plugin.stop`
 
-.. |ExtensionPoint| replace:: :py:class:~enaml.workbench.extension_point.ExtensionPoint
+.. |ExtensionPoint| replace:: :py:class:`~enaml.workbench.extension_point.ExtensionPoint`
 
-.. |Extension| replace:: :py:class:~enaml.workbench.extension.Extension
+.. |Extension| replace:: :py:class:`~enaml.workbench.extension.Extension`
 
-.. |CorePlugin| replace:: :py:class:~enaml.workbench.core.plugin.CorePlugin
+.. |CorePlugin| replace:: :py:class:`~enaml.workbench.core.plugin.CorePlugin`
 
-.. |invoke_command| replace:: :py:class:~enaml.workbench.core.plugin.CorePlugin.invoke_command
+.. |invoke_command| replace:: :py:class:`~enaml.workbench.core.plugin.CorePlugin.invoke_command`
 
-.. |Command| replace:: :py:class:~enaml.workbench.core.command.Command
+.. |Command| replace:: :py:class:`~enaml.workbench.core.command.Command`
 
-.. |ExecutionEvent| replace:: :py:class:~enaml.workbench.core.execution_event.ExecutionEvent
+.. |ExecutionEvent| replace:: :py:class:`~enaml.workbench.core.execution_event.ExecutionEvent`
 
-.. |EventClose| replace:: :py:class:~enaml.widgets.window.EventClose
+.. |EventClose| replace:: :py:class:`~enaml.widgets.window.EventClose`
 
-.. |EventClose.reject| replace:: :py:class:~enaml.widgets.window.EventClose.reject
+.. |EventClose.reject| replace:: :py:class:`~enaml.widgets.window.EventClose.reject`
 
-.. |MenuItem| replace:: :py:class:~enaml.workbench.ui.menu_item.MenuItem
+.. |MenuItem| replace:: :py:class:`~enaml.workbench.ui.menu_item.MenuItem`
 
-.. |ActionItem| replace:: :py:class:~enaml.workbench.ui.action_item.ActionItem
+.. |ActionItem| replace:: :py:class:`~enaml.workbench.ui.action_item.ActionItem`
 
 .. ============================================================================
 .. Ecpy substitutions
@@ -44,48 +44,48 @@
 .. App substitutions
 .. ----------------------------------------------------------------------------
 
-.. |AppStartup| replace:: :py:class:~ecpy.app.app_extensions.AppStartup
+.. |AppStartup| replace:: :py:class:`~ecpy.app.app_extensions.AppStartup`
 
-.. |AppClosing| replace:: :py:class:~ecpy.app.app_extensions.AppClosing
+.. |AppClosing| replace:: :py:class:`~ecpy.app.app_extensions.AppClosing`
 
-.. |AppClosed| replace:: :py:class:~ecpy.app.app_extensions.AppClosed
+.. |AppClosed| replace:: :py:class:`~ecpy.app.app_extensions.AppClosed`
 
-.. |BuildDependency| replace:: :py:class:~ecpy.app.dependencies.dependencies.BuildDependency
+.. |BuildDependency| replace:: :py:class:`~ecpy.app.dependencies.dependencies.BuildDependency`
 
-.. |RuntimeDependecy| replace:: :py:class:~ecpy.app.dependencies.dependencies.RuntimeDependecy
+.. |RuntimeDependecy| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecy`
 
-.. |Preferences| replace:: :py:class:~ecpy.app.preferences.preferences.Preferences
+.. |Preferences| replace:: :py:class:`~ecpy.app.preferences.preferences.Preferences`
 
-.. |HasPreferencesPlugin| replace:: :py:class:~ecpy.utils.plugin_tools.HasPreferencesPlugin
+.. |HasPreferencesPlugin| replace:: :py:class:`~ecpy.utils.plugin_tools.HasPreferencesPlugin`
 
-.. |State| replace:: :py:class:~ecpy.app.states.state.State
+.. |State| replace:: :py:class:`~ecpy.app.states.state.State`
 
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
 
-.. |SimpleTask| replace:: :py:class:~ecpy.tasks.base_tasks.SimpleTask
+.. |SimpleTask| replace:: :py:class:`~ecpy.tasks.base_tasks.SimpleTask`
 
-.. |ComplexTask| replace:: :py:class:~ecpy.tasks.base_tasks.ComplexTask
+.. |ComplexTask| replace:: :py:class:`~ecpy.tasks.base_tasks.ComplexTask`
 
-.. |write_in_database| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.write_in_database
+.. |write_in_database| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.write_in_database`
 
-.. |format_string| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.format_string
+.. |format_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_string`
 
-.. |format_and_eval_string| replace:: :py:meth:~ecpy.tasks.base_tasks.BaseTask.format_and_eval_string
+.. |format_and_eval_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_and_eval_string`
 
-.. |EVALUATER_TOOLTIP| replace:: :py:const:~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP
+.. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
 
-.. |BaseTaskView| replace:: :py:class:~ecpy.tasks.base_views.BaseTaskView
+.. |BaseTaskView| replace:: :py:class:`~ecpy.tasks.base_views.BaseTaskView`
 
-.. |InterfaceableTaskMixin| replace:: :py:class:~ecpy.tasks.task_interfaces.InterfaceableTaskMixin
+.. |InterfaceableTaskMixin| replace:: :py:class:`~ecpy.tasks.task_interfaces.InterfaceableTaskMixin`
 
-.. |Tasks| replace:: :py:class:~ecpy.tasks.manager.declarations.Tasks
+.. |Tasks| replace:: :py:class:`~ecpy.tasks.manager.declarations.Tasks`
 
-.. |Task| replace:: :py:class:~ecpy.tasks.manager.declarations.Task
+.. |Task| replace:: :py:class:`~ecpy.tasks.manager.declarations.Task`
 
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 
-.. |QtLineCompleter| replace:: :py:class:~ecpy.utils.widgets.qt_completers.QtLineCompleter
+.. |QtLineCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtLineCompleter`
 
-.. |QtTextCompleter| replace:: :py:class:~ecpy.utils.widgets.qt_completers.QtTextCompleter
+.. |QtTextCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtTextCompleter`
