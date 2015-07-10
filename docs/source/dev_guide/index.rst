@@ -13,21 +13,25 @@ If you need to extend the functionalities provided by an extension package
 please refer to its documentation for the specifics of the procedure.
 
 .. toctree::
-	:numbered:
+    :numbered:
 
-	glossary
-	application
-	tasks
+    glossary
+    application
+    tasks
+    testing
+    style_guide
+    atom_enaml
+
 
 .. note::
 
    When writing code for ecpy, or an extension packages you should follow the
-   project style guides described in :ref:`Styles guides`. Of course if you are
+   project style guides described in :doc:`style_guide`. Of course if you are
    developing a private extension you are free to do as you see fit but in
    order for a contribution to Ecpy or one of its official extension package
    to be accepted it must follow those style guides.
 
-.. notes::
+.. note::
 
-	Ecpy is built on top of Atom and Enaml. Please have a look at
-	:ref:`Atom and Enaml` for an explanation on how this influence the code.
+    Ecpy is built on top of Atom and Enaml. Please have a look at
+    :doc:`atom_enaml` for an explanation on how this influence the code.

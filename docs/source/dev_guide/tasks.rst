@@ -1,6 +1,6 @@
 .. _dev_tasks:
 
-.. include:: substitutions.rst
+.. include:: ../substitutions.sub
 
 Tasks and interfaces
 ====================
@@ -23,6 +23,7 @@ Creating a new task
 -------------------
 
 Creating a new task is a three step process :
+
 - first the task itself which holds the logic must be created.
 - to allow a user to correctly parametrize the task a dedicated widget or view
   should also be created.
@@ -41,19 +42,20 @@ declared as a Unicode member to let the user enter a formula ('{' and '}' are
 used to identify the part to replace with the value stored in the database).
 
 .. code-block:: python
-	from atom.api import Unicode, Int
 
-	class MyTask(SimpleTask):
-		"""MyTask description.
+    from atom.api import Unicode, Int
 
-		Use Numpy style docstrings.
+    class MyTask(SimpleTask):
+        """MyTask description.
 
-		"""
-		#: my_int description
-		my_int = Int(1).tag(pref=True)  # Integer with a default value of 1
+        Use Numpy style docstrings.
 
-		#: my_text description
-		my_text = Unicode().tag(pref=True)
+        """
+        #: my_int description
+        my_int = Int(1).tag(pref=True)  # Integer with a default value of 1
+
+        #: my_text description
+        my_text = Unicode().tag(pref=True)
 
 If the task needs to write a value in the database (typically all computed or
 measured values should be stored), the entries should be declared by changing
@@ -64,13 +66,14 @@ parameters through its view by **assigning** a new dictionary to
 task_database_entries.
 
 .. code-block:: python
-	from atom.api import set_default
 
-	class MyTask(SimpleTask):
-		"""MyTask description.
+    from atom.api import set_default
 
-		"""
-		task_database_entries = set_default({'val': 1})
+    class MyTask(SimpleTask):
+        """MyTask description.
+
+        """
+        task_database_entries = set_default({'val': 1})
 
 The actual description of what the task is meant to do is contained in the
 **perform** method which is the one you need to override (save when writing an
@@ -79,6 +82,7 @@ single keyword argument if it can be used inside a loop in which case the
 argument will be the current value of the loop. If subclassing |ComplexTask|
 be sure to call the perform methods of all children tasks (stored in the
 `children` member). Below is a list of some useful methods :
+
 - |write_in_database|: is used to write a value in the database. In the
   database, values are stored according to the path to the task and its name,
   using this method you don't have to worry about those details you simply give
@@ -120,9 +124,9 @@ with the |InterfaceableTaskMixin|, as follows:
 
 .. code-block:: python
 
-	class MyTask(InterfaceableTaskMixin, SimpleTask):
+    class MyTask(InterfaceableTaskMixin, SimpleTask):
 
-		pass
+        pass
 
 For such a class, you do not need to write a perform method however you may
 want to write some generic methods that the interfaces can call (once again to
@@ -132,7 +136,7 @@ interfaceable one), you can define a kind of default interface by creating an
 **i_perfom** method that will act as a default interface.
 
 To learn more about interfaces in details please read the dedicated section
-:ref:`Creating a new interface`.
+:ref:`dev_tasks_new_interface`.
 
 
 Creating the view
@@ -151,20 +155,20 @@ tool tips.
 
 .. code-block:: enaml
 
-	enamldef MyTaskView(BaseTaskView):
+    enamldef MyTaskView(BaseTaskView):
 
-		QtLineCompleter:
-			text := task.my_formula
-			entries_updater = task.list_accessible_database_entries
-			tool_tip = EVALUATER_TOOLTIP
+        QtLineCompleter:
+            text := task.my_formula
+            entries_updater = task.list_accessible_database_entries
+            tool_tip = EVALUATER_TOOLTIP
 
 For more informations about the Enaml syntax please give a look at
-:ref:`dev_atom_enaml`.
+:doc:`atom_enaml`.
 
 
 At this point your task is ready to be registered in Ecpy, however writing a
 bunch of unit tests for your test making sure it works as expected and will go
-on doing so is good idea. Give a look at :ref:`dev_tests` for more details about
+on doing so is good idea. Give a look at :doc:`testing` for more details about
 writing tests and checking that your tests do cover all th possible cases.
 
 
@@ -174,55 +178,59 @@ Registering your task
 The last thing you need to do is to declare your task in a plugin manifest so
 that the main application can find it. To do so your plugin should contribute
 an extension to 'ecpy.tasks.declarations' providing |Tasks| and/or |Task|
-objects. 
+objects.
 
-Let's say we need to declare a single task named 'MyTask'. The name of our 
-extension package (see :ref:`dev_glossary`) is named 'my_ecpy_plugin'.
+Let's say we need to declare a single task named 'MyTask'. The name of our
+extension package (see :doc:`glossary`) is named 'my_ecpy_plugin'.
 Let's look at the example below:
 
 .. code-block:: enaml
 
-	enamldef MyPluginManifest(PluginManifest):
+    enamldef MyPluginManifest(PluginManifest):
 
-		id = 'my_plugin_id'
+        id = 'my_plugin_id'
 
-		Extension:
-			point = 'ecpy.tasks.declarations'
+        Extension:
+            point = 'ecpy.tasks.declarations'
 
-			Tasks:
-				group = 'my_group'
-				path = 'my_ecpy_plugin'
+            Tasks:
+                group = 'my_group'
+                path = 'my_ecpy_plugin'
 
-				Task:
-					task = 'my_task:MyTask'
-					view = 'views.my_task:MyView'
-					metadata = {'loopable': True}
+                Task:
+                    task = 'my_task:MyTask'
+                    view = 'views.my_task:MyView'
+                    metadata = {'loopable': True}
 
-We declare a single child for the extension a |Tasks| object. |Tasks| does 
-nothing by themselves they are simply container for grouping tasks 
+We declare a single child for the extension a |Tasks| object. |Tasks| does
+nothing by themselves they are simply container for grouping tasks
 declarations. They have two attributes:
+
 - group: this is simply to specify that the task is part of that group. Group
-  are only used to filter tasks. (see :ref:`Creating your own task filter`)
+  are only used to filter tasks. (see :ref:`dev_tasks_new_filter`)
 - path: when declaring a task you must specify in which module it is defined
-  as a '.' sperated path. When declaring a path in a |Tasks| it will be 
+  as a '.' sperated path. When declaring a path in a |Tasks| it will be
   prepended to any path-like declaration in all children.
-  
-We then declare our task using a |Task| object. A |Task| has four attributes 
+
+We then declare our task using a |Task| object. A |Task| has four attributes
 but only two of them must be given non-default values :
-- task: this is the path ('.' separated) to the module defining the task. The 
-  actual name of the task is specified at the end after ':'. As mentioned above
+
+- task: this is the path ('.' separated) to the module defining the task. The
+  actual name of the task is specified after a colon (':'). As mentioned above
   the path of all parent |Tasks| is preprended to this path.
 - view: this identic to the task attribute but used for the view definition.
   Once again the path of all parent |Tasks| is preprended to this path.
-- metadata: Any additional informations about the task. Those should be 
+- metadata: Any additional informations about the task. Those should be
   specified as a dictionary.
 - instruments: This only apply to tasks using an instrument. In this attribute,
-  the supported driver should be listed. Note that if a driver is supported 
+  the supported driver should be listed. Note that if a driver is supported
   through the use of an interface the driver should be listed in the interface
   and not in the task.
-  
+
 This is it. Now when starting Ecpy your new task should be listed.
 
+
+.. _dev_tasks_new_interface:
 
 Creating a new interface
 ------------------------
@@ -243,6 +251,7 @@ Creating the view
 Registering your interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _dev_tasks_new_filter:
 
 Creating your own task filter
 -----------------------------

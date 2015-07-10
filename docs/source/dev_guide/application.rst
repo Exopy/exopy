@@ -1,6 +1,6 @@
 .. _dev_application:
 
-.. include:: substitutions.rst
+.. include:: ../substitutions.sub
 
 Interacting with the core of Ecpy
 =================================
@@ -23,6 +23,7 @@ One could of course directly access the plugin to get those informations but
 in a plugin application it is a good to avoid such interferences. Those
 informations are actually delegated to two plugin responsible for managing
 them :
+
 - the 'enaml.workbench.core' plugin is in charge of managing commands which are
   the equivalent of application wide available function. Each command has an
   id which is used to invoke it using the |invoke_command| of the |CorePlugin|
@@ -44,6 +45,7 @@ Declaring a Command
 
 In order to declare a command, you must contribute an |Command| object to the
 'enaml.workbench.core.commands'  extension point. A |Command| must have :
+
 - an id which must be unique (this a dot separated name)
 - a handler which is a function taking a argument an |ExecutionEvent| instance.
   The execution event allows to access to the application workbench
@@ -51,13 +53,14 @@ In order to declare a command, you must contribute an |Command| object to the
   to the |invoke_command| method. IF the command need to access
   to the plugin you can do so easily using the workbench.
 - a description which is basically the docstring of the command and should be
-  formatted as such (see :ref:`Style guidelines`).
+  formatted as such (see :doc:`style_guide`).
 
 Declaring a State
 ^^^^^^^^^^^^^^^^^
 
 In order to share the state of your plugin you must contribute a State object
 to the 'ecpy.app.states.state' extension point. A |State| must have :
+
 - an id which must be unique and can be the id of the plugin but does not have
   to.
 - the names of the members of the plugin the state should reflect (as a list).
@@ -74,6 +77,7 @@ to have a say so about whether or not the application can exit (if a measure
 is running the application should not exit without a huge warning). The
 'ecpy.app' plugin is responsible for handling all those possibilities. It
 relies on three extension points (one for each behaviour) :
+
 - 'ecpy.app.startup' accepts |AppStartup| contributions and deal with the start
   up of the application.
 - 'ecpy.app.closing' accepts |AppClosing| contributions and deal with whether
@@ -96,6 +100,7 @@ Declaring an AppStartup extension
 In order to customize the application start up, you need to contribute an
 |AppStartup| object to the 'ecpy.app.startup' extension point. An |AppStartup|
 must have :
+
 - an id which must be unique and can be the id of the plugin but does not have
   to.
 - a run attribute which must be a callable taking as single argument the
@@ -104,9 +109,9 @@ must have :
 
 .. note::
 
-	Start up are called from **lowest** priority value to highest and by their
-	order of discovery if they have the same priority. The default priority is
-	20.
+    Start up are called from **lowest** priority value to highest and by their
+    order of discovery if they have the same priority. The default priority is
+    20.
 
 
 Declaring an AppClosing extension
@@ -115,13 +120,14 @@ Declaring an AppClosing extension
 In order to customize how the application determine whether or not it can exit,
 you need to contribute an |AppClosing| object to the 'ecpy.app.closing'
 extension point. An |AppClosing| must have :
+
 - an id which must be unique and can be the id of the plugin but does not have
   to.
 - a validate attribute which must be a callable taking as arguments the
   main window instance (from which the workbench can be accessed) and the
-  |CloseEvent| associated with the attempt to close the application. If the
+  |EventClose| associated with the attempt to close the application. If the
   plugin determine that the application should not be closed, it should call
-  the |CloseEvent.reject| method of the |CloseEvent|.
+  the |EventClose.reject| method of the |EventClose|.
 
 
 Declaring an AppClosed extension
@@ -130,6 +136,7 @@ Declaring an AppClosed extension
 In order to customize the application closing, you need to contribute an
 |AppClosed| object to the 'ecpy.app.closed' extension point. An |AppClosed|
 must have :
+
 - an 'id' which must be unique and can be the id of the plugin but does not
   have to.
 - a 'clean' attribute which must be a callable taking as single argument the
@@ -138,9 +145,9 @@ must have :
 
 .. note::
 
-	Closed are called from **lowest** priority value to highest and by their
-	order of discovery if they have the same priority. The default priority is
-	20.
+    Closed are called from **lowest** priority value to highest and by their
+    order of discovery if they have the same priority. The default priority is
+    20.
 
 
 Using the built in preferences manager
@@ -151,7 +158,7 @@ to the next it should use the built-in preferences management system, which
 is straightforward. First your plugin should inherit from
 |HasPreferencesPlugin| and should call the parent class start method in its own
 start method. Second all members which should be saved should be
-tagged with the 'pref' metadata (use |Member.tag| method). The value of the
+tagged with the 'pref' metadata (use the tag method). The value of the
 metadata can be `True` or any of the values presented in :ref: XXXX. All value thus
 tagged are loaded from the preference file if found, and saved when the user
 request to save the preferences. Finally, a |Preferences| object to the
@@ -160,11 +167,12 @@ can be contributed per plugin.
 
 .. note::
 
-	The preferences system saves object by writing their repr to a file so any
-	object whose repr can be evaluated by literal_eval can be saved (literal_eval
-	is used for security reasons).
+    The preferences system saves object by writing their repr to a file so any
+    object whose repr can be evaluated by literal_eval can be saved (literal_eval
+    is used for security reasons).
 
 A |Preferences| object has the following members :
+
 - 'auto_save': list of the names of members whose update should trigger an
   automatic saving of the preferences.
 - 'edit_view': an enaml Container used to edit the preferences of the plugin.
@@ -208,12 +216,14 @@ extension point.
     object can be saved under the .ini format.
 
 A |BuildDependency| needs:
+
 - an 'id' which must be unique and must match the name used for dep_type
   attribute value of the object this dependency collector is meant to act on.
 - 'collect': a method getting the build dependency of an object and
   identifying its runtime dependencies.
 
 A |RuntimeDependecy| needs:
+
 - an 'id' which must be unique.
 - 'collect': a method getting the runtime dependency of an object.
 
@@ -222,6 +232,7 @@ Customizing logging
 -------------------
 
 By default Ecpy use two logs:
+
 - a log collecting all levels and directed to a file (in the application folder
   under logs) and which is rotated daily or every time the application starts.
 - a log collecting INFO log and above and stored in a string with a max of 1000

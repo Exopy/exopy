@@ -1,6 +1,6 @@
 .. _dev_glossary:
 
-.. include:: substitutions.rst
+.. include:: ../substitutions.sub
 
 Glossary and principle
 ======================
@@ -11,7 +11,7 @@ unmounted. This adds a bit of complexity to the application but a lot of
 flexibility. This section will introduce some notions and definitions which
 will be used in the following of this guide.
 
-..contents::
+.. contents::
 
 
 Application architecture
@@ -30,6 +30,7 @@ Structure of a plugin
 ---------------------
 
 A plugin is divided into two parts:
+
 - a manifest (subclass of |PluginManifest|) which
   is purely declarative and states what functionalities the plugin contribute
   to the application and how its own functionalities can be extended.
@@ -43,6 +44,7 @@ contribute new capabilities to existing plugin.
 The manifest of a plugin is written in an enaml file (.enaml). It must be given
 an id (which must be unique and is a dot separated string, ex:
 'ecpy.app.logging') and can have a two kind of children :
+
 - |ExtensionPoint| children are used to declare points to which other plugin can
   contribute to extend the plugin capabilities. The extension point needs an
   id.
@@ -58,11 +60,12 @@ managing the access authorisation to each instrument to avoid conflict between
 different part of the application.
 
 
-**Note**
+.. note::
 
-The plugin architecture used in Ecpy comes from the `Enaml`_ library which is
-also used for building the graphical user interface. If you want to know more
-about the way plugins works in `Enaml`_ you can look at `this document`_.
+    The plugin architecture used in Ecpy comes from the `Enaml`_ library which
+    is also used for building the graphical user interface (GUI). If you want
+    to know more about the way plugins works in `Enaml`_ you can look at
+    `this document`_.
 
 .. _Enaml: http://nucleic.github.io/enaml/docs/
 .. _this document: https://github.com/nucleic/enaml/blob/master/examples/workbench/crash_course.rst
@@ -86,7 +89,7 @@ register. Once this is done the easiest way to work is to install your package
 in development mode by running from the command line (from the directory of the
 setup.py file) the following command :
 
-	$ python setup.py development
+    $ python setup.py develop
 
 In development mode, files are not copied to the python site-packages folder
 but python directly looks into the original folder when it needs them, so you

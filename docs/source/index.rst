@@ -10,6 +10,8 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   
+   Developer guide <dev_guide/index>
 
 
 
