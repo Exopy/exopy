@@ -452,9 +452,33 @@ specialized filters:
   common group (*group* member).
 
 
-Creating your own task config
------------------------------
+Creating your own task configurer
+---------------------------------
 
+In some cases, the default way to configure a task before inserting it in a 
+task hierarchy (ie simply specifying its name) is not enough. It is for example
+the case of the |LoopTask| for which we also need to configure its subtask if 
+there is one. The task configurers exist to make possible to customize the 
+creation of a new task. Creating one is once again similar to creating a new 
+task.
+
+.. note::
+
+    Task configurers are not meant to fully parametrize a task, the task view 
+    is already there for that purpose. It is rather meant to provide essential
+    informations necessary before including the task in a hierarchy or 
+    parameters not meant to change afterwards.
+    
+Minimal methods to implement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Creating the view
+^^^^^^^^^^^^^^^^^
+
+
+Declaring the configurer
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 More on tasks internals
