@@ -30,6 +30,7 @@ Creating a new task is a three step process :
 - finally the task must be declared in the manifest of the plugin contributing
   it.
 
+
 Implementing the logic
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -63,7 +64,7 @@ the default value of the task_database_entries member. The provided value
 should be a dictionary whose values specify the default value to write in the
 database. Those values can also be altered during the edition of the task
 parameters through its view by **assigning** a new dictionary to
-task_database_entries.
+database_entries.
 
 .. code-block:: python
 
@@ -73,7 +74,7 @@ task_database_entries.
         """MyTask description.
 
         """
-        task_database_entries = set_default({'val': 1})
+        database_entries = set_default({'val': 1})
 
 The actual description of what the task is meant to do is contained in the
 **perform** method which is the one you need to override (save when writing an
@@ -102,6 +103,7 @@ simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
 (formatting and evaluation) (value should be True).
 
 **You must always call the base class check method (using super).**
+
 
 When to use interfaces
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -162,12 +164,22 @@ tool tips.
             entries_updater = task.list_accessible_database_entries
             tool_tip = EVALUATER_TOOLTIP
 
+All views have a reference to the view of the root task which provides some
+useful methods to handle interfaces. It also holds a reference to the core
+plugin of the application giving access to all the application commands
+(see :doc:`application`)
+
 For more informations about the Enaml syntax please give a look at
 :doc:`atom_enaml`.
 
+.. note::
+
+    If your task accepts interfaces, the layout of your widget must be able to
+    deal with it.
+
 
 At this point your task is ready to be registered in Ecpy, however writing a
-bunch of unit tests for your test making sure it works as expected and will go
+bunch of unit tests for your task making sure it works as expected and will go
 on doing so is good idea. Give a look at :doc:`testing` for more details about
 writing tests and checking that your tests do cover all th possible cases.
 
@@ -229,33 +241,188 @@ but only two of them must be given non-default values :
 
 This is it. Now when starting Ecpy your new task should be listed.
 
+.. note::
+
+    You can also alter the metadata of a task by redeclaring it and only
+    specify the name of the task (not the full path) and omit the view. This
+    can be used for example to declare that the task support a new instrument
+    (added by your extension).
+
 
 .. _dev_tasks_new_interface:
 
 Creating a new interface
 ------------------------
 
+Creating a new interface is very similar to creating a new task and the same
+three steps exists :
+
+- first the interface itself which holds the logic must be created.
+- to allow a user to correctly parametrize the interface one or several widgets
+  should also be created, how those widgets will be laid out is the
+  responsibility of the task view.
+- finally the interface must be declared in the manifest of the plugin
+  contributing it.
+
 
 Minimal methods to implement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The interface should be a subclass either of |TaskInterface| or |IInterface|,
+according to whether it is an interface for a task or an interface for an
+interface (more on that later). Apart from that, the declaration of an
+interface is similar to the one of a task. The same method needs to be
+implemented and the handling of the database use the same members.
+
+..code-block:: python
+    from atom.api import Unicode, Int
+
+    class MyInterface(TaskInterface):
+        """MyInterface description.
+
+        Use Numpy style docstrings.
+
+        """
+        #: my_int description
+        my_int = Int(1).tag(pref=True)  # Integer with a default value of 1
+
+        #: my_text description
+        my_text = Unicode().tag(pref=True)
+
+        database_entries = set_default({'val': 1})
+
+.. note::
+
+    The useful methods cited on in task section are available only on the task
+    not on the interface, so you need to access to them through the task (via
+    the *task* member)
 
 
 When to use interfaces
 ^^^^^^^^^^^^^^^^^^^^^^
 
+The problem solved for tasks by using interfaces can be found also interfaces.
+That's why Ecpy allow to have interfaces for interfaces without depth limit.
+Declaring an interfaceable interface is done in the same way, an interfaceable
+task. The only difference is the use of the |InterfaceableInterfaceMixin| class
+instead of the |InterfaceableTaskMixin|.
 
-Creating the view
-^^^^^^^^^^^^^^^^^
+
+Creating the view(s)
+^^^^^^^^^^^^^^^^^^^^
+
+Just like for task, you need to provide a widget to edit the interface
+parameters. Actually for interfaces you can provide several. Whether you need
+one or several depends on the task your interface plugs into.
+
+Because of this liberty, there is no base widget for interfaces as different
+tasks. However to work correctly, your views should always declare a *root*
+attribute (to which a reference to the view of the root task is assigned) and
+an *interface* attribute (in which a reference to the interface is stored).
+
+.. code-block:: enaml
+
+    enamldef MyInterfaceView(Container):
+
+        #: Reference to the RootTask view.
+        attr root
+
+        #: Reference to the interface to which this view is bound.
+        attr interface
 
 
 Registering your interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Registering an interface is quite similar to registering a task with the
+notable difference that the interface need to know to which task or interface
+it is bound.
+
+Let's say we need to declare an interface named *MyInterface*. This interface
+is linked to *MyTask*. The name of our extension package (see :doc:`glossary`)
+is named 'my_ecpy_plugin'.
+Let's look at the example below:
+
+.. code-block:: enaml
+
+    enamldef MyPluginManifest(PluginManifest):
+
+        id = 'my_plugin_id'
+
+        Extension:
+            point = 'ecpy.tasks.declarations'
+
+            Tasks:
+                group = 'my_group'
+                path = 'my_ecpy_plugin'
+
+                Task:
+                    task = 'my_task:MyTask'
+                    view = 'views.my_task:MyView'
+                    metadata = {'loopable': True}
+
+                    Interfaces:
+                        path = 'interfaces'
+
+                        Interface:
+                            interface = 'my_interface:MyInterface'
+                            views = ['views.my_interface:MyInterfaceView']
+
+Here we simply added an |Interface| as a child of the declaration of *MyTask*
+presented in the previous section. Because it is a child of the *MyTask*
+declaration it will automatically infer that the parent task is *MyTask*.
+Furthermore, both the |Tasks| path and the |Interfaces| path will be prepended
+to the interface and views attributes.
+
+.. note ::
+
+    The group attribute of |Interfaces| even when specified is unused.
+
+However when declaring an interface for an existing task, redeclaring the task
+would be tedious that's why the |Interface| has an *extended* member. This
+member expect a list with the name of the task to which this interface
+contributes. If the interface contribute to an interface the task and all the
+intermediate interfaces should be listed (the task being the first in the
+list). Contributing to the |LoopTask| for example would look like that for
+example :
+
+.. code-block:: enaml
+
+    enamldef MyPluginManifest(PluginManifest):
+
+        id = 'my_plugin_id'
+
+        Extension:
+            point = 'ecpy.tasks.declarations'
+
+            Interfaces:
+                path = 'my_ecpy_plugin.interfaces'
+
+                Interface:
+                    interface = 'my_interface:MyInterface'
+                    views = ['views.my_interface:MyInterfaceView']
+                    extended = ['LoopTask']
+
+.. note::
+
+    |Interface|, like |Task| has a *metadata* and an *instruments* members
+    which have the exact same functionalities.
+
 
 .. _dev_tasks_new_filter:
 
 Creating your own task filter
 -----------------------------
 
+
+
+
 Creating your own task config
 -----------------------------
+
+
+
+More on tasks internals
+-----------------------
+
 

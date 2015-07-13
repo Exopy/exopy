@@ -83,6 +83,18 @@
 
 .. |Task| replace:: :py:class:`~ecpy.tasks.manager.declarations.Task`
 
+.. |TaskInterface| replace:: :py:class:`~ecpy.tasks.task_interfaces.TaskInterface`
+
+.. |IInterface| replace:: :py:class:`~ecpy.tasks.task_interfaces.IInterface`
+
+.. |InterfaceableInterfaceMixin| replace:: :py:class:`~ecpy.tasks.task_interfaces.InterfaceableInterfaceMixin`
+
+.. |Interface| replace:: :py:class:`~ecpy.tasks.manager.declarations.Interface`
+
+.. |Interfaces| replace:: :py:class:`~ecpy.tasks.manager.declarations.Interfaces`
+
+.. |LoopTask| replace:: :py:class:`~ecpy.tasks.tasks.logic.loop_task.LoopTask`
+
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 
