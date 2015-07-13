@@ -95,6 +95,14 @@
 
 .. |LoopTask| replace:: :py:class:`~ecpy.tasks.tasks.logic.loop_task.LoopTask`
 
+.. |TaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.TaskFilter`
+
+.. |SubclassTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.SubclassTaskFilter`
+
+.. |MetadataTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.MetadataTaskFilter`
+
+.. |GroupTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.GroupTaskFilter`
+
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 

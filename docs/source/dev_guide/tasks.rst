@@ -414,7 +414,42 @@ example :
 Creating your own task filter
 -----------------------------
 
+As the number of tasks available in Ecpy grows, finding the task you need might
+become a bit tedious. To make searching through tasks easier Ecpy can filter
+the tasks from which to choose from. A number a basic filters are built-in but
+one can easily add more.
 
+To add a new filter you simply need to contribute a |TaskFilter| to the
+'ecpy.tasks.filters' extension point, as in the following example :
+
+.. code-block:: enaml
+
+    enamldef MyPluginManifest(PluginManifest):
+
+        id = 'my_plugin_id'
+
+        Extension:
+            point = 'ecpy.tasks.filters'
+
+            TaskFilter:
+                id = 'MyTaskFilter'
+                filter_tasks => (tasks, templates):
+                    return sorted(tasks)[::2]
+
+A filter need a unique *id* (basically its name) and a method to filter through
+tasks. This method receives two dictionaries: the first ones contains the known
+tasks and their associated infos, the second the templates names and their
+path. Here we overrode the *filter_tasks* method (see :doc:`atom_enaml` for
+more details about the syntax), we could also have used one of the following
+specialized filters:
+
+- |SubclassTaskFilter|: filter the tasks (exclude the templates) looking for
+  a common subclass (declared in the *subclass* attribute)
+- |MetadataTaskFilter|: filter the tasks (exclude the templates) based on the
+  value of a metadata (*meta_key* is the metadata entry to look for,
+  *meta_value* the value looked for).
+- |GroupTaskFilter|: filter the tasks (exclude the templates) belonging to a
+  common group (*group* member).
 
 
 Creating your own task config
