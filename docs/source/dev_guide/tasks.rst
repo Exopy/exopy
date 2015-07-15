@@ -543,4 +543,27 @@ meant is declared through its name (*task* attribute).
 More on tasks internals
 -----------------------
 
+Edition mode vs running mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo::
+
+
+Parallel execution and waiting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo::
+
+
+Database access and exceptions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo::
+
+
+Shared resources
+^^^^^^^^^^^^^^^^
+
+.. todo::
+
 
