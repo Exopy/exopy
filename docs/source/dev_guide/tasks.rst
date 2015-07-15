@@ -455,30 +455,89 @@ specialized filters:
 Creating your own task configurer
 ---------------------------------
 
-In some cases, the default way to configure a task before inserting it in a 
+In some cases, the default way to configure a task before inserting it in a
 task hierarchy (ie simply specifying its name) is not enough. It is for example
-the case of the |LoopTask| for which we also need to configure its subtask if 
-there is one. The task configurers exist to make possible to customize the 
-creation of a new task. Creating one is once again similar to creating a new 
+the case of the |LoopTask| for which we also need to configure its subtask if
+there is one. The task configurers exist to make possible to customize the
+creation of a new task. Creating one is once again similar to creating a new
 task.
 
 .. note::
 
-    Task configurers are not meant to fully parametrize a task, the task view 
+    Task configurers are not meant to fully parametrize a task, the task view
     is already there for that purpose. It is rather meant to provide essential
-    informations necessary before including the task in a hierarchy or 
+    informations necessary before including the task in a hierarchy or
     parameters not meant to change afterwards.
-    
+
+.. note::
+
+    When a task configurer is specified for a task it is by default used form
+    all its subclasses too.
+
 Minimal methods to implement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+All task configurer needs to inherit from |PyTaskConfig|, which defines the
+expected interface of all configurers. When creating a new configurer two
+methods need to be overwritten :
+
+- build_task : this method is supposed to return when called a new instance of
+  the task being configured correctly initialized. The configurer holds a
+  refrence to the class of the task it is configuring.
+
+- check_parameters : this method should set the *ready* flag to *True* if all
+  the parameters required by the configurer have been provided and *False*
+  otherwise. It should be called each time the value of a parameter change
+  (using a *_post_settattr_\** method).
+
+.. code-block:: python
+
+    class MyTaskConfig(PyTaskConfig):
+        """Config for MyTask.
+
+        """
+        #: My parameter description
+        parameter = Int()
+
+        def check_parameters(self):
+            """Ensure that parameter is positive and task has a name.
+
+            """
+            self.ready = self.parameter and self.task_name
+
+        def build_task(self):
+            """Build an instance of MyTask.
+
+            """
+            return self.task_class(name=self.task_name,
+                                   parameter=self.parameter)
+
+        def _post_setattr_parameter(self, old, new):
+            """Check parameters each time parameter is updated.
+
+            """
+            self.check_parameters()
 
 Creating the view
 ^^^^^^^^^^^^^^^^^
 
+Just like for tasks and interfaces, you need to create a custom widget to
+allow the user to parametrize the configurer. Your widget should inherit from
+|PyConfigView|. This widget is simple container with a label and a field to
+edit the task name. Furthermore it has two attributes :
+
+- config : a reference the task configurer being edited.
+- loop : a bool indicating whether or not the task is meant to be embedded in
+  a loop.
 
 Declaring the configurer
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+Finally you must declare the config in a manifest by contributing an
+extension to the 'ecpy.tasks.configs' extension point. This is identical to
+how tasks are declared but relies on the |TaskConfigs| (instead of |Tasks|) and
+|TaskConfig| (instead of |Task|) objects. The task for which the configurer is
+meant is declared through its name (*task* attribute).
 
 
 More on tasks internals

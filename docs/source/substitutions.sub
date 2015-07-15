@@ -103,6 +103,14 @@
 
 .. |GroupTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.GroupTaskFilter`
 
+.. |PyTaskConfig| replace:: :py:class:`~ecpy.tasks.manager.configs.base_configs.PyTaskConfig`
+
+.. |PyConfigView| replace:: :py:class:`~ecpy.tasks.manager.configs.base_config_views.PyConfigView`
+
+.. |TaskConfigs| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfigs`
+
+.. |TaskConfig| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfig`
+
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 
