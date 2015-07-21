@@ -67,11 +67,19 @@
 
 .. |ComplexTask| replace:: :py:class:`~ecpy.tasks.base_tasks.ComplexTask`
 
+.. |RootTask| replace:: :py:class:`~ecpy.tasks.base_tasks.RootTask`
+
 .. |write_in_database| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.write_in_database`
 
 .. |format_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_string`
 
 .. |format_and_eval_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_and_eval_string`
+
+.. |perform| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.perform`
+
+.. |database_entries| replace:: :py:attr:`~ecpy.tasks.base_tasks.BaseTask.database_entries`
+
+.. |resources| replace:: :py:attr:`~ecpy.tasks.base_tasks.RootTask.resources`
 
 .. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
 

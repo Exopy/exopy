@@ -58,13 +58,14 @@ used to identify the part to replace with the value stored in the database).
         #: my_text description
         my_text = Unicode().tag(pref=True)
 
-If the task needs to write a value in the database (typically all computed or
-measured values should be stored), the entries should be declared by changing
-the default value of the task_database_entries member. The provided value
-should be a dictionary whose values specify the default value to write in the
-database. Those values can also be altered during the edition of the task
-parameters through its view by **assigning** a new dictionary to
-database_entries.
+Tasks use a common database (which is nothing else that a kind of smart 
+dictionary) to exchange data. If a task needs to write a value in the database 
+(typically all computed or measured values should be stored), the entries 
+should be declared by changing the default value of the |database_entries| 
+member. The provided value should be a dictionary whose values specify the 
+default value to write in the database. Those values can also be altered during
+the edition of the task parameters through its view by **assigning** a new 
+dictionary to |database_entries|.
 
 .. code-block:: python
 
@@ -543,27 +544,94 @@ meant is declared through its name (*task* attribute).
 More on tasks internals
 -----------------------
 
-Edition mode vs running mode
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Parallel execution, waiting, stopping and pausing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo::
+For any task one can specify a number of parameters concerning how the
+|perform| is called :
 
+- should the task be executed in another thread (ie in parallel) of the rest of
+  the execution. This is controlled by the value of the |parallel| attribute.
+  Threads are grouped by pool to simplify the synchronization issues.
+- should the task wait on any other task before running. This is controlled by
+  the |wait| attribute. One can specify whether to wait for all threads to 
+  proceed or only on some pools (or to wait for all threads save the ones in 
+  some pools). 
+- should one be able to stop the execution of the whole hierarchy or set it on
+  pause when calling this task.
+  
+To give that flexibility, the actual *perform* method of the task is wrapped 
+when running the *check* method and it is partly why it is vital to always call
+the |BaseTask| *check* method. 
 
-Parallel execution and waiting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. note::
 
-.. todo::
+    First the condition for stopping/pausing is checked, then the task wait for
+    other to terminate and finally the task is executed in parallel if 
+    parametrized to do so.
+    
+.. note::
+    
+    Please note that if waiting from a thread one must be careful not to wait 
+    on the pool from which it is part. For example, if a ComplexTask is 
+    performed in parallel all child task must be careful not to wait upon the
+    pool to which the ComplexTask belong.
 
 
 Database access and exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo::
+As stated above, tasks use a common database to exchange data. This database is
+organized hierarchically like the tasks themselves. To each |ComplexTask|, will 
+be associated a node in the database. Each task can write in the database in
+the node of their parent (ie a |ComplexTask| does not write into its own node, 
+only the |RootTask| does this). 
 
+By default a task can only access to the entries written in the same node, it 
+can write or in nodes higher in the hierarchy. However, it is sometimes 
+desirable to relax this constraint. One such case is when a |ComplexTask| is 
+used to isolate a complex operation, but following tasks need to access results
+of some inner tasks of the previously cited |ComplexTask|. To do so, the
+database has a notion of *access exceptions*, which basically make an entry 
+appears on the node its original node (and exceptions can be chained to go up
+as many times as necessary).
+
+From the developer point of view, this does not change anything, as he does not
+need to do anything in the task to allow this.
 
 Shared resources
 ^^^^^^^^^^^^^^^^
 
-.. todo::
+The database is the right way to exchange data such as numbers and arrays 
+between tasks. However some tasks can also access to other kind of resources
+such as instruments or file descriptors. Generally such resources need to be 
+properly initialized and more importantly finalized. Furthermore they can be 
+shared by multiple tasks, suggesting a thread-safe way to store and manipulate
+them. As a task is not aware of whether or not it will be called again in the 
+future, it cannot properly close its resource (as closing and re-opening a 
+resource repeatedly is most likely time costly). That's why such resources 
+should be stored in special containers in the |resources| attributes of the 
+|RootTask|. The |resources| attributes is a dictionary, the keys allowing
+to easily retrieve the wanted container.
+
+For each kind of object to store, one should create a subclass of 
+|ResourceHolder| implementing the *release* and *reset* methods (look at the 
+API docs for more details). When first creating a resource, check whether
+or not the right container already exists in the |resources| attribute or not,
+and store the newly created resource.
+
+At the end of the *perform* method of the |RootTask|, all the stored resources
+are properly released avoiding any corruption.
 
 
+Edition mode vs running mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some places in the code, one may find references to the notion of running
+mode for the database. This mode should be activated when the edition of the
+tasks hierarchy is over as it allows to speed up a number of operations. In
+running mode, the databased is flattened to allow fast repeated access to the
+same entry by first querying its index and then using that index for getting
+the value. Because of this, no entry can be added or removed from the database.
+Another optimization is performed by caching a pre-evaluated version of all
+formulas used in tasks.
