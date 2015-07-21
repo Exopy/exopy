@@ -274,7 +274,7 @@ interface (more on that later). Apart from that, the declaration of an
 interface is similar to the one of a task. The same method needs to be
 implemented and the handling of the database use the same members.
 
-..code-block:: python
+.. code-block:: python
     from atom.api import Unicode, Int
 
     class MyInterface(TaskInterface):

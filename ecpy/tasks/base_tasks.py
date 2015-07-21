@@ -1027,10 +1027,7 @@ class RootTask(ComplexTask):
     #: shared between task and which must be released when all tasks have been
     #: performed.
     #: Each key is associated to a different kind of resource. Resources must
-    #: be stored in SharedDict instances. A function taking as single argument
-    #: the resource must be stored alongside the resource (each dictionary
-    #: value must be a tuple of length 2). The releasing function must be safe
-    #: to call on an already released resource.
+    #: be stored in SharedDict subclass.
     #: By default three kind of resources exists:
     #: - threads : currently running threads grouped by pool.
     #:   ({pool: [threads, releaser]})
