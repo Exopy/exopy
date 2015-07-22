@@ -89,10 +89,10 @@ relies on three extension points (one for each behaviour) :
 
    The customisation of the start up and exit of the application should only be
    used for operations not fitting into the |Plugin.start| and |Plugin.stop|
-   methods of the plugin. This fits operation that must be performed at
-   application start up and cannot be deferred to plugin starting, or clean up
-   operations requiring the full application to be active (ie not dependent
-   only on the plugin state).
+   methods of the plugin. This customization fits operations that must be
+   performed at application start up and cannot be deferred to plugin starting,
+   or clean up operations requiring the full application to be active (ie not
+   dependent only on the plugin state).
 
 Declaring an AppStartup extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
