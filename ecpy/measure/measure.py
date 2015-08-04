@@ -13,6 +13,7 @@ to the tools such as headers, monitors and checks.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import logging
 from traceback import format_exc
 
 from atom.api import Atom, Instance, Dict, Unicode, ForwardTyped, Enum
@@ -34,6 +35,10 @@ class Measure(Atom):
     """Object representing all the aspects of a measure.
 
     """
+    #: Name of the measure. This value is synchronized with the ones found
+    #: in the root task and the monitors.
+    name = Unicode()
+
     #: Flag indicating the measure status.
     status = Enum()
 
@@ -135,7 +140,6 @@ class Measure(Atom):
                                 dict(kind='measure',
                                      msg=msg % (config.get('name'),
                                                 format_exc())))
-        measure.root_task.meas_name = config['name']
 
         for kind in ('monitors', 'pre-hooks', 'post-hooks'):
             saved = config.get(kind, {})
@@ -150,12 +154,15 @@ class Measure(Atom):
                     core.invoke_command(err_cmd,
                                         dict(kind='measure', msg=mess))
                     continue
-                measure.add(kind[:-1], id, obj)
+                measure.add_tool(kind[:-1], id, obj)
+
+        measure.name = config.get('name', '')
 
         return measure
 
 # XXXX Refactor
-    def run_checks(self, workbench, test_instr=False, internal_only=False):
+    def run_pre_measure(self, workbench, test_instr=False,
+                        internal_only=False):
         """Run the checks to see if everything is ok.
 
         First the task specific checks are run, and then the ones contributed
@@ -188,11 +195,17 @@ class Measure(Atom):
 
         return result, full_report
 
+    def run_post_measure(self):
+        """
+        """
+        pass
+# XXXX already refactored after this point.
+
     def enter_edition_state(self):
         """Make the the measure ready to be edited
 
         """
-        database = self.root_task.task_database
+        database = self.root_task.database
         for monitor in self.monitors.values():
             if not database.has_observer('notifier',
                                          monitor.database_modified):
@@ -202,42 +215,39 @@ class Measure(Atom):
         """Make the measure ready to run.
 
         """
-        database = self.root_task.task_database
+        database = self.root_task.database
         for monitor in self.monitors.values():
             if database.has_observer('notifier', monitor.database_modified):
                 database.unobserve('notifier', monitor.database_modified)
 
-    def add_monitor(self, id, monitor, refresh=True):
-        """Add a monitor, connect observers.
+    def add_tool(self, kind, id, tool, refresh=True):
+        """Add a tool to the measure.
 
         Parameters
         ----------
-        id : unicode
-            Id of the monitor being added.
+        kind : {'monitor', 'pre_hook', 'post_hook'}
+            Kind of tool beinig added to the measure.
 
-        monitor : BaseMonitor
-            Instance of the monitor being added.
+        id : unicode
+            Id of the tool being added.
+
+        tool : MeasureTool
+            Tool being added.
 
         """
-        if id in self.monitors:
-            logger = logging.getLogger(__name__)
-            logger.warn('Monitor already present : {}'.format(id))
-            return
+        tools = getattr(self, kind + 's').copy()
 
-        monitor.measure_name = self.name
-        monitor.measure_status = self.status
+        if id in tools:
+            msg = 'Tool %s is already present in measure %s'
+            raise KeyError(msg % (id, self.name))
 
-        database = self.root_task.task_database
-        monitors = self.monitors.copy()
-        monitors[id] = monitor
-        self.monitors = monitors
-        if refresh:
-            database_entries = database.list_all_entries(values=True)
-            monitor.refresh_monitored_entries(database_entries)
-        database.observe('notifier', monitor.database_modified)
+        tool.link_to_measure(self)
 
-    def remove_monitor(self, id):
-        """Remove a monitor and disconnect observers.
+        tools[id] = tool
+        setattr(self, kind + 's', tools)
+
+    def remove_tool(self, kind, id):
+        """Remove a tool.
 
         Parameters
         ----------
@@ -245,26 +255,16 @@ class Measure(Atom):
             Id of the monitor to remove.
 
         """
-        if id not in self.monitors:
-            logger = logging.getLogger(__name__)
-            logger.warn('Monitor is not present : {}'.format(id))
-            return
+        tools = getattr(self, kind + 's').copy()
 
-        database = self.root_task.task_database
-        monitors = self.monitors.copy()
-        monitor = monitors.pop(id)
-        database.unobserve('notifier', monitor.database_modified)
-        self.monitors = monitors
+        if id not in tools:
+            msg = 'Tool %s is not present in measure %s'
+            raise KeyError(msg % (id, self.name))
 
-    def collect_headers(self, workbench):
-        """Set the default_header of the root task using all contributions.
+        tools[id].unlink_from_measure(self)
 
-        """
-        header = ''
-        for id, header_decl in self.headers.iteritems():
-            header += '\n' + header_decl.build_header(workbench)
-
-        self.root_task.default_header = header.strip()
+        del tools[id]
+        setattr(self, kind + 's', tools)
 
     def collect_entries_to_observe(self):
         """Get all the entries the monitors ask to be notified about.
@@ -316,5 +316,7 @@ class Measure(Atom):
         """Make sure the monitors know the name of the measure.
 
         """
+        self.root_task.meas_name = new
+
         for monitor in self.monitors.values():
             monitor.measure_name = new
