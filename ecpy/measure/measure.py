@@ -13,9 +13,10 @@ to the tools such as headers, monitors and checks.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from traceback import format_exc
+
 from atom.api import Atom, Instance, Dict, Unicode, ForwardTyped, Enum
 from configobj import ConfigObj
-import logging
 
 from ecpy.tasks.base_tasks import RootTask
 from ecpy.utils.configobj_ops import include_configobj
@@ -48,11 +49,11 @@ class Measure(Atom):
     #: Dict of active monitor for this measure.
     monitors = Dict()
 
-    #: Dict of checks for this measure
-    checks = Dict()
+    #: Dict of pre-measure execution routines.
+    pre_hooks = Dict()
 
-    #: Dict of header generators to call.
-    headers = Dict()
+    #: Dict of post-measure execution routines.
+    post_hooks = Dict()
 
     #: Reference to the measure plugin managing this measure.
     plugin = ForwardTyped(measure_plugin)
@@ -71,25 +72,23 @@ class Measure(Atom):
         """
         config = ConfigObj(indent_type='    ', encoding='utf-8')
 
+        # First save the task.
         core = self.plugin.workbench.get_plugin(u'enaml.workbench.core')
         cmd = u'ecpy.tasks.save'
         task_prefs = core.invoke_command(cmd, {'task': self.root_task,
                                                'mode': 'config'}, self)
-
         config['root_task'] = {}
         include_configobj(config['root_task'], task_prefs)
 
-        i = 0
-        for id, monitor in self.monitors.iteritems():
-            state = monitor.get_state()
-            state['id'] = id
-            config['monitor_{}'.format(i)] = state
-            i += 1
+        # Save the state of each monitor, pre-hook, post-hook.
+        for kind in ('monitors', 'pre_hooks', 'post_hooks'):
+            config[kind] = {}
+            for id, obj in getattr(self, kind).iteritems():
+                state = obj.get_state()
+                config[kind][id] = {}
+                include_configobj(config[kind][id], state)
 
-        config['monitors'] = repr(i)
-        config['checks'] = repr(self.checks.keys())
-        config['headers'] = repr(self.headers.keys())
-        # Stays here for backwards compatibility
+        # Also save the name of the measure for readability purposes.
         config['name'] = self.root_task.meas_name
 
         with open(path, 'w') as f:
@@ -110,63 +109,52 @@ class Measure(Atom):
             Path of the file from which to load the measure.
 
         """
-        logger = logging.getLogger(__name__)
+        # Create the measure.
         measure = cls()
         config = ConfigObj(path)
         measure.plugin = measure_plugin
         measure.path = path
 
+        # Gather all errors occuring while loading the measure.
         workbench = measure_plugin.workbench
         core = workbench.get_plugin(u'enaml.workbench.core')
+        cmd = 'ecpy.app.errors.enter_error_gathering'
+        core.invoke_command(cmd)
+        err_cmd = 'ecpy.app.errors.signal'
+
+        # Load the task.
         cmd = u'hqc_meas.task_manager.build_root'
         kwarg = {'mode': 'config', 'config': config['root_task'],
                  'build_dep': build_dep}
-        measure.root_task = core.invoke_command(cmd, kwarg, measure)
+        try:
+            measure.root_task = core.invoke_command(cmd, kwarg, measure)
+        except Exception:
+            msg = 'Building %s, failed to restore task : %s'
+            # TODO think of a nice error reporting
+            core.invoke_command(err_cmd,
+                                dict(kind='measure',
+                                     msg=msg % (config.get('name'),
+                                                format_exc())))
         measure.root_task.meas_name = config['name']
-        database = measure.root_task.task_database
-        entries = database.list_all_entries(values=True)
 
-        for i in range(eval(config['monitors'])):
-            monitor_config = config['monitor_{}'.format(i)]
-            id = monitor_config.pop('id')
-            try:
-                monitor_decl = measure_plugin.monitors[id]
-
-            except KeyError:
-                mess = 'Requested monitor not found : {}'.format(id)
-                logger.warn(mess)
-
-            try:
-                monitor = monitor_decl.factory(monitor_decl, workbench,
-                                               raw=True)
-                monitor.set_state(monitor_config, entries)
-                # Don't refresh as it has been done already
-                measure.add_monitor(id, monitor, False)
-
-            except Exception:
-                mess = 'Failed to restore monitor : {}'.format(id)
-                logger.warn(mess, exc_info=True)
-
-        for check_id in eval(config['checks']):
-            try:
-                check = measure_plugin.checks[check_id]
-                measure.checks[check_id] = check
-
-            except KeyError:
-                mess = 'Requested check not found : {}'.format(check_id)
-                logger.warn(mess)
-
-        for header_id in eval(config['headers']):
-            try:
-                header = measure_plugin.headers[header_id]
-                measure.headers[header_id] = header
-
-            except KeyError:
-                mess = 'Requested header not found : {}'.format(header_id)
-                logger.warn(mess)
+        for kind in ('monitors', 'pre-hooks', 'post-hooks'):
+            saved = config.get(kind, {})
+            for id, state in saved.iteritems():
+                obj = measure_plugin.create(kind[:-1], id, bare=True)
+                try:
+                    obj.set_state(state, measure)
+                except Exception:
+                    mess = 'Failed to restore {} : {}'.format(kind[:-1],
+                                                              format_exc())
+                    # TODO think of a nice error reporting
+                    core.invoke_command(err_cmd,
+                                        dict(kind='measure', msg=mess))
+                    continue
+                measure.add(kind[:-1], id, obj)
 
         return measure
 
+# XXXX Refactor
     def run_checks(self, workbench, test_instr=False, internal_only=False):
         """Run the checks to see if everything is ok.
 
