@@ -154,6 +154,12 @@ class InterfaceableTaskMixin(InterfaceableMixin):
             prefs = self.interface.preferences_from_members()
             self.preferences['interface'] = prefs
 
+            # Always make the interface the first section.
+            if len(self.preferences.sections) > 1:
+                ind = self.preferences.sections.index('interface')
+                del self.preferences.sections[ind]
+                self.preferences.sections.insert(0, 'interface')
+
     def update_preferences_from_members(self):
         """Update the values stored in the preference system.
 
@@ -163,6 +169,12 @@ class InterfaceableTaskMixin(InterfaceableMixin):
         if self.interface:
             prefs = self.interface.preferences_from_members()
             self.preferences['interface'] = prefs
+
+            # Always make the interface the first section.
+            if len(self.preferences.sections) > 1:
+                ind = self.preferences.sections.index('interface')
+                del self.preferences.sections[ind]
+                self.preferences.sections.insert(0, 'interface')
 
     def get_error_path(self):
         """Build the path to use when reporting errors during checks.
