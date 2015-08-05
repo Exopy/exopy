@@ -23,6 +23,9 @@ from ecpy.tasks.base_tasks import RootTask
 from ecpy.utils.configobj_ops import include_configobj
 
 
+logger = logging.getLogger(__name__)
+
+
 def measure_plugin():
     """Delayed to avoid circular references.
 
@@ -160,46 +163,111 @@ class Measure(Atom):
 
         return measure
 
-# XXXX Refactor
-    def run_pre_measure(self, workbench, test_instr=False,
-                        internal_only=False):
-        """Run the checks to see if everything is ok.
+    def run_pre_measure(self, workbench, scope='complete', **kwargs):
+        """Run pre measure operations.
 
-        First the task specific checks are run, and then the ones contributed
-        by plugins.
+        Those operations consist of the built-in task checks and any
+        other operation contributed by a pre-measure hook.
+
+        Parameters
+        ----------
+        workbench : Workbench
+            Reference to the application workbench.
+
+        scope : unicode, optional
+            Flag used to specify which pre-measure operations run. By default
+            all operations are run. To only run the built-in tasks checks use
+            'internal'. Any other value will be interpreted as a hook kind and
+            only the hooks of that kind will be run.
+
+        **kwargs :
+            Keyword arguments to pass to the pre-operations.
 
         Returns
         -------
         result : bool
-            Bool indicating whether or not the tests passed.
+            Boolean indicating whether or not the operations succeeded.
 
-        errors : dict
-            Dictionary containing the failed check organized by id ('internal'
-            or check id).
+        report : dict
+            Dict storing the errors (as dict) by id of the operation in which
+            they occured.
 
         """
         result = True
         full_report = {}
-        check, errors = self.root_task.check(test_instr=test_instr)
-        if errors:
-            full_report['internal'] = errors
-        result = result and check
 
-        if not internal_only:
-            for id, check_decl in self.checks.iteritems():
-                check, errors = check_decl.perform_check(workbench,
-                                                         self.root_task)
+        if scope in ('internal', 'complete'):
+            logger.debug('Running internal checks for measure %s',
+                         self.name)
+            check, errors = self.root_task.check(**kwargs)
+            if errors:
+                full_report['internal'] = errors
+            result = result and check
+            if scope == 'internal':
+                return result, full_report
+
+        pre_hooks = ({k: v for k, v in self.pre_hooks.iteritems()
+                     if v.declaration.kind == scope}
+                     if scope != 'complete' else self.pre_hooks)
+
+        for id, hook in pre_hooks.iteritems():
+            logger.debug('Calling pre-measure hook %s for measure %s',
+                         id, self.name)
+            answer = hook.run(workbench, self, **kwargs)
+            if answer is not None:
+                check, errors = answer
                 if errors:
                     full_report[id] = errors
                 result = result and check
 
         return result, full_report
 
-    def run_post_measure(self):
+    def run_post_measure(self, workbench, scope='complete', **kwargs):
+        """Run post measure operations.
+
+        Those operations consist of the operations contributed by
+        post-measure hooks.
+
+        Parameters
+        ----------
+        workbench : Workbench
+            Reference to the application workbench.
+
+        scope : unicode, optional
+            Flag used to specify which post-measure operations run. By default
+            all operations are run. A non default value will be interpreted as
+            a hook kind and only the hooks of that kind will be run.
+
+        **kwargs :
+            Keyword arguments to pass to the post-operations.
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating whether or not the operations succeeded.
+
+        report : dict
+            Dict storing the errors (as dict) by id of the operation in which
+            they occured.
+
         """
-        """
-        pass
-# XXXX already refactored after this point.
+        result = True
+        full_report = {}
+        post_hooks = ({k: v for k, v in self.pre_hooks.iteritems()
+                      if v.declaration.kind == scope}
+                      if scope != 'complete' else self.post_hooks)
+
+        for id, hook in post_hooks.iteritems():
+            logger.debug('Calling post-measure hook %s for measure %s',
+                         id, self.name)
+            answer = hook.run(workbench, self, **kwargs)
+            if answer is not None:
+                check, errors = answer
+                if errors:
+                    full_report[id] = errors
+                result = result and check
+
+        return result, full_report
 
     def enter_edition_state(self):
         """Make the the measure ready to be edited
