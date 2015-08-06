@@ -6,8 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Enaml objects used to declare tasks, interfaces and configs in a plugin
-manifest.
+"""Objects used to store tasks, interfaces and configs in the manager.
 
 """
 from __future__ import (division, unicode_literals, print_function,
