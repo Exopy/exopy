@@ -149,7 +149,7 @@ class Measure(Atom):
             for id, state in saved.iteritems():
                 obj = measure_plugin.create(kind[:-1], id, bare=True)
                 try:
-                    obj.set_state(state, measure)
+                    obj.set_state(state)
                 except Exception:
                     mess = 'Failed to restore {} : {}'.format(kind[:-1],
                                                               format_exc())
@@ -294,7 +294,7 @@ class Measure(Atom):
         Parameters
         ----------
         kind : {'monitor', 'pre_hook', 'post_hook'}
-            Kind of tool beinig added to the measure.
+            Kind of tool being added to the measure.
 
         id : unicode
             Id of the tool being added.
@@ -353,38 +353,8 @@ class Measure(Atom):
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    def _post_setattr_root_task(self, old, new):
-        """Make sure that the monitors observe the right database.
-
-        """
-        monitors = self.monitors.values()
-        if old:
-            # Stop observing the database (remove all handlers)
-            old.task_database.unobserve('notifier')
-
-        root = new
-        database = root.task_database
-        for monitor in monitors:
-            monitor.clear_state()
-            root.task_database.observe('notifier',
-                                       monitor.database_modified)
-
-            database_entries = database.list_all_entries(values=True)
-            monitor.refresh_monitored_entries(database_entries)
-
-    def _post_setattr_status(self, old, new):
-        """Update the monitors' status when the measure is run.
-
-        """
-        if new:
-            for monitor in self.monitors.values():
-                monitor.measure_status = new
-
     def _post_setattr_name(self, old, new):
         """Make sure the monitors know the name of the measure.
 
         """
         self.root_task.meas_name = new
-
-        for monitor in self.monitors.values():
-            monitor.measure_name = new
