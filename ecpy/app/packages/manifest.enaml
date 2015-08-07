@@ -52,7 +52,10 @@ def packages_plugin_factory():
 # =============================================================================
 
 PACKAGE_ERROR_DESCRIPTION =\
-"""
+"""Specific handler for package loading errors.
+
+The handler expects the 'id' of the package for which loading failed and a
+'message' explaining what happened.
 """
 
 
