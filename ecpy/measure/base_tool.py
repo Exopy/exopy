@@ -82,7 +82,7 @@ class BaseToolDeclaration(Declarative):
     #: Description of the tool.
     description = d_(Unicode())
 
-    #: Falg indicating whether the tool has an associated parametrisation
+    #: Flag indicating whether the tool has an associated parametrisation
     #: widget.
     has_view = d_(Bool())
 

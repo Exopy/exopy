@@ -101,5 +101,8 @@ class Monitor(BaseToolDeclaration):
     Monitor object can be contributed as extensions child to the
     'monitors' extension point of the 'ecpy.measure' plugin.
 
+    The name member inherited from enaml.core.Object should always be set to an
+    easily understandable name for the user.
+
     """
     pass

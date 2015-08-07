@@ -59,6 +59,9 @@ class PreExecutionHook(BaseToolDeclaration):
     PreExecutionHook object can be contributed as extensions child to the
     'pre-execution' extension point of the 'ecpy.measure' plugin.
 
+    The name member inherited from enaml.core.Object should always be set to an
+    easily understandable name for the user.
+
     """
     pass
 
@@ -68,6 +71,9 @@ class PostExecutionHook(BaseToolDeclaration):
 
     PostExecutionHook object can be contributed as extensions child to the
     'post-execution' extension point of the 'ecpy.measure' plugin.
+
+    The name member inherited from enaml.core.Object should always be set to an
+    easily understandable name for the user.
 
     """
     pass
