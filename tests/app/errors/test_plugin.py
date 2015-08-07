@@ -76,6 +76,10 @@ def test_life_cycle(workbench):
 
     assert len(plugin.errors) == 3
 
+    plugin._errors_handlers.contributions = {}
+
+    assert len(plugin.errors) == 0
+
     plugin.stop()
 
     assert not len(plugin.errors)

@@ -71,11 +71,13 @@ class ErrorsPlugin(Plugin):
                                                     validate_ext=check_handler)
         self._errors_handlers.start()
         self._update_errors(None)
+        self._errors_handlers.observe('contributions', self._update_errors)
 
     def stop(self):
         """Stop the extension collector and clear the list of handlers.
 
         """
+        self._errors_handlers.unobserve('contributions', self._update_errors)
         self._errors_handlers.stop()
         self.errors = []
 
