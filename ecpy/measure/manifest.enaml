@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+# XXXX
+"""
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+# XXXX cleanup
+from enaml.stdlib.message_box import warning
+from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
+from enaml.workbench.ui.api import ActionItem
+
+from ..app.api import AppClosing, Preferences
+#from ecpy.instruments.api import InstrUser
+
+
+def measure_plugin_factory():
+    """
+    """
+    from .plugin import MeasurePlugin
+    return MeasurePlugin()
+
+def workspace_factory(workbench):
+    """
+    """
+    from .workspace import MeasureSpace
+    return MeasureSpace()
+
+
+def validate_closing(window, event):
+    """Check that no measure is currently running before app closing.
+
+    """
+    workbench = window.workbench
+    plugin = workbench.get_plugin('hqc_meas.measure', force_create=False)
+    if plugin and plugin.flags:
+        event.ignore()
+        msg = 'A measure is currently running please stop it before exiting.'
+        warning(window, 'Measure running', msg)
+
+# XXXX descriptions
+
+enamldef MeasureManifest(PluginManifest):
+    # XXXX
+    """
+    """
+    id = u'hqc_meas.measure'
+    factory = measure_plugin_factory
+
+    ExtensionPoint:
+        id = u'engines'
+    ExtensionPoint:
+        id = u'monitors'
+    ExtensionPoint:
+        id = u'checks'
+    ExtensionPoint:
+        id = u'headers'
+    ExtensionPoint:
+        id = u'editors'
+
+    Extension:
+        id = 'prefs'
+        point = u'ecpy.preferences.plugin'
+        Preferences:
+            pass
+
+#    Extension:
+#        id = 'instr_user'
+#        point = 'excpy.instr_manager.users'
+#        InstrUser:
+#            default_policy = 'unreleasable'
+
+    Extension:
+        id = 'app_closing'
+        point = 'ecpy.app.closing'
+        AppClosing:
+            id = 'ecpy.measure.running'
+            validate => (window, event):
+                return validate_closing(window, event)
+
+    Extension:
+        id = 'workspace'
+        point = 'enaml.workbench.ui.workspaces'
+        factory = workspace_factory
+
+    Extension:
+        id = 'actions'
+        point = 'enaml.workbench.ui.actions'
+        ActionItem:
+            path = '/workspace/measure'
+            label = 'Measure'
+            shortcut = 'Ctrl+1'
+            group = 'spaces'
+            command = 'enaml.workbench.ui.select_workspace'
+            parameters = {'workspace': 'ecpy.measure.workspace'}
