@@ -16,9 +16,10 @@ import logging
 import os
 from time import sleep
 from inspect import cleandoc
+from functools import partial
 
 import enaml
-from atom.api import Typed, Unicode, Dict, List, ForwardTyped
+from atom.api import Typed, Unicode, List, ForwardTyped
 
 from ..utils.plugin_tools import HasPrefPlugin, ExtensionsCollector
 from .engines import BaseEngine, Engine
@@ -27,6 +28,7 @@ from .hooks import PreExecutionHook, PostExecutionHook
 from .editors import Editor
 from .measure import Measure
 
+logger = logging.getLogger(__name__)
 
 INVALID_MEASURE_STATUS = ['EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
                           'INTERRUPTED']
@@ -47,6 +49,36 @@ def _workspace():
     return MeasureSpace
 
 
+def check_engine(engine):
+    """
+    """
+    pass
+
+
+def check_editor(editor):
+    """
+    """
+    pass
+
+
+def check_pre_hook(pre_hook):
+    """
+    """
+    pass
+
+
+def check_monitor(monitor):
+    """
+    """
+    pass
+
+
+def check_post_hook(post_hook):
+    """
+    """
+    pass
+
+
 class MeasurePlugin(HasPrefPlugin):
     """The measure plugin is reponsible for managing all measure related
     extensions and handling measure execution.
@@ -55,8 +87,8 @@ class MeasurePlugin(HasPrefPlugin):
     #: Reference to the workspace if any.
     workspace = ForwardTyped(_workspace)
 
-    #: Reference to the last path used to save/load a measure
-    paths = Dict().tag(pref=True)
+    #: Reference to the last path used to load a measure
+    path = Unicode().tag(pref=True)
 
     #: Currently edited measures.
     edited_measures = List()
@@ -68,7 +100,7 @@ class MeasurePlugin(HasPrefPlugin):
     running_measure = Typed(Measure)
 
     # XXXX
-    engines = Typed(ExtensionsCollector)
+    engines = List()
 
     #: Currently selected engine represented by its id.
     selected_engine = Unicode().tag(pref=True)
@@ -77,74 +109,87 @@ class MeasurePlugin(HasPrefPlugin):
     engine_instance = Typed(BaseEngine)
 
     # XXXX
-    pre_hooks = Typed(ExtensionsCollector)
+    pre_hooks = List()
 
     # Default pre-execution hooks to use for new measures.
     default_pre_hooks = List().tag(pref=True)
 
     # XXXX
-    monitors = Typed(ExtensionsCollector)
+    monitors = List()
 
     # Default monitors to use for new measures.
     default_monitors = List().tag(pref=True)
 
     # XXXX
-    post_hooks = Typed(ExtensionsCollector)
+    post_hooks = List()
 
     # Default post-execution hooks to use for new measures.
     default_hooks = List().tag(pref=True)
 
     # Dict holding the contributed Editor declarations
-    editors = Typed(ExtensionsCollector)
+    editors = List()
 
     # XXXX
     # Internal flags.
     flags = List()
 
-    # XXXX
     def start(self):
-        """
+        """Start the plugin lifecycle by collecting all contributions.
+
         """
         super(MeasurePlugin, self).start()
-        for k, v in self.paths.iteritems():
-            if not os.path.isdir(v):
-                self.paths[k] = ''
+        if not os.path.isdir(self.path):
+            self.path = ''
 
-        # Register contributed plugin.
-        for path, manifest_name in self.manifests:
-            self._register_manifest(path, manifest_name)
+        self._engines = ExtensionsCollector(workbench=self.workbench,
+                                            point=ENGINES_POINT,
+                                            ext_class=Engine,
+                                            validate_ext=check_engine)
+        self._engines.start()
+        self._editors = ExtensionsCollector(workbench=self.workbench,
+                                            point=EDITORS_POINT,
+                                            ext_class=Editor,
+                                            validate_ext=check_editor)
+        self._editors.start()
+        self._pre_hooks = ExtensionsCollector(workbench=self.workbench,
+                                              point=PRE_HOOK_POINT,
+                                              ext_class=PreExecutionHook,
+                                              validate_ext=check_pre_hook)
+        self._pre_hooks.start()
+        self._monitors = ExtensionsCollector(workbench=self.workbench,
+                                             point=MONITORS_POINT,
+                                             ext_class=Monitor,
+                                             validate_ext=check_monitor)
+        self._monitors.start()
+        self._post_hooks = ExtensionsCollector(workbench=self.workbench,
+                                               point=POST_HOOK_POINT,
+                                               ext_class=PostExecutionHook,
+                                               validate_ext=check_post_hook)
+        self._post_hooks.start()
 
-        # Refresh contribution and start observers.
-        self._refresh_engines()
-        self._refresh_monitors()
-        self._refresh_headers()
-        self._refresh_checks()
-        self._refresh_editors()
-        self._bind_observers()
-        self._update_selected_engine({'value': self.selected_engine})
+        for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
+                        'post_hooks'):
+            self._update_contribs(contrib, None)
+            if contrib not in ('engines', 'editors'):
+                default = getattr(self, 'default_'+contrib)
+                avai_default = [d for d in default
+                                if d in getattr(self, contrib)]
+                if default != avai_default:
+                    msg = 'The following {}s have not been found : {}'
+                    missing = set(default) - set(avai_default)
+                    logger.info(msg.format(contrib, missing))
+                    setattr(self, 'default_'+contrib, avai_default)
+            getattr(self, '-'+contrib).observe('contributions',
+                                               partial(self._update_contribs,
+                                                       contrib))
 
-    # XXXX
     def stop(self):
-        """
-        """
-        # Unbind the observers.
-        self._unbind_observers()
+        """Stop the plugin and remove all observers.
 
-        # Unregister the plugin registered at start-up.
-        for manifest_id in self._manifest_ids:
-            self.workbench.unregister(manifest_id)
-
-        # Clear ressources.
-        self.engines.clear()
-        self._engine_extensions.clear()
-        self.monitors.clear()
-        self._monitor_extensions.clear()
-        self.headers.clear()
-        self._header_extensions.clear()
-        self.checks.clear()
-        self._check_extensions.clear()
-        self.editors.clear()
-        self._editor_extensions.clear()
+        """
+        for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
+                        'post_hooks'):
+            getattr(self, '-'+contrib).stop()
 
     # XXXX
     def start_measure(self, measure):
@@ -373,6 +418,21 @@ class MeasurePlugin(HasPrefPlugin):
     # --- Private API ---------------------------------------------------------
 
     # XXXX
+    _engines = Typed(ExtensionsCollector)
+
+    # XXXX
+    _editors = Typed(ExtensionsCollector)
+
+    # XXXX
+    _pre_hooks = Typed(ExtensionsCollector)
+
+    # XXXX
+    _monitors = Typed(ExtensionsCollector)
+
+    # XXXX
+    _post_hooks = Typed(ExtensionsCollector)
+
+    # XXXX
     def _listen_to_engine(self, change):
         """ Observer for the engine notifications.
 
@@ -427,20 +487,23 @@ class MeasurePlugin(HasPrefPlugin):
                 self.flags = []
 
     def _post_setattr_selected_engine(self, old, new):
-        """ Observer ensuring that the selected engine is informed when it is
+        """Observer ensuring that the selected engine is informed when it is
         selected and deselected.
 
         """
         # Destroy old instance if any.
         self.engine_instance = None
 
-        if 'oldvalue' in change:
-            old = change['oldvalue']
-            if old in self.engines:
-                engine = self.engines[old]
-                engine.post_deselection(engine, self.workbench)
+        if old in self.engines:
+            engine = self.engines[old]
+            engine.post_deselection(engine, self.workbench)
 
-        new = change['value']
         if new and new in self.engines:
             engine = self.engines[new]
             engine.post_selection(engine, self.workbench)
+
+    def _update_contribs(self, name, change):
+        """Update the list of available contribs when the contrib change.
+
+        """
+        setattr(self, name, list(getattr(self, '_'+name).contributions))
