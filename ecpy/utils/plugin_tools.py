@@ -115,6 +115,7 @@ class BaseCollector(Atom):
 
         """
         self._unbind_observers()
+        self.unobserve('contributions')  # Dicsonnect all observers
         self.contributions.clear()
         self._extensions.clear()
 
