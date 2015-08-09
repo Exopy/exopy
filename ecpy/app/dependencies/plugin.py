@@ -118,6 +118,7 @@ class DependenciesPlugin(Plugin):
 
         dependencies : dict|tuple[dict]
             In case of success:
+
             - Dicts holding all the classes or other dependencies to build, run
               or build and run the object without any access to the workbench.
               If a single kind of dependencies is requested a single dict is
@@ -125,6 +126,7 @@ class DependenciesPlugin(Plugin):
               ones and one for the runtime ones
 
             Otherwise:
+
             - dict holding the id of the dependency and the asssociated
               error message.
 
