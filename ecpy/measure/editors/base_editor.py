@@ -70,15 +70,11 @@ class Editor(Declarative):
     Editor object can be contributed as extensions child to the 'editors'
     extension point of the 'ecpy.measure' plugin.
 
-    The name member inherited from enaml.core.Object should always be set to an
-    easily understandable name for the user.
-
     """
-    # Id of the editor, this can be different from the id of the plugin
-    # declaring it but does not have to.
+    #: Unique name used to identify the editor. Should be user understandable.
     id = d_(Unicode())
 
-    # Editor description.
+    #: Editor description.
     description = d_(Unicode())
 
     @d_func

@@ -72,11 +72,8 @@ class BaseMeasureTool(HasPrefAtom):
 class BaseToolDeclaration(Declarative):
     """Base class for defining a measure tool contribution.
 
-    The name member inherited from enaml.core.Object should always be set to an
-    easily understandable name for the user.
-
     """
-    #: Id of the tool.
+    #: Unique name used to identify the tool. Should be user understandable.
     id = d_(Unicode())
 
     #: Description of the tool.

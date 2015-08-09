@@ -129,11 +129,10 @@ class Engine(Declarative):
     easily understandable name for the user.
 
     """
-    # Id of the engine, this can be different from the id of the plugin
-    # declaring it but does not have to.
+    #: Unique name used to identify the engine. Should be user understandable.
     id = d_(Unicode())
 
-    # Description of the engine
+    #: Description of the engine
     description = d_(Unicode())
 
     @d_func

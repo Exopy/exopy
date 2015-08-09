@@ -17,9 +17,10 @@ import os
 from time import sleep
 from inspect import cleandoc
 from functools import partial
+from enum import IntEnum
 
 import enaml
-from atom.api import Typed, Unicode, List, ForwardTyped
+from atom.api import Typed, Unicode, List, ForwardTyped, Int
 
 from ..utils.plugin_tools import HasPrefPlugin, ExtensionsCollector
 from .engines import BaseEngine, Engine
@@ -44,39 +45,53 @@ POST_HOOK_POINT = 'ecpy.measure.post-execution'
 EDITORS_POINT = 'ecpy.measure.editors'
 
 
-def _workspace():
-    from .workspace import MeasureSpace
-    return MeasureSpace
+class MeasureFlags(IntEnum):
+    """Enumeration defining the bit flags used by the measure plugin.
+
+    """
+    processing = 1
+    stop_attempt = 2
+    stop_processing = 4
 
 
+# XXXX
 def check_engine(engine):
     """
     """
     pass
 
 
+# XXXX
 def check_editor(editor):
     """
     """
     pass
 
 
+# XXXX
 def check_pre_hook(pre_hook):
     """
     """
     pass
 
 
+# XXXX
 def check_monitor(monitor):
     """
     """
     pass
 
 
+# XXXX
 def check_post_hook(post_hook):
     """
     """
     pass
+
+
+def _workspace():
+    from .workspace import MeasureSpace
+    return MeasureSpace
 
 
 class MeasurePlugin(HasPrefPlugin):
@@ -99,7 +114,7 @@ class MeasurePlugin(HasPrefPlugin):
     #: Currently run measure or last measure run.
     running_measure = Typed(Measure)
 
-    # XXXX
+    #: List of currently available engines.
     engines = List()
 
     #: Currently selected engine represented by its id.
@@ -108,30 +123,29 @@ class MeasurePlugin(HasPrefPlugin):
     #: Instance of the currently used engine.
     engine_instance = Typed(BaseEngine)
 
-    # XXXX
+    #: List of currently available pre-execution hooks.
     pre_hooks = List()
 
-    # Default pre-execution hooks to use for new measures.
+    #: Default pre-execution hooks to use for new measures.
     default_pre_hooks = List().tag(pref=True)
 
-    # XXXX
+    #: List of currently available monitors.
     monitors = List()
 
-    # Default monitors to use for new measures.
+    #: Default monitors to use for new measures.
     default_monitors = List().tag(pref=True)
 
-    # XXXX
+    #: List of currently available post-execution hooks.
     post_hooks = List()
 
-    # Default post-execution hooks to use for new measures.
+    #: Default post-execution hooks to use for new measures.
     default_hooks = List().tag(pref=True)
 
-    # Dict holding the contributed Editor declarations
+    #: Dict holding the contributed Editor declarations
     editors = List()
 
-    # XXXX
-    # Internal flags.
-    flags = List()
+    # Internal flags used to keep track of the execution state.
+    flags = Int()
 
     def start(self):
         """Start the plugin lifecycle by collecting all contributions.
@@ -191,9 +205,44 @@ class MeasurePlugin(HasPrefPlugin):
                         'post_hooks'):
             getattr(self, '-'+contrib).stop()
 
-    # XXXX
+    def create(self, kind, id, bare=False):
+        """Create a new instance of an engine/editor/tool.
+
+        Parameters
+        ----------
+        kind : {'engine', 'editor', 'pre-hook', 'monitor', 'post-hook'}
+            Kind of object to create.
+
+        id : unicode
+            Id of the object to create.
+
+        bare : bool, optional
+            Whether to use default parameters or not when creating the object.
+
+        Returns
+        -------
+        obj :
+            New instance of the requested object.
+
+        Raises
+        ------
+        ValueError :
+            Raised if the provided kind or id in incorrect.
+
+        """
+        kinds = ('engine', 'editor', 'pre-hook', 'monitor', 'post-hook')
+        if kind not in kinds:
+            msg = 'Expected kind must be one of {}, not {}.'
+            raise ValueError(msg.format(kinds, kind))
+
+        decls = getattr(self, '_'+kind+'s').contributions
+        if id not in decls:
+            raise ValueError('Unknown {} : {}'.format(kind, id))
+
+        return decls[id].new(self.workbench)
+
     def start_measure(self, measure):
-        """ Start a new measure.
+        """Start a new measure.
 
         """
         logger = logging.getLogger(__name__)
@@ -206,8 +255,10 @@ class MeasurePlugin(HasPrefPlugin):
         measure.enter_running_state()
         self.running_measure = measure
 
-        self.flags.append('processing')
+        self.flags |= MeasureFlags.processing
 
+        # XXXX refactor as this is not generic enough. We might have other
+        # runtmes with permissions.
         instr_use_granted = 'profiles' not in measure.store
         # Checking build dependencies, if present simply request instr profiles
         if 'build_deps' in measure.store and 'profiles' in measure.store:
@@ -277,6 +328,7 @@ class MeasurePlugin(HasPrefPlugin):
                                 granted by the manager.''')
                 logger.info(mess.replace('\n', ' '))
 
+        # XXXX Must run all pre-execution hooks
         # Run internal test to check communication.
         res, errors = measure.run_checks(self.workbench, True, True)
         if not res:
@@ -294,9 +346,6 @@ class MeasurePlugin(HasPrefPlugin):
             enaml.application.deferred_call(self._listen_to_engine, done)
             return
 
-        # Collect headers.
-        measure.collect_headers(self.workbench)
-
         # Start the engine if it has not already been done.
         if not self.engine_instance:
             decl = self.engines[self.selected_engine]
@@ -304,7 +353,7 @@ class MeasurePlugin(HasPrefPlugin):
             self.engine_instance = engine
 
             # Connect signal handler to engine.
-            engine.observe('done', self._listen_to_engine)
+            engine.observe('completed', self._listen_to_engine)
 
             # Connect engine measure status to observer
             engine.observe('measure_status', self._update_measure_status)
@@ -327,69 +376,55 @@ class MeasurePlugin(HasPrefPlugin):
         # Ask the engine to start the measure.
         engine.run()
 
-    # XXXX
     def pause_measure(self):
-        """ Pause the currently active measure.
+        """Pause the currently active measure.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Pausing measure {}.'.format(self.running_measure.name))
         self.engine_instance.pause()
 
-    # XXXX
     def resume_measure(self):
-        """ Resume the currently paused measure.
+        """Resume the currently paused measure.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Resuming measure {}.'.format(self.running_measure.name))
         self.engine_instance.resume()
 
-    # XXXX
     def stop_measure(self):
-        """ Stop the currently active measure.
+        """Stop the currently active measure.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Stopping measure {}.'.format(self.running_measure.name))
-        self.flags.append('stop_attempt')
+        self.flags |= MeasureFlags.stop_attempt
         self.engine_instance.stop()
 
-    # XXXX
     def stop_processing(self):
-        """ Stop processing the enqueued measure.
+        """Stop processing the enqueued measure.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Stopping measure {}.'.format(self.running_measure.name))
-        self.flags.append('stop_attempt')
-        self.flags.append('stop_processing')
-        if 'processing' in self.flags:
-            self.flags.remove('processing')
+        self.flags |= MeasureFlags.stop_attempt | MeasureFlags.stop_processing
+        if self.flags and MeasureFlags.processing:
+            self.flags &= ~MeasureFlags.processing
         self.engine_instance.exit()
 
-    # XXXX
     def force_stop_measure(self):
-        """ Force the engine to stop performing the current measure.
+        """Force the engine to stop performing the current measure.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Exiting measure {}.'.format(self.running_measure.name))
         self.engine_instance.force_stop()
 
-    # XXXX
     def force_stop_processing(self):
-        """ Force the engine to exit and stop processing measures.
+        """Force the engine to exit and stop processing measures.
 
         """
-        logger = logging.getLogger(__name__)
         logger.info('Exiting measure {}.'.format(self.running_measure.name))
-        self.flags.append('stop_processing')
-        if 'processing' in self.flags:
-            self.flags.remove('processing')
+        self.flags |= MeasureFlags.stop_processing
+        if self.flags & MeasureFlags.processing:
+            self.flags &= ~MeasureFlags.processing
         self.engine_instance.force_exit()
 
-    # XXXX
     def find_next_measure(self):
         """Find the next runnable measure in the queue.
 
@@ -417,35 +452,31 @@ class MeasurePlugin(HasPrefPlugin):
 
     # --- Private API ---------------------------------------------------------
 
-    # XXXX
+    #: Collector of engines.
     _engines = Typed(ExtensionsCollector)
 
-    # XXXX
+    #: Collector of editors.
     _editors = Typed(ExtensionsCollector)
 
-    # XXXX
+    #: Collector of pre-execution hooks.
     _pre_hooks = Typed(ExtensionsCollector)
 
-    # XXXX
+    #: Collectorsof monitors.
     _monitors = Typed(ExtensionsCollector)
 
-    # XXXX
+    #: Collector of post-execution hooks.
     _post_hooks = Typed(ExtensionsCollector)
 
     # XXXX
-    def _listen_to_engine(self, change):
+    def _listen_to_engine(self, status, infos):
         """ Observer for the engine notifications.
 
         """
-        status, infos = change['value']
-        self.running_measure.status = status
-        self.running_measure.infos = infos
-
-        logger = logging.getLogger(__name__)
         mess = 'Measure {} processed, status : {}'.format(
             self.running_measure.name, status)
         logger.info(mess)
 
+        # XXXX Generalize to any kind of runtime.
         # Releasing instrument profiles.
         profs = self.running_measure.store.get('profiles', set())
         core = self.workbench.get_plugin('enaml.workbench.core')
@@ -458,8 +489,11 @@ class MeasurePlugin(HasPrefPlugin):
         if engine:
             engine.unobserve('news')
 
+
+        # XXXX refactor to avoid code duplication and add way to keep engine
+        # in sleep mode (sometimes very costly to start an engine).
         # If we are supposed to stop, stop.
-        if engine and'stop_processing' in self.flags:
+        if engine and self.flags & MeasureFlags.stop_processing:
             self.stop_processing()
             i = 0
             while engine and engine.active:
@@ -467,13 +501,13 @@ class MeasurePlugin(HasPrefPlugin):
                 i += 1
                 if i > 10:
                     self.force_stop_processing()
-            self.flags = []
+            self.flags = 0
 
         # Otherwise find the next measure, if there is none stop the engine.
         else:
             meas = self.find_next_measure()
             if meas is not None:
-                self.flags = []
+                self.flags = 0
                 self.start_measure(meas)
             else:
                 if engine:
@@ -484,23 +518,25 @@ class MeasurePlugin(HasPrefPlugin):
                         i += 1
                         if i > 10:
                             self.force_stop_processing()
-                self.flags = []
+                self.flags = 0
 
     def _post_setattr_selected_engine(self, old, new):
-        """Observer ensuring that the selected engine is informed when it is
-        selected and deselected.
+        """Ensures that the selected engine is informed when it is selected and
+        deselected.
+
+        This is always called before notifying the workspace of the change.
 
         """
         # Destroy old instance if any.
         self.engine_instance = None
 
         if old in self.engines:
-            engine = self.engines[old]
-            engine.post_deselection(engine, self.workbench)
+            engine = self._engines.contributions[old]
+            engine.react_to_unselection(self.workbench)
 
         if new and new in self.engines:
-            engine = self.engines[new]
-            engine.post_selection(engine, self.workbench)
+            engine = self._engines.contributions[new]
+            engine.react_to_selection(self.workbench)
 
     def _update_contribs(self, name, change):
         """Update the list of available contribs when the contrib change.
