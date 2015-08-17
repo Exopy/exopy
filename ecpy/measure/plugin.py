@@ -20,9 +20,10 @@ from functools import partial
 from enum import IntEnum
 
 import enaml
-from atom.api import Typed, Unicode, List, ForwardTyped, Int
+from atom.api import Typed, Unicode, List, ForwardTyped, Int, Enum
 
-from ..utils.plugin_tools import HasPrefPlugin, ExtensionsCollector
+from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+                                  make_extension_validator)
 from .engines import BaseEngine, Engine
 from .monitors import Monitor
 from .hooks import PreExecutionHook, PostExecutionHook
@@ -52,41 +53,6 @@ class MeasureFlags(IntEnum):
     processing = 1
     stop_attempt = 2
     stop_processing = 4
-
-
-# XXXX
-def check_engine(engine):
-    """
-    """
-    pass
-
-
-# XXXX
-def check_editor(editor):
-    """
-    """
-    pass
-
-
-# XXXX
-def check_pre_hook(pre_hook):
-    """
-    """
-    pass
-
-
-# XXXX
-def check_monitor(monitor):
-    """
-    """
-    pass
-
-
-# XXXX
-def check_post_hook(post_hook):
-    """
-    """
-    pass
 
 
 def _workspace():
@@ -123,6 +89,9 @@ class MeasurePlugin(HasPrefPlugin):
     #: Instance of the currently used engine.
     engine_instance = Typed(BaseEngine)
 
+    #: What to do of the engine when there is no more measure to perform.
+    engine_policy = Enum('stop', 'sleep').tag(pref=True)
+
     #: List of currently available pre-execution hooks.
     pre_hooks = List()
 
@@ -155,30 +124,39 @@ class MeasurePlugin(HasPrefPlugin):
         if not os.path.isdir(self.path):
             self.path = ''
 
+        checker = make_extension_validator(Engine, ('new',))
         self._engines = ExtensionsCollector(workbench=self.workbench,
                                             point=ENGINES_POINT,
                                             ext_class=Engine,
-                                            validate_ext=check_engine)
+                                            validate_ext=checker)
         self._engines.start()
+
+        checker = make_extension_validator(Editor, ('new', 'is_meant_for'))
         self._editors = ExtensionsCollector(workbench=self.workbench,
                                             point=EDITORS_POINT,
                                             ext_class=Editor,
-                                            validate_ext=check_editor)
+                                            validate_ext=checker)
         self._editors.start()
+
+        checker = make_extension_validator(PreExecutionHook,  ('new',))
         self._pre_hooks = ExtensionsCollector(workbench=self.workbench,
                                               point=PRE_HOOK_POINT,
                                               ext_class=PreExecutionHook,
-                                              validate_ext=check_pre_hook)
+                                              validate_ext=checker)
         self._pre_hooks.start()
+
+        checker = make_extension_validator(Monitor, ('new',))
         self._monitors = ExtensionsCollector(workbench=self.workbench,
                                              point=MONITORS_POINT,
                                              ext_class=Monitor,
-                                             validate_ext=check_monitor)
+                                             validate_ext=checker)
         self._monitors.start()
+
+        checker = make_extension_validator(PostExecutionHook, ('new',))
         self._post_hooks = ExtensionsCollector(workbench=self.workbench,
                                                point=POST_HOOK_POINT,
                                                ext_class=PostExecutionHook,
-                                               validate_ext=check_post_hook)
+                                               validate_ext=checker)
         self._post_hooks.start()
 
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
@@ -257,93 +235,54 @@ class MeasurePlugin(HasPrefPlugin):
 
         self.flags |= MeasureFlags.processing
 
-        # XXXX refactor as this is not generic enough. We might have other
-        # runtmes with permissions.
-        instr_use_granted = 'profiles' not in measure.store
-        # Checking build dependencies, if present simply request instr profiles
-        if 'build_deps' in measure.store and 'profiles' in measure.store:
-            # Requesting profiles as this is the only missing runtime.
-            core = self.workbench.get_plugin('enaml.workbench.core')
-            profs = measure.store['profiles']
-            if not profs:
-                cmd = u'hqc_meas.dependencies.collect_dependencies'
-                id = 'hqc_meas.instruments.dependencies'
-                res = core.invoke_command(cmd,
-                                          {'obj': measure.root_task,
-                                           'ids': [id],
-                                           'dependencies': ['runtime']},
-                                          self)
+        core = self.workbench.get_plugin('enaml.workbench.core')
 
-                profiles = res[1].get('profiles', [])
-                measure.store['profiles'] = profiles.keys()
+        # Checking build dependencies, if present simply request runtimes.
+        if 'build_deps' in measure.store and 'runtime_deps' in measure.store:
+            # Requesting runtime, so that we get permissions.
 
-            else:
-                com = u'hqc_meas.instr_manager.profiles_request'
-                profiles, _ = core.invoke_command(com,
-                                                  {'profiles': list(profs)},
-                                                  self)
-
-            instr_use_granted = not bool(profs) or profiles
-            measure.root_task.run_time.update({'profiles': profiles})
+            runtimes = measure.store['runtime_deps']
+            cmd = 'ecpy.app.dependencies.request_runtimes'
+            deps = core.invoke_command(cmd,
+                                       {'obj': measure.root_task,
+                                        'owner': [self.manifest.id],
+                                        'dependencies': runtimes},
+                                       )
+            res = self.check_for_dependencies_errors(measure, deps, skip=True)
+            if not res:
+                return
 
         else:
-            # Rebuild build and runtime dependencies (profiles automatically)
-            # re-requested.
-            core = self.workbench.get_plugin('enaml.workbench.core')
-            cmd = u'hqc_meas.dependencies.collect_dependencies'
-            res = core.invoke_command(cmd, {'obj': measure.root_task}, self)
-            if not res[0]:
-                for id in res[1]:
-                    logger.warn(res[1][id])
-                return False
+            # Collect build and runtime dependencies.
+            cmd = 'ecpy.app.dependencies.collect'
+            b_deps, r_deps = core.invoke_command(cmd,
+                                                 {'obj': measure.root_task,
+                                                  'dependencies': ['build',
+                                                                   'runtime'],
+                                                  'owner': self.manifest.id})
 
-            build_deps = res[1]
-            runtime_deps = res[2]
+            res = self.check_for_dependencies_errors(measure, b_deps,
+                                                     skip=True)
+            res &= self.check_for_dependencies_errors(measure, r_deps,
+                                                      skip=True)
+            if not res:
+                return
 
-            instr_use_granted = 'profiles' not in runtime_deps or\
-                runtime_deps['profiles']
+        # Records that we got access to all the runtimes.
+        mess = cleandoc('''The use of all runtime resources have been
+                        granted to the measure %s''' % measure.name)
+        logger.info(mess.replace('\n', ' '))
 
-            measure.store['build_deps'] = build_deps
-            if 'profiles' in runtime_deps:
-                measure.store['profiles'] = runtime_deps['profiles']
-            measure.root_task.run_time = runtime_deps
-
-        if not instr_use_granted:
-            mes = cleandoc('''The instrument profiles requested for the
-                           measurement {} are not available, the measurement
-                           cannot be performed.'''.format(measure.name))
-            logger.info(mes.replace('\n', ' '))
-
-            # Simulate a message coming from the engine.
-            done = {'value': ('SKIPPED', 'Failed to get requested profiles')}
-
-            # Break a potential high statck as this function would not exit
-            # if a new measure is started.
-            enaml.application.deferred_call(self._listen_to_engine, done)
-            return
-
-        else:
-            if 'profiles' in measure.store:
-                mess = cleandoc('''The use of the instrument profiles has been
-                                granted by the manager.''')
-                logger.info(mess.replace('\n', ' '))
-
-        # XXXX Must run all pre-execution hooks
         # Run internal test to check communication.
-        res, errors = measure.run_checks(self.workbench, True, True)
+        res, errors = measure.run_checks(self.workbench)
         if not res:
-            mes = cleandoc('''The measure failed to pass the built-in tests,
-                           this is likely related to a connection error to an
-                           instrument.
-                           '''.format(measure.name))
-            logger.warn(mes.replace('\n', ' '))
+            cmd = 'ecpy.app.errors.signal'
+            msg = 'Measure %s failed to pass the checks.' % measure.name
+            core.invoke_command(cmd, {'kind': 'measure-error',
+                                      'message': msg % (measure.name),
+                                      'errors': errors})
 
-            # Simulate a message coming from the engine.
-            done = {'value': ('FAILED', 'Failed to pass the built in tests')}
-
-            # Break a potential high statck as this function would not exit
-            # if a new measure is started.
-            enaml.application.deferred_call(self._listen_to_engine, done)
+            self._skip_measure('FAILED', 'Failed to pass the checks')
             return
 
         # Start the engine if it has not already been done.
@@ -355,15 +294,14 @@ class MeasurePlugin(HasPrefPlugin):
             # Connect signal handler to engine.
             engine.observe('completed', self._listen_to_engine)
 
-            # Connect engine measure status to observer
-            engine.observe('measure_status', self._update_measure_status)
-
         engine = self.engine_instance
 
         # Call engine prepare to run method.
-        entries = measure.collect_entries_to_observe()
-        engine.prepare_to_run(measure.name, measure.root_task, entries,
-                              measure.store['build_deps'])
+        engine.prepare_to_run(measure)
+
+        # Execute all pre-execution hook.
+        for hook in measure.pre_hooks.values():
+            hook.run(self.workbench, measure, engine)
 
         # Get a ref to the main window.
         ui_plugin = self.workbench.get_plugin('enaml.workbench.ui')
@@ -450,6 +388,56 @@ class MeasurePlugin(HasPrefPlugin):
 
         return measure
 
+    def check_for_dependencies_errors(self, measure, deps, skip=False):
+        """Check that the collection of dependencies occurred without errors.
+
+        Parameters
+        ----------
+        measure : Measure
+            Measure whose dependencies have been collected.
+
+        deps : BuildContainer, RuntimeContainer
+            Dependencies container.
+
+        skip : bool
+            Should an error trigger a false engine event marking the measure
+            as failed or skipped.
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating if everything was ok or not.
+
+        """
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        kind = 'runtime' if hasattr(deps, 'unavailable') else 'build'
+        cmd = 'ecpy.app.errors.signal'
+        if deps.errors:
+            msg = 'Failed to get some %s dependencies for measure %s'
+            core.invoke_command(cmd, {'kind': 'measure-error',
+                                      'message': msg % (kind, measure.name),
+                                      'errors': deps.errors})
+            if skip:
+                self._skip_measure('FAILED',
+                                   'Failed to get some %s dependencies' % kind)
+            return False
+
+        if getattr(deps, 'unavailable', None):
+            msg = 'Some runtime dependencies of measure %s are unavailable'
+            core.invoke_command(cmd, {'kind': 'measure-missing',
+                                      'message': msg % measure.name,
+                                      'unavailable': deps.unavailable})
+            if skip:
+                self._skip_measure('SKIPPED',
+                                   'Some runtime dependencies were unavailable'
+                                   )
+            return False
+
+        store_key = 'build_deps' if kind == 'build' else 'runtime_deps'
+        measure.store[store_key] = deps.dependencies
+
+        return True
+
     # --- Private API ---------------------------------------------------------
 
     #: Collector of engines.
@@ -467,40 +455,30 @@ class MeasurePlugin(HasPrefPlugin):
     #: Collector of post-execution hooks.
     _post_hooks = Typed(ExtensionsCollector)
 
-    # XXXX
     def _listen_to_engine(self, status, infos):
-        """ Observer for the engine notifications.
+        """Observer for the engine notifications.
 
         """
-        mess = 'Measure {} processed, status : {}'.format(
-            self.running_measure.name, status)
+        meas = self.running_measure
+        mess = 'Measure {} processed, status : {}'.format(meas.name, status)
         logger.info(mess)
 
-        # XXXX Generalize to any kind of runtime.
         # Releasing instrument profiles.
-        profs = self.running_measure.store.get('profiles', set())
         core = self.workbench.get_plugin('enaml.workbench.core')
 
-        com = u'hqc_meas.instr_manager.profiles_released'
-        core.invoke_command(com, {'profiles': list(profs)}, self)
+        cmd = 'ecpy.app.dependencies.release_runtimes'
+        core.invoke_command(cmd, {'dependencies': meas.store['runtime_deps'],
+                                  'owner': self.manifest.id})
 
         # Disconnect monitors.
         engine = self.engine_instance
         if engine:
             engine.unobserve('news')
 
-
-        # XXXX refactor to avoid code duplication and add way to keep engine
-        # in sleep mode (sometimes very costly to start an engine).
         # If we are supposed to stop, stop.
         if engine and self.flags & MeasureFlags.stop_processing:
-            self.stop_processing()
-            i = 0
-            while engine and engine.active:
-                sleep(0.5)
-                i += 1
-                if i > 10:
-                    self.force_stop_processing()
+            if self.engine_policy == 'stop':
+                self._stop_engine()
             self.flags = 0
 
         # Otherwise find the next measure, if there is none stop the engine.
@@ -510,15 +488,33 @@ class MeasurePlugin(HasPrefPlugin):
                 self.flags = 0
                 self.start_measure(meas)
             else:
-                if engine:
-                    self.stop_processing()
-                    i = 0
-                    while engine.active:
-                        sleep(0.5)
-                        i += 1
-                        if i > 10:
-                            self.force_stop_processing()
+                if engine and self.engine_policy == 'stop':
+                        self._stop_engine()
                 self.flags = 0
+
+    def _skip_measure(self, reason, message):
+        """Skip a measure and provide an explanation for it.
+
+        """
+        # Simulate a message coming from the engine.
+        done = {'value': (reason, message)}
+
+        # Break a potential high statck as this function would not exit
+        # if a new measure is started.
+        enaml.application.deferred_call(self._listen_to_engine, done)
+
+    def _stop_engine(self):
+        """Stop the engine.
+
+        """
+        engine = self.engine_instance
+        self.stop_processing()
+        i = 0
+        while engine and engine.active:
+            sleep(0.5)
+            i += 1
+            if i > 10:
+                self.force_stop_processing()
 
     def _post_setattr_selected_engine(self, old, new):
         """Ensures that the selected engine is informed when it is selected and

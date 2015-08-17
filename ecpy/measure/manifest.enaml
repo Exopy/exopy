@@ -47,7 +47,7 @@ def validate_closing(window, event):
         warning(window, 'Measure running', msg)
 
 # XXXX descriptions
-
+# TODO need at least two error handler : measure-errors and measure-missing
 enamldef MeasureManifest(PluginManifest):
     # XXXX
     """
