@@ -17,9 +17,6 @@ import enaml
 from enaml.workbench.api import Workbench
 from future.utils import python_2_unicode_compatible
 
-from ecpy.app.errors.plugin import check_handler
-from ecpy.app.errors.errors import ErrorHandler
-
 from ...util import handle_dialog, get_window
 
 with enaml.imports():
@@ -40,15 +37,6 @@ def workbench():
     workbench.register(CoreManifest())
     workbench.register(ErrorsManifest())
     return workbench
-
-
-def test_check_handler():
-    """Test check handler function.
-
-    """
-    assert not check_handler(ErrorHandler())[0]
-
-    assert not check_handler(ErrorHandler(description='rr'))[0]
 
 
 @python_2_unicode_compatible

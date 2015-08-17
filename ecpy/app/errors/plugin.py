@@ -23,7 +23,7 @@ from atom.api import List, Typed, Int
 from enaml.workbench.api import Plugin
 
 from .errors import ErrorHandler
-from ...utils.plugin_tools import ExtensionsCollector
+from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
 
 with enaml.imports():
     from .widgets import ErrorsDialog, UnknownErrorWidget
@@ -32,23 +32,6 @@ with enaml.imports():
 ERR_HANDLER_POINT = 'ecpy.app.errors.handler'
 
 logger = logging.getLogger(__name__)
-
-
-def check_handler(handler):
-    """Ensure that the handler does implement a handle method and provide a
-    description.
-
-    """
-    if not handler.description:
-        return False, 'Handler %s does not provide a description' % handler.id
-
-    func = getattr(handler.handle, 'im_func',
-                   getattr(handler.handle, '__func__', None))
-    if not func or func is ErrorHandler.handle.__func__:
-        msg = 'Handler %s does not implement a handle method'
-        return False, msg % handler.id
-
-    return True, ''
 
 
 class ErrorsPlugin(Plugin):
@@ -65,10 +48,11 @@ class ErrorsPlugin(Plugin):
         """Collect extensions.
 
         """
+        checker = make_extension_validator(ErrorHandler, ('handle',))
         self._errors_handlers = ExtensionsCollector(workbench=self.workbench,
                                                     point=ERR_HANDLER_POINT,
                                                     ext_class=ErrorHandler,
-                                                    validate_ext=check_handler)
+                                                    validate_ext=checker)
         self._errors_handlers.start()
         self._update_errors(None)
         self._errors_handlers.observe('contributions', self._update_errors)

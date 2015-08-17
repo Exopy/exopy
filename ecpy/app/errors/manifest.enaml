@@ -174,7 +174,7 @@ enamldef ErrorsManifest(PluginManifest):
                     msg = '\n\n'.join([self._format(i) for i in infos])
                     msg = 'Errors occured :\n' + msg
                 else:
-                    msg = 'An erorr occurred :\n' + self._format(infos)
+                    msg = 'An error occurred :\n' + self._format(infos)
 
                 logger.debug(msg)
                 return MultilineField(read_only=True, text=msg)

@@ -12,61 +12,19 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from types import MethodType
-
 import pytest
 import enaml
 from enaml.workbench.api import Workbench
 from configobj import ConfigObj
 
-from ecpy.app.dependencies.dependencies import (BuildDependency,
-                                                RuntimeDependency)
-
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
-    from ecpy.app.dependencies.plugin import (validate_build_dep,
-                                              validate_runtime_dep)
 
     from .dependencies_utils import (BuildDep, RuntimeDep)
 
 
 COLLECT = 'ecpy.app.dependencies.collect'
-
-
-def test_validate_build_dep():
-    """Check the validation of BuildDependency object.
-
-    """
-    class BDep(object):
-        id = 'test'
-    bdep = BDep()
-    bdep.collect = BuildDependency.collect
-
-    assert validate_build_dep(bdep)[0] is False
-    assert 'collect' in validate_build_dep(bdep)[1]
-
-    bdep.collect = MethodType(lambda w, f: w, bdep)
-    assert validate_build_dep(bdep)[0]
-
-
-def test_validate_runtime_dep():
-    """Check the validation of RuntimeDependency object.
-
-    """
-    class RDep(object):
-        id = 'test'
-    rdep = RDep()
-    rdep.collect = RuntimeDependency.collect
-
-    assert validate_runtime_dep(rdep)[0] is False
-    assert 'collect' in validate_runtime_dep(rdep)[1]
-
-    assert validate_runtime_dep(rdep)[0] is False
-    assert 'collect' in validate_runtime_dep(rdep)[1]
-
-    rdep.collect = MethodType(lambda w, f, p: w, rdep)
-    assert validate_runtime_dep(rdep)[0]
 
 
 @pytest.fixture
