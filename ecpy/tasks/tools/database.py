@@ -162,7 +162,7 @@ class TaskDatabase(Atom):
             Old names of the values.
 
         new : iterable
-            New names of the value.
+            New names of the values.
 
         access_exs : iterable, optional
             Dict mapping old entries names to how far the access exception is

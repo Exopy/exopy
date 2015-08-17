@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Plugin centralizing the collect and managment of tasks and interfaces.
+"""Plugin centralizing the collection and managment of tasks and interfaces.
 
 """
 from __future__ import (division, unicode_literals, print_function,
