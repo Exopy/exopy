@@ -20,7 +20,7 @@ class BaseExecutionHook(BaseMeasureTool):
 
     """
 
-    def run(self, workbench, measure, **kwargs):
+    def run(self, workbench, measure, engine):
         """Perform additional operations before/after the measure.
 
         Parameters
@@ -31,9 +31,8 @@ class BaseExecutionHook(BaseMeasureTool):
         measure : Measure
             Reference to the measure.
 
-        **kwargs :
-            Additional keywords arguments. Those can be falgs specifying what
-            kind of operations can or cannot be perfomed.
+        engine : BaseEngine
+            Engine ready to perform the measure. Can be used to run tasks.
 
         """
         raise NotImplementedError()
@@ -41,6 +40,13 @@ class BaseExecutionHook(BaseMeasureTool):
 
 class BasePreExecutionHook(BaseExecutionHook):
     """Base class for pre-execution measure hooks.
+
+    Notes
+    -----
+    This kind of hook can contribute entriesto the task database. If it does so
+    it should register those entries (add their name and a default value) at
+    the root level of the database at linking time so that they appear in the
+    autocompletion.
 
     """
     pass

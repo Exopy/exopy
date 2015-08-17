@@ -15,12 +15,15 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 from traceback import format_exc
+from collections import OrderedDict
 
-from atom.api import Atom, Instance, Dict, Unicode, ForwardTyped, Enum
+from atom.api import (Atom, Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
+                      Enum)
 from configobj import ConfigObj
 
-from ecpy.tasks.base_tasks import RootTask
-from ecpy.utils.configobj_ops import include_configobj
+from ..tasks.base_tasks import RootTask
+from ..utils.configobj_ops import include_configobj
+from .hooks.internal_checks import InternalChecksHook
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +45,7 @@ class Measure(Atom):
     #: in the root task and the monitors.
     name = Unicode()
 
+    # XXXX
     #: Flag indicating the measure status.
     status = Enum()
 
@@ -58,16 +62,25 @@ class Measure(Atom):
     monitors = Dict()
 
     #: Dict of pre-measure execution routines.
-    pre_hooks = Dict()
+    pre_hooks = Typed(OrderedDict, ())
 
     #: Dict of post-measure execution routines.
-    post_hooks = Dict()
+    post_hooks = Typed(OrderedDict, ())
 
     #: Reference to the measure plugin managing this measure.
     plugin = ForwardTyped(measure_plugin)
 
+    #: Flag signaling whether the user chose to enqueue the measure knowing
+    #: some tests are failing.
+    forced_enqueued = Bool()
+
     #: Dict to store useful runtime infos
     store = Dict()
+
+    def __init__(self, **kwargs):
+
+        super(Measure, self).__init__(**kwargs)
+        self.add_tool('pre_hook', 'internal', InternalChecksHook())
 
     def save_measure(self, path):
         """Save the measure as a ConfigObj object.
@@ -144,8 +157,15 @@ class Measure(Atom):
                                      msg=msg % (config.get('name'),
                                                 format_exc())))
 
-        for kind in ('monitors', 'pre-hooks', 'post-hooks'):
+        for kind in ('monitors', 'pre_hooks', 'post_hooks'):
             saved = config.get(kind, {})
+
+            # Make sure we always have the internal pre-hook in the right
+            # position.
+            if kind == 'pre_hooks':
+                if 'internal' in saved:
+                    del measure.pre_hooks['internal']
+
             for id, state in saved.iteritems():
                 obj = measure_plugin.create(kind[:-1], id, bare=True)
                 try:
@@ -163,22 +183,16 @@ class Measure(Atom):
 
         return measure
 
-    def run_pre_measure(self, workbench, scope='complete', **kwargs):
-        """Run pre measure operations.
+    def run_measure_checks(self, workbench, **kwargs):
+        """Run all measure checks.
 
-        Those operations consist of the built-in task checks and any
-        other operation contributed by a pre-measure hook.
+        This is done at enqueueing time and before actually executing a measure
+        save it it was forcibly enqueued.
 
         Parameters
         ----------
         workbench : Workbench
             Reference to the application workbench.
-
-        scope : unicode, optional
-            Flag used to specify which pre-measure operations run. By default
-            all operations are run. To only run the built-in tasks checks use
-            'internal'. Any other value will be interpreted as a hook kind and
-            only the hooks of that kind will be run.
 
         **kwargs :
             Keyword arguments to pass to the pre-operations.
@@ -196,24 +210,20 @@ class Measure(Atom):
         result = True
         full_report = {}
 
-        if scope in ('internal', 'complete'):
-            logger.debug('Running internal checks for measure %s',
-                         self.name)
-            check, errors = self.root_task.check(**kwargs)
-            if errors:
-                full_report['internal'] = errors
-            result = result and check
-            if scope == 'internal':
-                return result, full_report
+        msg = 'Running checks for pre-measure hook %s for measure %s'
+        for id, hook in self.pre_hooks.iteritems():
+            logger.debug(msg, id, self.name)
+            answer = hook.check(workbench, self, **kwargs)
+            if answer is not None:
+                check, errors = answer
+                if errors:
+                    full_report[id] = errors
+                result = result and check
 
-        pre_hooks = ({k: v for k, v in self.pre_hooks.iteritems()
-                     if v.declaration.kind == scope}
-                     if scope != 'complete' else self.pre_hooks)
-
-        for id, hook in pre_hooks.iteritems():
-            logger.debug('Calling pre-measure hook %s for measure %s',
-                         id, self.name)
-            answer = hook.run(workbench, self, **kwargs)
+        msg = 'Running checks for post-measure hook %s for measure %s'
+        for id, hook in self.post_hooks.iteritems():
+            logger.debug(msg, id, self.name)
+            answer = hook.check(workbench, self, **kwargs)
             if answer is not None:
                 check, errors = answer
                 if errors:
@@ -222,7 +232,45 @@ class Measure(Atom):
 
         return result, full_report
 
-    def run_post_measure(self, workbench, scope='complete', **kwargs):
+    def run_pre_measure(self, workbench, **kwargs):
+        """Run pre measure operations.
+
+        Those operations consist of the built-in task checks and any
+        other operation contributed by a pre-measure hook.
+
+        Parameters
+        ----------
+        workbench : Workbench
+            Reference to the application workbench.
+
+        **kwargs :
+            Keyword arguments to pass to the pre-operations.
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating whether or not the operations succeeded.
+
+        report : dict
+            Dict storing the errors (as dict) by id of the operation in which
+            they occured.
+
+        """
+        result = True
+        full_report = {}
+
+        for id, hook in self.pre_hooks.iteritems():
+            logger.debug('Calling pre-measure hook %s for measure %s',
+                         id, self.name)
+            try:
+                hook.run(workbench, self, **kwargs)
+            except Exception:
+                result = False
+                full_report[id] = format_exc()
+
+        return result, full_report
+
+    def run_post_measure(self, workbench, **kwargs):
         """Run post measure operations.
 
         Those operations consist of the operations contributed by
@@ -232,11 +280,6 @@ class Measure(Atom):
         ----------
         workbench : Workbench
             Reference to the application workbench.
-
-        scope : unicode, optional
-            Flag used to specify which post-measure operations run. By default
-            all operations are run. A non default value will be interpreted as
-            a hook kind and only the hooks of that kind will be run.
 
         **kwargs :
             Keyword arguments to pass to the post-operations.
@@ -253,19 +296,14 @@ class Measure(Atom):
         """
         result = True
         full_report = {}
-        post_hooks = ({k: v for k, v in self.pre_hooks.iteritems()
-                      if v.declaration.kind == scope}
-                      if scope != 'complete' else self.post_hooks)
-
-        for id, hook in post_hooks.iteritems():
+        for id, hook in self.post_hooks.iteritems():
             logger.debug('Calling post-measure hook %s for measure %s',
                          id, self.name)
-            answer = hook.run(workbench, self, **kwargs)
-            if answer is not None:
-                check, errors = answer
-                if errors:
-                    full_report[id] = errors
-                result = result and check
+            try:
+                hook.run(workbench, self, **kwargs)
+            except Exception:
+                result = False
+                full_report[id] = format_exc()
 
         return result, full_report
 
@@ -291,6 +329,8 @@ class Measure(Atom):
     def add_tool(self, kind, id, tool, refresh=True):
         """Add a tool to the measure.
 
+        Newly added tools are always appended to the list of existing ones.
+
         Parameters
         ----------
         kind : {'monitor', 'pre_hook', 'post_hook'}
@@ -314,11 +354,40 @@ class Measure(Atom):
         tools[id] = tool
         setattr(self, kind + 's', tools)
 
+    def move_tool(self, kind, id, new_pos):
+        """Modify hooks execution order.
+
+        Parameters
+        ----------
+        kind : {'pre-hook', 'post-hook'}
+            Kind of hook to move.
+
+        id : unicode
+            Id of the tool to move.
+
+        new_pos : int
+            New index at which the tool should be.
+
+        """
+        msg = 'Tool kind must be "pre_hook" or "post_hook" not %s'
+        assert kind in ('pre_hook', 'post_hook'), msg % kind
+
+        tools = getattr(self, kind+'s')
+        keys = list(tools.keys())
+        ind = keys.index(id)
+        del keys[ind]
+        keys.insert(new_pos, id)
+
+        setattr(self, kind, OrderedDict((k, tools[k]) for k in keys))
+
     def remove_tool(self, kind, id):
         """Remove a tool.
 
         Parameters
         ----------
+         kind : {'monitor', 'pre_hook', 'post_hook'}
+            Kind of tool being added to the measure.
+
         id : unicode
             Id of the monitor to remove.
 

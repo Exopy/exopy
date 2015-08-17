@@ -45,6 +45,22 @@ class BaseMeasureTool(HasPrefAtom):
     #: Reference to the declaration of this tool.
     declaration = ForwardTyped(tool_decl)
 
+    def check(self, workbench, **kwargs):
+        """Ensure that the tool is properly configured and will be able to work
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        kwargs :
+            Additional keywords providing infos about the context of execution.
+            For example if any runtime dependencie is unavailable it will be
+            listed in the missing keyword argument.
+
+        """
+        return True, {}
+
     def get_state(self):
         """Get the current state of the tool. Used when saving.
 
