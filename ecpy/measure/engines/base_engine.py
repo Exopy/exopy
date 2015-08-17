@@ -33,7 +33,7 @@ class BaseEngine(Atom):
     active = Bool()
 
     def prepare_to_run(self, name, root, monitored_entries, build_deps):
-        """ Make the engine ready to perform a measure.
+        """Make the engine ready to perform a measure.
 
         This method should not start the engine.
 
@@ -55,8 +55,17 @@ class BaseEngine(Atom):
         """
         raise NotImplementedError()
 
+    def perform(self, task):
+        """Execute a given task hierarchy.
+
+        This is needed for pre and post execution hook needing to execute
+        arbitrary tasks.
+
+        """
+        raise NotImplementedError()
+
     def run(self):
-        """ Start the execution of the measure by the engine.
+        """Start the execution of the measure by the engine.
 
         This method must not wait for the measure to complete to return.
 
@@ -64,7 +73,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def pause(self):
-        """ Ask the engine to pause the current measure.
+        """Ask the engine to pause the current measure.
 
         This method should not wait for the measure to pause to return.
         When the pause is effective the engine should add pause to the plugin
@@ -74,7 +83,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def resume(self):
-        """ Ask the engine to resume the currently paused measure.
+        """Ask the engine to resume the currently paused measure.
 
         This method should not wait for the measure to resume.
         Thsi method should remove the 'paused' flag from the plugin flags.
@@ -83,7 +92,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def stop(self):
-        """ Ask the engine to stop the current measure.
+        """Ask the engine to stop the current measure.
 
         This method should not wait for the measure to stop.
 
@@ -91,7 +100,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def exit(self):
-        """ Ask the engine top stop completely.
+        """Ask the engine top stop completely.
 
         After a call to this method the engine may need to re-initialize a
         number of things before running the next measure. This method should
@@ -101,7 +110,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def force_stop(self):
-        """ Force the engine to stop the current measure.
+        """Force the engine to stop the current measure.
 
         This method should stop the measure no matter what is going on. It can
         block.
@@ -110,7 +119,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def force_exit(self):
-        """ Force the engine to exit.
+        """Force the engine to exit.
 
         This method should stop the process no matter what is going on. It can
         block.
