@@ -13,12 +13,15 @@ import pytest
 import enaml
 from enaml.workbench.api import Workbench
 
+from ecpy.utils.plugin_tools import make_extension_validator
+
 from ..util import handle_dialog
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from .plugin_tools_testing import (ExtensionManifest,
+                                       Contribution, DContribution,
                                        Contributor1, Contributor2,
                                        Contributor3, Contributor4,
                                        DeclaratorManifest,
@@ -26,6 +29,24 @@ with enaml.imports():
                                        DContributor3, DContributor4,
                                        DContributor5,
                                        PLUGIN_ID)
+
+
+def test_make_extension_validator():
+    """Test the building of generic extension validators.
+
+    """
+    c_validator = make_extension_validator(Contribution, ('new',))
+    assert c_validator(Contribution())[0] is False
+    assert c_validator(DContribution())[0] is False
+    assert c_validator(DContribution(description='test'))[0] is True
+
+    class CContribution(Contribution):
+
+        def new(self, workbench):
+            return 1
+
+    assert c_validator(CContribution())[0] is False
+    assert c_validator(CContribution(description='test'))[0] is True
 
 
 class TestExtensionsCollector(object):

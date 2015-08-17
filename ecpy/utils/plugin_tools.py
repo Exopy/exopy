@@ -62,6 +62,34 @@ def make_handler(id, method_name):
     return handler
 
 
+def make_extension_validator(base_cls, fn_names, attributes=('description',)):
+    """Create an extension validation function checking that key methods were
+    overridden and attributes values provided.
+
+    """
+    def validator(contrib):
+
+        for name in fn_names:
+            member = getattr(contrib, name)
+            func = getattr(member, 'im_func',
+                           getattr(member, '__func__', None))
+            if not func or func is getattr(base_cls, name).__func__:
+                msg = "%s '%s' does not declare a %s function"
+                return False, msg % (base_cls, contrib.id, name)
+
+        for attr in attributes:
+            if not getattr(contrib, attr):
+                msg = '%s %s does not provide a %s'
+                return False, msg % (base_cls, contrib.id, attr)
+
+        return True, ''
+
+    doc = 'Ensure that %s subclasses does override %s' % (base_cls, fn_names)
+    validator.__doc__ = doc
+
+    return validator
+
+
 @python_2_unicode_compatible
 class ClassTuple(tuple):
     """Special tuple meant to hold classes.

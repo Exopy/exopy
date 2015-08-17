@@ -17,7 +17,7 @@ from future.utils import python_2_unicode_compatible
 from  atom.api import Typed, Unicode, Bool, Enum
 from enaml.workbench.api import (PluginManifest, Plugin, Extension,
                                  ExtensionPoint)
-from  enaml.core.api import Declarative, d_
+from  enaml.core.api import Declarative, d_, d_func
 
 from ecpy.utils.declarator import Declarator
 from ecpy.utils.plugin_tools import ExtensionsCollector, DeclaratorsCollector
@@ -37,7 +37,16 @@ class Contribution(Declarative):
     """
     id = d_(Unicode())
 
-    task = d_(Unicode())
+    description = d_(Unicode())
+
+    @d_func
+    def new(self, workbench):
+        raise NotImplementedError()
+
+enamldef DContribution(Contribution):
+
+    new => (self, workbench):
+        pass
 
 
 @python_2_unicode_compatible
