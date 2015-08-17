@@ -17,13 +17,6 @@ from ast import literal_eval
 from future.builtins import str
 
 
-#: Id used to identify dependencies type.
-TASK_DEP_TYPE = 'ecpy.task'
-
-#: Id used to identify dependencies type.
-INTERFACE_DEP_TYPE = 'ecpy.tasks.interface'
-
-
 def collect_task(workbench, obj, getter, dependencies, errors):
     """Collector function working on tasks and saved task representation.
 
@@ -36,10 +29,10 @@ def collect_task(workbench, obj, getter, dependencies, errors):
     t_infos = manager.get_task_infos(t_cls_name)
 
     if t_infos is None:
-        errors[TASK_DEP_TYPE][t_cls_name] = 'Unknown task.'
+        errors[t_cls_name] = 'Unknown task.'
         return
 
-    dependencies[TASK_DEP_TYPE][t_cls_name] = t_infos.cls
+    dependencies[t_cls_name] = t_infos.cls
 
     return t_infos.dependencies
 
@@ -60,9 +53,9 @@ def collect_interface(workbench, obj, getter, dependencies, errors):
 
     if i_infos is None:
         msg = 'Unknown interface.'
-        errors[INTERFACE_DEP_TYPE][str(interface_anchor)] = msg
+        errors[str(interface_anchor)] = msg
         return
 
-    dependencies[INTERFACE_DEP_TYPE][interface_anchor] = i_infos.cls
+    dependencies[interface_anchor] = i_infos.cls
 
     return i_infos.dependencies
