@@ -14,6 +14,8 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 
+from ...utils.plugin_tools import make_handler
+
 PLUGIN_ID = 'ecpy.app.dependencies'
 
 
@@ -28,19 +30,6 @@ def dependencies_plugin_factory():
     from .plugin import DependenciesPlugin
     return DependenciesPlugin()
 
-
-# =============================================================================
-# --- Command handlers --------------------------------------------------------
-# =============================================================================
-
-def collect_dependencies(event):
-    """Handler for the 'ecpy.app.dependencies.collect' command.
-
-    """
-    manager = event.workbench.get_plugin(PLUGIN_ID)
-    if event.trigger:
-        event.parameters['owner'] = event.trigger.manifest.id
-    return manager.collect_dependencies(**event.parameters)
 
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
@@ -94,6 +83,39 @@ dependencies : dict
 """
 
 
+REQUEST_RUNTIMES_DESCRIPTION=\
+"""Request the right to use the listed dependencies.
+
+Parameters
+----------
+workbench :
+    Reference to the application workbench.
+
+owner : unicode
+    Id of the plugin requesting the ressources.
+
+dependencies : dict
+    Dictionary containing the runtime dependencies to request organised
+    by id.
+
+"""
+
+
+RELEASE_RUNTIMES_DESCRIPTION=\
+"""Release runtime dependencies previously acquired (collected).
+
+Parameters
+----------
+owner : unicode
+    Id of the plugin releasing the ressources.
+
+dependencies : dict
+    Dictionary containing the runtime dependencies to release organised
+    by id.
+
+"""
+
+
 # =============================================================================
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
@@ -128,4 +150,14 @@ enamldef DependenciesManifest(PluginManifest):
         Command:
             id = 'ecpy.app.dependencies.collect'
             description = COLLECT_DEPENDENCIES_DESCRIPTION
-            handler = collect_dependencies
+            handler = make_handler(PLUGIN_ID, 'collect_dependencies')
+
+        Command:
+            id = 'ecpy.app.dependencies.request_runtimes'
+            description = REQUEST_RUNTIMES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'request_runtimes')
+
+        Command:
+            id = 'ecpy.app.dependencies.release_runtimes'
+            description = RELEASE_RUNTIMES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'release_runtimes')

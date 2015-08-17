@@ -40,6 +40,9 @@ class BuildDependency(Declarative):
     def collect(self, workbench, obj, getter, dependencies, errors):
         """Collect the identified build dependencies and list runtime ones.
 
+        This method should ever raise an error but rather use the errors
+        dictionary to signal any issue.
+
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
@@ -54,12 +57,10 @@ class BuildDependency(Declarative):
             using this function rather than the usual '.' syntax as the passed
             object might be a dictionary like object.
 
-        dependencies : defaultdict(dict)
-            Dictionary in which to write the build dependencies. Dependencies
-            should be groupped by collector.
-            ex : dependencies[self.id][key] = value
+        dependencies : dict
+            Dictionary in which to write the build dependencies.
 
-        errors : defaultdict(dict)
+        errors : dict
             Dictionary in which to write the errors that occured during
             collection.
 
@@ -69,7 +70,7 @@ class BuildDependency(Declarative):
             List of runtime dependencies that this object have.
 
         """
-        pass
+        raise NotImplementedError()
 
 
 class RuntimeDependency(Declarative):
@@ -82,35 +83,84 @@ class RuntimeDependency(Declarative):
     id = d_(Unicode())
 
     @d_func
-    def collect(self, workbench, owner, obj, getter, dependencies, errors):
+    def collect(self, workbench, owner, obj, dependencies, unavailable,
+                errors):
         """Collect the identified runtime dependencies.
+
+        This method should ever raise an error but rather use the errors
+        dictionary to signal any issue.
+
+        If some of them requires some kind of permission, this permission
+        should be required.
 
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
 
-        owner :
-            Calling plugin. Used for some runtime dependencies needing to know
-            the ressource owner.
+        owner : unicode
+            Calling plugin id . Used for some runtime dependencies needing to
+            know the ressource owner.
 
         obj :
             Object whose build dependencies should be collected and runtime
             ones identified.
 
-        getter : callable(obj, name)
-            Callable to use to access obj attribute. Attribute must be accessed
-            using this function rather than the usual '.' syntax as the passed
-            object might be a dictionary like object.
+        dependencies : dict
+            Dictionary in which to write the build dependencies.
 
-        dependencies : defaultdict(dict)
-            Dictionary in which to write the build dependencies. Dependencies
-            should be groupped by collector.
-            ex : dependencies[self.id][key] = value
+        unavaible : set
+            Set of resources that could not be provided because they are
+            currently unavailable.
 
-        errors : defaultdict(dict)
+        errors : dict
             Dictionary in which to write the errors that occured during
             collection.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
+    def request(self, workbench, owner, dependencies, unavailable, errors):
+        """Request the right to use the listed dependencies.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        owner : unicode
+            Id of the plugin requesting the ressources.
+
+        dependencies : dict
+            Dictionary listing the dependencies to request. The values should
+            be updated if necessary.
+
+        unavaible : set
+            Set of resources that could not be provided because they are
+            currently unavailable.
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        pass
+
+    @d_func
+    def release(self, workbench, owner, dependencies):
+        """Release resources previously acquired.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        owner : unicode
+            Id of the plugin releasing the ressources.
+
+        dependencies : iterable
+            Iterable of dependencies that are no longer needed.
 
         """
         pass

@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Typed
+from atom.api import Atom, Typed
 from enaml.workbench.api import Plugin
 from operator import getitem
 from collections import defaultdict
@@ -20,7 +20,7 @@ from collections import defaultdict
 from configobj import Section
 
 from ...utils.configobj_ops import traverse_config
-from ...utils.plugin_tools import ExtensionsCollector
+from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
 
 from .dependencies import BuildDependency, RuntimeDependency
 
@@ -30,30 +30,24 @@ BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
 RUNTIME_DEP_POINT = 'ecpy.app.dependencies.runtime'
 
 
-def validate_build_dep(contrib):
-    """Validate that a runtime dependency does declare everything it should.
+class BuildContainer(Atom):
+    """Class used to store infos about collected build dependencies.
 
     """
-    func = getattr(contrib.collect, 'im_func',
-                   getattr(contrib.collect, '__func__', None))
-    if not func or func is BuildDependency.collect.__func__:
-        msg = "BuildDependency '%s' does not declare a collect function"
-        return False, msg % contrib.id
+    #: Dictionary storing the collected dependencies, grouped by id.
+    dependencies = Typed(defaultdict, (dict,))
 
-    return True, ''
+    #: Dictionary storing the errors which occured during collection.
+    errors = Typed(defaultdict, (dict,))
 
 
-def validate_runtime_dep(contrib):
-    """Validate that a runtime dependency does declare everything it should.
+class RuntimeContainer(BuildContainer):
+    """Class used to store infos about collected runtime dependencies.
 
     """
-    func = getattr(contrib.collect, 'im_func',
-                   getattr(contrib.collect, '__func__', None))
-    if not func or func is RuntimeDependency.collect.__func__:
-        msg = "RuntimeDependency '%s' does not declare a collect function"
-        return False, msg % contrib.id
-
-    return True, ''
+    #: Runtime dependencies which exists but are currently used by another
+    #: part of the application and hence are unavailable.
+    unavailable = Typed(defaultdict, (set,))
 
 
 class DependenciesPlugin(Plugin):
@@ -70,17 +64,18 @@ class DependenciesPlugin(Plugin):
         """Start the manager and load all contributions.
 
         """
+        checker = make_extension_validator(BuildDependency, ('collect',))
         self.build_deps = ExtensionsCollector(workbench=self.workbench,
                                               point=BUILD_DEP_POINT,
                                               ext_class=BuildDependency,
-                                              validate_ext=validate_build_dep)
+                                              validate_ext=checker)
         self.build_deps.start()
 
+        checker = make_extension_validator(RuntimeDependency, ('collect',))
         self.run_deps = ExtensionsCollector(workbench=self.workbench,
                                             point=RUNTIME_DEP_POINT,
                                             ext_class=RuntimeDependency,
-                                            validate_ext=validate_runtime_dep
-                                            )
+                                            validate_ext=checker)
         self.run_deps.start()
 
     def stop(self):
@@ -104,31 +99,18 @@ class DependenciesPlugin(Plugin):
 
         dependencies : {['build'], ['runtime'], ['build', 'runtime']}
             Kind of dependencies which should be gathered. Note that only
-            build dependencies can be retrieved from a configobj.Section
+            build dependencies can be retrieved from a `configobj.Section`
             object.
 
         owner : optional
-            Calling plugin. Used for some runtime dependencies needing to know
-            the ressource owner.
+            Calling plugin id. Used for some runtime dependencies needing to
+            know the ressource owner.
 
         Returns
         -------
-        result : bool
-            Flag indicating the success of the operation.
-
-        dependencies : dict|tuple[dict]
-            In case of success:
-
-            - Dicts holding all the classes or other dependencies to build, run
-              or build and run the object without any access to the workbench.
-              If a single kind of dependencies is requested a single dict is
-              returned otherwise a tuple of two is returned one for the build
-              ones and one for the runtime ones
-
-            Otherwise:
-
-            - dict holding the id of the dependency and the asssociated
-              error message.
+        dependencies : BuildContainer | RuntimeContainer | tuple
+            BuildContainer, RuntimeContaineror tuple of both according to
+            the requested dependencies.
 
         """
         if isinstance(obj, Section):
@@ -141,14 +123,15 @@ class DependenciesPlugin(Plugin):
         builds = self.build_deps.contributions
         runtimes = self.run_deps.contributions
 
-        deps = (defaultdict(dict), defaultdict(dict))
-        errors = (defaultdict(dict), defaultdict(dict))
+        build_deps = BuildContainer()
+        runtime_deps = RuntimeContainer()
         need_runtime = 'runtime' in dependencies
         if need_runtime and not owner:
             gen = ()
-            msg = ('A owner plugin must be specified when collecting' +
-                   'runtime  dependencies.')
-            errors[1]['owner'] = msg
+            msg = ('A owner plugin must be specified when collecting ' +
+                   'runtime dependencies.')
+            runtime_deps.errors['owner'] = msg
+            # Next part is skipped as gen is empty
 
         for component in gen:
             dep_type = getter(component, 'dep_type')
@@ -156,27 +139,74 @@ class DependenciesPlugin(Plugin):
                 collector = builds[dep_type]
             except KeyError:
                 msg = 'No matching collector for dep_type : {}'
-                errors[0][dep_type] = msg.format(dep_type)
+                build_deps.errors[dep_type] = msg.format(dep_type)
                 break
-            run_ids = collector.collect(self.workbench, component,
-                                        getter, deps[0], errors[0])
+            run_ids = collector.collect(self.workbench, component, getter,
+                                        build_deps.dependencies[collector.id],
+                                        build_deps.errors[collector.id])
 
             if need_runtime and run_ids:
                 if any(r not in runtimes for r in run_ids):
                     msg = 'No collector matching the ids : %s'
-                    errors[1]['runtime'] = msg % [r for r in run_ids
-                                                  if r not in runtimes]
+                    missings = [r for r in run_ids if r not in runtimes]
+                    runtime_deps.errors['runtime'] = msg % missings
                     break
                 for r in run_ids:
                     runtimes[r].collect(self.workbench, owner, component,
-                                        getter, deps[1], errors[1])
-
-        res = not any(errors)
-        answer = errors if any(errors) else deps
+                                        getter, runtime_deps.dependencies[r],
+                                        runtime_deps.unavailable[r],
+                                        runtime_deps.errors[r])
 
         if 'build' in dependencies and 'runtime' in dependencies:
-            return res, answer
+            return build_deps, runtime_deps
         elif 'build' in dependencies:
-            return res, answer[0]
+            return build_deps
         else:
-            return res, answer[1]
+            return runtime_deps
+
+    def request_runtimes(self, owner, dependencies):
+        """Request the right to use the listed dependencies.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        owner : unicode
+            Id of the plugin requesting the ressources.
+
+        dependencies : dict
+            Dictionary containing the runtime dependencies to request organised
+            by id.
+
+        """
+        runtimes = self.run_deps.contributions
+        r_deps = RuntimeContainer(dependencies=dependencies)
+        for dep_id in dependencies:
+            if dep_id not in runtimes:
+                msg = 'No collector found for %s'
+                r_deps.errors[dep_id] = msg % dep_id
+            runtimes[dep_id].request(self.workbench, owner,
+                                     dependencies[dep_id])
+
+        return r_deps
+
+    def release_runtimes(self, owner, dependencies):
+        """Release runtime dependencies previously acquired (collected).
+
+        Parameters
+        ----------
+        owner : unicode
+            Id of the plugin releasing the ressources.
+
+        dependencies : dict
+            Dictionary containing the runtime dependencies to release organised
+            by id.
+
+        """
+        runtimes = self.run_deps.contributions
+        for dep_id in dependencies:
+            if dep_id not in runtimes:
+                continue
+            runtimes[dep_id].release(self.workbench, owner,
+                                     dependencies[dep_id])
