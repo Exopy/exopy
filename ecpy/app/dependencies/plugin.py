@@ -30,15 +30,35 @@ BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
 RUNTIME_DEP_POINT = 'ecpy.app.dependencies.runtime'
 
 
+def clean_dict(mapping):
+    """Keep only the non False entry from a dict.
+
+    """
+    return {k: v for k, v in mapping.iteritems() if v}
+
+
 class BuildContainer(Atom):
     """Class used to store infos about collected build dependencies.
 
     """
     #: Dictionary storing the collected dependencies, grouped by id.
-    dependencies = Typed(defaultdict, (dict,))
+    dependencies = Typed(dict)
 
     #: Dictionary storing the errors which occured during collection.
-    errors = Typed(defaultdict, (dict,))
+    errors = Typed(dict)
+
+    def clean(self):
+        """Remove all empty entries from dictionaries.
+
+        """
+        self.dependencies = clean_dict(self.dependencies)
+        self.errors = clean_dict(self.errors)
+
+    def _default_dependencies(self):
+        return defaultdict(dict)
+
+    def _default_errors(self):
+        return defaultdict(dict)
 
 
 class RuntimeContainer(BuildContainer):
@@ -47,7 +67,17 @@ class RuntimeContainer(BuildContainer):
     """
     #: Runtime dependencies which exists but are currently used by another
     #: part of the application and hence are unavailable.
-    unavailable = Typed(defaultdict, (set,))
+    unavailable = Typed(dict)
+
+    def clean(self):
+        """Remove all empty entries from dictionaries.
+
+        """
+        super(RuntimeContainer, self).clean()
+        self.unavailable = clean_dict(self.unavailable)
+
+    def _default_unavailable(self):
+        return defaultdict(set)
 
 
 class DependenciesPlugin(Plugin):
@@ -64,14 +94,14 @@ class DependenciesPlugin(Plugin):
         """Start the manager and load all contributions.
 
         """
-        checker = make_extension_validator(BuildDependency, ('collect',))
+        checker = make_extension_validator(BuildDependency, ('collect',), ())
         self.build_deps = ExtensionsCollector(workbench=self.workbench,
                                               point=BUILD_DEP_POINT,
                                               ext_class=BuildDependency,
                                               validate_ext=checker)
         self.build_deps.start()
 
-        checker = make_extension_validator(RuntimeDependency, ('collect',))
+        checker = make_extension_validator(RuntimeDependency, ('collect',), ())
         self.run_deps = ExtensionsCollector(workbench=self.workbench,
                                             point=RUNTIME_DEP_POINT,
                                             ext_class=RuntimeDependency,
@@ -158,10 +188,14 @@ class DependenciesPlugin(Plugin):
                                         runtime_deps.errors[r])
 
         if 'build' in dependencies and 'runtime' in dependencies:
+            build_deps.clean()
+            runtime_deps.clean()
             return build_deps, runtime_deps
         elif 'build' in dependencies:
+            build_deps.clean()
             return build_deps
         else:
+            runtime_deps.clean()
             return runtime_deps
 
     def request_runtimes(self, owner, dependencies):
@@ -186,8 +220,11 @@ class DependenciesPlugin(Plugin):
             if dep_id not in runtimes:
                 msg = 'No collector found for %s'
                 r_deps.errors[dep_id] = msg % dep_id
+                continue
             runtimes[dep_id].request(self.workbench, owner,
-                                     dependencies[dep_id])
+                                     dependencies[dep_id],
+                                     r_deps.unavailable[dep_id],
+                                     r_deps.errors[dep_id])
 
         return r_deps
 

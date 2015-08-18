@@ -38,8 +38,8 @@ enamldef BuildDep(PluginManifest):
             attr run = ('test_run',)
             collect => (workbench, obj, getter, dependencies, errors):
                 if err:
-                    errors['test'][str(obj)] = 'Failed to get val'
-                dependencies['test']['val'] = getter(obj, 'val')
+                    errors[str(obj)] = 'Failed to get val'
+                dependencies['val'] = getter(obj, 'val')
                 return run
 
 enamldef RuntimeDep(PluginManifest):
@@ -54,7 +54,26 @@ enamldef RuntimeDep(PluginManifest):
         RuntimeDependency:
             id = 'test_run'
             attr err : bool = False
-            collect =>  (workbench, owner, obj, getter, dependencies, errors):
+            attr una : bool = False
+            collect =>  (workbench, owner, obj, getter, dependencies,
+                         unavailable, errors):
                 if err:
-                    errors['test_run'][str(obj)] = 'Failed to get run'
-                dependencies['test_run']['run'] = getter(obj, 'run')
+                    errors[str(obj)] = 'Failed to get run'
+                    return
+                if una:
+                    unavailable.add('run')
+                    return
+                dependencies['run'] = getter(obj, 'run')
+
+            request => (workbench, owner, dependencies, unavailable, errors):
+                if err:
+                    errors['run'] = 'Failed to get run'
+                    return
+                if una:
+                    print('r')
+                    unavailable.add('run')
+                    return
+                dependencies['run'] = 1
+
+            release => (workbench, owner, dependencies):
+                del dependencies['run']

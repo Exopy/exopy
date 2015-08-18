@@ -66,9 +66,9 @@ class TestCollectingFromObject(object):
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object})
-        assert res
-        assert dep.keys() == ['test']
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object})
+        assert not dep.errors
+        assert dep.dependencies.keys() == ['test']
 
     def test_collecting_runtime(self, dependent_object):
         """Test collecting only the runtime dependencies.
@@ -76,25 +76,45 @@ class TestCollectingFromObject(object):
         """
         plugin = self.workbench.get_plugin('ecpy.app.dependencies')
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['runtime']},
-                                       plugin)
-        assert res
-        assert dep.keys() == ['test_run']
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+        assert not dep.errors
+        assert dep.dependencies.keys() == ['test_run']
+
+    def test_collecting_unavailable_runtime(self, dependent_object,
+                                            monkeypatch):
+        """Test collecting only the runtime dependencies.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+        core = self.workbench.get_plugin('enaml.workbench.core')
+
+        for r in plugin.run_deps.contributions.values():
+            monkeypatch.setattr(r, 'una', True)
+
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+        assert not dep.errors
+        assert dep.unavailable['test_run'] == {'run'}
 
     def test_collecting_all(self, dependent_object):
         """Test collecting all dependencies.
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['build',
-                                                                  'runtime'],
-                                                 'owner': 'ecpy.test'})
+        b_dep, r_dep = core.invoke_command(COLLECT,
+                                           {'obj': dependent_object,
+                                            'dependencies': ['build',
+                                                             'runtime'],
+                                            'owner': 'ecpy.test'})
 
-        assert res
-        assert dep[0].keys() == ['test']
-        assert dep[1].keys() == ['test_run']
+        assert not b_dep.errors and not r_dep.errors
+        assert b_dep.dependencies.keys() == ['test']
+        assert r_dep.dependencies.keys() == ['test_run']
 
     def test_handling_errors(self, monkeypatch, dependent_object):
         """Test handling errors occuring when collecting dependencies.
@@ -109,13 +129,13 @@ class TestCollectingFromObject(object):
             monkeypatch.setattr(r, 'err', True)
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['build',
-                                                                  'runtime'],
-                                                 'owner': 'ecpy.test'})
+        b_dep, r_dep = core.invoke_command(COLLECT,
+                                           {'obj': dependent_object,
+                                            'dependencies': ['build',
+                                                             'runtime'],
+                                            'owner': 'ecpy.test'})
 
-        assert not res
-        assert 'test' in dep[0] and 'test_run' in dep[1]
+        assert 'test' in b_dep.errors and 'test_run' in r_dep.errors
 
     def test_handling_missing_caller(self, dependent_object):
         """Test handling a missing caller when runtime dependencies are
@@ -123,10 +143,9 @@ class TestCollectingFromObject(object):
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['runtime']})
-        assert not res
-        assert 'owner' in dep
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime']})
+        assert 'owner' in dep.errors
 
     def test_handling_unknown_dep_type(self, dependent_object):
         """Test handling an unknown dep_type.
@@ -134,9 +153,8 @@ class TestCollectingFromObject(object):
         """
         dependent_object.dep_type = 'Unknown'
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object})
-        assert not res
-        assert 'Unknown' in dep
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object})
+        assert 'Unknown' in dep.errors
 
     def test_handling_missing_runtime_collector(self, monkeypatch,
                                                 dependent_object):
@@ -149,11 +167,91 @@ class TestCollectingFromObject(object):
             monkeypatch.setattr(b, 'run', ('unkwown',))
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                                 'dependencies': ['runtime'],
-                                                 'owner': object()})
-        assert not res
-        assert 'runtime' in dep
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': object()})
+        assert 'runtime' in dep.errors
+
+    def test_requesting_runtimes(self, dependent_object):
+        """Test requesting runtimes dependencies.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
+                                  {'dependencies': dep.dependencies,
+                                   'owner': plugin.manifest.id},
+                                  )
+
+        assert dep.dependencies['test_run']['run'] == 1
+
+    def test_requesting_runtimes_missing(self, monkeypatch, dependent_object):
+        """Test requesting runtimes dependencies when a collector is missing.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+
+        for r in plugin.run_deps.contributions.values():
+            monkeypatch.setattr(r, 'err', True)
+        dep.dependencies['test_missing'] = {}
+        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
+                                  {'dependencies': dep.dependencies,
+                                   'owner': plugin.manifest.id},
+                                  )
+
+        assert 'test_run' in dep.errors
+        assert 'test_missing' in dep.errors
+
+    def test_requesting_runtimes_unavailable(self, monkeypatch,
+                                             dependent_object):
+        """Test requesting runtimes dependencies when a dependency is
+        unavailable.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+
+        for r in plugin.run_deps.contributions.values():
+            monkeypatch.setattr(r, 'una', True)
+
+        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
+                                  {'dependencies': dep.dependencies,
+                                   'owner': plugin.manifest.id},
+                                  )
+
+        assert 'test_run' in dep.unavailable
+
+    def test_releasing_runtimes(self, dependent_object):
+        """Test releasing runtime dependencies.
+
+        """
+        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
+                                            'dependencies': ['runtime'],
+                                            'owner': plugin.manifest.id},
+                                  )
+        # Ensure that an unknown runtime won't crash
+        dep.dependencies['rr'] = {}
+        core.invoke_command('ecpy.app.dependencies.release_runtimes',
+                            {'dependencies': dep.dependencies,
+                             'owner': plugin.manifest.id},
+                            )
+
+        assert 'run' not in dep.dependencies['test_run']
 
 
 class TestCollectingFromConfig(object):
@@ -177,12 +275,11 @@ class TestCollectingFromConfig(object):
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT,
-                                       {'obj': ConfigObj({'val': '1',
-                                                          'dep_type': 'test'})}
-                                       )
-        assert res
-        assert dep.keys() == ['test']
+        dep = core.invoke_command(COLLECT,
+                                  {'obj': ConfigObj({'val': '1',
+                                                     'dep_type': 'test'})}
+                                  )
+        assert dep.dependencies.keys() == ['test']
 
     def test_handling_errors(self, monkeypatch):
         """Test handling errors occuring when collecting dependencies.
@@ -194,10 +291,9 @@ class TestCollectingFromConfig(object):
             monkeypatch.setattr(b, 'err', True)
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        res, dep = core.invoke_command(COLLECT,
-                                       {'obj': ConfigObj({'val': '1',
-                                                          'dep_type': 'test'})}
-                                       )
+        dep = core.invoke_command(COLLECT,
+                                  {'obj': ConfigObj({'val': '1',
+                                                     'dep_type': 'test'})}
+                                  )
 
-        assert not res
-        assert 'test' in dep
+        assert 'test' in dep.errors
