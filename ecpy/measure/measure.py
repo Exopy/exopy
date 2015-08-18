@@ -151,11 +151,10 @@ class Measure(Atom):
             measure.root_task = core.invoke_command(cmd, kwarg, measure)
         except Exception:
             msg = 'Building %s, failed to restore task : %s'
-            # TODO think of a nice error reporting
             core.invoke_command(err_cmd,
                                 dict(kind='measure',
-                                     msg=msg % (config.get('name'),
-                                                format_exc())))
+                                     message=msg % (config.get('name'),
+                                                    format_exc())))
 
         for kind in ('monitors', 'pre_hooks', 'post_hooks'):
             saved = config.get(kind, {})
@@ -173,9 +172,8 @@ class Measure(Atom):
                 except Exception:
                     mess = 'Failed to restore {} : {}'.format(kind[:-1],
                                                               format_exc())
-                    # TODO think of a nice error reporting
                     core.invoke_command(err_cmd,
-                                        dict(kind='measure', msg=mess))
+                                        dict(kind='measure', message=mess))
                     continue
                 measure.add_tool(kind[:-1], id, obj)
 
@@ -326,7 +324,7 @@ class Measure(Atom):
             if database.has_observer('notifier', monitor.database_modified):
                 database.unobserve('notifier', monitor.database_modified)
 
-    def add_tool(self, kind, id, tool, refresh=True):
+    def add_tool(self, kind, id, tool=None):
         """Add a tool to the measure.
 
         Newly added tools are always appended to the list of existing ones.
@@ -339,10 +337,13 @@ class Measure(Atom):
         id : unicode
             Id of the tool being added.
 
-        tool : MeasureTool
-            Tool being added.
+        tool : MeasureTool, optional
+            Tool being added, if not specified a new instance will be created.
 
         """
+        if not tool:
+            tool = self.plugin.create(kind, id)
+
         tools = getattr(self, kind + 's').copy()
 
         if id in tools:
