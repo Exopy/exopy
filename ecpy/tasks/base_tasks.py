@@ -637,7 +637,7 @@ class ComplexTask(BaseTask):
     #: them.
     children = List().tag(child=100)
 
-    #: Signal emitted when the list of children change the payload will be a
+    #: Signal emitted when the list of children change, the payload will be a
     # ContainerChange instance.
     children_changed = Signal()
 
