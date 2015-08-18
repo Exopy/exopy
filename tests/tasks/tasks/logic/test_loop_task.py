@@ -112,7 +112,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, CheckTask(name='check'))
         assert len(list(self.task.traverse())) == 3
 
-    def test_saving_building_from_config(self):
+    def test_saving_building_from_config(self, iterable_interface):
         """Done here as the LoopTask is a viable case of a member tagged with
         child.
 
@@ -130,14 +130,17 @@ class TestLoopTask(object):
 
         assert new.children[0].task.name == 'check'
 
+        self.task.interface = iterable_interface
         self.root.update_preferences_from_members()
         prefs = self.root.preferences
         del prefs['children_0']['task']
-        new = RootTask.build_from_config(prefs,
-                                         {'ecpy.task': {'RootTask': RootTask,
-                                                        'LoopTask': LoopTask,
-                                                        'CheckTask': CheckTask}
-                                          })
+        deps = {'ecpy.task': {'RootTask': RootTask, 'LoopTask': LoopTask,
+                              'CheckTask': CheckTask},
+                'ecpy.tasks.interface':
+                    {('IterableLoopInterface', ('LoopTask',)):
+                        IterableLoopInterface}
+                }
+        new = RootTask.build_from_config(prefs, deps)
 
         assert not new.children[0].task
 

@@ -258,7 +258,7 @@ class TestInterfaceableTaskMixin(object):
         """
         aux = RootTask()
         aux.add_child_task(0, IMixin())
-        print(aux.preferences)
+
         bis = RootTask.build_from_config(aux.preferences,
                                          {'ecpy.task': {'IMixin': IMixin,
                                                         'RootTask': RootTask}})

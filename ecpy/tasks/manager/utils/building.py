@@ -72,9 +72,10 @@ def build_task_from_config(config, build_dep, as_root=False):
     if not isinstance(build_dep, dict):
         core = build_dep.get_plugin('enaml.workbench.core')
         cmd = 'ecpy.app.dependencies.collect'
-        res, build_dep = core.invoke_command(cmd, {'obj': config})
-        if not res:
+        cont = core.invoke_command(cmd, {'obj': config})
+        if cont.errors:
             return None
+        build_dep = cont.dependencies
 
     cls = config.pop('task_class')
 

@@ -18,9 +18,7 @@ from collections import defaultdict
 from future.builtins import str
 
 from ecpy.tasks.manager.utils.dependencies import (collect_task,
-                                                   collect_interface,
-                                                   TASK_DEP_TYPE,
-                                                   INTERFACE_DEP_TYPE)
+                                                   collect_interface)
 
 
 def test_collect_task_dependencies(task_workbench):
@@ -31,14 +29,13 @@ def test_collect_task_dependencies(task_workbench):
     plugin = task_workbench.get_plugin('ecpy.tasks')
     plugin.get_task_infos('ComplexTask').dependencies = runtime
 
-    dep = defaultdict(dict)
-    errors = defaultdict(dict)
+    dep = dict()
+    errors = dict()
     run = collect_task(task_workbench, {'task_class': 'ComplexTask'}, getitem,
                        dep, errors)
 
     assert run == runtime
-    assert TASK_DEP_TYPE in dep
-    assert 'ComplexTask' in dep[TASK_DEP_TYPE]
+    assert 'ComplexTask' in dep
     assert not errors
 
     dep.clear()
@@ -46,8 +43,7 @@ def test_collect_task_dependencies(task_workbench):
                        dep, errors)
     assert not run
     assert not dep
-    assert TASK_DEP_TYPE in errors
-    assert '__dummy__' in errors[TASK_DEP_TYPE]
+    assert '__dummy__' in errors
 
 
 def test_collect_interface_dependencies(task_workbench):
@@ -66,8 +62,7 @@ def test_collect_interface_dependencies(task_workbench):
                             getitem, dep, errors)
 
     assert run == runtime
-    assert INTERFACE_DEP_TYPE in dep
-    assert interface in dep[INTERFACE_DEP_TYPE]
+    assert interface in dep
     assert not errors
 
     dep.clear()
@@ -76,5 +71,4 @@ def test_collect_interface_dependencies(task_workbench):
                             getitem, dep, errors)
     assert not run
     assert not dep
-    assert INTERFACE_DEP_TYPE in errors
-    assert str(('__dummy__', 'LoopTask')) in errors[INTERFACE_DEP_TYPE]
+    assert str(('__dummy__', 'LoopTask')) in errors
