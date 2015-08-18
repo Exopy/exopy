@@ -47,8 +47,10 @@ def errors_plugin_factory():
 # =============================================================================
 
 HANDLER_EXT_DESCRIPTION = \
-'''Plugins can contribute ErrorHandler to this point to add a new way of
-signaling errors.'''
+"""Plugins can contribute ErrorHandler to this point to add a new way of
+signaling errors.
+
+"""
 
 
 SIGNAL_HANDLER_DESCRIPTION = \
@@ -92,18 +94,20 @@ and reported.
 
 
 ERROR_DESCRIPTION =\
-'''Generic error handler, log and warn user (popup window).
+"""Generic error handler, log and warn user (popup window).
 
 The handler expect to find a 'message' key in the passed infos.
-'''
+
+"""
 
 
 REGISTERING_ERR_DESCRIPTION =\
-'''Specific handler for plugin registering errors.
+"""Specific handler for plugin registering errors.
 
 The handler expect to find the 'id' of the manifest whose registering failed,
 and a 'message' key.
-'''
+
+"""
 
 
 EXTENSION_ERR_DESCRIPTION =\
@@ -111,6 +115,7 @@ EXTENSION_ERR_DESCRIPTION =\
 
 The handler expects the 'point' to which the extension was contributing and
 an 'errors' dictionary describing the errors that occured.
+
 """
 
 # =============================================================================
