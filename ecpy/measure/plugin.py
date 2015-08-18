@@ -15,13 +15,15 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 import os
 from time import sleep
+from collections import Iterable
 from inspect import cleandoc
 from functools import partial
 from enum import IntEnum
 
 import enaml
-from atom.api import Typed, Unicode, List, ForwardTyped, Int, Enum
+from atom.api import Typed, Unicode, List, ForwardTyped, Int, Enum, Signal
 
+from ..utils.container_change import ContainerChange
 from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
                                   make_extension_validator)
 from .engines import BaseEngine, Engine
@@ -73,12 +75,20 @@ class MeasurePlugin(HasPrefPlugin):
     path = Unicode().tag(pref=True)
 
     #: Currently edited measures. The list should not be manipulated
-    #: directly by user code.
+    #: directly by user code. Use the edd/move/remove_measure functions.
     edited_measures = List()
 
+    #: Signal emitted whenever a measure is added or removed from the list of
+    #: edited measures, the payload will be a ContainerChange instance.
+    edited_measures_changed = Signal()
+
     #: Currently enqueued measures. The list should not be manipulated
-    #: directly by user code.
+    #: directly by user code. Use the edd/move/remove_measure functions.
     enqueued_measures = List()
+
+    #: Signal emitted whenever a measure is added or removed from the list of
+    #: enqueued measures, the payload will be a ContainerChange instance.
+    enqueued_measures_changed = Signal()
 
     #: Currently run measure or last measure run.
     running_measure = Typed(Measure)
@@ -221,6 +231,88 @@ class MeasurePlugin(HasPrefPlugin):
             raise ValueError('Unknown {} : {}'.format(kind, id))
 
         return decls[id].new(self.workbench)
+
+    def add_measure(self, kind, measure, index=None):
+        """Add a measure to the edited or enqueued ones.
+
+        Parameters
+        ----------
+        kind : unicode, {'edited', 'enqueued'}
+            Is this measure to be added to the enqueued or edited ones.
+
+        measure : Measure
+            Measure to add.
+
+        index : int | None
+            Index at which to insert the measure. If None the measure is
+            appended.
+
+        """
+        name = kind+'_measures'
+        measures = getattr(self, name)
+        notification = ContainerChange(obj=self, name=name)
+        if index is None:
+            measures.append(measure)
+            index = measures.index(measure)
+        else:
+            measures.insert(index, measure)
+
+        notification.add_operation('added', (index, measure))
+        signal = getattr(self, kind+'_measures_changed')
+        signal(notification)
+
+    def move_measure(self, kind, measure, new_position):
+        """Move a measure.
+
+        Parameters
+        ----------
+        kind : unicode, {'edited', 'enqueued'}
+            Is this measure to be added to the enqueued or edited ones.
+
+        measure : Measure
+            Measure to move.
+
+        new_position :
+            Index at which to insert the measure.
+
+        """
+        name = kind+'_measures'
+        measures = getattr(self, name)
+        old = measures.index(measure)
+        del measures[old]
+        measures.insert(new_position, measure)
+
+        notification = ContainerChange(obj=self, name=name)
+        notification.add_operation('moved', (old, new_position, measure))
+        signal = getattr(self, kind+'_measures_changed')
+        signal(notification)
+
+    def remove_measures(self, kind, measures):
+        """Remove a measure or a list of measure.
+
+        Parameters
+        ----------
+        kind : unicode, {'edited', 'enqueued'}
+            Is this measure to be added to the enqueued or edited ones.
+
+        measures : Measure|list[Measure]
+            Measure(s) to remove.
+
+        """
+        name = kind+'_measures'
+        measures = getattr(self, name)
+
+        if not isinstance(measures, Iterable):
+            measures = [measures]
+
+        notification = ContainerChange(obj=self, name=name)
+        for measure in measures:
+            old = measures.index(measure)
+            del measures[old]
+            notification.add_operation('removed', (old, measure))
+
+        signal = getattr(self, kind+'_measures_changed')
+        signal(notification)
 
     def start_measure(self, measure):
         """Start a new measure.
