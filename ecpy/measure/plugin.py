@@ -53,6 +53,7 @@ class MeasureFlags(IntEnum):
     processing = 1
     stop_attempt = 2
     stop_processing = 4
+    no_post_exec = 8
 
 
 def _workspace():
@@ -71,10 +72,12 @@ class MeasurePlugin(HasPrefPlugin):
     #: Reference to the last path used to load a measure
     path = Unicode().tag(pref=True)
 
-    #: Currently edited measures.
+    #: Currently edited measures. The list should not be manipulated
+    #: directly by user code.
     edited_measures = List()
 
-    #: Currently enqueued measures.
+    #: Currently enqueued measures. The list should not be manipulated
+    #: directly by user code.
     enqueued_measures = List()
 
     #: Currently run measure or last measure run.
@@ -273,7 +276,7 @@ class MeasurePlugin(HasPrefPlugin):
                         granted to the measure %s''' % measure.name)
         logger.info(mess.replace('\n', ' '))
 
-        # Run internal test to check communication.
+        # Run checks now that we have all the runtimes.
         res, errors = measure.run_checks(self.workbench)
         if not res:
             cmd = 'ecpy.app.errors.signal'
@@ -328,15 +331,17 @@ class MeasurePlugin(HasPrefPlugin):
         logger.info('Resuming measure {}.'.format(self.running_measure.name))
         self.engine_instance.resume()
 
-    def stop_measure(self):
+    def stop_measure(self, no_post_exec=False):
         """Stop the currently active measure.
 
         """
         logger.info('Stopping measure {}.'.format(self.running_measure.name))
         self.flags |= MeasureFlags.stop_attempt
+        if no_post_exec:
+            self.flags |= MeasureFlags.no_post_exec
         self.engine_instance.stop()
 
-    def stop_processing(self):
+    def stop_processing(self, no_post_exec=False):
         """Stop processing the enqueued measure.
 
         """
@@ -344,6 +349,8 @@ class MeasurePlugin(HasPrefPlugin):
         self.flags |= MeasureFlags.stop_attempt | MeasureFlags.stop_processing
         if self.flags and MeasureFlags.processing:
             self.flags &= ~MeasureFlags.processing
+        if no_post_exec:
+            self.flags |= MeasureFlags.no_post_exec
         self.engine_instance.exit()
 
     def force_stop_measure(self):
@@ -351,6 +358,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         """
         logger.info('Exiting measure {}.'.format(self.running_measure.name))
+        self.flags |= MeasureFlags.no_post_exec
         self.engine_instance.force_stop()
 
     def force_stop_processing(self):
@@ -358,7 +366,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         """
         logger.info('Exiting measure {}.'.format(self.running_measure.name))
-        self.flags |= MeasureFlags.stop_processing
+        self.flags |= MeasureFlags.stop_processing | MeasureFlags.no_post_exec
         if self.flags & MeasureFlags.processing:
             self.flags &= ~MeasureFlags.processing
         self.engine_instance.force_exit()
@@ -423,10 +431,11 @@ class MeasurePlugin(HasPrefPlugin):
             return False
 
         if getattr(deps, 'unavailable', None):
-            msg = 'Some runtime dependencies of measure %s are unavailable'
-            core.invoke_command(cmd, {'kind': 'measure-missing',
-                                      'message': msg % measure.name,
-                                      'unavailable': deps.unavailable})
+            msg = ('The following runtime dependencies of measure %s are '
+                   'unavailable :\n')
+            msg += '\n'.join('- %s' % u for u in deps.unavailable)
+            core.invoke_command(cmd, {'kind': 'error',
+                                      'message': msg % measure.name})
             if skip:
                 self._skip_measure('SKIPPED',
                                    'Some runtime dependencies were unavailable'
@@ -460,10 +469,15 @@ class MeasurePlugin(HasPrefPlugin):
 
         """
         meas = self.running_measure
+
+        if not self.flags and MeasureFlags.no_post_exec:
+            # Post execution should provide a way to interrupt their execution.
+            meas.run_post_measure(self.workbench)
+
         mess = 'Measure {} processed, status : {}'.format(meas.name, status)
         logger.info(mess)
 
-        # Releasing instrument profiles.
+        # Releasing runtime dependencies.
         core = self.workbench.get_plugin('enaml.workbench.core')
 
         cmd = 'ecpy.app.dependencies.release_runtimes'
