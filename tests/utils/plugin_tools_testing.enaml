@@ -75,7 +75,8 @@ class TestDeclarator(Declarator):
 
 def validate_contrib(contrib):
 
-     return bool(contrib.task), 'Contribution does not declare a task'
+     return bool(contrib.description),\
+         'Contribution does not have a description'
 
 
 class ExtensionPlugin(Plugin):
@@ -124,7 +125,7 @@ enamldef Contributor1(PluginManifest):
         point = 'test.contrib'
         Contribution:
             id = 'contrib1.contrib'
-            task = 'Do'
+            description = 'Do something'
 
 
 enamldef Contributor2(PluginManifest):
@@ -137,7 +138,7 @@ enamldef Contributor2(PluginManifest):
         id = 'contrib'
         point = u'test.contrib'
         factory = lambda w: [Contribution(id='contrib2.contrib',
-                                          task='While')]
+                                          description='While')]
 
 
 enamldef Contributor3(PluginManifest):
