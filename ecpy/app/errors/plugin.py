@@ -87,7 +87,7 @@ class ErrorsPlugin(Plugin):
         if widget:
             # Show dialog in application modal mode
             dial = ErrorsDialog(errors={kind: widget})
-            dial.exec_()
+            enaml.application.deferred_call(dial.exec_)
 
     def report(self, kind=None):
         """Show a widget summarizing all the errors.
@@ -155,7 +155,7 @@ class ErrorsPlugin(Plugin):
 
             if errors:
                 dial = ErrorsDialog(errors=errors)
-                dial.exec_()
+                enaml.application.deferred_call(dial.exec_)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

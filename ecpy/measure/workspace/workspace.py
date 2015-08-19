@@ -179,7 +179,7 @@ class MeasureSpace(Workspace):
             # load template
             raise NotImplementedError()
 
-    # TODO : making this asynchronous would be super nice
+    # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
         """Put a measure in the queue if it pass the tests.
 
