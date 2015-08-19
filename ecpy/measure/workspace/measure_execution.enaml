@@ -1,0 +1,202 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Workspace used for editing and executing measures.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import os
+
+from enaml.core.api import Looper, Conditional
+from enaml.layout.api import hbox, spacer, vbox, factory
+from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
+                               DockItem, Label, GroupBox)
+
+
+from ...utils.widgets.list_editor import ListEditor
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from .tools_edition import ToolsEditorDialog
+from .measure_edition import MeasureEditorDialog
+from .engines.selection import EngineSelector
+from .plugin import MeasureFlags
+
+enamldef MeasView(GroupBox): widget:
+    """Simple visual summary of a measure.
+
+    """
+    #: Refrence to the measure driving this view.
+    attr measure
+
+    title << measure.name
+
+    layout_constraints => ():
+        meas = widget.measure
+        children = widget.visible_widgets()
+        if meas.status == 'READY':
+            return [vbox(hbox(children[0], children[1], spacer),
+                         hbox(children[2], spacer, children[3]))]
+        elif meas.status not in ('READY', 'RUNNING'):
+            return [vbox(hbox(children[0], children[1], spacer),
+                         children[2])]
+        else:
+            return [hbox(children[0], children[1], spacer)]
+
+    Label:
+        text = 'Status :'
+    Label:
+        text << measure.status
+        tool_tip << measure.infos
+
+    Conditional: cd1:
+        condition << bool(measure.status in ('READY', 'EDITING'))
+        PushButton: edit:
+            text = 'Edit'
+            clicked ::
+                kwargs = {'parent': widget, 'measure': measure,
+                          'workspace': measure.plugin.workspace}
+                meas_editor = MeasureEditorDialog(**kwargs)
+                measure.status = 'EDITING'
+                default_path = measure.root_task.default_path
+                meas_editor.exec_()
+
+                measure.status = 'READY'
+
+        PushButton: process:
+            text = 'Process'
+            enabled << 'processing' not in workspace.plugin.flags
+            clicked ::
+                measure.plugin.workspace.process_single_measure(measure)
+
+    Conditional: cd2:
+        condition << bool(measure.status not in ('READY', 'RUNNING',
+                                                 'EDITING'))
+        PushButton:
+            text = 'Re-enqueue'
+            clicked::
+                measure.plugin.workspace.reenqueue_measure(measure)
+
+
+def label_maker(running, paused):
+    """ Helper determining the proper label for the start button.
+
+    """
+    if not running:
+        return 'Start'
+    else:
+        if paused:
+            return 'Resume'
+        else:
+            return 'Pause'
+
+
+enamldef ExecutionDockItem(DockItem):
+    """Dock item presenting the currently enqueued measures.
+
+    """
+    #: Refrence to the measure workspace.
+    attr workspace
+
+    closable = False
+    name = 'meas_exec'
+    title = 'Enqueued measures'
+
+    func move_measure(old, new):
+        measure = workspace.plugin.enqueued_measures[old]
+        workspace.plugin.move_measure('enqueued', measure, new)
+
+    func remove_measure(index):
+        measure = workspace.plugin.enqueued_measures[index]
+        workspace.plugin.move_measure('enqueued', measure)
+
+    Container:
+        constraints << [vbox(ed,
+                            hbox(start, spacer, stop, stop_all),
+                            hbox(clean, spacer, mon))]
+
+        ListEditor(MeasView): ed:
+            ed.model = workspace.plugin
+            ed.iterable_name = 'enqueued_measures'
+            ed.signal_name = 'enqueued_measures_changed'
+            ed.operations = {'move': move_measure,
+                             'remove': remove_measure}
+
+        PushButton: start:
+            #: Flag indicating the measure is running.
+            attr running << workspace.plugin.flags & MeasureFlags.processing
+
+            #: Flag indicating the measure is in the process of pausing.
+            attr pausing << running and\
+                workspace.plugin.running_measure.status == 'PAUSING'
+
+            #: Flag indicating the measure is in pause.
+            attr paused << running and\
+                workspace.plugin.running_measure.status == 'PAUSED'
+
+            text << label_maker(running, paused)
+            enabled << bool(workspace.plugin.enqueued_measures) and not pausing
+
+            clicked ::
+                if not running:
+                    workspace.start_processing_measures()
+                else:
+                    if paused:
+                        workspace.resume_current_measure()
+                    else:
+                        workspace.pause_current_measure()
+
+        # XXXX Refactor to make more clear what this does.
+        PushButton: stop:
+            text = 'Stop measure'
+            enabled << 'processing' in workspace.plugin.flags
+            Menu:
+                Action:
+                    text = 'Stop measure'
+                    triggered ::
+                        workspace.stop_current_measure()
+                Action:
+                    text = 'Force measure stop'
+                    enabled << 'stop_attempt' in workspace.plugin.flags
+                    triggered::
+                        workspace.force_stop_measure()
+
+        PushButton: stop_all:
+            text = 'Stop all'
+            enabled << 'processing' in workspace.plugin.flags
+            clicked ::
+                workspace.stop_processing()
+            Menu:
+                Action:
+                    text = 'Stop engine'
+                    triggered ::
+                        workspace.stop_processing_measures()
+                Action:
+                    text = 'Force processing stop'
+                    enabled << 'stop_attempt' in workspace.plugin.flags
+                    triggered::
+                        workspace.force_stop_processing()
+
+        # XXXX add a way to know whether or not we are in single shot and
+        # a way to change it (CheckBox) ?
+
+        PushButton: clean:
+            text = 'Clean'
+            tool_tip = 'Remove all measure which have already been processed'
+            enabled << bool(workspace.plugin.enqueued_measures) \
+                and not workspace.plugin.flags & MeasureFalgs.processing
+            clicked ::
+                workspace.remove_processed_measures()
+
+        PushButton: mon:
+            text = 'Open monitors'
+            enabled << workspace.plugin.flags & MeasureFalgs.processing
+            clicked::
+                monitors = workspace.plugin.running_measure.monitors.values()
+                for monitor in monitors:
+                    monitor.show_monitor(mon)

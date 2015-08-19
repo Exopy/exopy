@@ -28,7 +28,8 @@ from ..tasks.api import RootTask
 with enaml.imports():
     from .checks_display import ChecksDisplay
     from .engines.selection import EngineSelector
-    from .content import MeasureContent, MeasureSpaceMenu
+    from .content import MeasureContent
+    from .manifest import MeasureSpaceMenu
 
 
 # ID used when adding handler to the logger.
@@ -44,8 +45,11 @@ class MeasureSpace(Workspace):
     #: Reference to the plugin to which the workspace is linked.
     plugin = Typed(MeasurePlugin)
 
-    # Reference to the log panel model received from the log plugin.
+    #: Reference to the log panel model received from the log plugin.
     log_model = Value()
+
+    #: Reference to the last currently edited measure the user selected.
+    last_selected_measure = Typed(Measure)
 
     window_title = set_default('Measure')
 
@@ -75,7 +79,7 @@ class MeasureSpace(Workspace):
         self.content = MeasureContent(workspace=self)
 
         # Contribute menus.
-        self.workbench.register(MeasureSpaceMenu())
+        self.workbench.register(MeasureSpaceMenu(workspace=self))
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
@@ -236,6 +240,7 @@ class MeasureSpace(Workspace):
                              'owner': self.plugin.manifest.id})
 
         if check:
+            # XXXX This does not belong here but in the internalChecksHook
             # Check that no measure with the same name and id is saved in
             # the default path used by the root_task.
             default_filename = measure.name + '_' + measure.id + '.meas.ini'
