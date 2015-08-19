@@ -1,0 +1,466 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget related to measure edition tasks.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Atom, ForwardTyped, Typed, Bool, Dict, List
+from enaml.core.api import Include
+from enaml.layout.api import hbox, vbox, align, InsertTab
+from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
+                               Label, Field, Notebook, DockItem)
+
+from ...utils.widgets.qt_tree_widget import QtTreeWidget
+from ...utils.widgets.tree_nodes import TreeNode
+from ...utils.widgets.qt_tree_menu import \
+    (CopyAction, CutAction, PasteAction, NewAction, RenameAction, DeleteAction)
+from ...tasks.api import (BaseTask, SimpleTask, ComplexTask)
+from .tools_edition import (ToolsEditorDockItem, ToolsEditorDialog)
+
+enamldef SaveAction(Action):
+    """Action used to save task as a template.
+
+    """
+    #: Context holding the informations about on which task this action was
+    #: invoked
+    attr action_context
+
+    #: Reference to the core plugin of the plugin.
+    attr workspace
+
+    text = 'Save template'
+
+    triggered ::
+        widget, node, obj, nid = action_context['data']
+        core = workspace.workbench.get_plugin('enaml.workbench.core')
+        ui = workspace.workbench.get_plugin('enaml.workbench.ui')
+        cmd = 'ecpy.tasks.save'
+        core.invoke_command(cmd,
+                            dict(task=obj, mode='template', widget=ui.window)
+
+
+def build_task(workbench):
+    """Call the Command responsible for building a task.
+
+    """
+    core = workbench.get_plugin('enaml.workbench.core')
+    ui = workbench.get_plugin('enaml.workbench.ui')
+    return core.invoke_command('ecpy.task_manager.build_task',
+                               {'parent_ui': ui.window})
+
+
+enamldef SimpleMenu(Menu): menu:
+    """Menu for tasks inheriting from SimpleTask (ie task with no children).
+
+    """
+    #: Context in which this menu was invoked.
+    attr context
+
+    #: Reference to the application workbench.
+    attr workbench
+
+    NewAction:
+        action_context = context
+        factory = build_task
+        mode = 'Add before'
+        kwargs = {'workbench': workspace.workbench}
+    NewAction:
+        action_context << context
+        factory = build_task
+        mode = 'Add after'
+        kwargs = {'workbench': workspace.workbench}
+
+    Action:
+        separator = True
+
+    CutAction:
+        action_context = context
+    CopyAction:
+        action_context = context
+    PasteAction:
+        action_context = context
+
+    Action:
+        separator = True
+
+    DeleteAction:
+        action_context = context
+
+    Action:
+        separator = True
+
+    RenameAction:
+        action_context = context
+
+
+enamldef ComplexMenu(Menu): menu:
+    """Menu for tasks inheriting from ComplexTask (ie task with children).
+
+    """
+    #: Context in which this menu was invoked.
+    attr context
+
+    #: Reference to the active measure workspace.
+    attr workspace
+
+    NewAction:
+        action_context << context
+        factory = build_task
+        kwargs = {'workbench': workspace.workbench}
+    NewAction:
+        action_context << context
+        factory = build_task
+        mode = 'Add before'
+        kwargs = {'workbench': workspace.workbench}
+    NewAction:
+        action_context << context
+        factory = build_task
+        mode = 'Add after'
+        kwargs = {'workbench': workspace.workbench}
+
+    Action:
+        separator = True
+
+    SaveAction:
+        action_context << context
+        workbench = workspace.workbench
+
+    Action:
+        separator = True
+
+    CutAction:
+        action_context << context
+    CopyAction:
+        action_context << context
+    PasteAction:
+        action_context << context
+
+    Action:
+        separator = True
+
+    DeleteAction:
+        action_context << context
+
+    Action:
+        separator = True
+
+    RenameAction:
+        action_context << context
+
+
+def _workspace():
+    from .workspace import MeasureSpace
+    return MeasureSpace
+
+
+# XXXX need to see how to make things work well with task views cache
+class _MeasEditionModel(Atom):
+    """Model for the MeasureEditorView.
+
+    This model ensures that only the editors fitting the currently selected
+    task are displayed, that the selected editor get the selected task and that
+    the editor preferences are applied to the tree.
+
+    """
+    #: Instance of the workspace
+    workspace = ForwardTyped(_workspace)
+
+    #: Currently selected task.
+    selected_task = Typed(BaseTask)
+
+    #: List of all editors which can be used given the selected_task
+    valid_editors = List()
+
+    #: Currently selected editor.
+    selected_editor = Typed(BaseEditor)
+
+    #: Should the tree be enabled given the currenlty selected editor.
+    tree_enabled = Bool(True)
+
+    #: Should the tree be visible given the currently selected editor.
+    tree_visible = Bool(True)
+
+    def clear_state(self, ):
+        """ Destroy all previously used editors.
+
+        """
+        self.selected_editor = None
+        self.valid_editors = []
+
+    #--- Private API ----------------------------------------------------------
+
+    # XXXX
+    def _post_setattr_selected_task(self, old, new):
+        """Keep the list of valid editors up to date and update editor.
+
+        """
+        editors = self.workspace.plugin.editors
+        new_task = change['value']
+        valid_editor_ids = set()
+        # Find all valid editors.
+        for id, editor in editors.iteritems():
+            if editor.test(self.workspace, new_task):
+                valid_editor_ids.add(id)
+
+        # If there are some changes apply them by append/remove so that if the
+        # the currently selected editor remains nothing changes.
+        current_editor_ids = set([editor.declaration.id\
+                                  for editor in self.valid_editors])
+        if valid_editor_ids != current_editor_ids:
+            to_remove = current_editor_ids - valid_editor_ids
+            to_add = valid_editor_ids - current_editor_ids
+            for editor in self.valid_editors[:]:
+                ed_id = editor.declaration.id
+                if ed_id in to_remove:
+                    self.valid_editors.remove(editor)
+
+            for id in to_add:
+                decl = editors[id]
+                editor = decl.factory(decl, self.workspace.workbench)
+
+                # Make sure the standard editor is the first one.
+                if id == u'hqc_meas.measure.editors.standard_editor':
+                    self.valid_editors.insert(0, editor)
+                else:
+                    self.valid_editors.append(editor)
+
+        if not self.selected_editor:
+            self.selected_editor = self.valid_editors[0]
+
+        # Update selected editor with new selected task. If the editor changed
+        # notifications will have taken care of that.
+        self.selected_editor.selected_task = new_task
+
+    def _post_setattr_selected_editor(self, old, new):
+        """ Update infos for newly selected editor.
+
+        """
+        if old:
+            old.unselected = True
+
+        if new:
+            # Update selected task.
+            editor.selected_task = self.selected_task
+
+            # Get tree preferences.
+            self.tree_enabled = editor.tree_enabled
+            self.tree_visible = editor.tree_visible
+
+            editor.selected = True
+
+# XXXX
+enamldef MeasEditionView(Container): ed:
+    """Main view for measurement edition.
+
+    """
+    #: Refrence to the active workspace.
+    attr workspace
+
+    #: Reference to the measure being edited.
+    attr measure
+    measure ::
+        _internal.clear_state()
+        ed.selected_task = change['value'].root_task
+        tree.root_node = change['value'].root_task
+        tree.selection = change['value'].root_task
+        editors.selected_tab = 'standard_editor'
+
+    #: Currently selected task.
+    attr selected_task = measure.root_task
+    selected_task >> _internal.selected_task
+
+    #: Reference to the dock area this editor is embedded into.
+    attr dock_area
+
+    #: Controller responsible for the editors handling.
+    attr _internal = _MeasEditionModel(workspace=workspace,
+                                       selected_task=selected_task)
+
+    constraints << [vbox(
+                        hbox(lab, name, edition),
+                        hbox(tree, editors)
+                        ),
+                    align('v_center', lab, name)]
+
+    Label: lab:
+        text = 'Name'
+    Field: name:
+        hug_width = 'ignore'
+        text := measure.name
+    PushButton: edition:
+        text = 'Edit tools'
+        tool_tip = ('Edit the pre-execution hooks, monitors, post-execution '
+                    'hooks linked to the measure.')
+        clicked ::
+            # XXXX handle the fact that there are multiple edited measures
+            # Can use is testing on measure
+            if not any([item.name == u'tools_editor'
+                    for item in dock_area.dock_items()]):
+                # The editor does not exists so create it.
+                ToolsEditorDockItem(dock_area, name=u'tools_editor',
+                                    measure=measure)
+
+            # Now insert the item in a tab with the measure editor.
+            dock_area.update_layout(InsertTab(item=u'tools_editor',
+                                              target=u'meas_editor'))
+
+
+    QtTreeWidget: tree:
+        hug_height = 'ignore'
+        root_node = measure.root_task
+        selected >> selected_task
+        visible << _internal.tree_visible
+        enabled << _internal.tree_enabled
+        nodes = [TreeNode(
+                    node_for  = [ComplexTask],
+                    auto_open = True,
+                    children  = 'children_task',
+                    label     = 'task_label',
+                    add = [BaseTask],
+                    menu = ComplexMenu(workspace=workspace)),
+                TreeNode(
+                    node_for  = [SimpleTask],
+                    auto_open = True,
+                    children  = '',
+                    label     = 'task_label',
+                    menu      =  SimpleMenu(workspace=workspace)),
+                    ]
+
+    Notebook: editors:
+        # Update the selected editor when the user click a tab or when the
+        # previously selected editor is removed.
+        tabs_closable = False
+        hug_width = 'ignore'
+        selected_tab ::
+            ed = self.find(selected_tab)
+            if ed != editors:
+                _internal.selected_editor = ed
+        Include:
+            objects << _internal.valid_editors
+
+
+# XXXX
+enamldef MeasureEditorDockItem(DockItem): main:
+    """ DockItem used for editing a measure, main component of the workspace
+    content.
+
+    """
+    #: Reference to the workspace.
+    attr workspace
+
+    #: Reference to the edited measure.
+    attr measure = workspace.plugin.edited_measure
+    measure << workspace.plugin.edited_measure
+    measure >> editor.measure
+
+    # Name of the DockItem
+    name = u'meas_editor'
+
+    title = 'Measure editor'
+
+    closable = False
+
+    Container:
+        constraints = [vbox(editor,
+                            hbox(new, save, load, spacer, enqueue_button))]
+
+        MeasEditionView: editor:
+            workspace = main.workspace
+            measure = main.measure
+            dock = True
+
+        PushButton: new:
+            text = 'New'
+            hug_width  = 'strong'
+            hug_height = 'strong'
+            clicked :: workspace.new_measure()
+
+        PushButton: save:
+            text = 'Save'
+            hug_width  = 'strong'
+            hug_height = 'strong'
+            Menu:
+                Action:
+                    text = 'Save measure'
+                    tool_tip = 'Save the measure.'
+                    triggered ::
+                        workspace.save_measure(measure, mode='file')
+                Action:
+                    text = 'Save root as template'
+                    enabled = False
+                    tool_tip = fill(cleandoc('''Save the root task of the
+                                    measure as a template, the tools state is
+                                    not saved.'''), 50)
+                    triggered ::
+                        workspace.save_measure(measure, mode='template')
+
+        PushButton: load:
+            text = 'Load'
+            hug_width  = 'strong'
+            hug_height = 'strong'
+            Menu:
+                Action:
+                    text = 'Load measure'
+                    triggered ::
+                        workspace.load_measure(mode='file')
+                Action:
+                    text = 'Load template'
+                    enabled = False
+                    tool_tip = fill(cleandoc('''Load a template task as a
+                                    measure using the default parameters
+                                    concerning the  tools.'''), 50)
+                    triggered ::
+                        workspace.load_measure(mode='template')
+
+        PushButton: enqueue_button:
+            text = 'Enqueue'
+            hug_width  = 'strong'
+            hug_height = 'strong'
+            clicked::
+                workspace.enqueue_measure(measure)
+
+# XXXX use a dock area so that we can use the same logic for the tools.
+enamldef MeasureEditorDialog(Dialog): main:
+    """ Dialog allowing to re-edit a measure once it is in the queue.
+
+    """
+    attr workspace
+    attr measure
+    title = 'Edit measure {}'.format(measure.name)
+    closed::
+        if 'build_deps' in measure.store:
+            del measure.store['build_deps']
+
+    Container:
+        constraints = [vbox(editor, hbox(save, spacer))]
+        MeasEditionView: editor:
+            hug_width = 'ignore'
+            workspace = main.workspace
+            measure = main.measure
+
+        PushButton: save:
+            text = 'Save'
+            hug_width  = 'strong'
+            hug_height = 'strong'
+            Menu:
+                Action:
+                    text = 'Save measure'
+                    tool_tip = 'Save the measure.'
+                    triggered ::
+                        workspace.save_measure(measure, mode='file')
+                Action:
+                    text = 'Save root as template'
+                    enabled = False
+                    tool_tip = fill(cleandoc('''Save the root task of the
+                                    measure as a template, the tools state is
+                                    not saved.'''), 50)
+                    triggered ::
+                        workspace.save_measure(measure, mode='template')

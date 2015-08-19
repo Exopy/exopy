@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Definition of the workspace content.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, DockArea, DockItem, Menu, Action,
+                               PopupView, Label)
+from enaml.layout.api import HSplitLayout, VSplitLayout
+
+from ...utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
+from .measure_edition import MeasureEditorDockItem
+from .measure_execution import ExecutionDockItem
+
+# XXXX handle multiple measures
+enamldef MeasureContent(Container): main:
+    """Central window content when the measure workspace is active.
+
+    """
+    #: Reference to the workspace driving this widget.
+    attr workspace
+
+    DockArea:
+        # Sizes are exppressed in pixels
+        layout = VSplitLayout(
+                    HSplitLayout('meas_editor', 'meas_exec', sizes=[5000,10]),
+                    'main_log', sizes=[5000,10])
+
+        style = 'metro'
+
+        MeasureEditorDockItem:
+            stretch = 10
+            workspace = main.workspace
+
+        ExecutionDockItem:
+            stretch = 2
+            workspace = main.workspace
+
+        DockItem:
+            name = 'main_log'
+            title = 'Main logger'
+            closable = False
+            stretch = 1
+
+            Container:
+                hug_height = 'strong'
+                QtAutoscrollHtml:
+                    text << workspace.log_model.text
+                    Menu:
+                        context_menu = True
+                        Action:
+                            text = 'Clear'
+                            triggered ::
+                                workspace.log_model.text = ''
