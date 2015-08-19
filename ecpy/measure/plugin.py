@@ -380,6 +380,11 @@ class MeasurePlugin(HasPrefPlugin):
             self._skip_measure('FAILED', 'Failed to pass the checks')
             return
 
+        # Now that we know the measure is going to run save it.
+        default_filename = measure.name + '_' + measure.id + '.meas.ini'
+        path = os.path.join(measure.root_task.default_path, default_filename)
+        measure.save(path)
+
         # Start the engine if it has not already been done.
         if not self.engine_instance:
             decl = self.engines[self.selected_engine]
