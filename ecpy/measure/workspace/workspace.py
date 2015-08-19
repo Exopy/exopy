@@ -150,7 +150,7 @@ class MeasureSpace(Workspace):
         else:
             full_path = measure.path
 
-        measure.save_measure(full_path)
+        measure.save(full_path)
 
     def load_measure(self, mode):
         """ Load a measure.
@@ -170,8 +170,8 @@ class MeasureSpace(Workspace):
             if not full_path:
                 return
 
-            self.plugin.add_measure('edited', Measure.load_measure(self.plugin,
-                                                                   full_path))
+            self.plugin.add_measure('edited', Measure.load(self.plugin,
+                                                           full_path))
             self.plugin.path = full_path
 
         elif mode == 'template':
@@ -256,8 +256,8 @@ class MeasureSpace(Workspace):
                 if not dial.result:
                     return
 
-            measure.save_measure(path)
-            meas = Measure.load_measure(self.plugin, path, b_deps)
+            measure.save(path)
+            meas = Measure.load(self.plugin, path, b_deps)
             try:
                 os.remove(path)
             except OSError:

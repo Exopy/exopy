@@ -89,7 +89,7 @@ class Measure(HasPrefAtom):
         super(Measure, self).__init__(**kwargs)
         self.add_tool('pre_hook', 'internal', InternalChecksHook())
 
-    def save_measure(self, path):
+    def save(self, path):
         """Save the measure as a ConfigObj object.
 
         Parameters
@@ -123,7 +123,7 @@ class Measure(HasPrefAtom):
         self.path = path
 
     @classmethod
-    def load_measure(cls, measure_plugin, path, build_dep=None):
+    def load(cls, measure_plugin, path, build_dep=None):
         """Build a measure from a ConfigObj file.
 
         Parameters
