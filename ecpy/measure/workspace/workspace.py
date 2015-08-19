@@ -12,25 +12,21 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-# XXXXX
 import logging
 import os
+
 import enaml
 from atom.api import Typed, Value, set_default
 from enaml.application import deferred_call
 from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
-from inspect import cleandoc
-from textwrap import fill
 
 from .measure import Measure
-from .plugin import MeasurePlugin
-
+from .plugin import MeasurePlugin, MeasureFlags
 from ..tasks.api import RootTask
 
 with enaml.imports():
-    from enaml.stdlib.message_box import question
-    from .checks.checks_display import ChecksDisplay
+    from .checks_display import ChecksDisplay
     from .engines.selection import EngineSelector
     from .content import MeasureContent, MeasureSpaceMenu
 
@@ -114,22 +110,16 @@ class MeasureSpace(Workspace):
 
         self.plugin.workspace = None
 
-    # XXXX
     def new_measure(self):
-        """
-        """
-        message = cleandoc("""The measurement you are editing is about to
-                        be destroyed to create a new one. Press OK to
-                        confirm, or Cancel to go back to editing and get a
-                        chance to save it.""")
+        """ Create a new measure using the default tools.
 
-        result = question(self.content,
-                          'Old measurement suppression',
-                          fill(message.replace('\n', ' '), 79),
-                          )
+        """
+        measure = Measure(plugin=self.plugin)
+        measure.root_task = RootTask()
 
-        if result is not None and result.action == 'accept':
-            self._new_measure()
+        self._attach_default_tools(measure)
+
+        self.plugin.add_measure('edited', measure)
 
     def save_measure(self, measure, auto=True):
         """ Save a measure in a file.
@@ -155,12 +145,13 @@ class MeasureSpace(Workspace):
             elif not full_path.endswith('.meas.ini'):
                 full_path += '.meas.ini'
 
+            self.plugin.path = full_path
+
         else:
             full_path = measure.path
 
         measure.save_measure(full_path)
 
-    # XXXX
     def load_measure(self, mode):
         """ Load a measure.
 
@@ -174,35 +165,28 @@ class MeasureSpace(Workspace):
         """
         if mode == 'file':
             get_file = FileDialogEx.get_open_file_name
-            full_path = get_file(name_filters=[u'*.ini'],
-                                 current_path=self.plugin.paths.get('measure',
-                                                                    ''))
+            full_path = get_file(name_filters=[u'*.meas.ini'],
+                                 current_path=self.plugin.path)
             if not full_path:
                 return
 
-            self.plugin.edited_measure = Measure.load_measure(self.plugin,
-                                                              full_path)
-            self.plugin.edited_measure_path = full_path
-            self.plugin.paths['measure'] = os.path.dirname(full_path)
+            self.plugin.add_measure('edited', Measure.load_measure(self.plugin,
+                                                                   full_path))
+            self.plugin.path = full_path
 
         elif mode == 'template':
             # TODO create brand new measure using defaults from plugin and
             # load template
-            pass
+            raise NotImplementedError()
 
-    # XXXX
+    # TODO : making this asynchronous would be super nice
     def enqueue_measure(self, measure):
         """Put a measure in the queue if it pass the tests.
 
-        First the check method of the measure is called. If the tests pass,
-        the measure is enqueued and finally saved in the default folder
-        ('default_path' attribute of the `RootTask` describing the measure).
-        Otherwise the list of the failed tests is displayed to the user.
-
         Parameters
         ----------
-        measure : instance(`Measure`)
-            Instance of `Measure` representing the measure.
+        measure : Measure
+            Instance of Measure representing the measure.
 
         Returns
         -------
@@ -210,43 +194,59 @@ class MeasureSpace(Workspace):
             True is the measure was successfully enqueued, False otherwise.
 
         """
-        logger = logging.getLogger(__name__)
-
-        # First of all build the runtime dependencies
+        # Collect the runtime dependencies
         core = self.workbench.get_plugin('enaml.workbench.core')
-        cmd = u'hqc_meas.dependencies.collect_dependencies'
-        res = core.invoke_command(cmd, {'obj': measure.root_task},
-                                  self.plugin)
-        if not res[0]:
-            for id in res[1]:
-                logger.warn(res[1][id])
-            return False
+        cmd = 'ecpy.app.dependencies.collect'
+        res = core.invoke_command(cmd, {'obj': measure.root_task,
+                                        'dependencies': ['build', 'runtimes'],
+                                        'owner': self.plugin.manifest.id})
 
-        build_deps = res[1]
-        runtime_deps = res[2]
+        # Check for errors
+        b_deps, r_deps = res
+        if not self.plugin.check_for_dependencies_errors(measure, b_deps):
+            return
+        if r_deps.errors:
+            self.plugin.check_for_dependencies_errors(measure, r_deps)
+            return
 
-        use_instrs = 'profiles' in runtime_deps
-        test_instrs = use_instrs and runtime_deps['profiles']
-        if use_instrs and not test_instrs:
-            mes = cleandoc('''The profiles requested for the measurement {} are
-                           not available, instr tests will be skipped and
-                           performed before actually starting the
-                           measure.'''.format(measure.name))
-            logger.info(mes.replace('\n', ' '))
+        # If some runtime are missing let the user know about it.
+        if r_deps.unavailable:
+            msg = ('The following runtime dependencies of the measure {}, are '
+                   'not currently available. Some tests may be skipped as a '
+                   'result but will be run before executing the measure.\n'
+                   'Missing dependencies from :\n{}')
+            msg.format(measure.name,
+                       '\n'.join(('-'+id for id in r_deps.unavailable)))
+            logger.info(msg)
 
-        measure.root_task.run_time = runtime_deps.copy()
+        # Store the runtime dependencies (already done for the build when
+        # checking)
+        measure.store['runtime_deps'] = r_deps.dependencies
+        measure.root_task.run_time = r_deps.dependencies
 
+        # Run the checks specifying what runtimes are missing.
         check, errors = measure.run_checks(self.workbench,
-                                           test_instr=test_instrs)
+                                           missing=r_deps.unavailable)
 
+        # Clear the runtimes and release them.
         measure.root_task.run_time.clear()
-
-        if use_instrs:
-            profs = runtime_deps.pop('profiles').keys()
-            core.invoke_command(u'hqc_meas.instr_manager.profiles_released',
-                                {'profiles': profs}, self.plugin)
+        cmd = 'ecpy.app.dependencies.release_runtimes'
+        core.invoke_command(cmd,
+                            {'dependencies': measure.store['runtime_deps'],
+                             'owner': self.plugin.manifest.id})
 
         if check:
+            # Check that no measure with the same name and id is saved in
+            # the default path used by the root_task.
+            default_filename = measure.name + '_' + measure.id + '.meas.ini'
+            path = os.path.join(measure.root_task.default_path,
+                                default_filename)
+            if os.path.isfile(path):
+                msg = ('A measure file with the same name and id has already '
+                       'been saved in {}, increments the id of your measure '
+                       'to avoid overwriting it.')
+                errors['internal'] = msg.format(measure.root_task.default_path)
+
             # If check is ok but there are some errors, those are warnings
             # which the user can either ignore and enqueue the measure, or he
             # can cancel the enqueuing and try again.
@@ -255,35 +255,34 @@ class MeasureSpace(Workspace):
                 dial.exec_()
                 if not dial.result:
                     return
-            default_filename = measure.name + '_last_run.ini'
-            path = os.path.join(measure.root_task.default_path,
-                                default_filename)
+
             measure.save_measure(path)
-            meas = Measure.load_measure(self.plugin, path, build_deps)
-            # Here don't keep the profiles in the runtime as it will defeat the
-            # purpose of the manager.
-            meas.root_task.run_time = runtime_deps
-            # Keep only a list of profiles to request (avoid to re-walk)
-            if use_instrs:
-                meas.store['profiles'] = profs
-            meas.store['build_deps'] = build_deps
+            meas = Measure.load_measure(self.plugin, path, b_deps)
+            try:
+                os.remove(path)
+            except OSError:
+                logger.debug('Failed to remove temp save file')
+
             meas.status = 'READY'
             meas.infos = 'The measure is ready to be performed by an engine.'
-            self.plugin.enqueued_measures.append(meas)
+            self.plugin.add_measure('enqueued', meas)
 
             return True
 
         else:
+            del measure.store['build_deps']
+            del measure.store['runtime_deps']
             ChecksDisplay(errors=errors).exec_()
             return False
 
-    # XXXX
     def reenqueue_measure(self, measure):
         """ Mark a measure already in queue as fitted to be executed.
 
         This method can be used to re-enqueue a measure that previously failed,
-        for example becuse a profile was missing, the measure can then be
+        for example because a profile was missing, the measure can then be
         edited again and will be executed in its turn.
+
+        WARNING : the test are run again !!!
 
         Parameters
         ----------
@@ -295,7 +294,6 @@ class MeasureSpace(Workspace):
         measure.status = 'READY'
         measure.infos = 'Measure re-enqueued by the user'
 
-    # XXXX
     def remove_processed_measures(self):
         """ Remove all the measures which have been processed from the queue.
 
@@ -305,37 +303,33 @@ class MeasureSpace(Workspace):
         """
         for measure in self.plugin.enqueued_measures[:]:
             if measure.status != 'READY':
-                self.plugin.enqueued_measures.remove(measure)
+                self.plugin.remove_measure('enqueued', measure)
 
-    # XXXX
     def start_processing_measures(self):
         """ Starts to perform the measurement in the queue.
 
         Measure will be processed in their order of appearance in the queue.
 
         """
-        logger = logging.getLogger(__name__)
         if not self.plugin.selected_engine:
             dial = EngineSelector(plugin=self.plugin)
             dial.exec_()
             if dial.selected_id:
                 self.plugin.selected_engine = dial.selected_id
             else:
-                msg = cleandoc('''The user did not select an engine to run the
-                               measure''')
-                logger.warn(msg)
                 return
 
-        self.plugin.flags = []
+        self.plugin.flags = 0
 
         measure = self.plugin.find_next_measure()
         if measure is not None:
             self.plugin.start_measure(measure)
         else:
-            msg = cleandoc('''No curently enqueued measure can be run.''')
-            logger.info(msg)
+            cmd = 'ecpy.app.errors.signal'
+            core = self.workbench.get_plugin('enaml.workbench.core')
+            msg = 'None of the curently enqueued measures can be run.'
+            core.invoke_command(cmd, {'kind': 'error', 'message': msg})
 
-    # XXXX There should be a way for the user to know whether or not it the case
     def process_single_measure(self, measure):
         """ Performs a single measurement and then stops.
 
@@ -345,10 +339,12 @@ class MeasureSpace(Workspace):
             Measure to perform.
 
         """
-        self.plugin.flags = []
-        self.plugin.flags.append('stop_processing')
+        self.plugin.flags = 0
+        self.plugin.flags |= MeasureFlags.stop_processing
 
         self.plugin.start_measure(measure)
+        # TODO the UI must let the user know that this is so and allow him to
+        # switch back and forth
 
     def pause_current_measure(self):
         """Pause the currently active measure.
@@ -387,7 +383,6 @@ class MeasureSpace(Workspace):
         """
         self.plugin.force_stop_processing()
 
-    # XXXX keep ?
     @property
     def dock_area(self):
         """ Getter for the dock_area of the content.
@@ -398,13 +393,10 @@ class MeasureSpace(Workspace):
 
     # --- Private API ---------------------------------------------------------
 
-    def _new_measure(self):
-        """ Create a new measure using the default tools.
+    def _attach_default_tools(self, measure):
+        """Add the default tools to a measure.
 
         """
-        measure = Measure(plugin=self.plugin)
-        measure.root_task = RootTask()
-
         for pre_id in self.plugin.default_pre_hooks:
             if pre_id in self.plugin.pre_hooks:
                 measure.add_tool('pre_hook', pre_id)
@@ -425,14 +417,6 @@ class MeasureSpace(Workspace):
             else:
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
-
-        # XXXX does not apply anymore as we can have multiple measures....
-        self.plugin.edited_measure = measure
-
-    def _add_edited_measure(self, measure):
-        """
-        """
-        pass
 
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect

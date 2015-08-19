@@ -395,8 +395,7 @@ class MeasurePlugin(HasPrefPlugin):
         engine.prepare_to_run(measure)
 
         # Execute all pre-execution hook.
-        for hook in measure.pre_hooks.values():
-            hook.run(self.workbench, measure, engine)
+        measure.run_pre_execution()
 
         # Get a ref to the main window.
         ui_plugin = self.workbench.get_plugin('enaml.workbench.ui')
@@ -564,7 +563,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         if not self.flags and MeasureFlags.no_post_exec:
             # Post execution should provide a way to interrupt their execution.
-            meas.run_post_measure(self.workbench)
+            meas.run_post_execution(self.workbench)
 
         mess = 'Measure {} processed, status : {}'.format(meas.name, status)
         logger.info(mess)
