@@ -488,6 +488,24 @@ class TaskDatabase(Atom):
                                                          parent_path)
             raise KeyError(err_str)
 
+    def copy_node_values(self, node='root'):
+        """Copy the values (ie not subnodes) found in a node.
+
+        Parameters
+        ----------
+        node : unicode, optional
+            Path to the node to copy.
+
+        Returns
+        -------
+        copy : dict
+            Copy of the node values.
+
+        """
+        node = self._go_to_path(node)
+        return {k: v for k, v in node.data.iteritems()
+                if not isinstance(v, DatabaseNode)}
+
     def prepare_for_running(self):
         """Enter a thread safe, flat database state.
 
