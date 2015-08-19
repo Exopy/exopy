@@ -77,7 +77,8 @@ class BaseTask(Atom):
     database = Typed(TaskDatabase)
 
     #: Entries the task declares in the database and the associated default
-    #: values.
+    #: values. This should be copied and re-assign when modified not modfied
+    #: in place.
     database_entries = Dict(Unicode(), Value())
 
     #: Path of the task in the hierarchy. This refers to the parent task and
@@ -292,7 +293,7 @@ class BaseTask(Atom):
         self._remove_access_exception(entry, level)
 
     def write_in_database(self, name, value):
-        """ Write a value to the right database entry.
+        """Write a value to the right database entry.
 
         This method build a task specific database entry from the name
         and the name argument and set the database entry to the specified
@@ -312,7 +313,7 @@ class BaseTask(Atom):
         return self.database.set_value(self.path, value_name, value)
 
     def get_from_database(self, full_name):
-        """ Access to a database value using full name.
+        """Access to a database value using full name.
 
         Parameters
         ----------
@@ -325,7 +326,7 @@ class BaseTask(Atom):
         return self.database.get_value(self.path, full_name)
 
     def remove_from_database(self, full_name):
-        """ Delete a database entry using its full name.
+        """Delete a database entry using its full name.
 
         Parameters
         ----------
@@ -994,18 +995,8 @@ class RootTask(ComplexTask):
     directly.
 
     """
-
     #: Path to which log infos, preferences, etc should be written by default.
     default_path = Unicode('').tag(pref=True)
-
-    #: Header assembled just before the measure is run.
-    default_header = Unicode('')
-
-    #: Name of the measurement.
-    meas_name = Unicode('').tag(pref=True)
-
-    #: ID of the measurement which can be used in the same of the saved files.
-    meas_id = Unicode('').tag(pref=True)
 
     #: Dict storing data needed at execution time (ex: drivers classes)
     run_time = Dict()
@@ -1051,8 +1042,7 @@ class RootTask(ComplexTask):
     name = Constant('Root')
     depth = Constant(0)
     path = Constant('root')
-    database_entries = set_default({'default_path': '', 'meas_id': '',
-                                    'meas_name': '', 'meas_date': ''})
+    database_entries = set_default({'default_path': ''})
 
     def __init__(self, *args, **kwargs):
         self.preferences = ConfigObj(indent_type='    ')
@@ -1075,9 +1065,6 @@ class RootTask(ComplexTask):
             traceback[self.path + '/' + self.name] =\
                 'The provided default path is not a valid directory'
         self.write_in_database('default_path', self.default_path)
-        self.write_in_database('meas_name', self.meas_name)
-        self.write_in_database('meas_id', self.meas_id)
-        self.write_in_database('meas_date', text(date.today()))
         check = super(RootTask, self).check(*args, **kwargs)
         test = test and check[0]
         traceback.update(check[1])
@@ -1092,7 +1079,6 @@ class RootTask(ComplexTask):
         try:
             for child in self.children:
                 child.perform_(child)
-            print('Finished processing child')
         except Exception:
             log = logging.getLogger(__name__)
             mes = 'The following unhandled exception occured:'
