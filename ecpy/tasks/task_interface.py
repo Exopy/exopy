@@ -258,8 +258,7 @@ class InterfaceableInterfaceMixin(InterfaceableMixin):
             if new:
                 inter = new
                 inter.parent = self
-                for entry, value in inter.database_entries.iteritems():
-                    new_entries[entry] = value
+                new_entries.update(inter.database_entries)
 
             task.database_entries = new_entries
 

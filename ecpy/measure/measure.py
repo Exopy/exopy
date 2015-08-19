@@ -16,13 +16,16 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 from traceback import format_exc
 from collections import OrderedDict
+from datetime import date
 
-from atom.api import (Atom, Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
+from future.builtins import str as text
+from atom.api import (Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
                       Enum)
 from configobj import ConfigObj
 
 from ..tasks.base_tasks import RootTask
 from ..utils.configobj_ops import include_configobj
+from ..utils.atom_util import HasPrefAtom
 from .hooks.internal_checks import InternalChecksHook
 
 
@@ -37,17 +40,21 @@ def measure_plugin():
     return MeasurePlugin
 
 
-class Measure(Atom):
+class Measure(HasPrefAtom):
     """Object representing all the aspects of a measure.
 
     """
-    #: Name of the measure. This value is synchronized with the ones found
-    #: in the root task and the monitors.
-    name = Unicode()
+    #: Name of the measure.
+    name = Unicode().tag(pref=True)
 
-    # XXXX
+    #: Id of that particular iteration of the measure. This value is used when
+    #: saving the measure before running it. It is also communicated to the
+    #: root task
+    id = Unicode().tag(pref=True)
+
     #: Flag indicating the measure status.
-    status = Enum()
+    status = Enum('READY', 'EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
+                  'INTERRUPTED')
 
     #: Detailed information about the measure status.
     infos = Unicode()
@@ -92,6 +99,7 @@ class Measure(Atom):
 
         """
         config = ConfigObj(indent_type='    ', encoding='utf-8')
+        config.update(self.preferences_from_members())
 
         # First save the task.
         core = self.plugin.workbench.get_plugin(u'enaml.workbench.core')
@@ -108,9 +116,6 @@ class Measure(Atom):
                 state = obj.get_state()
                 config[kind][id] = {}
                 include_configobj(config[kind][id], state)
-
-        # Also save the name of the measure for readability purposes.
-        config['name'] = self.root_task.meas_name
 
         with open(path, 'w') as f:
             config.write(f)
@@ -135,6 +140,7 @@ class Measure(Atom):
         config = ConfigObj(path)
         measure.plugin = measure_plugin
         measure.path = path
+        measure.update_members_from_preferences(**config)
 
         # Gather all errors occuring while loading the measure.
         workbench = measure_plugin.workbench
@@ -181,7 +187,7 @@ class Measure(Atom):
 
         return measure
 
-    def run_measure_checks(self, workbench, **kwargs):
+    def run_checks(self, workbench, **kwargs):
         """Run all measure checks.
 
         This is done at enqueueing time and before actually executing a measure
@@ -208,6 +214,8 @@ class Measure(Atom):
         result = True
         full_report = {}
 
+        self.write_infos_in_task()
+
         msg = 'Running checks for pre-measure hook %s for measure %s'
         for id, hook in self.pre_hooks.iteritems():
             logger.debug(msg, id, self.name)
@@ -230,8 +238,8 @@ class Measure(Atom):
 
         return result, full_report
 
-    def run_pre_measure(self, workbench, **kwargs):
-        """Run pre measure operations.
+    def run_pre_execution(self, workbench, **kwargs):
+        """Run pre measure execution operations.
 
         Those operations consist of the built-in task checks and any
         other operation contributed by a pre-measure hook.
@@ -268,7 +276,7 @@ class Measure(Atom):
 
         return result, full_report
 
-    def run_post_measure(self, workbench, **kwargs):
+    def run_post_execution(self, workbench, **kwargs):
         """Run post measure operations.
 
         Those operations consist of the operations contributed by
@@ -419,12 +427,22 @@ class Measure(Atom):
 
         return list(set(entries))
 
+    def write_infos_in_task(self):
+        """Write all the measure values in the root_task database.
+
+        """
+        self.root_task.write_in_database('meas_name', self.name)
+        self.root_task.write_in_database('meas_id', self.id)
+        self.root_task.write_in_database('meas_date', text(date.today()))
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    def _post_setattr_name(self, old, new):
+    def _post_setattr_root_task(self, old, new):
         """Make sure the monitors know the name of the measure.
 
         """
-        self.root_task.meas_name = new
+        new.add_database_entry('meas_name', self.name)
+        new.add_database_entry('meas_id', self.id)
+        new.add_database_entry('meas_date', '')
