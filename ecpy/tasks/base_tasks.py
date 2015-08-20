@@ -27,9 +27,7 @@ from textwrap import fill
 from copy import deepcopy
 from traceback import format_exc
 from future.utils import istext
-from future.builtins import str as text
 from multiprocessing.synchronize import Event
-from datetime import date
 from collections import Iterable
 
 from ..utils.atom_util import (tagged_members, update_members_from_preferences)
