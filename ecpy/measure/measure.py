@@ -172,7 +172,7 @@ class Measure(HasPrefAtom):
                     del measure.pre_hooks['internal']
 
             for id, state in saved.iteritems():
-                obj = measure_plugin.create(kind[:-1], id, bare=True)
+                obj = measure_plugin.create(kind[:-1], id, default=False)
                 try:
                     obj.set_state(state)
                 except Exception:

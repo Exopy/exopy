@@ -115,8 +115,14 @@ class MeasureSpace(Workspace):
 
         self.plugin.workspace = None
 
-    def new_measure(self):
+    def new_measure(self, dock_item=None):
         """ Create a new measure using the default tools.
+
+        Parameters
+        ----------
+        dock_item :
+            Dock item used for editing the measure, if None a new item will be
+            created and inserted in the dock area.
 
         """
         measure = Measure(plugin=self.plugin)
@@ -125,6 +131,8 @@ class MeasureSpace(Workspace):
         self._attach_default_tools(measure)
 
         self.plugin.add_measure('edited', measure)
+
+        # XXXX need to insert the editor in the dock-area
 
     def save_measure(self, measure, auto=True):
         """ Save a measure in a file.
@@ -175,14 +183,16 @@ class MeasureSpace(Workspace):
             if not full_path:
                 return
 
-            self.plugin.add_measure('edited', Measure.load(self.plugin,
-                                                           full_path))
+            measure = Measure.load(self.plugin, full_path)
+            self.plugin.add_measure('edited', measure)
             self.plugin.path = full_path
 
         elif mode == 'template':
             # TODO create brand new measure using defaults from plugin and
             # load template
             raise NotImplementedError()
+
+        # XXXX need to insert the editor in the dock-area
 
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
@@ -424,6 +434,12 @@ class MeasureSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
+    # XXXX
+    def _insert_new_edition_panel(self, measure):
+        """
+        """
+        pass
+
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect
         the currently selected engine.
@@ -432,10 +448,10 @@ class MeasureSpace(Workspace):
         if 'oldvalue' in change:
             old = change['oldvalue']
             if old in self.plugin.engines:
-                engine = self.plugin._engines.contributions[old]
+                engine = self.plugin.get_declarations('engine', [old])[old]
                 engine.clean_workspace(self)
 
         new = change['value']
         if new and new in self.plugin.engines:
-            engine = self.plugin._engines.contributions[new]
+            engine = self.plugin.get_declarations('engine', [new])[new]
             engine.clean_workspace(self)

@@ -232,7 +232,7 @@ class MeasurePlugin(HasPrefPlugin):
         id : unicode
             Id of the object to create.
 
-        bare : bool, optional
+        default : bool, optional
             Whether to use default parameters or not when creating the object.
 
         Returns
@@ -255,7 +255,7 @@ class MeasurePlugin(HasPrefPlugin):
         if id not in decls:
             raise ValueError('Unknown {} : {}'.format(kind, id))
 
-        return decls[id].new(self.workbench)
+        return decls[id].new(self.workbench, default)
 
     def add_measure(self, kind, measure, index=None):
         """Add a measure to the edited or enqueued ones.

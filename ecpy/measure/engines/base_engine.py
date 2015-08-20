@@ -145,13 +145,16 @@ class Engine(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def new(self, workbench):
+    def new(self, workbench, default=True):
         """Create a new instance of the engine.
 
         Parameters
         ----------
         workbench : Workbench
             Reference to the application workbench.
+
+        default : bool
+            Whether to use default parameters or not when creating the object.
 
         """
         raise NotImplementedError()
