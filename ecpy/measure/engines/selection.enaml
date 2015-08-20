@@ -1,0 +1,56 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets dedicated to selecting an engine for measure execution.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Notebook, Container, Dialog, PushButton,
+                               MultilineField)
+from enaml.layout.api import vbox, hbox, spacer
+from enaml.core.api import Include
+
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+
+
+enamldef EngineSelector(Dialog): dial:
+    """Simple dialog to select an engine.
+
+    """
+    #: Refrence to the measure plugin.
+    attr plugin
+
+    #: Declaration for the currently selected engine.
+    attr selected_decl
+
+    Container:
+        constraints << [vbox(list_ed, desc, hbox(cancel, ok))]
+
+        QtListStrWidget: list_ed:
+            items << plugin.engines
+            selected_item::
+                new_val = change['value']
+                if new_val:
+                    dial.selected_decl = plugin.get_declarations('engines',
+                                                                 [new_val])
+
+        MultilineField: desc:
+            text << selected_decl.description if selected_decl else ''
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << selected_decl
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()

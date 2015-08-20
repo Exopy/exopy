@@ -345,7 +345,7 @@ class MeasureSpace(Workspace):
             dial = EngineSelector(plugin=self.plugin)
             dial.exec_()
             if dial.selected_id:
-                self.plugin.selected_engine = dial.selected_id
+                self.plugin.selected_engine = dial.selected_decl.id
             else:
                 return
 
