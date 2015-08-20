@@ -196,7 +196,32 @@ class MeasurePlugin(HasPrefPlugin):
                         'post_hooks'):
             getattr(self, '-'+contrib).stop()
 
-    def create(self, kind, id, bare=False):
+    def get_declarations(self, kind, ids):
+        """Get the declarations of engines/editors/tools
+
+        Parameters
+        ----------
+        kind : {'engine', 'editor', 'pre-hook', 'monitor', 'post-hook'}
+            Kind of object to create.
+
+        ids : list
+            Ids of the declarations to return.
+
+        Returns
+        -------
+        declarations : dict
+            Declarations stored in a dict by id.
+
+        """
+        kinds = ('engine', 'editor', 'pre-hook', 'monitor', 'post-hook')
+        if kind not in kinds:
+            msg = 'Expected kind must be one of {}, not {}.'
+            raise ValueError(msg.format(kinds, kind))
+
+        decls = getattr(self, '_'+kind+'s').contributions
+        return {k: v for k, v in decls.iteritems() if k in ids}
+
+    def create(self, kind, id, default=True):
         """Create a new instance of an engine/editor/tool.
 
         Parameters

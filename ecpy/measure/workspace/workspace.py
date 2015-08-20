@@ -83,7 +83,8 @@ class MeasureSpace(Workspace):
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
-            engine = plugin._engines.contributions[plugin.selected_engine]
+            id = plugin.selected_engine
+            engine = plugin.get_declarations('engine', [id])[id]
             deferred_call(engine.contribute_workspace, self)
 
         plugin.observe('selected_engine', self._update_engine_contribution)
