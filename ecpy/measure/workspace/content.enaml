@@ -19,7 +19,7 @@ from enaml.layout.api import HSplitLayout, VSplitLayout
 from ...utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
 from .measure_execution import ExecutionDockItem
 
-# XXXX handle multiple measures
+
 enamldef MeasureContent(Container): main:
     """Central window content when the measure workspace is active.
 

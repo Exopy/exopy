@@ -361,6 +361,11 @@ enamldef MeasureEditorDockItem(DockItem): main:
     #: Reference to the edited measure.
     alias measure : editor.measure
 
+    closed ::
+        workspace.plugin.remove_measures('edited', [measure])
+
+    stretch = 10
+
     Container:
         constraints = [vbox(editor,
                             hbox(new, save, load, spacer, enqueue_button))]
