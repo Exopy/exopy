@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets dedicated to edit the tools attached to a measure.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
+                               Container)
+from enaml.layout.api import hbox, vbox, spacer
+
+from ..monitors.edition import MonitorsEditor
+from ..hooks.edition import PreHooksEditor, PostHooksEditor
+
+
+enamldef ToolsEditorDockItem(DockItem): main:
+    """DockItem for editing the tools attached to a measure.
+
+    """
+    # Measure whose tools are being edited.
+    attr measure
+
+    title = 'Measure tools'
+
+    Notebook:
+        tabs_closable = False
+        tabs_movable = False
+
+        Page:
+            title = 'Pre-execution'
+            Container:
+                constraints << [hbox(hea_ed, spacer)]
+                PreHooksEditor: hea_ed:
+                    measure << main.measure
+
+        Page:
+            title = 'Monitors'
+            Container:
+                constraints << [hbox(mon_ed, spacer)]
+                MonitorsEditor: mon_ed:
+                    measure << main.measure
+
+        Page:
+            title = 'Post-execution'
+            Container:
+                constraints << [hbox(che_ed, spacer)]
+                PostHooksEditor: che_ed:
+                    measure << main.measure
