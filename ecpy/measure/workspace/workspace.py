@@ -14,12 +14,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 import os
+import re
 
 import enaml
 from atom.api import Typed, Value, set_default
 from enaml.application import deferred_call
 from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
+from enaml.layout.api import InsertItem
 
 from .measure import Measure
 from .plugin import MeasurePlugin, MeasureFlags
@@ -29,6 +31,7 @@ with enaml.imports():
     from .checks_display import ChecksDisplay
     from .engines.selection import EngineSelector
     from .content import MeasureContent
+    from .measure_edition import MeasureEditorDockItem
     from .manifest import MeasureSpaceMenu
 
 
@@ -71,15 +74,18 @@ class MeasureSpace(Workspace):
                                              {'id': LOG_ID, 'mode': 'ui'},
                                              self)[0]
 
-        # Check whether or not a measure is already being edited.
-        if not plugin.edited_measures:
-            self._new_measure()
-
         # Create content.
         self.content = MeasureContent(workspace=self)
 
         # Contribute menus.
         self.workbench.register(MeasureSpaceMenu(workspace=self))
+
+        # Check whether or not a measure is already being edited.
+        if not plugin.edited_measures:
+            self.new_measure()
+        else:
+            for measure in self.plugin.enqueued_measures:
+                self._insert_new_edition_panel(measure)
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
@@ -88,6 +94,9 @@ class MeasureSpace(Workspace):
             deferred_call(engine.contribute_workspace, self)
 
         plugin.observe('selected_engine', self._update_engine_contribution)
+
+        # TODO implement layout reloading so that we can easily switch between
+        # workspaces.
 
     def stop(self):
         """Stop the workspace and clean.
@@ -115,6 +124,9 @@ class MeasureSpace(Workspace):
 
         self.plugin.workspace = None
 
+        # TODO implement layout saving so that we can easily switch between
+        # workspaces.
+
     def new_measure(self, dock_item=None):
         """ Create a new measure using the default tools.
 
@@ -132,7 +144,8 @@ class MeasureSpace(Workspace):
 
         self.plugin.add_measure('edited', measure)
 
-        # XXXX need to insert the editor in the dock-area
+        if dock_item is None:
+            self._insert_new_edition_panel(measure)
 
     def save_measure(self, measure, auto=True):
         """ Save a measure in a file.
@@ -165,7 +178,7 @@ class MeasureSpace(Workspace):
 
         measure.save(full_path)
 
-    def load_measure(self, mode):
+    def load_measure(self, mode, dock_item=None):
         """ Load a measure.
 
         Parameters
@@ -192,7 +205,8 @@ class MeasureSpace(Workspace):
             # load template
             raise NotImplementedError()
 
-        # XXXX need to insert the editor in the dock-area
+        if dock_item is None:
+            self._insert_new_edition_panel(measure)
 
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
@@ -434,11 +448,35 @@ class MeasureSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    # XXXX
-    def _insert_new_edition_panel(self, measure):
+    def _insert_new_edition_panel(self, measure, dock_name=None):
+        """Handle inserting a new MeasureEditorDockItem in the content.
+
         """
-        """
-        pass
+        template = 'meas_%d'
+        items = self.dock_area.dock_items()
+        test = re.compile('meas\_([0-9]+)$')
+        measure_items = filter(lambda i: test.match(i.name), items)
+
+        if not measure_items:
+            op = InsertItem(item=template % 0, target='meas_exec')
+        else:
+            indexes = [int(test.match(i.name).group(1))
+                       for i in measure_items]
+            indexes.sort()
+            missings = [i for i, (i1, i2) in enumerate(zip(indexes[:-1],
+                                                           indexes[1:]))
+                        if i1 + 1 != i2]
+
+            if missings:
+                ind = missings[0]
+            else:
+                ind = len(measure_items)
+
+            op = InsertItem(item=template % ind, target=measure_items[-1])
+
+        MeasureEditorDockItem(self.dock_area, workspace=self,
+                              measure=measure)
+        self.dock_area.update_layout(op)
 
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect
