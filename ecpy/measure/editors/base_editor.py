@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, Typed, Bool, ForwardTyped
+from atom.api import Unicode, Typed, Bool, ForwardTyped, Int
 from enaml.core.api import Declarative, d_, d_func
 from enaml.widgets.api import Page
 
@@ -63,6 +63,12 @@ class BaseEditor(Page):
         """
         pass
 
+    def _default_name(self):
+        """Set the name of the widget otherwise the notebook does not work well
+
+        """
+        return self.declaration.id
+
 
 class Editor(Declarative):
     """A declarative class for contributing a measure editor.
@@ -76,6 +82,10 @@ class Editor(Declarative):
 
     #: Editor description.
     description = d_(Unicode())
+
+    #: Rank of this editor. Editors are displayed by rank and alphabetical
+    #: order
+    rank = d_(Int(100))
 
     @d_func
     def new(self, workbench, default=True):
