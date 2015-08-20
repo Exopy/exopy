@@ -17,7 +17,8 @@ from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.core.api import Declarative
 
-from ..utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.enaml_destroy_hook import DestroyHook
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 
 
 enamldef ToolSelector(Dialog): dial:
@@ -77,15 +78,11 @@ enamldef NonEditableTool(Container):
         text = tool.declaration.description
 
 
-class _Container(Container):
-    """Overwritten just to make destroyed a declarative member.
+class _Container(DestroyHook, Container):
+    """Overwritten just to install the ended hook.
 
     """
-    #: An event fired when an object has been destroyed. It is triggered
-    #: once during the object lifetime, just before the object is
-    #: removed from the tree structure.
-    destroyed = d_(Event())
-
+    pass
 
 enamldef ToolsEditor(_Container): main:
     """Widget used to edit the tools parameters of a measure.
@@ -129,7 +126,7 @@ enamldef ToolsEditor(_Container): main:
         update_items(None)
         measure.observe(kind+'s', update_items)
 
-    destroyed ::
+    ended ::
         for w in _cache.values():
             w.set_parent(None)
             w.destroy()

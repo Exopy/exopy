@@ -21,19 +21,16 @@ from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
+from ..utils.enaml_destroy_hook import DestroyHook
 from .tools.task_editor import TaskEditor, FoldableTaskEditor
 from .base_tasks import BaseTask
 
 
-class _GroupBox(GroupBox):
-    """Overridden just to make destroyed a declarative member.
+class _GroupBox(DestroyHook, GroupBox):
+    """Overridden just to install the ended.
 
     """
-    #: An event fired when an object has been destroyed. It is triggered
-    #: once during the object lifetime, just before the object is
-    #: removed from the tree structure.
-    destroyed = d_(Event())
-
+    pass
 
 enamldef BaseTaskView(_GroupBox):
     """Base class for all task views.
@@ -160,7 +157,7 @@ enamldef RootTaskView(BaseTaskView): main:
         except KeyError:
             pass
 
-    destroyed ::
+    ended ::
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
@@ -179,4 +176,4 @@ enamldef RootTaskView(BaseTaskView): main:
     # =========================================================================
 
     #: Dictionary used to store the view associated with each task.
-    attr _cache : dict = {}
+    attr _cache : dict = {task: self}
