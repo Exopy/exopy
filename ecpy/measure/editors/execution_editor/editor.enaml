@@ -1,0 +1,316 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Editors for task execution settings.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
+                               PopupView, Field, ToolButton, RadioButton,
+                               ObjectCombo, PushButton)
+from enaml.core.api import Looper, Conditional
+from enaml.stdlib.mapped_view import MappedView
+from enaml.layout.api import vbox, hbox, spacer, factory
+
+from ....tasks.api import ComplexTask, SimpleTask
+from ..base_editor import BaseEditor
+from .editor_model import _ExecutionEditorModel
+
+enamldef _PopupField(PopupView): popup:
+    """Popup containing a field for the user to enter the name of a new
+    execution pool.
+
+    """
+    Container:
+        constraints = [vbox(field, hbox(ok, cancel))]
+
+        Field: field:
+            submit_triggers = ['lost_focus', 'return_pressed', 'auto_sync']
+        PushButton: ok:
+            enabled << bool(field.text)
+            text = 'Ok'
+            clicked ::
+                popup.close()
+                #: Use event on parent as popup are non-blocking
+                popup.parent.answer = field.text
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                popup.close()
+
+enamldef _PopupList(PopupView): popup:
+    """Popup displaying a list of pools allowing the user to choose upon which
+    ones to wait or not.
+
+    """
+    #: List of existing pools.
+    attr pools
+
+    #: Pools selected by the user.
+    attr selected : set
+
+    Container:
+        constraints = [vbox(area, hbox(ok, cancel))]
+
+        ScrollArea: area:
+            Container:
+                padding = 0
+                Looper:
+                    iterable = pools
+                    CheckBox:
+                        text = loop_item
+                        checked << loop_item in selected
+                        checked::
+                            if change['value']:
+                                selected.add(loop_item)
+                            else:
+                                selected.remove(loop_item)
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                popup.close()
+                #: Use event on parent as popup are non-blocking
+                popup.parent.answer = selected
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                popup.close()
+
+
+enamldef _BaseExecutionEditor(Container):
+    """Base editor for execution settings.
+
+    """
+    #: Reference to the task this editor is linked to.
+    attr task
+
+    #: Reference to the model keeping track of the pools currently used.
+    attr _model
+
+    #:
+    attr _lock : bool = False
+
+    padding = 0
+    constraints << [hbox(stop, parallel, wait,
+                         *tuple(par_cond.items + wai_cond.items))]
+
+    CheckBox: stop:
+        text = 'Stoppable'
+        checked := task.stoppable
+        tool_tip = ('Can the program be stopped or paused at this\n'
+                    'task. Disabling allow to skip some check and might\n'
+                    'be beneficial in very tight loops.')
+        hug_width = 'strong'
+
+# XXXXX restart here
+    CheckBox: parallel:
+        # Workaround the fact that otherwise when the checkbox is unchecked
+        # the declaration for the ObjectCombo in par_cond is destroyed but the
+        # qt object try to refresh its items given the async nature of enaml.
+        attr active : bool = checked
+        text = 'Parallel'
+        tool_tip = 'Should this task perform its job in parallel (new thread).'
+        hug_width = 'strong'
+        checked << bool(task.parallel.get('activated'))
+        checked ::
+            if not self.parent._lock:
+                self.parent._lock = True
+                aux = task.parallel.copy()
+                aux['activated'] = change['value']
+
+                # Avoid rebuilding twice perform_
+                with task.suppress_notifications():
+                    task.wait['activated'] = False
+
+                task.parallel = aux
+
+                if change['value']:
+                    wait.checked = False
+
+                self.parent._lock = False
+                active = change['value']
+
+    CheckBox: wait:
+        text = 'Wait'
+        tool_tip = ('Should this task wait for any other task currently\n'
+                    'working in parallel.')
+        hug_width = 'strong'
+        checked << bool(task.wait.get('activated'))
+        checked ::
+            if not self.parent._lock:
+                self.parent._lock = True
+                aux = task.wait.copy()
+                aux['activated'] = change['value']
+
+                # Avoid rebuilding twice perform_
+                with task.suppress_notifications():
+                    task.parallel['activated'] = False
+
+                task.wait = aux
+
+                if change['value']:
+                    parallel.checked = False
+
+                self.parent._lock = False
+
+    Conditional: par_cond:
+        condition << parallel.active
+
+        ObjectCombo:
+            items << _model.pools
+            selected << task.parallel.get('pool')
+            selected ::
+                aux = task.parallel.copy()
+                aux['pool'] = change['value']
+                task.parallel = aux
+
+        PushButton:
+            attr answer
+            text = 'New'
+            hug_width = 'strong'
+
+            initialized::
+                self.answer = '__gg__'
+            clicked ::
+                popup = _PopupField(self)
+                popup.show()
+            answer ::
+                aux = task.parallel.copy()
+                aux['pool'] = change['value']
+                task.parallel = aux
+
+    Conditional: wai_cond:
+        condition << wait.checked
+        attr selected = set(task.wait.get('wait', []) +
+                                task.wait.get('no_wait', []))
+
+        RadioButton: r_wait:
+            text = 'Wait on'
+            tool_tip = cleandoc('''Wait on the list of selected pools or all
+                                if no pool is selected''')
+            checked << 'no_wait' not in task.wait
+            checked ::
+                task.wait = dict(activated=True,
+                                 wait=list(wai_cond.selected))
+
+        RadioButton:
+            text = 'No wait on'
+            tool_tip = cleandoc("""Don't wait on the selected pools or wait on
+                                all if no pool is selected""")
+            checked << 'no_wait' in task.wait
+            checked ::
+                task.wait = dict(activated=True,
+                                 no_wait=list(wai_cond.selected))
+
+        Field:
+            read_only = True
+            placeholder << 'All' if r_wait.checked else 'None'
+            text << ', '.join(wai_cond.selected)
+            hug_width = 'ignore'
+
+        PushButton:
+            attr answer
+            text = 'Edit'
+            hug_width = 'strong'
+
+            initialized::
+                self.answer = ['']
+            clicked ::
+                sel = wai_cond.selected.copy()
+                popup = _PopupList(self, selected=sel, pools=_model.pools)
+                popup.show()
+            answer ::
+                new_sel = change['value']
+                wai_cond.selected = new_sel
+                if 'no_wait' in task.wait:
+                    task.wait = dict(activated=True, no_wait=list(new_sel))
+                else:
+                    task.wait = dict(activated=True, wait=list(new_sel))
+
+enamldef _SimpleExecutionEditor(GroupBox):
+    """
+    """
+    #:
+    alias task : ed.task
+
+    #:
+    alias _model : ed._model
+
+    title = task.name
+
+    _ExEditor: ed:
+        pass
+
+
+def _complex_constraints(editor):
+    children = editor.widgets()
+    constraints = [vbox(*children)]
+    for child in children:
+        constraints.append(child.left == editor.contents_left)
+    return constraints
+
+enamldef _ComplexExEditor(GroupBox): main:
+
+    attr task
+    attr _model
+    attr _map
+
+    title = task.task_name if task else ''
+    constraints << [factory(_complex_constraints)]
+
+    Conditional:
+        condition << task.task_depth != 0
+        _ExEditor:
+            task = main.task
+            _model = main._model
+
+    Looper:
+        iterable << task._gather_children_task() if task else []
+        MappedView:
+            model = loop_item
+            typemap = _map
+            kwargs = {'_model': _model, '_map': _map}
+            modelkey = 'task'
+
+enamldef _EmptyEd(GroupBox):
+
+    attr task
+    attr _model
+    attr _map
+
+# XXXX need some sort of cache just like for tasks.
+enamldef ExecutionEditor(BaseEditor): editor:
+    """
+
+    """
+    attr pool_model = _Model()
+    attr _map = {SimpleTask: _SimpleExEditor, ComplexTask: _ComplexExEditor,
+                 type(None): _EmptyEd}
+
+    title = 'Execution editor'
+    name = 'execution_editor'
+
+    selected ::
+        task.model = None
+        pool_model.root = selected_task.root_task
+        pool_model.bind_observers()
+        task.model = selected_task
+
+    unselected ::
+        pool_model.unbind_observers()
+
+    Container:
+        ScrollArea:
+            MappedView: task:
+                model << selected_task
+                typemap = _map
+                kwargs = {'_model': pool_model, '_map': _map}
+                modelkey = 'task'
