@@ -66,7 +66,7 @@ class Measure(HasPrefAtom):
     root_task = Instance(RootTask)
 
     #: Dict of active monitor for this measure.
-    monitors = Dict()
+    monitors = Typed(OrderedDict, ())
 
     #: Dict of pre-measure execution routines.
     pre_hooks = Typed(OrderedDict, ())
@@ -363,7 +363,7 @@ class Measure(HasPrefAtom):
         tools[id] = tool
         setattr(self, kind + 's', tools)
 
-    def move_tool(self, kind, id, new_pos):
+    def move_tool(self, kind, old, new):
         """Modify hooks execution order.
 
         Parameters
@@ -371,8 +371,8 @@ class Measure(HasPrefAtom):
         kind : {'pre-hook', 'post-hook'}
             Kind of hook to move.
 
-        id : unicode
-            Id of the tool to move.
+        old : int
+            Index at which the tool is currently.
 
         new_pos : int
             New index at which the tool should be.
@@ -383,9 +383,9 @@ class Measure(HasPrefAtom):
 
         tools = getattr(self, kind+'s')
         keys = list(tools.keys())
-        ind = keys.index(id)
-        del keys[ind]
-        keys.insert(new_pos, id)
+        id = keys[old]
+        del keys[old]
+        keys.insert(new, id)
 
         setattr(self, kind, OrderedDict((k, tools[k]) for k in keys))
 
