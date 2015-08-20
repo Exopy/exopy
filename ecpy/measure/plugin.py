@@ -286,7 +286,7 @@ class MeasurePlugin(HasPrefPlugin):
         signal = getattr(self, kind+'_measures_changed')
         signal(notification)
 
-    def move_measure(self, kind, measure, new_position):
+    def move_measure(self, kind, old, new):
         """Move a measure.
 
         Parameters
@@ -294,21 +294,21 @@ class MeasurePlugin(HasPrefPlugin):
         kind : unicode, {'edited', 'enqueued'}
             Is this measure to be added to the enqueued or edited ones.
 
-        measure : Measure
-            Measure to move.
+        old : int
+            Index at which the measure to move currently is.
 
-        new_position :
+        new_position : int
             Index at which to insert the measure.
 
         """
         name = kind+'_measures'
         measures = getattr(self, name)
-        old = measures.index(measure)
+        measure = measures[old]
         del measures[old]
-        measures.insert(new_position, measure)
+        measures.insert(new, measure)
 
         notification = ContainerChange(obj=self, name=name)
-        notification.add_operation('moved', (old, new_position, measure))
+        notification.add_operation('moved', (old, new, measure))
         signal = getattr(self, kind+'_measures_changed')
         signal(notification)
 
