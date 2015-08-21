@@ -638,7 +638,10 @@ class ComplexTask(BaseTask):
 
     #: Signal emitted when the list of children change, the payload will be a
     # ContainerChange instance.
-    children_changed = Signal()
+    #: The tag 'child_notifier' is used to mark that a member emmit
+    #: notifications about modification of another 'child' member. This allow
+    #: editors to correctly track all of those.
+    children_changed = Signal().tag(child_notifier='children')
 
     #: Flag indicating whether or not the task has a root task.
     has_root = Bool(False)
@@ -750,6 +753,11 @@ class ComplexTask(BaseTask):
         """Build a flat list of all children task.
 
         Children tasks are ordered according to their 'child' tag value.
+
+        Returns
+        -------
+        children : list
+            List of all the task children.
 
         """
         children = []
