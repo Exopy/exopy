@@ -93,13 +93,12 @@ class TaskEditor(Container):
         """Ensure that all child views are visible and correctly parented.
 
         """
-        self._relayout_requested = False
         self._no_relayout = True
         for _, view in self._children_buttons.values():
             view.set_parent(self)
             view.refresh()
         self._no_relayout = False
-        if self._relayout_requested:
+        if not self._no_relayout:
             self.request_relayout()
 
     @d_func
@@ -147,9 +146,6 @@ class TaskEditor(Container):
     #: refreshing
     _no_relayout = Bool()
 
-    #: Flag signaling that a refreshing led to a relayout request.
-    _relayout_requested = Bool()
-
     #: Push button used when no item exists.
     _empty_button = Typed(EmptyEditorButton)
 
@@ -171,7 +167,7 @@ class TaskEditor(Container):
             self._empty_button.show()
 
     def _update_views(self, change, root=True):
-        """Handler updating as needed the views when the children_member is
+        """Handler updating as needed the views when the children member is
         updated.
 
         Parameters
@@ -224,12 +220,13 @@ class TaskEditor(Container):
 
         else:
             # The whole member was replaced so we can just forget about its
-            # previous state. The root view is also observing this it will take
-            # care of discarding the views that need to be discarded.
+            # previous state. This should be a rare event.
 
-            # First we destroy all the buttons.
-            for b, _ in self._children_buttons.values():
+            # First we destroy all the buttons and views (not worth optimizing
+            # more).
+            for b, w in self._children_buttons.values():
                 b.destroy()
+                self.root.discard_view(w.task)
 
             self._empty_button.set_parent(None)
 

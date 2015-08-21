@@ -123,7 +123,7 @@ enamldef RootTaskView(BaseTaskView): main:
         return [i.cls for i in infos.interfaces.values()]
 
     func view_for(obj):
-        """Create a widget for the specified view.
+        """Create a widget for the specified task.
 
         The view is initialized but given no parent.
 
