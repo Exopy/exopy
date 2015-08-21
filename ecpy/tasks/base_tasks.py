@@ -108,7 +108,7 @@ class BaseTask(Atom):
     #: - 'no_wait' : the list should specify which pool not to wait on.
     wait = Dict(Unicode()).tag(pref=True)
 
-    #: List of access exception in the database. This should not be manipulated
+    #: Dict of access exception in the database. This should not be manipulated
     #: by user code.
     access_exs = Dict().tag(pref=True)
 
@@ -253,7 +253,8 @@ class BaseTask(Atom):
             Name of the task database entry for which to modify an exception.
 
         new : int
-            New level for the access exception.
+            New level for the access exception. If this is not strictly
+            positive the access exception is simply removed.
 
         """
         access_exs = self.access_exs.copy()
@@ -268,11 +269,13 @@ class BaseTask(Atom):
         self.database.remove_access_exception(parent.path,
                                               full_name)
 
-        parent = self
-        while new:
-            parent = parent.parent
-            new -= 1
-        self.database.add_access_exception(parent.path, self.path, full_name)
+        if new > 0:
+            parent = self
+            while new:
+                parent = parent.parent
+                new -= 1
+            self.database.add_access_exception(parent.path, self.path,
+                                               full_name)
 
         self.access_exs = access_exs
 
