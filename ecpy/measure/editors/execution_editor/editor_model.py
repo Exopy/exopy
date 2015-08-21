@@ -20,7 +20,7 @@ from ....tasks.api import ComplexTask
 from ....utils.atom_util import tagged_members
 
 
-class _ExecutionEditorModel(Atom):
+class ExecutionEditorModel(Atom):
     """Model for the execution editor.
 
     Walk all the tasks to determine which pool of tasks are defined and keep a
