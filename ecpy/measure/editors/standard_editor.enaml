@@ -29,6 +29,9 @@ enamldef StandardEditor(BaseEditor): main:
     title = 'Standard editor'
 
     func set_view_for(task):
+        """Set the currently displayed widget to match the selected view.
+
+        """
         if not root_view:
             core = workbench.get_plugin('enaml.workbench.core')
             main.root_view = RootTaskView(core=core, task=task.root)
