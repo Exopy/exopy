@@ -25,6 +25,9 @@ def tagged_members(obj, meta=None, meta_value=None):
 
     Parameters
     ----------
+    obj : Atom
+        Object from which the tagged members should be retrieved.
+
     meta : str, optional
         The tag to look for, only member which has this tag will be returned
 
