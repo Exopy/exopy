@@ -60,6 +60,13 @@ class NodeModel(Atom):
                        self.task.gather_children())
         self.children = sorted(self.children, lambda n: tasks.index(n.task))
 
+    def add_exception(self, entry):
+        """Add an access exception
+
+        """
+        entry = entry[len(self.task.name)+1:]
+        self.task.add_access_exception(entry, 1)
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
@@ -86,24 +93,65 @@ class EditorModel(Atom):
     #: Reference to the root task of the currently edited task hierarchy.
     root = Typed(RootTask)
 
-    #: Node corresponding to the currently selected task.
-    selected_node = Typed(NodeModel)
-
     #: Signal that a node was deleted (the payload is the node model object).
     node_deleted = Signal()
 
     #: Dictionary storing the nodes for all tasks by path.
     nodes = Dict()
 
-    def select_node(self, task):
-        """Select the right node based on the user selected task.
+    def increase_exc_level(self, path, entry):
+        """Increase the exception level of an access exception.
+
+        Parameters
+        ----------
+        path : unicode
+            Path of the node in which the exception to increase is.
+
+        entry : unicode
+            Entry whose access exception should be increased.
 
         """
-        self.select_node = self.nodes[task.path + '/' + task.name]
+        self._modify_exception_level(path, entry, 1)
+
+    def decrease_exc_level(self, path, entry):
+        """Decrease the exception level of an access exception.
+
+        Parameters
+        ----------
+        path : unicode
+            Path of the node in which the exception to increase is.
+
+        entry : unicode
+            Entry whose access exception should be increased.
+
+        """
+        self._modify_exception_level(path, entry, -1)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
+
+    def _modify_exception_level(self, path, entry, val):
+        """Modify the exception level of an access exception.
+
+        Parameters
+        ----------
+        path : unicode
+            Path of the node in which the exception to increase is.
+
+        entry : unicode
+            Entry whose access exception should be increased.
+
+        val : int
+            Amount by which to modify the level.
+
+        """
+        database_node = self.root.database.go_to_path(path)
+        real_path = database_node.meta.access[entry]
+        task = self._get_task(real_path)
+        entry = entry[len(task.name)+1:]
+        level = task.access_exs[entry]
+        task.modify_access_exception(entry, level + val)
 
     def _post_setattr_root(self, old, new):
         """Ensure we are observing the right database.
