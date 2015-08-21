@@ -106,7 +106,7 @@ class TaskDatabase(Atom):
                 self._flat_database[index] = value
                 self.notifier(('added', node_path + '/' + value_name, value))
         else:
-            node = self._go_to_path(node_path)
+            node = self.go_to_path(node_path)
             if value_name not in node.data:
                 new_val = True
             node.data[value_name] = value
@@ -141,7 +141,7 @@ class TaskDatabase(Atom):
             return self._flat_database[index]
 
         else:
-            node = self._go_to_path(assumed_path)
+            node = self.go_to_path(assumed_path)
 
             # First check if the entry is in the current node.
             if value_name in node.data:
@@ -186,7 +186,7 @@ class TaskDatabase(Atom):
         if self.running:
             raise RuntimeError('Cannot delete an entry in running mode')
 
-        node = self._go_to_path(node_path)
+        node = self.go_to_path(node_path)
         notif = []
         acc_notif = []
         access_exs = access_exs if access_exs else {}
@@ -238,7 +238,7 @@ class TaskDatabase(Atom):
             raise RuntimeError('Cannot delete an entry in running mode')
 
         else:
-            node = self._go_to_path(node_path)
+            node = self.go_to_path(node_path)
 
             if value_name in node.data:
                 del node.data[value_name]
@@ -313,7 +313,7 @@ class TaskDatabase(Atom):
         """
         entries = []
         while True:
-            node = self._go_to_path(node_path)
+            node = self.go_to_path(node_path)
             keys = node.data.keys()
             # Looking for the entries in the node.
             for key in keys:
@@ -355,7 +355,7 @@ class TaskDatabase(Atom):
 
         """
         entries = [] if not values else {}
-        node = self._go_to_path(path)
+        node = self.go_to_path(path)
         for entry in node.data.keys():
             if isinstance(node.data[entry], DatabaseNode):
                 aux = self.list_all_entries(path=path + '/' + entry,
@@ -397,7 +397,7 @@ class TaskDatabase(Atom):
             Name of the entry for which to create an exception.
 
         """
-        node = self._go_to_path(node_path)
+        node = self.go_to_path(node_path)
         if 'access' in node.meta:
             access_exceptions = node.meta['access']
             access_exceptions[entry] = entry_node
@@ -418,7 +418,7 @@ class TaskDatabase(Atom):
             provided all access exceptions will be removed.
 
         """
-        node = self._go_to_path(node_path)
+        node = self.go_to_path(node_path)
         if entry:
             access_exceptions = node.meta['access']
             del access_exceptions[entry]
@@ -446,7 +446,7 @@ class TaskDatabase(Atom):
         if self.running:
             raise RuntimeError('Cannot create a node in running mode')
 
-        parent_node = self._go_to_path(parent_path)
+        parent_node = self.go_to_path(parent_path)
         node = DatabaseNode(parent=parent_node)
         parent_node.data[node_name] = node
         self.nodes_notifier(('added', parent_path, node_name, node))
@@ -469,7 +469,7 @@ class TaskDatabase(Atom):
         if self.running:
             raise RuntimeError('Cannot rename a node in running mode')
 
-        parent_node = self._go_to_path(parent_path)
+        parent_node = self.go_to_path(parent_path)
         parent_node.data[new_name] = parent_node.data[old_name]
         del parent_node.data[old_name]
 
@@ -506,7 +506,7 @@ class TaskDatabase(Atom):
         if self.running:
             raise RuntimeError('Cannot delete a node in running mode')
 
-        parent_node = self._go_to_path(parent_path)
+        parent_node = self.go_to_path(parent_path)
         if node_name in parent_node.data:
             del parent_node.data[node_name]
         else:
@@ -530,7 +530,7 @@ class TaskDatabase(Atom):
             Copy of the node values.
 
         """
-        node = self._go_to_path(node)
+        node = self.go_to_path(node)
         return {k: v for k, v in node.data.iteritems()
                 if not isinstance(v, DatabaseNode)}
 
@@ -590,24 +590,7 @@ class TaskDatabase(Atom):
 
         return dict(nodes)
 
-    # =========================================================================
-    # --- Private API ---------------------------------------------------------
-    # =========================================================================
-
-    #: Main container for the database.
-    _database = Typed(DatabaseNode, ())
-
-    #: Flat version of the database only used in running mode for perfomances
-    #: issues.
-    _flat_database = List()
-
-    #: Dict mapping full paths to flat database indexes.
-    _entry_index_map = Dict()
-
-    #: Lock to make the database thread safe in running mode.
-    _lock = Value()
-
-    def _go_to_path(self, path):
+    def go_to_path(self, path):
         """Method used to reach a node specified by a path.
 
         """
@@ -635,6 +618,25 @@ class TaskDatabase(Atom):
                 raise KeyError(err_str)
 
         return node
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Main container for the database.
+    _database = Typed(DatabaseNode, ())
+
+    #: Flat version of the database only used in running mode for perfomances
+    #: issues.
+    _flat_database = List()
+
+    #: Dict mapping full paths to flat database indexes.
+    _entry_index_map = Dict()
+
+    #: Lock to make the database thread safe in running mode.
+    _lock = Value()
+
+
 
     def _find_index(self, assumed_path, entry):
         """Find the index associated with a path.
