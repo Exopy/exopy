@@ -26,6 +26,8 @@ from .manager.filters import (TaskFilter, SubclassTaskFilter, GroupTaskFilter,
 
 from .manager.configs.base_configs import BaseTaskConfig
 
+from .manager.utils.building import build_task_from_config
+
 with enaml.imports():
     from .manager.configs.base_config_views import BaseConfigView
     from .base_views import BaseTaskView
@@ -35,4 +37,5 @@ __all__ = ['BaseTask', 'SimpleTask', 'ComplexTask', 'RootTask', 'BaseTaskView',
            'InterfaceableInterfaceMixin', 'IInterface',
            'Tasks', 'Task', 'Interfaces', 'Interface', 'TaskConfig',
            'TaskFilter', 'SubclassTaskFilter', 'GroupTaskFilter',
-           'MetadataTaskFilter', 'BaseTaskConfig', 'BaseConfigView']
+           'MetadataTaskFilter', 'BaseTaskConfig', 'BaseConfigView',
+           'build_task_from_config']
