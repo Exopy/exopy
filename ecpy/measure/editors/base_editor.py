@@ -16,10 +16,11 @@ from atom.api import Unicode, Typed, Bool, ForwardTyped, Int
 from enaml.core.api import Declarative, d_, d_func
 from enaml.widgets.api import Page
 
+from ...utils.enaml_destroy_hook import DestroyHook
 from ...tasks.api import BaseTask
 
 
-class BaseEditor(Page):
+class BaseEditor(DestroyHook, Page):
     """Base class for all editors.
 
     """

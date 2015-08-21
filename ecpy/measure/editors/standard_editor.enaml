@@ -33,9 +33,10 @@ enamldef StandardEditor(BaseEditor): main:
             core = workbench.get_plugin('enaml.workbench.core')
             main.root_view = RootTaskView(core=core, task=task.root)
 
-        view = root_view.view_for(task)
-        view.set_parent(scroll)
-        view.show()
+        if task:
+            view = root_view.view_for(task)
+            view.set_parent(scroll)
+            view.show()
 
     selected_task ::
         set_view_for(change['value'])
