@@ -17,6 +17,7 @@ from collections import Counter
 from atom.api import Atom, Value, Typed, List
 
 from ....tasks.api import ComplexTask
+from ....utils.atom_util import tagged_members
 
 
 class _ExecutionEditorModel(Atom):
@@ -48,7 +49,9 @@ class _ExecutionEditorModel(Atom):
         """
         self._unbind_observers(self.root, Counter())
 
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     #: Counter keeping track of how many times each pool appear.
     _counter = Typed(Counter, ())
@@ -58,7 +61,8 @@ class _ExecutionEditorModel(Atom):
 
         """
         if isinstance(task, ComplexTask):
-            task.observe('children_changed', self._children_observer)
+            for m in tagged_members(task, 'child_notifier'):
+                task.observe(m, self._children_observer)
             for child in task._gather_children_task():
                 self._bind_observers(child, counter)
 

@@ -15,8 +15,6 @@ from __future__ import (division, unicode_literals, print_function,
 import enaml
 
 from .base_tasks import BaseTask, SimpleTask, ComplexTask, RootTask
-with enaml.imports():
-    from .base_views import BaseTaskView
 
 from .task_interface import (InterfaceableTaskMixin, TaskInterface,
                              InterfaceableInterfaceMixin, IInterface)
@@ -27,8 +25,10 @@ from .manager.filters import (TaskFilter, SubclassTaskFilter, GroupTaskFilter,
                               MetadataTaskFilter)
 
 from .manager.configs.base_configs import BaseTaskConfig
+
 with enaml.imports():
     from .manager.configs.base_config_views import BaseConfigView
+    from .base_views import BaseTaskView
 
 __all__ = ['BaseTask', 'SimpleTask', 'ComplexTask', 'RootTask', 'BaseTaskView',
            'InterfaceableTaskMixin', 'TaskInterface',

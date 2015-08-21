@@ -303,6 +303,7 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
 
     FoldableTaskEditor: ed:
         task = main.task
+        operations = {}
 
 
 enamldef ExecutionEditor(BaseEditor): editor:
