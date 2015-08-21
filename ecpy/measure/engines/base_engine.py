@@ -32,25 +32,16 @@ class BaseEngine(Atom):
     #: Bool representing the current state of the engine.
     active = Bool()
 
-    def prepare_to_run(self, name, root, monitored_entries, build_deps):
+    def prepare_to_run(self, measure):
         """Make the engine ready to perform a measure.
 
         This method should not start the engine.
 
         Parameters
         ----------
-        name : unicode
-            Name of the measure.
-
-        root : RootTask
-            The root task representing the measure to perform.
-
-        monitored_entries : iterable
-            The database entries to observe. Any change of one of these entries
-            should be notified by the news event.
-
-        build_deps : dict
-            Dict holding the build dependencies of the task.
+        measure : Measure
+            Next measure that will be run. WARNING the engine may be ask to
+            run other tasks hierarchy before actually running the measure.
 
         """
         raise NotImplementedError()

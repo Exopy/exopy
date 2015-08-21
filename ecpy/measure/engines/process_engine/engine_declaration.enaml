@@ -1,0 +1,126 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Declaration of the ProcessEngine and workspace related contribution.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Atom, Bool, Unicode
+from enaml.workbench.api import PluginManifest, Extension
+from enaml.widgets.api import DockItem, Container, Menu, Action
+from enaml.layout.api import InsertItem, RemoveItem
+
+
+from ....utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
+from ..base_engine import Engine
+from .engine import ProcessEngine
+
+
+class ProcFilter(Atom):
+    """ Filter accepting or rejecting a log according to its process of origin.
+
+    """
+    #: Name of the process from which to accept records.
+    process_name = Unicode('MeasureProcess')
+
+    # Bool indicating whether to reject if the process name is wrong (False),
+    # or reject if the process name is right (True).
+    reject_if_equal = Bool()
+
+    def filter(self, record):
+        """Accept or reject a log according to its process of origin.
+
+        """
+        res = record.processName == self.process_name
+        return not res if self.reject_if_equal else res
+
+enamldef SubprocessLogPanel(DockItem):
+    """Log panel used to display the message coming from the subprocess.
+
+    """
+    attr model
+    stretch = 1
+    Container:
+        QtAutoscrollHtml:
+            text << model.text
+            Menu:
+                context_menu = True
+                Action:
+                    text = 'Clear'
+                    triggered ::
+                        model.text = ''
+
+
+enamldef ProcessEngine(Engine):
+    """ Manifest contributing the ProcessEngine to the MeasurePlugin.
+
+    """
+    id = 'Process engine'
+    description = 'Engine performing the measure in a subprocess'
+
+    new => (workbench, default=True):
+        return ProcessEngine(workbench=workbench,
+                         declaration=self)
+
+    contribute_to_workspace => (workspace):
+        """Add a log panel for the subprocess.
+
+        """
+        core = workspace.workbench.get_plugin('enaml.workbench.core')
+
+        # First add a filter removing log from the subprocess from the main
+        # panel log.
+        core.invoke_command('ecpy.app.logging.add_filter',
+                            {'id' : 'ecpy.measure.workspace.process_engine',
+                             'filter': ProcFilter(reject_if_equal=True),
+                             'handler_id' : 'ecpy.measure.workspace'})
+
+        # Second add a new handler and its filter.
+        handler_id = 'ecpy.measure.engines.process_engine'
+
+        model = core.invoke_command('ecpy.app.logging.add_handler',
+                                    {'id': handler_id, 'mode': 'ui'},
+                                   None)[0]
+        core.invoke_command('ecpy.app.logging.add_filter',
+                            {'id' : 'ecpy.measure.engines.process_engine',
+                             'filter': ProcFilter(reject_if_equal=False),
+                             'handler_id' : handler_id},
+                            None)
+
+        # Add the log panel to the dock area at the right of the main log panel
+        area = workspace.dock_area
+        dock = SubprocessLogPanel(area, name='subprocess_log',
+                                  title='Subprocess panel (Process engine)',
+                                  model=model)
+        op = InsertItem(item='subprocess_log', target='main_log',
+                        position='right')
+        area.update_layout(op)
+
+    clean_workspace => (workspace):
+        """Remove the log panel from the workspace content.
+
+        """
+        # Remove the log panel from the dock area.
+        area = workspace.dock_area
+        if area:
+            for item in area.dock_items():
+                if item.name == 'subprocess_log':
+                    item.destroy()
+
+        core = workspace.workbench.get_plugin('enaml.workbench.core')
+
+        # Second remove the added handler (filter automaticallt removed).
+        handler_id = 'ecpy.measure.engines.process_engine'
+        core.invoke_command('ecpy.app.logging.remove_handler',
+                            {'id': handler_id})
+
+        # Finally remove the filter  from the main panel log.
+        core.invoke_command('ecpy.app.logging.remove_filter',
+                            {'id' : 'ecpy.measure.workspace.process_engine'})
