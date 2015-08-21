@@ -41,9 +41,10 @@ enamldef TaskEditorButton(PushButton):
 
     clicked::
         items = editor.task.children
-        popup = PopupListMenu(model=items, index=items.index(task),
-                              operations=editor.operations)
-        popup.popup()
+        if editor.operations:
+            popup = PopupListMenu(model=items, index=items.index(task),
+                                  operations=editor.operations)
+            popup.popup()
 
     constraints = [width == 15, height == 20]
     font = 'bold 12pt Consolas'
