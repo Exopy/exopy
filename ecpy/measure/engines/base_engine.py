@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Bool, Unicode, ForwardTyped, Signal
+from atom.api import Atom, Unicode, ForwardTyped, Signal, Enum
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -23,28 +23,11 @@ class BaseEngine(Atom):
     #: Declaration defining this engine.
     declaration = ForwardTyped(lambda: Engine)
 
+    #: Event through which the engine signals changes in the task processing.
+    status = Enum('Waiting', 'Running', 'Pausing', 'Paused', 'Resuming')
+
     #: Signal used to pass news about the measurement progress.
-    news = Signal()
-
-    #: Event through which the engine signals it is done with a measure.
-    completed = Signal()
-
-    #: Bool representing the current state of the engine.
-    active = Bool()
-
-    def prepare_to_run(self, measure):
-        """Make the engine ready to perform a measure.
-
-        This method should not start the engine.
-
-        Parameters
-        ----------
-        measure : Measure
-            Next measure that will be run. WARNING the engine may be ask to
-            run other tasks hierarchy before actually running the measure.
-
-        """
-        raise NotImplementedError()
+    progress = Signal()
 
     def perform(self, task):
         """Execute a given task hierarchy.
@@ -55,20 +38,12 @@ class BaseEngine(Atom):
         """
         raise NotImplementedError()
 
-    def run(self):
-        """Start the execution of the measure by the engine.
-
-        This method must not wait for the measure to complete to return.
-
-        """
-        raise NotImplementedError()
-
     def pause(self):
-        """Ask the engine to pause the current measure.
+        """Ask the engine to pause the current task.
 
-        This method should not wait for the measure to pause to return.
-        When the pause is effective the engine should add pause to the plugin
-        flags.
+        This method should not wait for the task to pause to return.
+        When the pause is effective the engine should signal it by updating its
+        status.
 
         """
         raise NotImplementedError()
@@ -77,43 +52,37 @@ class BaseEngine(Atom):
         """Ask the engine to resume the currently paused measure.
 
         This method should not wait for the measure to resume.
-        Thsi method should remove the 'paused' flag from the plugin flags.
+        When the pause is over the engine should signal it by updating its
+        status.
 
         """
         raise NotImplementedError()
 
-    def stop(self):
+    def stop(self, force=False):
         """Ask the engine to stop the current measure.
 
-        This method should not wait for the measure to stop.
+        Parameters
+        ----------
+        force : bool, optional
+            Force the engine to stop the performing the task. This allow the
+            engine to use any means necessary to stop, in this case only should
+            the call to this method block.
 
         """
         raise NotImplementedError()
 
-    def exit(self):
+    def exit(self, force=False):
         """Ask the engine top stop completely.
 
         After a call to this method the engine may need to re-initialize a
-        number of things before running the next measure. This method should
-        not wait for the engine to exit.
+        number of things before running the next measure.
 
-        """
-        raise NotImplementedError()
-
-    def force_stop(self):
-        """Force the engine to stop the current measure.
-
-        This method should stop the measure no matter what is going on. It can
-        block.
-
-        """
-        raise NotImplementedError()
-
-    def force_exit(self):
-        """Force the engine to exit.
-
-        This method should stop the process no matter what is going on. It can
-        block.
+        Parameters
+        ----------
+        force : bool, optional
+            Force the engine to stop the performing the task. This allow the
+            engine to use any means necessary to stop, in this case only should
+            the call to this method block.
 
         """
         raise NotImplementedError()
