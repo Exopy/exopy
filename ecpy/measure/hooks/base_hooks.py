@@ -23,6 +23,8 @@ class BaseExecutionHook(BaseMeasureTool):
     def run(self, workbench, measure, engine):
         """Perform additional operations before/after the measure.
 
+        This method can raise errors as necessary.
+
         Parameters
         ----------
         workbench : Workbench

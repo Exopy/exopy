@@ -282,7 +282,7 @@ enamldef MeasEditionView(Container): ed:
     attr _internal = _MeasEditionModel(workspace=workspace, view=self)
 
     constraints << [vbox(
-                        hbox(lab, name, edition),
+                        hbox(lab, name, id_lab, id_val edition),
                         hbox(tree, editors)
                         ),
                     align('v_center', lab, name)]
@@ -293,6 +293,12 @@ enamldef MeasEditionView(Container): ed:
     Field: name:
         hug_width = 'ignore'
         text := measure.name
+
+    Label: id_lab:
+        text = 'Id'
+
+    Field: id_val:
+        text := measure.id
 
     PushButton: edition:
         text = 'Edit tools'

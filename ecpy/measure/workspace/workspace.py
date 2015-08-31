@@ -142,7 +142,7 @@ class MeasureSpace(Workspace):
 
         self._attach_default_tools(measure)
 
-        self.plugin.add_measure('edited', measure)
+        self.plugin.edited_measures.add(measure)
 
         if dock_item is None:
             self._insert_new_edition_panel(measure)
@@ -197,7 +197,7 @@ class MeasureSpace(Workspace):
                 return
 
             measure = Measure.load(self.plugin, full_path)
-            self.plugin.add_measure('edited', measure)
+            self.plugin.edited_measure.add(measure)
             self.plugin.path = full_path
 
         elif mode == 'template':
@@ -232,7 +232,7 @@ class MeasureSpace(Workspace):
 
         # Check for errors
         b_deps, r_deps = res
-        if not self.plugin.check_for_dependencies_errors(measure, b_deps):
+        if not self.plugin.check_for_dependencies_errors(measure, b_deps)[0]:
             return
         if r_deps.errors:
             self.plugin.check_for_dependencies_errors(measure, r_deps)
@@ -295,7 +295,7 @@ class MeasureSpace(Workspace):
 
             meas.status = 'READY'
             meas.infos = 'The measure is ready to be performed by an engine.'
-            self.plugin.add_measure('enqueued', meas)
+            self.plugin.enqueued_measures.add(meas)
 
             return True
 
@@ -331,9 +331,9 @@ class MeasureSpace(Workspace):
         status is 'READY' will be left in the queue.
 
         """
-        for measure in self.plugin.enqueued_measures[:]:
+        for measure in self.plugin.enqueued_measures.measures[:]:
             if measure.status != 'READY':
-                self.plugin.remove_measure('enqueued', measure)
+                self.plugin.enqueued_measures.remove(measure)
 
     def start_processing_measures(self):
         """ Starts to perform the measurement in the queue.

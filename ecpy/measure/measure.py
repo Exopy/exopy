@@ -52,9 +52,9 @@ class Measure(HasPrefAtom):
     #: root task
     id = Unicode().tag(pref=True)
 
-    #: Flag indicating the measure status.
-    status = Enum('READY', 'EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
-                  'INTERRUPTED')
+    #: Current measure status.
+    status = Enum('READY', 'RUNNING', 'PAUSING', 'PAUSED', 'STOPPING',
+                  'EDITING', 'SKIPPED', 'FAILED', 'COMPLETED', 'INTERRUPTED')
 
     #: Detailed information about the measure status.
     infos = Unicode()

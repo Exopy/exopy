@@ -16,6 +16,13 @@ from atom.api import Atom, Unicode, ForwardTyped, Signal, Enum
 from enaml.core.api import Declarative, d_, d_func
 
 
+class TaskInfos(Atom):
+    """Container task containing a task to execute and additional infos.
+
+    """
+    pass
+
+
 class BaseEngine(Atom):
     """Base class for all engines.
 
@@ -23,17 +30,19 @@ class BaseEngine(Atom):
     #: Declaration defining this engine.
     declaration = ForwardTyped(lambda: Engine)
 
-    #: Event through which the engine signals changes in the task processing.
-    status = Enum('Waiting', 'Running', 'Pausing', 'Paused', 'Resuming')
+    #: Current status of the engine.
+    status = Enum('Stopped', 'Waiting', 'Running', 'Pausing', 'Paused',
+                  'Resuming')
 
     #: Signal used to pass news about the measurement progress.
     progress = Signal()
 
-    def perform(self, task):
+    def perform(self, task_infos):
         """Execute a given task hierarchy.
 
-        This is needed for pre and post execution hook needing to execute
-        arbitrary tasks.
+        Returns
+        -------
+        # XXXX
 
         """
         raise NotImplementedError()
@@ -49,7 +58,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def resume(self):
-        """Ask the engine to resume the currently paused measure.
+        """Ask the engine to resume the currently paused task.
 
         This method should not wait for the measure to resume.
         When the pause is over the engine should signal it by updating its

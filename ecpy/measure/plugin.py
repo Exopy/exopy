@@ -223,7 +223,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         return decls[id].new(self.workbench, default)
 
-    def check_for_dependencies_errors(self, measure, deps, skip=False):
+    def check_for_dependencies_errors(self, measure, deps):
         """Check that the collection of dependencies occurred without errors.
 
         Parameters
@@ -234,14 +234,13 @@ class MeasurePlugin(HasPrefPlugin):
         deps : BuildContainer, RuntimeContainer
             Dependencies container.
 
-        skip : bool
-            Should an error trigger a false engine event marking the measure
-            as failed or skipped.
-
         Returns
         -------
         result : bool
             Boolean indicating if everything was ok or not.
+
+        reason : {None, 'errors', 'unavailable'}
+            Reason for the failure if any.
 
         """
         core = self.workbench.get_plugin('enaml.workbench.core')
@@ -252,10 +251,8 @@ class MeasurePlugin(HasPrefPlugin):
             core.invoke_command(cmd, {'kind': 'measure-error',
                                       'message': msg % (kind, measure.name),
                                       'errors': deps.errors})
-            if skip:
-                self._skip_measure('FAILED',
-                                   'Failed to get some %s dependencies' % kind)
-            return False
+
+            return False, 'errors'
 
         if getattr(deps, 'unavailable', None):
             msg = ('The following runtime dependencies of measure %s are '
@@ -263,16 +260,13 @@ class MeasurePlugin(HasPrefPlugin):
             msg += '\n'.join('- %s' % u for u in deps.unavailable)
             core.invoke_command(cmd, {'kind': 'error',
                                       'message': msg % measure.name})
-            if skip:
-                self._skip_measure('SKIPPED',
-                                   'Some runtime dependencies were unavailable'
-                                   )
-            return False
+
+            return False, 'unavailable'
 
         store_key = 'build_deps' if kind == 'build' else 'runtime_deps'
         measure.store[store_key] = deps.dependencies
 
-        return True
+        return True, None
 
     # --- Private API ---------------------------------------------------------
 
