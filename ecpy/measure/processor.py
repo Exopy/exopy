@@ -19,7 +19,6 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 from time import sleep
-from enum import IntEnum
 from traceback import format_exc
 from threading import Thread
 
@@ -28,6 +27,7 @@ from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 
 from .engines import BaseEngine
 from .measure import Measure
+from ..utils.bi_flag import BitFlag
 
 logger = logging.getLogger(__name__)
 
@@ -35,21 +35,6 @@ logger = logging.getLogger(__name__)
 INVALID_MEASURE_STATUS = ['EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
                           'INTERRUPTED']
 
-
-# XXXX Turn into a bitflag
-class MeasureProcessingFlags(IntEnum):
-    """Enumeration defining the bit flags used by the measure plugin.
-
-    """
-    processing = 1
-    running_pre_hooks = 2
-    running_main = 4
-    running_post_hooks = 8
-    pause_attempt = 16
-    paused = 32
-    stop_attempt = 64
-    stop_processing = 128
-    no_post_exec = 256
 
 # XXXX
 def plugin():
@@ -68,9 +53,6 @@ class MeasureProcessor(Atom):
 
     #: Currently run measure or last measure run.
     running_measure = Typed(Measure)
-
-    #: Instance of the currently used engine.
-    engine_instance = Typed(BaseEngine)
 
     #: Boolean indicating whether or not process all enqueued measures.
     continuous_processing = Bool(True)
@@ -103,7 +85,7 @@ class MeasureProcessor(Atom):
         # XXXX
 
         """
-        return self._engine_instance.perform(task_infos)
+        return self._engine.perform(task_infos)
 
     def pause_measure(self):
         """Pause the currently active measure.
@@ -111,7 +93,7 @@ class MeasureProcessor(Atom):
         """
         logger.info('Pausing measure {}.'.format(self.running_measure.name))
         self._state.set('pause_attempt')
-        self.engine_instance.pause()
+        self._engine.pause()
 
     def resume_measure(self):
         """Resume the currently paused measure.
@@ -119,7 +101,7 @@ class MeasureProcessor(Atom):
         """
         logger.info('Resuming measure {}.'.format(self.running_measure.name))
         self._state.clear('pause_attempt')
-        self.engine_instance.resume()
+        self._engine.resume()
 
     def stop_measure(self, no_post_exec=False, force=False):
         """Stop the currently active measure.
@@ -129,7 +111,7 @@ class MeasureProcessor(Atom):
         self._state.set('stop_attempt')
         if no_post_exec or force:
             self._state.set('no_post_exec')
-        self.engine_instance.stop(force=force)
+        self._engine.stop(force=force)
 
     def stop_processing(self, no_post_exec=False, force=False):
         """Stop processing the enqueued measure.
@@ -140,7 +122,7 @@ class MeasureProcessor(Atom):
         self._state.clear('processing')
         if no_post_exec or force:
             self._state.set('no_post_exec')
-        self.engine_instance.exit(force=force)
+        self._engine.shutdown(force=force)
 
     # --- Private API ---------------------------------------------------------
 
@@ -148,16 +130,22 @@ class MeasureProcessor(Atom):
     _thread = Value()
 
     #: Internal flags used to keep track of the execution state.
-    _state = Typed(BitFlag)
+    _state = Typed(BitFlag,
+                   ('processing', 'running_pre_hooks', 'running_main',
+                    'running_post_hooks', 'pause_attempt', 'paused',
+                    'stop_attempt', 'stop_processing', 'no_post_exec')
+                   )
 
+    #: Instance of the currently used engine.
+    engine = Typed(BaseEngine)
 
     def _run_measures(self, measure):
         """
         """
         # If the engine does not exist, create one.
         plugin = self.plugin
-        if not self.engine_instance:
-            self.engine_instance = plugin.create('engine',
+        if not self._engine:
+            self._engine = plugin.create('engine',
                                                  plugin.selected_engine)
 
         # Process enqueued measure as long as we are supposed to.
@@ -186,7 +174,7 @@ class MeasureProcessor(Atom):
                                       'owner': self.manifest.id})
 
             # Disconnect monitors.
-            engine = self.engine_instance
+            engine = self._engine
             if engine:
                 engine.unobserve('news')
 
@@ -276,15 +264,15 @@ class MeasureProcessor(Atom):
         measure.save(path)
 
         # Start the engine if it has not already been done.
-        if not self.engine_instance:
+        if not self._engine:
             decl = self.engines[self.selected_engine]
             engine = decl.factory(decl, self.workbench)
-            self.engine_instance = engine
+            self._engine = engine
 
             # Connect signal handler to engine.
             engine.observe('completed', self._listen_to_engine)
 
-        engine = self.engine_instance
+        engine = self._engine
 
         # Call engine prepare to run method.
         engine.prepare_to_run(measure)
@@ -416,11 +404,20 @@ class MeasureProcessor(Atom):
         # if a new measure is started.
         enaml.application.deferred_call(self._listen_to_engine, done)
 
+    def _watch_engine_state(self, change):
+        """Observe the engine state to report change in the _state.
+
+        This is mainly used when pausing as the pause method of the engine is
+        asynchronous.
+
+        """
+        pass
+
     def _stop_engine(self):
         """Stop the engine.
 
         """
-        engine = self.engine_instance
+        engine = self._engine
         self.stop_processing()
         i = 0
         while engine and engine.active:

@@ -293,7 +293,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         """
         # Destroy old instance if any.
-        self.engine_instance = None
+        self.processor._engine = None
 
         if old in self.engines:
             engine = self._engines.contributions[old]

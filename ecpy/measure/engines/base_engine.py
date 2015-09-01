@@ -80,7 +80,7 @@ class BaseEngine(Atom):
         """
         raise NotImplementedError()
 
-    def exit(self, force=False):
+    def shutdown(self, force=False):
         """Ask the engine top stop completely.
 
         After a call to this method the engine may need to re-initialize a

@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from atom.api import Signal
+
 from ..base_tool import BaseMeasureTool, BaseToolDeclaration
 
 
@@ -20,7 +22,13 @@ class BaseExecutionHook(BaseMeasureTool):
 
     """
 
-    def run(self, workbench, measure, engine):
+    #: XXXX
+    paused = Signal()
+
+    #: XXXX
+    resumed = Signal()
+
+    def run(self, workbench, measure, processor):
         """Perform additional operations before/after the measure.
 
         This method can raise errors as necessary.
@@ -33,11 +41,28 @@ class BaseExecutionHook(BaseMeasureTool):
         measure : Measure
             Reference to the measure.
 
-        engine : BaseEngine
-            Engine ready to perform the measure. Can be used to run tasks.
+        processor : MeasureProcessor
+            Object in charge of executing the measure. Can be asked to run
+            tasks (delegated to the active engine).
 
         """
+        # XXXX implement observation of the pausing, resuming, stopping signals
         raise NotImplementedError()
+
+    def pause(self):
+        """
+        """
+        pass
+
+    def resume(self):
+        """
+        """
+        pass
+
+    def stop(self):
+        """
+        """
+        pass
 
 
 class BasePreExecutionHook(BaseExecutionHook):
