@@ -6,8 +6,11 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""A measure represent all the components of a measure from the task hierarchy
-to the tools such as headers, monitors and checks.
+"""The Measure object represents all the aspects of a measure (main task
+hierarchy, attached tools, ...)
+
+This module defines the main class and convenience functions to deal with
+measures
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -53,8 +56,9 @@ class Measure(HasPrefAtom):
     id = Unicode().tag(pref=True)
 
     #: Current measure status.
-    status = Enum('READY', 'RUNNING', 'PAUSING', 'PAUSED', 'STOPPING',
-                  'EDITING', 'SKIPPED', 'FAILED', 'COMPLETED', 'INTERRUPTED')
+    status = Enum('READY', 'RUNNING', 'PAUSING', 'PAUSED', 'RESUMING',
+                  'STOPPING', 'EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
+                  'INTERRUPTED')
 
     #: Detailed information about the measure status.
     infos = Unicode()
@@ -371,3 +375,49 @@ class Measure(HasPrefAtom):
         new.add_database_entry('meas_name', self.name)
         new.add_database_entry('meas_id', self.id)
         new.add_database_entry('meas_date', '')
+
+
+# XXXXX
+def check_for_dependencies_errors(measure, deps):
+        """Check that the collection of dependencies occurred without errors.
+
+        Parameters
+        ----------
+        measure : Measure
+            Measure whose dependencies have been collected.
+
+        deps : BuildContainer, RuntimeContainer
+            Dependencies container.
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating if everything was ok or not.
+
+        reason : {None, 'errors', 'unavailable'}
+            Reason for the failure if any.
+
+        """
+        kind = 'runtime' if hasattr(deps, 'unavailable') else 'build'
+        cmd = 'ecpy.app.errors.signal'
+        if deps.errors:
+            msg = 'Failed to get some %s dependencies for measure %s'
+            core.invoke_command(cmd, {'kind': 'measure-error',
+                                      'message': msg % (kind, measure.name),
+                                      'errors': deps.errors})
+
+            return False, 'errors'
+
+        if getattr(deps, 'unavailable', None):
+            msg = ('The following runtime dependencies of measure %s are '
+                   'unavailable :\n')
+            msg += '\n'.join('- %s' % u for u in deps.unavailable)
+            core.invoke_command(cmd, {'kind': 'error',
+                                      'message': msg % measure.name})
+
+            return False, 'unavailable'
+
+        store_key = 'build_deps' if kind == 'build' else 'runtime_deps'
+        measure.store[store_key] = deps.dependencies
+
+        return True, None

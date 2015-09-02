@@ -223,51 +223,6 @@ class MeasurePlugin(HasPrefPlugin):
 
         return decls[id].new(self.workbench, default)
 
-    def check_for_dependencies_errors(self, measure, deps):
-        """Check that the collection of dependencies occurred without errors.
-
-        Parameters
-        ----------
-        measure : Measure
-            Measure whose dependencies have been collected.
-
-        deps : BuildContainer, RuntimeContainer
-            Dependencies container.
-
-        Returns
-        -------
-        result : bool
-            Boolean indicating if everything was ok or not.
-
-        reason : {None, 'errors', 'unavailable'}
-            Reason for the failure if any.
-
-        """
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        kind = 'runtime' if hasattr(deps, 'unavailable') else 'build'
-        cmd = 'ecpy.app.errors.signal'
-        if deps.errors:
-            msg = 'Failed to get some %s dependencies for measure %s'
-            core.invoke_command(cmd, {'kind': 'measure-error',
-                                      'message': msg % (kind, measure.name),
-                                      'errors': deps.errors})
-
-            return False, 'errors'
-
-        if getattr(deps, 'unavailable', None):
-            msg = ('The following runtime dependencies of measure %s are '
-                   'unavailable :\n')
-            msg += '\n'.join('- %s' % u for u in deps.unavailable)
-            core.invoke_command(cmd, {'kind': 'error',
-                                      'message': msg % measure.name})
-
-            return False, 'unavailable'
-
-        store_key = 'build_deps' if kind == 'build' else 'runtime_deps'
-        measure.store[store_key] = deps.dependencies
-
-        return True, None
-
     # --- Private API ---------------------------------------------------------
 
     #: Collector of engines.

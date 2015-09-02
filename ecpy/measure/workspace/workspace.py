@@ -24,7 +24,7 @@ from enaml.widgets.api import FileDialogEx
 from enaml.layout.api import InsertItem
 
 from .measure import Measure
-from .plugin import MeasurePlugin, MeasureFlags
+from .plugin import MeasurePlugin
 from ..tasks.api import RootTask
 
 with enaml.imports():
@@ -231,6 +231,7 @@ class MeasureSpace(Workspace):
                                         'owner': self.plugin.manifest.id})
 
         # Check for errors
+        # XXXX
         b_deps, r_deps = res
         if not self.plugin.check_for_dependencies_errors(measure, b_deps)[0]:
             return
@@ -349,11 +350,10 @@ class MeasureSpace(Workspace):
             else:
                 return
 
-        self.plugin.flags = 0
-
         measure = self.plugin.find_next_measure()
+        self.plugin.processor.continuous_processing = False
         if measure is not None:
-            self.plugin.start_measure(measure)
+            self.plugin.processor.start_measure(measure)
         else:
             cmd = 'ecpy.app.errors.signal'
             core = self.workbench.get_plugin('enaml.workbench.core')
@@ -369,12 +369,9 @@ class MeasureSpace(Workspace):
             Measure to perform.
 
         """
-        self.plugin.flags = 0
-        self.plugin.flags |= MeasureFlags.stop_processing
+        self.plugin.processor.continuous_processing = False
 
         self.plugin.start_measure(measure)
-        # TODO the UI must let the user know that this is so and allow him to
-        # switch back and forth
 
     def pause_current_measure(self):
         """Pause the currently active measure.

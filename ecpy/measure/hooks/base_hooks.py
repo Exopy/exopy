@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Signal
+from atom.api import Event
 
 from ..base_tool import BaseMeasureTool, BaseToolDeclaration
 
@@ -20,15 +20,21 @@ from ..base_tool import BaseMeasureTool, BaseToolDeclaration
 class BaseExecutionHook(BaseMeasureTool):
     """Base class for all measure hooks (pre or post execution).
 
+    The execution management methods (pause, resume, stop) need to be
+    implemented only if the execution of the hook is lengthy (this applies to
+    hook executing tasks).
+
     """
 
-    #: XXXX
-    paused = Signal()
+    #: Event which the hook should fired (with a value of True) when it
+    #: succeded to pause.
+    paused = Event()
 
-    #: XXXX
-    resumed = Signal()
+    #: Event which the hook should fired (with a value of True) when it
+    #: succeded to resume.
+    resumed = Event()
 
-    def run(self, workbench, measure, processor):
+    def run(self, workbench, measure, engine):
         """Perform additional operations before/after the measure.
 
         This method can raise errors as necessary.
@@ -41,26 +47,36 @@ class BaseExecutionHook(BaseMeasureTool):
         measure : Measure
             Reference to the measure.
 
-        processor : MeasureProcessor
-            Object in charge of executing the measure. Can be asked to run
-            tasks (delegated to the active engine).
+        engine : Engine
+            Active engine that can be used to execute tasks.
 
         """
-        # XXXX implement observation of the pausing, resuming, stopping signals
         raise NotImplementedError()
 
     def pause(self):
-        """
+        """Pause the execution of the hook.
+
+        This call should not block waiting for the pause to occur. The paused
+        signal should be fired once the pause is achieved.
+
         """
         pass
 
     def resume(self):
-        """
+        """Resume the execution of the hook.
+
+        This call should not block waiting for the resuming to occur. The
+        resumed signal should be fired once the execution resumed.
+
         """
         pass
 
-    def stop(self):
-        """
+    def stop(self, force=False):
+        """Stop the execution of the hook.
+
+        This call should not block save if the force keyword is true. No signal
+        is emitted as the run method should return as a result of the stop.
+
         """
         pass
 
