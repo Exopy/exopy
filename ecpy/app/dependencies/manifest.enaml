@@ -45,58 +45,81 @@ RUNTIME_DEPENDENCIES_PLUGINS_DESCRIPTION = \
 of the application should declare a RuntimeDependency to this point."""
 
 
-COLLECT_DEPENDENCIES_DESCRIPTION=\
-"""Build a dict of dependencies for a given obj.
+ANALYSE_DEPENDENCIES_DESCRIPTION=\
+"""Analyse the dependencies of a given object.
 
-NB : This assumes the obj has a traverse allowing to parcour all the component
-or is an instance of configobj.Section
+The object must either be a configobj.Section object or have a traverse
+method yielding the object and all its subcomponent suceptible to add
+more dependencies.
 
 Parameters
 ----------
-obj : Section, or traversable object.
-    Obj for which dependencies should be computed.
+obj : object
+    Obj whose dependencies should be analysed.
 
 dependencies : {['build'], ['runtime'], ['build', 'runtime']}
-    Kind of dependencies which should be gathered.
+    Kind of dependencies which should be gathered. Note that only
+    build dependencies can be retrieved from a `configobj.Section`
+    object.
 
-owner : unicode, optional
-    Calling plugin id. Used for some runtime dependencies needing to know
-    the ressource owner.
+Returns
+-------
+dependencies : BuildContainer | RuntimeContainer | tuple
+    BuildContainer, RuntimeContaineror tuple of both according to
+    the requested dependencies.
+
+"""
+
+VALIDATE_DEPENDENCIES_DESCRIPTION=\
+"""Validate that a set of dependencies is valid (ie exists).
+
+Parameters
+----------
+kind : {'build', 'runtime'}
+    Kind of dependency to validate.
+
+dependencies : dict
+    Dictionary of dependencies sorted by id. This is typically the
+    content of the dependencies attribute of BuildContainer or
+    RuntimeContainer.
 
 Returns
 -------
 result : bool
-    Flag indicating the success of the operation.
+    Boolean indicating whether or not all dependencies are valid.
 
-dependencies : dict
-    In case of success:
-    - Dicts holding all the classes or other dependencies to build, run
-      or build and run a task without any access to the workbench.
-      If a single kind of dependencies is requested a single dict is
-      returned otherwise two are returned one for the build ones and
-      one for the runtime ones
-
-    Otherwise:
-    - dict holding the id of the dependency and the asssociated
-      error message.
+errors : dict
+    Dictionary containing the errors which occured. Those are stored
+    by dependency id and by dependency.
 
 """
 
+COLLECT_DEPENDENCIES_DESCRIPTION=\
+"""Collect that a set of dependencies.
 
-REQUEST_RUNTIMES_DESCRIPTION=\
-"""Request the right to use the listed dependencies.
+For runtime dependencies if permissions are necessary to use a
+dependence they are requested and should released when they are no
+longer needed.
 
 Parameters
 ----------
-workbench :
-    Reference to the application workbench.
-
-owner : unicode
-    Id of the plugin requesting the ressources.
+kind : {'build', 'runtime'}
+    Kind of dependency to validate.
 
 dependencies : dict
-    Dictionary containing the runtime dependencies to request organised
-    by id.
+    Dictionary of dependencies sorted by id. This is typically the
+    content of the dependencies attribute of BuildContainer or
+    RuntimeContainer.
+
+owner : unicode, optional
+    Calling plugin id. Used for some runtime dependencies needing to
+    know the ressource owner.
+
+Returns
+-------
+dependencies : BuildContainer | RuntimeContainer | tuple
+    BuildContainer, RuntimeContainer or tuple of both according to
+    the requested dependencies.
 
 """
 
@@ -148,14 +171,19 @@ enamldef DependenciesManifest(PluginManifest):
         id = 'commands'
         point = 'enaml.workbench.core.commands'
         Command:
+            id = 'ecpy.app.dependencies.analyse'
+            description = ANALYSE_DEPENDENCIES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'analyse_dependencies')
+
+        Command:
+            id = 'ecpy.app.dependencies.validate'
+            description = VALIDATE_DEPENDENCIES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'validate_dependencies')
+
+        Command:
             id = 'ecpy.app.dependencies.collect'
             description = COLLECT_DEPENDENCIES_DESCRIPTION
             handler = make_handler(PLUGIN_ID, 'collect_dependencies')
-
-        Command:
-            id = 'ecpy.app.dependencies.request_runtimes'
-            description = REQUEST_RUNTIMES_DESCRIPTION
-            handler = make_handler(PLUGIN_ID, 'request_runtimes')
 
         Command:
             id = 'ecpy.app.dependencies.release_runtimes'
