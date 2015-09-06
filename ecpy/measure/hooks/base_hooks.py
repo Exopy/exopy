@@ -25,7 +25,6 @@ class BaseExecutionHook(BaseMeasureTool):
     hook executing tasks).
 
     """
-
     #: Event which the hook should fired (with a value of True) when it
     #: succeded to pause.
     paused = Event()
@@ -80,14 +79,32 @@ class BaseExecutionHook(BaseMeasureTool):
         """
         pass
 
+    def list_runtimes(self, workbench):
+        """list the runtimes dependencies for this hook.
+
+        Parameters
+        ----------
+        workbench :
+            Workbench of the application.
+
+        Returns
+        -------
+        runtime : RuntimeContainer|None
+            Runtime dependencies as returned by a call to the command
+            'ecpy.app.dependencies.analyse'. None means that the hook has no
+            runtime dependency.
+
+        """
+        pass
+
 
 class BasePreExecutionHook(BaseExecutionHook):
     """Base class for pre-execution measure hooks.
 
     Notes
     -----
-    This kind of hook can contribute entriesto the task database. If it does so
-    it should register those entries (add their name and a default value) at
+    This kind of hook can contribute entries to the task database. If it does
+    so it should register those entries (add their name and a default value) at
     the root level of the database at linking time so that they appear in the
     autocompletion.
 
