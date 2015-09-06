@@ -371,44 +371,31 @@ class MeasureSpace(Workspace):
         """
         self.plugin.processor.continuous_processing = False
 
-        self.plugin.start_measure(measure)
+        self.plugin.processor.start_measure(measure)
 
     def pause_current_measure(self):
         """Pause the currently active measure.
 
         """
-        self.plugin.pause_measure()
+        self.plugin.processor.pause_measure()
 
     def resume_current_measure(self):
         """Resume the currently paused measure.
 
         """
-        self.plugin.resume_measure()
+        self.plugin.processor.resume_measure()
 
-    def stop_current_measure(self, no_post_exec=False):
+    def stop_current_measure(self, no_post_exec=False, force=False):
         """Stop the execution of the currently executed measure.
 
         """
-        self.plugin.stop_measure(no_post_exec)
+        self.plugin.processor.stop_measure(force, no_post_exec)
 
-    def stop_processing_measures(self, no_post_exec=False):
+    def stop_processing_measures(self, no_post_exec=False, force=False):
         """Stop processing enqueued measure.
 
         """
-        self.plugin.stop_processing(no_post_exec)
-
-    def force_stop_measure(self):
-        """Force the measure to stop.
-
-        """
-        self.plugin.force_stop_measure()
-
-    def force_stop_processing(self):
-        """Force the measure to stop, and don't go on processing enqueued
-        measures
-
-        """
-        self.plugin.force_stop_processing()
+        self.plugin.processor.stop_processing(force, no_post_exec)
 
     @property
     def dock_area(self):
