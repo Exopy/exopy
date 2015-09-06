@@ -18,12 +18,13 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 from traceback import format_exc
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+from itertools import chain
 from datetime import date
 
 from future.builtins import str as text
-from atom.api import (Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
-                      Enum)
+from atom.api import (Atom, Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
+                      Enum, Value)
 from configobj import ConfigObj
 
 from ..tasks.base_tasks import RootTask
@@ -41,6 +42,207 @@ def measure_plugin():
     """
     from .plugin import MeasurePlugin
     return MeasurePlugin
+
+
+class MeasureDependencies(Atom):
+    """Container used to store the dependencies of a measure.
+
+    """
+    #: Reference to the Measure this object is linked to.
+    measure = ForwardTyped(lambda: Measure)
+
+    def collect_runtimes(self):
+        """Collect all the runtime needed to execute the measure.
+
+        Those can then be accessed using `get_runtime_dependencies`
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating whether or not the collection succeeded
+
+        msg : unicode
+            String explaning why the operation failed if it failed.
+
+        errors : dict
+            Dictionary describing in details the errors. If some dependencies
+            does exist but cannot be accessed at the time of the query an entry
+            'unavailable' will be present.
+
+        """
+        if self._runtime_dependencies:
+            return
+
+        workbench = self.measure.plugin.workbench
+        core = workbench.get_plugin('enaml.workbench.core')
+
+        # If the dependencies of the main task are not known
+        if not self._runtime_map.get('main'):
+            cmd = 'ecpy.app.dependencies.analyse'
+            deps = core.invoke_command(cmd,
+                                       {'obj': self.root_task,
+                                        'dependencies': ['build', 'runtime']})
+
+            b_deps, r_deps = deps
+            msg = 'Failed to analyse main task %s dependencies.'
+            if b_deps.errors:
+                return False, msg % 'build', b_deps.errors
+            if r_deps.errors:
+                return False, msg % 'runtime', r_deps.errors
+            self._build_analysis = b_deps.dependencies
+            self._runtime_map['main'] = r_deps.dependencies
+            self._update_runtime_analysis(r_deps.dependencies)
+
+        # Check that we know the dependencies of the hooks
+        for h in chain(self.measure.pre_hooks, self.measure.post_hooks):
+            hook_id = h.declaration.id
+            if hook_id not in self._runtime_map:
+                deps = h.list_runtimes(workbench)
+                if deps is None:
+                    continue  # The hook has no runtime dependencies
+
+                if deps.errors:
+                    msg = 'Failed to analyse hook %s runtime dependencies.'
+                    return False, msg % hook_id, deps.errors
+
+                self._update_runtime_analysis(deps.dependencies)
+
+        cmd = 'ecpy.app.dependencies.collect'
+        deps = core.invoke_command(cmd,
+                                   dict(dependencies=self._runtime_analysis,
+                                        owner='ecpy.measure', kind='runtime'))
+        if deps.errors:
+            msg = 'Failed to collect some runtime dependencies.'
+            return False, msg, deps.errors
+
+        elif deps.unavailable:
+            msg = 'Some dependencies are currently unavailable.'
+            return False, msg, deps.unavailable
+
+        self._runtime_dependencies = deps.dependencies
+
+    def release_runtimes(self):
+        """Release all the runtimes collected for the execution.
+
+        """
+        if not self._runtime_dependencies:
+            return
+
+        workbench = self.measure.plugin.workbench
+        core = workbench.get_plugin('enaml.workbench.core')
+        cmd = 'ecpy.app.dependencies.release_runtimes'
+        core.invoke_command(cmd, dict(owner='ecpy.measure',
+                                      dependencies=self._runtime_dependencies))
+        self._runtime_dependencies.clear()
+
+    def get_build_dependencies(self):
+        """Get the build dependencies associated with the main task.
+
+        Returns
+        -------
+        dependencies : BuildContainer
+            BuildContainer as returned by 'ecpy.app.dependencies.collect'.
+            The errors member should be checked to detect errors.
+
+        """
+        workbench = self.measure.plugin.workbench
+        core = workbench.get_plugin('enaml.workbench.core')
+
+        if not self._build_analysis:
+            cmd = 'ecpy.app.dependencies.analyse'
+            deps = core.invoke_command(cmd,
+                                       {'obj': self.root_task,
+                                        'dependencies': ['build']})
+            if deps.errors:
+                return deps
+            self._build_analysis = deps.dependencies
+
+        if not self._build_dependencies:
+            cmd = 'ecpy.app.dependencies.collect'
+            deps = core.invoke_command(cmd,
+                                       dict(dependencies=self._buil_analysis,
+                                            kind='build'))
+            self._build_dependencies = deps
+
+        return self._build_dependencies
+
+    def get_runtime_dependencies(self, id):
+        """Access the runtime dependencies associated with a hook or the main
+        task
+
+        Parameters
+        ----------
+        id: unicode
+            Id of the hook for which to retrieve the runtimes or 'main' for
+            the main task.
+
+        Returns
+        -------
+        dependencies : dict
+            Dependencies for the requested measure component.
+
+        Raises
+        ------
+        RuntimeError :
+            Raised if this method is called before collect_runtimes.
+
+
+        """
+        if not self._runtime_dependencies:
+            raise RuntimeError('Runtime dependencies must be collected '
+                               '(calling collect_runtimes) before they can be'
+                               'queried.')
+
+        valids = self._runtime_map.get(id)
+        if not valids:
+            return {}
+
+        deps = self._runtime_dependencies
+        queried = {}
+        for runtime_id, r_deps in valids.iteritems():
+            queried[runtime_id] = {k: deps[k] for k in r_deps}
+        return queried
+
+    def reset(self):
+        """Cleanup all cached values.
+
+        """
+        self._build_analysis.clear()
+        self._build_dependencies = None
+        self._runtime_analysis.clear()
+        self._runtime_dependencies.clear()
+        self._runtime_map.clear()
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Cached build dependencies analysis for the main task.
+    #: No actual dependency is stored, this dict can be used to collect them
+    _build_analysis = Dict()
+
+    #: Cached build dependencies of the main task.
+    #: Contains the actual dependencies.
+    _build_dependencies = Value()
+
+    #: Cached runtime dependencies analysis for the main task and the hooks.
+    #: No actual dependency is stored, this dict can be used to collect them
+    _runtime_analysis = Typed(defaultdict, (set,))
+
+    #: Cached runtime dependencies of the main task and the hooks.
+    #: Contains the actual dependencies.
+    _runtime_dependencies = Dict()
+
+    #: Mapping determining which component has which dependency.
+    _runtime_map = Dict()
+
+    def _update_runtime_analysis(self, new):
+        """Update the known runtime dependencies.
+
+        """
+        analysis = self._runtime_analysis
+        for k in new:
+            analysis[k].update(new[k])
 
 
 class Measure(HasPrefAtom):
@@ -86,7 +288,11 @@ class Measure(HasPrefAtom):
     forced_enqueued = Bool()
 
     #: Dict to store useful runtime infos
-    store = Dict()
+    dependencies = Typed(MeasureDependencies)
+
+    #: Result object returned by the engine when the root_task has been
+    #: executed. Can be used by post-execution hook to adapt their behavior.
+    task_execution_result = Value()
 
     def __init__(self, **kwargs):
 
@@ -148,13 +354,13 @@ class Measure(HasPrefAtom):
 
         # Gather all errors occuring while loading the measure.
         workbench = measure_plugin.workbench
-        core = workbench.get_plugin(u'enaml.workbench.core')
+        core = workbench.get_plugin('enaml.workbench.core')
         cmd = 'ecpy.app.errors.enter_error_gathering'
         core.invoke_command(cmd)
         err_cmd = 'ecpy.app.errors.signal'
 
         # Load the task.
-        cmd = u'hqc_meas.task_manager.build_root'
+        cmd = 'ecpy.tasks.build_root'
         kwarg = {'mode': 'config', 'config': config['root_task'],
                  'build_dep': build_dep}
         try:
@@ -218,7 +424,7 @@ class Measure(HasPrefAtom):
         result = True
         full_report = {}
 
-        self.write_infos_in_task()
+        self._write_infos_in_task()
 
         msg = 'Running checks for pre-measure hook %s for measure %s'
         for id, hook in self.pre_hooks.iteritems():
@@ -356,17 +562,20 @@ class Measure(HasPrefAtom):
 
         return list(set(entries))
 
-    def write_infos_in_task(self):
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Dictionary storing the collected runtime dependencies.
+    _runtimes = Dict()
+
+    def _write_infos_in_task(self):
         """Write all the measure values in the root_task database.
 
         """
         self.root_task.write_in_database('meas_name', self.name)
         self.root_task.write_in_database('meas_id', self.id)
         self.root_task.write_in_database('meas_date', text(date.today()))
-
-    # =========================================================================
-    # --- Private API ---------------------------------------------------------
-    # =========================================================================
 
     def _post_setattr_root_task(self, old, new):
         """Make sure the monitors know the name of the measure.
@@ -376,48 +585,8 @@ class Measure(HasPrefAtom):
         new.add_database_entry('meas_id', self.id)
         new.add_database_entry('meas_date', '')
 
-
-# XXXXX
-def check_for_dependencies_errors(measure, deps):
-        """Check that the collection of dependencies occurred without errors.
-
-        Parameters
-        ----------
-        measure : Measure
-            Measure whose dependencies have been collected.
-
-        deps : BuildContainer, RuntimeContainer
-            Dependencies container.
-
-        Returns
-        -------
-        result : bool
-            Boolean indicating if everything was ok or not.
-
-        reason : {None, 'errors', 'unavailable'}
-            Reason for the failure if any.
+    def _default_dependencies(self):
+        """Default value for the dependencies member.
 
         """
-        kind = 'runtime' if hasattr(deps, 'unavailable') else 'build'
-        cmd = 'ecpy.app.errors.signal'
-        if deps.errors:
-            msg = 'Failed to get some %s dependencies for measure %s'
-            core.invoke_command(cmd, {'kind': 'measure-error',
-                                      'message': msg % (kind, measure.name),
-                                      'errors': deps.errors})
-
-            return False, 'errors'
-
-        if getattr(deps, 'unavailable', None):
-            msg = ('The following runtime dependencies of measure %s are '
-                   'unavailable :\n')
-            msg += '\n'.join('- %s' % u for u in deps.unavailable)
-            core.invoke_command(cmd, {'kind': 'error',
-                                      'message': msg % measure.name})
-
-            return False, 'unavailable'
-
-        store_key = 'build_deps' if kind == 'build' else 'runtime_deps'
-        measure.store[store_key] = deps.dependencies
-
-        return True, None
+        return MeasureDependencies(measure=self)
