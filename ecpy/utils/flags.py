@@ -87,7 +87,7 @@ class BitFlag(object):
         Returns
         -------
         result : bool
-            False of the method returned because of the timeout.
+            False if the method returned because of the timeout.
 
         """
         events = []
