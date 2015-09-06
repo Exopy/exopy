@@ -12,15 +12,32 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Unicode, ForwardTyped, Signal, Enum
+from atom.api import (Atom, Unicode, ForwardTyped, Signal, Enum, Bool, Dict,
+                      Value)
 from enaml.core.api import Declarative, d_, d_func
 
 
-class TaskInfos(Atom):
-    """Container task containing a task to execute and additional infos.
+class Jobs(Atom):
+    """.
 
     """
-    pass
+    #:
+    obj = Value()
+
+    #:
+    build_deps = Dict()
+
+    #:
+    runtime_deps = Dict()
+
+    #:
+    job_method = Unicode('perform')
+
+    #:
+    success = Bool()
+
+    #:
+    errors = Dict()
 
 
 class BaseEngine(Atom):
@@ -37,12 +54,19 @@ class BaseEngine(Atom):
     #: Signal used to pass news about the measurement progress.
     progress = Signal()
 
-    def perform(self, task_infos):
+    def perform(self, job):
         """Execute a given task hierarchy.
+
+        Parameters
+        ----------
+        job : `Job`
+            Job object describing the work to expected of the engine.
 
         Returns
         -------
-        # XXXX
+        job : `Job`
+            Input object whose values have been updated. This is simply a
+            convenience.
 
         """
         raise NotImplementedError()
