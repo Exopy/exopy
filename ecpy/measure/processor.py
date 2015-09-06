@@ -25,7 +25,7 @@ from threading import Thread
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 
-from .engines import BaseEngine, TaskInfos
+from .engines import BaseEngine, JobInfos
 from .measure import Measure
 from ..utils.bi_flag import BitFlag
 
@@ -94,11 +94,11 @@ class MeasureProcessor(Atom):
         self._state.set('pause_attempt')
         if self._state.test('running_main'):
             self._engine.pause()
+            self._engine.observe('status', self._watch_engine_state)
         else:
-            with self._lock:
-                if self._active_hook:
-                    self._active_hook.pause()
-                    self._active_hook.observe('paused', self._watch_hook_state)
+            if self._active_hook:
+                self._active_hook.pause()
+                self._active_hook.observe('paused', self._watch_hook_state)
 
     def resume_measure(self):
         """Resume the currently paused measure.
@@ -110,12 +110,12 @@ class MeasureProcessor(Atom):
         self._state.set('resuming')
         if self._state.test('running_main'):
             self._engine.resume()
+            self._engine.observe('status', self._watch_engine_state)
         else:
-            with self._lock:
-                if self._active_hook:
-                    self._active_hook.resume()
-                    self._active_hook.observe('resumed',
-                                              self._watch_hook_state)
+            if self._active_hook:
+                self._active_hook.resume()
+                self._active_hook.observe('resumed',
+                                          self._watch_hook_state)
 
     def stop_measure(self, no_post_exec=False, force=False):
         """Stop the currently active measure.
@@ -158,8 +158,8 @@ class MeasureProcessor(Atom):
     _state = Typed(BitFlag,
                    ('processing', 'running_pre_hooks', 'running_main',
                     'running_post_hooks', 'pause_attempt', 'paused',
-                    'stop_attempt', 'stop_processing', 'no_post_exec',
-                    'continuous_processing')
+                    'resuming', 'stop_attempt', 'stop_processing',
+                    'no_post_exec', 'continuous_processing')
                    )
 
     #: Hook currently executed. The value is meaningful only when
@@ -208,15 +208,18 @@ class MeasureProcessor(Atom):
             # If there is a measure register it as the running one, update its
             # status and log its execution.
             if meas is not None:
-                enaml.application.deferred_call(setattr, meas, 'status',
-                                                'RUNNING')
-                enaml.application.deferred_call(setattr, meas, 'infos',
-                                                'The measure is being run.')
+
+                meas_id = meas.name + '_' + meas.id
+                enaml.application.deferred_call(setattr, self,
+                                                'running_measure', meas)
+                self._set_measure_state('RUNNING', 'The measure is being run.')
 
                 msg = 'Starting execution of measure %s'
                 logger.info(msg % meas.name + meas.id)
 
-                stage, status, errors = self._run_measure(meas)
+                status, infos = self._run_measure(meas)
+                # Release runtime dependencies.
+                meas.dependencies.release_runtimes()
 
             # If no measure remains stop.
             else:
@@ -224,26 +227,14 @@ class MeasureProcessor(Atom):
 
             # Process the result of the measure.
 
-            # First create an error message if pertinent.
-            if errors:
-                err_msg = errors_to_msg(errors)
-
             # Log the result.
-            mess = 'Measure %s processed, status : %s' % (meas.name, status)
-            if errors:
-                mess += '\n' + err_msg
+            mess = 'Measure %s processed, status : %s' % (meas_id, status)
+            if infos:
+                mess += '\n' + infos
             logger.info(mess)
 
             # Update the status and infos.
-            enaml.application.deferred_call(setattr, meas, 'status', status)
-
-            if status == 'COMPLETED':
-                msg = 'The measure was successfully performed'
-            elif status == 'INTERRUPTED':
-                msg = 'The measure execution was interrupted by the user.'
-            else:
-                msg = 'While executing the %s : ' % stage + err_msg
-            enaml.application.deferred_call(setattr, meas, 'infos', msg)
+            self._set_measure_state(status, infos)
 
             # If we are supposed to stop, stop.
             if not self._state.test('continuous_processing'):
@@ -261,43 +252,13 @@ class MeasureProcessor(Atom):
         # Switch to running state.
         measure.enter_running_state()
 
-        core = self.workbench.get_plugin('enaml.workbench.core')
         meas_id = measure.name + '_' + measure.id
 
-        # Checking build dependencies, if present simply request runtimes.
-        if 'build_deps' in measure.store and 'runtime_deps' in measure.store:
-
-            # Requesting runtime, so that we get permissions.
-            runtimes = measure.store['runtime_deps']
-            cmd = 'ecpy.app.dependencies.request_runtimes'
-            deps = core.invoke_command(cmd,
-                                       {'obj': measure.root_task,
-                                        'owner': self.manifest.id,
-                                        'dependencies': runtimes},
-                                       )
-            # XXXX
-            res, cause, infos = self.check_for_dependencies_errors(measure,
-                                                                   deps)
-            if not res:
-                if cause == 'errors':
-                    return 'FAILED', ''
-                else:
-                    return 'SKIPPED', ''
-
-        else:
-            # Collect build and runtime dependencies.
-            cmd = 'ecpy.app.dependencies.collect'
-            b_deps, r_deps = core.invoke_command(cmd,
-                                                 {'obj': measure.root_task,
-                                                  'dependencies': ['build',
-                                                                   'runtime'],
-                                                  'owner': self.manifest.id})
-
-            # XXXX
-            res = self.check_for_dependencies_errors(measure, b_deps)
-            res &= self.check_for_dependencies_errors(measure, r_deps)
-            if not res:
-                return
+        # Collect runtime dependencies
+        res, msg, errors = measure.dependencies.collect_runtimes()
+        if not res:
+            status = 'SKIPPED' if 'unavailable' in msg else 'FAILED'
+            return status, msg + '\n' + errors_to_msg(errors)
 
         # Records that we got access to all the runtimes.
         mess = ('The use of all runtime resources have been granted to the '
@@ -307,14 +268,8 @@ class MeasureProcessor(Atom):
         # Run checks now that we have all the runtimes.
         res, errors = measure.run_checks(self.workbench)
         if not res:
-            # XXXX
-            cmd = 'ecpy.app.errors.signal'
-            msg = 'Measure %s failed to pass the checks.' % measure.name
-            core.invoke_command(cmd, {'kind': 'measure-error',
-                                      'message': msg % (measure.name),
-                                      'errors': errors})
-
-            return 'FAILED', 'Failed to pass the checks'
+            msg = 'Measure %s failed to pass the checks :\n' % meas_id
+            return 'FAILED', msg + errors_to_msg(errors)
 
         # Now that we know the measure is going to run save it.
         default_filename = meas_id + '.meas.ini'
@@ -326,43 +281,56 @@ class MeasureProcessor(Atom):
         # Execute all pre-execution hooks.
         result, errors = self._run_pre_execution()
         if not result:
-            return 'pre-hooks', 'FAILED', errors
+            msg = 'Measure %s failed to run pre-execution hooks :\n' % meas_id
+            return 'FAILED', msg + errors_to_msg(errors)
 
-        self._check_for_pause()
+        result = True
+        errors = {}
+        if self._check_for_pause_or_stop():
 
-        # Connect new monitors, and start them.
-        ui_plugin = self.workbench.get_plugin('enaml.workbench.ui')
-        for monitor in measure.monitors.values():
-            self.engine.observe('news', monitor.process_news)
-            monitor.start(ui_plugin.window)
+            # Connect new monitors, and start them.
+            ui_plugin = self.workbench.get_plugin('enaml.workbench.ui')
+            for monitor in measure.monitors.values():
+                self.engine.observe('news', monitor.process_news)
+                monitor.start(ui_plugin.window)
 
-        # Ask the engine to start the measure.
-        # XXXX
-        result, msg = self.engine.perform(TaskInfos())
-        if not result:
-            return 'main task', 'FAILED', {'engine': msg}
+            # Assemble the job infos for the engine to run the main task.
+            deps = measure.dependencies
+            infos = JobInfos(
+                obj=measure.root_task,
+                build_deps=deps.get_build_dependencies(),
+                runtime_deps=deps.get_runtime_dependencies('main'),
+                )
 
-        # Disconnect monitors.
-        engine = self._engine
-        if engine:
-            engine.unobserve('news')
+            # Ask the engine to perform the main task.
+            self._state.set('running_main')
+            execution_result = self.engine.perform(infos)
+            self._state.clear('running_main')
 
-        self._check_for_pause()
+            # Record the result and store engine return value in the measure
+            # for the post execution hooks.
+            result &= execution_result.success
+            errors.update(execution_result.errors)
+            measure.task_execution_result = execution_result
+
+            # Disconnect monitors.
+            engine = self._engine
+            if engine:
+                engine.unobserve('news')
 
         # Execute all post-execution hooks if pertinent.
         if not self._state.test('no_post_exec'):
             result, errors = self._run_pre_execution()
-            if not result:
-                return 'post-hooks', 'FAILED', errors
 
-        # Release runtime dependencies.
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        cmd = 'ecpy.app.dependencies.release_runtimes'
-        core.invoke_command(cmd,
-                            {'dependencies': measure.store['runtime_deps'],
-                             'owner': self.plugin.manifest.id})
+        if not result:
+            if not execution_result.success:
+                msg = 'Execution of the main task failed :\n'
+            else:
+                msg = 'Some post-execution hook failed to run :\n'
 
-        return 'end', 'COMPLETED', {}
+            return 'FAILED', msg + errors_to_msg(errors)
+
+        return 'COMPLETED', 'The measure successfully completed.'
 
     def _run_pre_execution(self, measure):
         """Run pre measure execution operations.
@@ -384,7 +352,8 @@ class MeasureProcessor(Atom):
         meas_id = measure.name + '_' + measure.id
 
         for id, hook in self.pre_hooks.iteritems():
-            self._check_for_pause()
+            if not self._check_for_pause_or_stop():
+                break
             logger.debug('Calling pre-measure hook %s for measure %s',
                          id, meas_id)
             with self._lock:
@@ -429,7 +398,8 @@ class MeasureProcessor(Atom):
         meas_id = measure.name + '_' + measure.id
 
         for id, hook in self.pre_hooks.iteritems():
-            self._check_for_pause()
+            if not self._check_for_pause_or_stop():
+                break
             logger.debug('Calling post-measure hook %s for measure %s',
                          id, meas_id)
             with self._lock:
@@ -474,24 +444,80 @@ class MeasureProcessor(Atom):
 
         return measure
 
-    # Those must post update of measure.status and remove observers
-    def _check_for_pause(self):
-        """Check whether or a pause was requested and handle it.
+    def _check_for_pause_or_stop(self):
+        """Check if a pause or stop request is pending and process it.
+
+        Returns
+        -------
+        should_stop : bool
+            Booelan indicating whether or not the execution of the measure
+            should stop.
 
         """
-        pass# XXXX
+        flag = self._state
 
+        if flag.test('stop_attempt'):
+            return False
+
+        if flag.test('pause_attempt'):
+            flag.set('paused')
+            flag.clear('pause_attempt')
+            self._set_measure_state('PAUSED', 'The measure is paused.')
+
+            if (flag.test('running_pre_hooks') or
+                    flag.test('running_post_hooks')):
+                self._active_hook.unobserve('paused', self._watch_hook_state)
+
+            while True:
+                if flag.wait(1, 'resuming'):
+                    flag.clear('resuming')
+                    self._set_measure_state('RUNNING',
+                                            'The measure has resumed.')
+                    return True
+
+                if flag.test('stop_attempt'):
+                    return False
+
+        return True
+
+    # Those must post update of measure.status and remove observers
     def _watch_engine_state(self, change):
         """Observe engine state to notify that the engine paused or resumed.
 
         """
-        pass# XXXX
+        if change['value'] == 'Paused':
+            self._state.set('paused')
+            self._state.clear('pause_attempt')
+            self._engine.unobserve('status', self._watch_engine_state)
+            self._set_measure_state('PAUSED', 'The measure is paused.')
+
+        elif change['value'] == 'Running':
+            self._state.clear('resuming')
+            self._engine.unobserve('status', self._watch_engine_state)
+            self._set_measure_state('RUNNING', 'The measure has resumed.')
 
     def _watch_hook_state(self, change):
         """Observe hook paused/resumed events to validate pausing/resuming.
 
         """
-        pass# XXXX
+        if change['name'] == 'paused':
+            self._state.set('paused')
+            self._state.clear('pause_attempt')
+            self._engine.unobserve('status', self._watch_engine_state)
+            self._set_measure_state('PAUSED', 'The measure is paused.')
+
+        elif change['name'] == 'resumed':
+            self._state.clear('resuming')
+            self._engine.unobserve('status', self._watch_engine_state)
+            self._set_measure_state('RUNNING', 'The measure has resumed.')
+
+    def _set_measure_state(self, status, infos):
+        """Set the measure status and infos in the main thread.
+
+        """
+        measure = self.running_measure
+        enaml.application.deferred_call(setattr, measure, 'status', status)
+        enaml.application.deferred_call(setattr, measure, 'infos', infos)
 
     def _stop_engine(self):
         """Stop the engine.
