@@ -297,6 +297,7 @@ class MeasureProcessor(Atom):
             # Assemble the job infos for the engine to run the main task.
             deps = measure.dependencies
             infos = TaskInfos(
+                id=meas_id+'.main',
                 task=measure.root_task,
                 build_deps=deps.get_build_dependencies(),
                 runtime_deps=deps.get_runtime_dependencies('main'),
