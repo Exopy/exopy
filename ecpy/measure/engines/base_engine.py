@@ -24,6 +24,9 @@ class TaskInfos(Atom):
     execution of the task.
 
     """
+    #: Id used to identify the task in logger messages.
+    id = Unicode()
+
     #: Task to execute.
     task = Value()
 
