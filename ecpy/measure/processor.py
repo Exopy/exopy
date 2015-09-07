@@ -25,7 +25,7 @@ from threading import Thread
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 
-from .engines import BaseEngine, JobInfos
+from .engines import BaseEngine, TaskInfos
 from .measure import Measure
 from ..utils.bi_flag import BitFlag
 
@@ -129,9 +129,8 @@ class MeasureProcessor(Atom):
         if self._state.test('running_main'):
             self._engine.stop(force)
         else:
-            with self._lock:
-                if self._active_hook:
-                    self._active_hook.stop(force)
+            if self._active_hook:
+                self._active_hook.stop(force)
 
     def stop_processing(self, no_post_exec=False, force=False):
         """Stop processing the enqueued measure.
@@ -145,11 +144,12 @@ class MeasureProcessor(Atom):
         if self._state.test('running_main'):
             self._engine.stop(force)
         else:
-            with self._lock:
-                if self._active_hook:
-                    self._active_hook.stop(force)
+            if self._active_hook:
+                self._active_hook.stop(force)
 
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     #: Background thread handling the measure execution
     _thread = Value()
@@ -296,8 +296,8 @@ class MeasureProcessor(Atom):
 
             # Assemble the job infos for the engine to run the main task.
             deps = measure.dependencies
-            infos = JobInfos(
-                obj=measure.root_task,
+            infos = TaskInfos(
+                task=measure.root_task,
                 build_deps=deps.get_build_dependencies(),
                 runtime_deps=deps.get_runtime_dependencies('main'),
                 )

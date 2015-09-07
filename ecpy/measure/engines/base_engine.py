@@ -17,26 +17,27 @@ from atom.api import (Atom, Unicode, ForwardTyped, Signal, Enum, Bool, Dict,
 from enaml.core.api import Declarative, d_, d_func
 
 
-class Jobs(Atom):
-    """.
+class TaskInfos(Atom):
+    """Information necessary for engine to execute a task.
+
+    This object is also used by the engine to provide feedback about the
+    execution of the task.
 
     """
-    #:
-    obj = Value()
+    #: Task to execute.
+    task = Value()
 
-    #:
+    #: Build dependencies. This allow to rebuild the task if necessary.
     build_deps = Dict()
 
-    #:
+    #: Runtime dependencies of the task.
     runtime_deps = Dict()
 
-    #:
-    job_method = Unicode('perform')
-
-    #:
+    #: Boolean set by the engine, indicating whether or not the task was
+    #: successfully executed.
     success = Bool()
 
-    #:
+    #: Errors which occured during the execution of the task if any.
     errors = Dict()
 
 
@@ -54,17 +55,17 @@ class BaseEngine(Atom):
     #: Signal used to pass news about the measurement progress.
     progress = Signal()
 
-    def perform(self, job):
-        """Execute a given task hierarchy.
+    def perform(self, task_infos):
+        """Execute a given task.
 
         Parameters
         ----------
-        job : `Job`
-            Job object describing the work to expected of the engine.
+        task_infos : TaskInfos
+            TaskInfos object describing the work to expected of the engine.
 
         Returns
         -------
-        job : `Job`
+        task_infos : TaskInfos
             Input object whose values have been updated. This is simply a
             convenience.
 
@@ -72,7 +73,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def pause(self):
-        """Ask the engine to pause the current task.
+        """Ask the engine to pause the execution.
 
         This method should not wait for the task to pause to return.
         When the pause is effective the engine should signal it by updating its
@@ -82,7 +83,7 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def resume(self):
-        """Ask the engine to resume the currently paused task.
+        """Ask the engine to resume the execution.
 
         This method should not wait for the measure to resume.
         When the pause is over the engine should signal it by updating its
@@ -92,7 +93,10 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def stop(self, force=False):
-        """Ask the engine to stop the current measure.
+        """Ask the engine to stop the execution.
+
+        This method should not wait for the execution to stop save if a forced
+        stop was requested.
 
         Parameters
         ----------
@@ -105,10 +109,12 @@ class BaseEngine(Atom):
         raise NotImplementedError()
 
     def shutdown(self, force=False):
-        """Ask the engine top stop completely.
+        """Ask the engine to stop completely.
 
         After a call to this method the engine may need to re-initialize a
-        number of things before running the next measure.
+        number of things before running the next task.
+        This method should not wait for the engine to shutdown save if a
+        forced stop was requested.
 
         Parameters
         ----------

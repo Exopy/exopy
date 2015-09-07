@@ -223,7 +223,9 @@ class MeasurePlugin(HasPrefPlugin):
 
         return decls[id].new(self.workbench, default)
 
+    # =========================================================================
     # --- Private API ---------------------------------------------------------
+    # =========================================================================
 
     #: Collector of engines.
     _engines = Typed(ExtensionsCollector)
