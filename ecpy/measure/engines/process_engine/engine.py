@@ -20,8 +20,6 @@ from threading import Thread
 from threading import Event as tEvent
 
 from atom.api import Typed, Value, Bool
-from enaml.application import deferred_call
-
 
 from ....utils.log.tools import QueueLoggerThread
 from ..base_engine import BaseEngine
@@ -30,7 +28,7 @@ from .subprocess import TaskProcess
 
 logger = logging.getLogger(__name__)
 
-# XXXX restart from here, update to new API
+
 class ProcessEngine(BaseEngine):
     """An engine executing the tasks it is sent in a different process.
 
@@ -51,12 +49,13 @@ class ProcessEngine(BaseEngine):
             convenience.
 
         """
+        self.status = 'Running'
+
         # Clear all the flags.
         self._task_pause.clear()
         self._task_paused.clear()
-        self._task_resumed.clear()
+        self._task_resume.clear()
         self._task_stop.clear()
-        self._stop.clear()
         self._force_stop.clear()
         self._stop_requested = False
 
@@ -70,8 +69,7 @@ class ProcessEngine(BaseEngine):
                                         self._monitor_queue,
                                         self._task_pause,
                                         self._task_paused,
-                                        self._task_stop,
-                                        self._stop)
+                                        self._task_stop)
             self._process.daemon = True
 
             # Create the logger thread in charge of dispatching log reports.
@@ -93,14 +91,59 @@ class ProcessEngine(BaseEngine):
             logger.debug('Starting subprocess')
             self._process.start()
 
-        # XXXXX
+        # Send the measure.
+        self._pipe.send(task_infos)
+        logger.debug('Task {} sent'.format(task_infos.id))
+
+        # Check that the engine did receive the task.
+        while not self._pipe.poll(2):
+            if not self._process.is_alive():
+                msg = 'Subprocess was found dead unexpectedly'
+                logger.debug(msg)
+                self._log_queue.put(None)
+                self._monitor_queue.put((None, None))
+                self._cleanup(process=False)
+                task_infos.success = False
+                task_infos.errors['engine'] = msg
+                return task_infos
+
+        status = self._pipe.recv()
+        if not status:
+            msg = "Subprocess can't perform the task."
+            logger.debug(msg)
+            self._cleanup()
+            task_infos.success = False
+            task_infos.errors['engine'] = msg
+            return task_infos
+
+        # Wait for the process to finish the measure and check it has not
+        # been killed.
+        while not self._pipe.poll(1):
+            if self._force_stop.is_set():
+                msg = 'Subprocess was terminated by the user.'
+                logger.debug(msg)
+                self._cleanup(process=False)
+                task_infos.success = False
+                task_infos.errors['engine'] = msg
+                return task_infos
+
+            # Here get message from process and react
+            result, errors = self._pipe.recv()
+            logger.debug('Subprocess done performing measure')
+
+            task_infos.success = result
+            task_infos.errors.update(errors)
+
+        self.status = 'Waiting'
+
+        return task_infos
 
     def pause(self):
         """Ask the engine to pause the current task execution.
 
         """
         self.status = 'Pausing'
-        self._task_resumed.clear()
+        self._task_resume.clear()
         self._task_paused.clear()
         self._task_pause.set()
 
@@ -111,8 +154,9 @@ class ProcessEngine(BaseEngine):
         """Ask the engine to resume the currently paused job.
 
         """
-        self._task_pause.clear()
         self.status = 'Resuming'
+        self._task_pause.clear()
+        self._task_resume.set()
 
     def stop(self, force=False):
         """Ask the engine to stop the current job.
@@ -132,6 +176,8 @@ class ProcessEngine(BaseEngine):
         self._task_stop.set()
 
         if force:
+            self._force_stop.set()
+
             # Stop running queues
             self._log_queue.put(None)
             self._monitor_queue.put((None, None))
@@ -145,6 +191,8 @@ class ProcessEngine(BaseEngine):
             # process was terminated.
             self._log_queue = Queue()
             self._monitor_queue = Queue()
+
+            self.status = 'Stopped'
 
     def shutdown(self, force=False):
         """Ask the engine to stop completely.
@@ -160,9 +208,11 @@ class ProcessEngine(BaseEngine):
         self._stop_requested = True
         self._task_stop.set()
 
-        # XXXX
+        if not force:
+            t = Thread(target=self._cleanup)
+            t.start()
 
-        if force:
+        else:
             self.stop(force=True)
 
     # =========================================================================
@@ -179,22 +229,13 @@ class ProcessEngine(BaseEngine):
     _task_paused = Typed(Event, ())
 
     #: Interprocess event signaling the subprocess current job has resumed.
-    _job_resumed = Typed(Event, ())
+    _task_resumed = Typed(Event, ())
 
     #: Interprocess event used to stop the subprocess current measure.
     _task_stop = Typed(Event, ())
 
-    #: Interprocess event used to stop the subprocess.
-    _stop = Typed(Event, ())
-
     #: Flag signaling that a forced exit has been requested
     _force_stop = Value(tEvent())
-
-    #: Flag indicating the process is waiting for a measure.
-    _processing = Value(tEvent())
-
-    #: Flag indicating the communication thread it can send the next measure.
-    _starting_allowed = Value(tEvent())
 
     #: Current subprocess.
     _process = Typed(TaskProcess)
@@ -222,78 +263,6 @@ class ProcessEngine(BaseEngine):
     #: pause/resume after being asked to do so.
     _pause_thread = Typed(Thread)
 
-#    def _process_listener(self):
-#        """ Handle the communications with the worker process.
-#
-#        Executed by the _com_thread.
-#
-#        """
-#        logger = logging.getLogger(__name__)
-#        logger.debug('Starting listener')
-#
-#        while not self._pipe.poll(2):
-#            if not self._process.is_alive():
-#                logger.critical('Subprocess was found dead unexpectedly')
-#                self._stop.set()
-#                self._log_queue.put(None)
-#                self._monitor_queue.put((None, None))
-#                self._cleanup(process=False)
-#                self.done = ('FAILED', 'Subprocess failed to start')
-#                return
-#
-#        mess = self._pipe.recv()
-#        if mess != 'READY':
-#            logger.critical('Subprocess was found dead unexpectedly')
-#            self.done = ('FAILED', 'Subprocess failed to start')
-#            self._cleanup()
-#            return
-#
-#        # Infinite loop waiting for measure.
-#        while not self._stop.is_set():
-#
-#            # Wait for measure and check for stopping.
-#            while not self._starting_allowed.wait(1):
-#                if self._stop.is_set():
-#                    self._cleanup()
-#                    return
-#
-#            self._processing.set()
-#
-#            # Send the measure.
-#            self._pipe.send(self._temp)
-#            logger.debug('Measure {} sent'.format(self._temp[0]))
-#
-#            # Empty _temp and reset flag.
-#            self._temp = tuple()
-#            self._starting_allowed.clear()
-#
-#            # Wait for the process to finish the measure and check it has not
-#            # been killed.
-#            while not self._pipe.poll(1):
-#                if self._force_stop.is_set():
-#                    self._cleanup()
-#                    return
-#
-#            # Here get message from process and react
-#            meas_status, int_status, mess = self._pipe.recv()
-#            logger.debug('Subprocess done performing measure')
-#
-#            if int_status == 'STOPPING':
-#                self._cleanup()
-#
-#            if meas_status == 'INTERRUPTED' and not self._stop_requested:
-#                meas_status = 'FAILED'
-#                mess = mess.replace('was stopped', 'failed')
-#
-#            # This event should be handled in the main thread so that this one
-#            # can stay responsive otherwise the engine will be unable to
-#            # shutdown.
-#            deferred_call(setattr, self, 'done', (meas_status, mess))
-#
-#            self._processing.clear()
-#
-#        self._cleanup()
-
     def _cleanup(self, process=True):
         """ Helper method taking care of making sure that everybody stops.
 
@@ -304,32 +273,41 @@ class ProcessEngine(BaseEngine):
             termintaed abruptly.
 
         """
-        logger = logging.getLogger(__name__)
         logger.debug('Cleaning up')
-        self._pipe.close()
+
         if process:
+            self._pipe.send(None)
             self._process.join()
             logger.debug('Subprocess joined')
+        self._pipe.close()
+
         self._log_thread.join()
         logger.debug('Log thread joined')
+
         self._monitor_thread.join()
         logger.debug('Monitor thread joined')
+
         if self._pause_thread:
             self._pause_thread.join()
             logger.debug('Pause thread joined')
-        self.active = False
+
+        self.status = 'Stopped'
 
     def _wait_for_pause(self):
         """ Wait for the _task_paused event to be set.
 
         """
-        stop_sig = self._stop
+        stop_sig = self._task_stop
         paused_sig = self._task_paused
 
         while not stop_sig.is_set():
             if paused_sig.wait(0.1):
-                status = ('PAUSED', 'Measure execution is paused')
-                deferred_call(setattr, self, 'measure_status', status)
+                self.status = 'Paused'
                 break
 
-        # XXXX wait for resuming.
+        resuming_sig = self._task_resume
+
+        while not stop_sig.is_set():
+            if resuming_sig.wait(1):
+                self.status = 'Running'
+                break
