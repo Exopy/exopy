@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from atom.api import (Atom, Unicode, ForwardTyped, Signal, Enum, Bool, Dict,
-                      Value)
+                      Value, List)
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -35,6 +35,10 @@ class TaskInfos(Atom):
 
     #: Runtime dependencies of the task.
     runtime_deps = Dict()
+
+    #: List of entries for which the engine should send updates during
+    #: processing.
+    observed_entries = List()
 
     #: Boolean set by the engine, indicating whether or not the task was
     #: successfully executed.

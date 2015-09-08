@@ -301,6 +301,7 @@ class MeasureProcessor(Atom):
                 task=measure.root_task,
                 build_deps=deps.get_build_dependencies(),
                 runtime_deps=deps.get_runtime_dependencies('main'),
+                database_entries=measure.collect_entries_to_observe(),
                 )
 
             # Ask the engine to perform the main task.
