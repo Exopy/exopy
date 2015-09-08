@@ -17,7 +17,7 @@ from atom.api import (Atom, Unicode, ForwardTyped, Signal, Enum, Bool, Dict,
 from enaml.core.api import Declarative, d_, d_func
 
 
-class TaskInfos(Atom):
+class ExecutionInfos(Atom):
     """Information necessary for engine to execute a task.
 
     This object is also used by the engine to provide feedback about the

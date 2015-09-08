@@ -25,7 +25,7 @@ from threading import Thread
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 
-from .engines import BaseEngine, TaskInfos
+from .engines import BaseEngine, ExecutionInfos
 from .measure import Measure
 from ..utils.bi_flag import BitFlag
 
@@ -296,7 +296,7 @@ class MeasureProcessor(Atom):
 
             # Assemble the job infos for the engine to run the main task.
             deps = measure.dependencies
-            infos = TaskInfos(
+            infos = ExecutionInfos(
                 id=meas_id+'.main',
                 task=measure.root_task,
                 build_deps=deps.get_build_dependencies(),

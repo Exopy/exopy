@@ -34,17 +34,17 @@ class ProcessEngine(BaseEngine):
 
     """
 
-    def perform(self, task_infos):
+    def perform(self, exec_infos):
         """Execute a given task.
 
         Parameters
         ----------
-        task_infos : TaskInfos
+        exec_infos : ExecutionInfos
             TaskInfos object describing the work to expected of the engine.
 
         Returns
         -------
-        task_infos : TaskInfos
+        exec_infos : ExecutionInfos
             Input object whose values have been updated. This is simply a
             convenience.
 
@@ -95,16 +95,16 @@ class ProcessEngine(BaseEngine):
             self._process.start()
 
         # Send the measure.
-        task_infos.task.update_preferences_from_members()
-        config = task_infos.task.preferences
-        database_root_state = task_infos.task.database.copy_node_values()
-        self._pipe.send((task_infos.id, config,
-                         task_infos.build_deps,
-                         task_infos.runtime_deps,
-                         task_infos.observed_entries,
+        exec_infos.task.update_preferences_from_members()
+        config = exec_infos.task.preferences
+        database_root_state = exec_infos.task.database.copy_node_values()
+        self._pipe.send((exec_infos.id, config,
+                         exec_infos.build_deps,
+                         exec_infos.runtime_deps,
+                         exec_infos.observed_entries,
                          database_root_state
                          ))
-        logger.debug('Task {} sent'.format(task_infos.id))
+        logger.debug('Task {} sent'.format(exec_infos.id))
 
         # Check that the engine did receive the task.
         while not self._pipe.poll(2):
@@ -114,18 +114,18 @@ class ProcessEngine(BaseEngine):
                 self._log_queue.put(None)
                 self._monitor_queue.put((None, None))
                 self._cleanup(process=False)
-                task_infos.success = False
-                task_infos.errors['engine'] = msg
-                return task_infos
+                exec_infos.success = False
+                exec_infos.errors['engine'] = msg
+                return exec_infos
 
         status = self._pipe.recv()
         if not status:
             msg = "Subprocess can't perform the task."
             logger.debug(msg)
             self._cleanup()
-            task_infos.success = False
-            task_infos.errors['engine'] = msg
-            return task_infos
+            exec_infos.success = False
+            exec_infos.errors['engine'] = msg
+            return exec_infos
 
         # Wait for the process to finish the measure and check it has not
         # been killed.
@@ -134,20 +134,20 @@ class ProcessEngine(BaseEngine):
                 msg = 'Subprocess was terminated by the user.'
                 logger.debug(msg)
                 self._cleanup(process=False)
-                task_infos.success = False
-                task_infos.errors['engine'] = msg
-                return task_infos
+                exec_infos.success = False
+                exec_infos.errors['engine'] = msg
+                return exec_infos
 
             # Here get message from process and react
             result, errors = self._pipe.recv()
             logger.debug('Subprocess done performing measure')
 
-            task_infos.success = result
-            task_infos.errors.update(errors)
+            exec_infos.success = result
+            exec_infos.errors.update(errors)
 
         self.status = 'Waiting'
 
-        return task_infos
+        return exec_infos
 
     def pause(self):
         """Ask the engine to pause the current task execution.
