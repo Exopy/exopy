@@ -18,6 +18,10 @@ from enaml.workbench.ui.api import ActionItem
 
 from ..app.api import AppClosing, Preferences
 
+from .engines import ProcessEngine
+from .editors import Editor
+from .hooks import PreExecutionHook
+
 
 # =============================================================================
 # --- Factories ---------------------------------------------------------------
@@ -102,9 +106,7 @@ ended, ...
 # =============================================================================
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
-# XXXX descriptions
-# TODO need at least two error handler : measure-errors
-enamldef MeasureManifest(PluginManifest):
+enamldef MeasureManifest(PluginManifest): manifest:
     # XXXX
     """
     """
@@ -138,6 +140,50 @@ enamldef MeasureManifest(PluginManifest):
     # =========================================================================
     # --- Extensions ----------------------------------------------------------
     # =========================================================================
+
+    Extension:
+        id = 'editors'
+        point = manifest.id + '.editors'
+        Editor:
+            id = 'Standard'
+            description = 'Editor relying on the task views.'
+            new => (workbench, default=False):
+                from .editors.standard_editor import StandardEditor
+                return StandardEditor(declaration=self,
+                                      workbench=workbench)
+        Editor:
+            id = 'Database access'
+            description = ('Editor allowing to modify database access '
+                           'permissions.')
+            new => (workbench, default=False):
+                from .editors.database_access_editor\
+                    import DatabaseAccessEditor
+                return DatabaseAccessEditor(declaration=self)
+
+        Editor:
+            id = 'Execution'
+            description = ('Editor allowing to customize execution options: '
+                           'stopping, execution in parallel, or waiting on'
+                           'other tasks.')
+            new => (workbench, default=False):
+                from .editors.execution_editor import ExecutionEditor
+                return ExecutionEditor(declaration=self)
+
+    Extension:
+        id = 'engines'
+        point = manifest.id + '.engines'
+        ProcessEngine:
+            pass
+
+    Extension:
+        id = 'pre-execution'
+        point = manifest.id + '.pre-execution'
+        PreExecutionHook:
+            id = 'Internal checks'
+            description = 'Run the internal checks of the main task.'
+            new => (workbench, default=False):
+                from .hooks.internal_checks import InternalChecksHook
+                return InternalChecksHook(declaration=self)
 
     Extension:
         id = 'prefs'
@@ -175,10 +221,13 @@ enamldef MeasureManifest(PluginManifest):
             command = 'enaml.workbench.ui.select_workspace'
             parameters = {'workspace': 'ecpy.measure.workspace'}
 
+    # XXXX add editors
+
     Extension:
         id = 'err_handlers'
         point = 'ecpy.app.errors.handler'
         ErrorHandler:
+            # XXXX
             id = 'measure-error'
             description = MEASURE_ERROR_DESCRIPTION
             handle => (workbench, infos):

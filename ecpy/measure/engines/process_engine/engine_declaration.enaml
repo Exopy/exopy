@@ -65,7 +65,7 @@ enamldef ProcessEngine(Engine):
     id = 'Process engine'
     description = 'Engine performing the measure in a subprocess'
 
-    new => (workbench, default=True):
+    new => (workbench, default=False):
         return ProcessEngine(workbench=workbench,
                          declaration=self)
 
