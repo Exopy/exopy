@@ -62,6 +62,8 @@ class ProcessEngine(BaseEngine):
         # If the process does not exist or is dead create a new one.
         if not self._process or not self._process.is_alive():
 
+            self._process_stop.clear()
+
             # Create the subprocess and the pipe.
             self._pipe, process_pipe = Pipe()
             self._process = TaskProcess(process_pipe,
@@ -69,7 +71,8 @@ class ProcessEngine(BaseEngine):
                                         self._monitor_queue,
                                         self._task_pause,
                                         self._task_paused,
-                                        self._task_stop)
+                                        self._task_stop,
+                                        self._process_stop)
             self._process.daemon = True
 
             # Create the logger thread in charge of dispatching log reports.
@@ -92,7 +95,15 @@ class ProcessEngine(BaseEngine):
             self._process.start()
 
         # Send the measure.
-        self._pipe.send(task_infos)
+        task_infos.task.update_preferences_from_members()
+        config = task_infos.task.preferences
+        database_root_state = task_infos.task.database.copy_node_values()
+        self._pipe.send((task_infos.id, config,
+                         task_infos.build_deps,
+                         task_infos.runtime_deps,
+                         task_infos.observed_entries,
+                         database_root_state
+                         ))
         logger.debug('Task {} sent'.format(task_infos.id))
 
         # Check that the engine did receive the task.
@@ -234,6 +245,9 @@ class ProcessEngine(BaseEngine):
     #: Interprocess event used to stop the subprocess current measure.
     _task_stop = Typed(Event, ())
 
+    #: Interprocess event used to stop the subprocess.
+    _process_stop = Typed(Event, ())
+
     #: Flag signaling that a forced exit has been requested
     _force_stop = Value(tEvent())
 
@@ -276,7 +290,7 @@ class ProcessEngine(BaseEngine):
         logger.debug('Cleaning up')
 
         if process:
-            self._pipe.send(None)
+            self._process_stop.set()
             self._process.join()
             logger.debug('Subprocess joined')
         self._pipe.close()

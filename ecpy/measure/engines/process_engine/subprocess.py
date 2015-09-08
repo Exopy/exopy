@@ -15,13 +15,13 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 import logging.config
-import warnings
 import sys
 from multiprocessing import Process
 
 from ....app.log.tools import (StreamToLogRedirector, DayRotatingTimeHandler)
 from ....tasks.api import build_task_from_config
 from ..tools import MeasureSpy
+from ...processor import errors_to_msg
 
 
 class TaskProcess(Process):
@@ -100,10 +100,6 @@ class TaskProcess(Process):
         """
         self._config_log()
 
-        # TODO test if this is still necessary with latest version
-        # Ugly patch to avoid pyvisa complaining about missing filters
-        warnings.simplefilter("ignore")
-
         # Redirecting stdout and stderr to the logging system.
         logger = logging.getLogger()
         redir_stdout = StreamToLogRedirector(logger)
@@ -113,7 +109,7 @@ class TaskProcess(Process):
         logger.info('Logger parametrised')
 
         logger.info('Process running')
-        self.pipe.send('READY')
+
         while not self.process_stop.is_set():
 
             # Prevent us from crash if the pipe is closed at the wrong moment.
@@ -130,6 +126,7 @@ class TaskProcess(Process):
                 # Get the measure.
                 name, config, build, runtime, entries, database =\
                     self.pipe.recv()
+                self.pipe.send(True)
 
                 # Build it by using the given build dependencies.
                 root = build_task_from_config(config, build, True)
@@ -180,32 +177,17 @@ class TaskProcess(Process):
                 # If checks pass perform the measure.
                 if check:
                     logger.info('Check successful')
-                    root.perform()
-                    result = ['', '', '']
-                    if self.task_stop.is_set():
-                        result[0] = 'INTERRUPTED'
-                        result[2] = 'Measure {} was stopped'.format(name)
-                    else:
-                        result[0] = 'COMPLETED'
-                        result[2] = 'Measure {} succeeded'.format(name)
+                    result = root.perform()
 
-                    if self.process_stop.is_set():
-                        result[1] = 'STOPPING'
-                    else:
-                        result[1] = 'READY'
-
-                    self.pipe.send(tuple(result))
+                    self.pipe.send(result, root.errors)
 
                 # They fail, mark the measure as failed and go on.
                 else:
-                    mes = 'Tests failed, see log for full records.'
-                    self.pipe.send(('FAILED', 'READY', mes))
+                    self.pipe.send(False, errors)
 
                     # Log the tests that failed.
-                    fails = errors.iteritems()
-                    message = '\n'.join('{} : {}'.format(path, mes)
-                                        for path, mes in fails)
-                    logger.critical(message)
+                    msg = 'Some test failed:\n' + errors_to_msg(errors)
+                    logger.critical(msg)
 
                 # If a spy was started kill it
                 if entries:
@@ -238,7 +220,7 @@ class TaskProcess(Process):
             'disable_existing_loggers': True,
             'handlers': {
                 'queue': {
-                    'class': 'hqc_meas.utils.log.tools.QueueHandler',
+                    'class': 'ecpy.app.log.tools.QueueHandler',
                     'queue': self.log_queue,
                 },
             },
