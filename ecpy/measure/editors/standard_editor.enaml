@@ -22,8 +22,11 @@ enamldef StandardEditor(BaseEditor): main:
     """Standard editor displaying the selected task using the task view.
 
     """
+    #: Reference to the application workbench needed to query views from the
+    #: task manager.
     attr workbench
 
+    #: View of the root task managing the view cache.
     attr root_view
 
     title = 'Standard editor'
