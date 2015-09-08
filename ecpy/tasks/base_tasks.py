@@ -1023,6 +1023,9 @@ class RootTask(ComplexTask):
     #: measure resuming.
     resume = Value()
 
+    #: Dictionary used to store errors occuring during performing.
+    errors = Dict()
+
     #: Dictionary used to store references to resources that may need to be
     #: shared between task and which must be released when all tasks have been
     #: performed.
@@ -1084,17 +1087,22 @@ class RootTask(ComplexTask):
         """ Run sequentially all child tasks, and close ressources.
 
         """
+        result = True
         self.thread_id = threading.current_thread().ident
         try:
             for child in self.children:
                 child.perform_(child)
         except Exception:
             log = logging.getLogger(__name__)
-            mes = 'The following unhandled exception occured:'
-            log.exception(mes)
+            msg = 'The following unhandled exception occured :\n'
+            log.exception(msg)
             self.should_stop.set()
+            result = False
+            self.errors['unhandled'] = msg + format_exc()
         finally:
             self.release_resources()
+
+        return result
 
     def release_resources(self):
         """Release all the resources used by tasks.

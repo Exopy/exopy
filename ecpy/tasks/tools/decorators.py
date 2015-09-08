@@ -19,6 +19,7 @@ import logging
 from functools import update_wrapper
 from time import sleep
 from threading import Thread, current_thread
+from traceback import format_exc
 
 
 def handle_stop_pause(root):
@@ -99,9 +100,10 @@ def smooth_crash(function_to_decorate):
             return function_to_decorate(*args, **kwargs)
         except Exception:
             log = logging.getLogger(function_to_decorate.__module__)
-            mes = 'The following unhandled exception occured in {} :'
-            log.exception(mes.format(obj.name))
+            msg = 'The following unhandled exception occured in %s :'
+            log.exception(msg % obj.name)
             obj.root.should_stop.set()
+            obj.root.errors['unhandled'] = msg % obj.name + '\n' + format_exc()
 
     update_wrapper(decorator, function_to_decorate)
     return decorator
