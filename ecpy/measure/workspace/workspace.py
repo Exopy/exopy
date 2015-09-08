@@ -266,18 +266,6 @@ class MeasureSpace(Workspace):
                              'owner': self.plugin.manifest.id})
 
         if check:
-            # XXXX This does not belong here but in the internalChecksHook
-            # Check that no measure with the same name and id is saved in
-            # the default path used by the root_task.
-            default_filename = measure.name + '_' + measure.id + '.meas.ini'
-            path = os.path.join(measure.root_task.default_path,
-                                default_filename)
-            if os.path.isfile(path):
-                msg = ('A measure file with the same name and id has already '
-                       'been saved in {}, increments the id of your measure '
-                       'to avoid overwriting it.')
-                errors['internal'] = msg.format(measure.root_task.default_path)
-
             # If check is ok but there are some errors, those are warnings
             # which the user can either ignore and enqueue the measure, or he
             # can cancel the enqueuing and try again.
@@ -287,6 +275,10 @@ class MeasureSpace(Workspace):
                 if not dial.result:
                     return
 
+            default_filename = (measure.name + '_' + measure.id +
+                                '.meas.ini')
+            path = os.path.join(measure.root_task.default_path,
+                                default_filename)
             measure.save(path)
             meas = Measure.load(self.plugin, path, b_deps)
             try:
