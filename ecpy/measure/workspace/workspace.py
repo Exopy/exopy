@@ -224,46 +224,30 @@ class MeasureSpace(Workspace):
 
         """
         # Collect the runtime dependencies
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        cmd = 'ecpy.app.dependencies.collect'
-        res = core.invoke_command(cmd, {'obj': measure.root_task,
-                                        'dependencies': ['build', 'runtimes'],
-                                        'owner': self.plugin.manifest.id})
+        res, msg, errors = measure.collect_runtimes()
 
-        # Check for errors
-        # XXXX
-        b_deps, r_deps = res
-        if not self.plugin.check_for_dependencies_errors(measure, b_deps)[0]:
-            return
-        if r_deps.errors:
-            self.plugin.check_for_dependencies_errors(measure, r_deps)
-            return
+        if not res:
+            if 'Failed' in msg:
+                dial = ChecksDisplay(errors=errors, title=msg)
+                dial.exec_()
+                return
 
-        # If some runtime are missing let the user know about it.
-        if r_deps.unavailable:
-            msg = ('The following runtime dependencies of the measure {}, are '
-                   'not currently available. Some tests may be skipped as a '
-                   'result but will be run before executing the measure.\n'
-                   'Missing dependencies from :\n{}')
-            msg.format(measure.name,
-                       '\n'.join(('-'+id for id in r_deps.unavailable)))
-            logger.info(msg)
-
-        # Store the runtime dependencies (already done for the build when
-        # checking)
-        measure.store['runtime_deps'] = r_deps.dependencies
-        measure.root_task.run_time = r_deps.dependencies
+            # If some runtime are missing let the user know about it.
+            else:
+                msg = ('The following runtime dependencies of the measure {}, '
+                       'are  not currently available. Some tests may be '
+                       'skipped as a  result but will be run before executing '
+                       'the measure.\n Missing dependencies from :\n{}')
+                msg.format(measure.name,
+                           '\n'.join(('-'+id for id in errors['unavailable'])))
+                logger.info(msg)
 
         # Run the checks specifying what runtimes are missing.
         check, errors = measure.run_checks(self.workbench,
-                                           missing=r_deps.unavailable)
+                                           missing=errors['unavailable'])
 
-        # Clear the runtimes and release them.
-        measure.root_task.run_time.clear()
-        cmd = 'ecpy.app.dependencies.release_runtimes'
-        core.invoke_command(cmd,
-                            {'dependencies': measure.store['runtime_deps'],
-                             'owner': self.plugin.manifest.id})
+        # Release the runtimes.
+        measure.dependencies.release_runtimes()
 
         if check:
             # If check is ok but there are some errors, those are warnings
@@ -273,6 +257,7 @@ class MeasureSpace(Workspace):
                 dial = ChecksDisplay(errors=errors, is_warning=True)
                 dial.exec_()
                 if not dial.result:
+                    measure.dependencies.reset()
                     return
 
             default_filename = (measure.name + '_' + measure.id +
@@ -280,7 +265,15 @@ class MeasureSpace(Workspace):
             path = os.path.join(measure.root_task.default_path,
                                 default_filename)
             measure.save(path)
-            meas = Measure.load(self.plugin, path, b_deps)
+            b_deps = measure.dependencies.get_build_dependencies()
+
+            meas, errors = Measure.load(self.plugin, path, b_deps)
+            # Provide a nice error message.
+            if not meas:
+                msg = 'Failed to rebuild measure from config'
+                dial = ChecksDisplay(errors={'internal': errors}, title=msg)
+                dial.exec_()
+                return
             try:
                 os.remove(path)
             except OSError:
@@ -293,8 +286,7 @@ class MeasureSpace(Workspace):
             return True
 
         else:
-            del measure.store['build_deps']
-            del measure.store['runtime_deps']
+            measure.dependencies.reset()
             ChecksDisplay(errors=errors).exec_()
             return False
 

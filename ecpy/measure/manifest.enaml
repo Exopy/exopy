@@ -107,8 +107,10 @@ ended, ...
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 enamldef MeasureManifest(PluginManifest): manifest:
-    # XXXX
-    """
+    """Manifest of the MeasurePlugin.
+
+    The measure plugin handles measure edition and execution.
+
     """
     id = 'ecpy.measure'
     factory = measure_plugin_factory
@@ -220,21 +222,3 @@ enamldef MeasureManifest(PluginManifest): manifest:
             group = 'spaces'
             command = 'enaml.workbench.ui.select_workspace'
             parameters = {'workspace': 'ecpy.measure.workspace'}
-
-    # XXXX add editors
-
-    Extension:
-        id = 'err_handlers'
-        point = 'ecpy.app.errors.handler'
-        ErrorHandler:
-            # XXXX
-            id = 'measure-error'
-            description = MEASURE_ERROR_DESCRIPTION
-            handle => (workbench, infos):
-                if not isinstance(infos, Mapping):
-                    pass  # This should never occur ...
-                else:
-
-
-                logger.debug(msg)
-                return MultilineField(read_only=True, text=msg)

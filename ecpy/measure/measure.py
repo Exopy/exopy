@@ -344,6 +344,17 @@ class Measure(HasPrefAtom):
         path : unicode
             Path of the file from which to load the measure.
 
+        build_dep : dict, optional
+            Build dependencies of the main task.
+
+        Returns
+        -------
+        measure : Measure|None
+            Measure buil from the config or None if and error occurred.
+
+        errors : dict
+            Dictionary describing the errors that occured.
+
         """
         # Create the measure.
         measure = cls()
@@ -352,12 +363,12 @@ class Measure(HasPrefAtom):
         measure.path = path
         measure.update_members_from_preferences(**config)
 
-        # Gather all errors occuring while loading the measure.
+        # Return values storing the errors details.
+        errors = {}
+
+        # Get the workbench and core plugin.
         workbench = measure_plugin.workbench
         core = workbench.get_plugin('enaml.workbench.core')
-        cmd = 'ecpy.app.errors.enter_error_gathering'
-        core.invoke_command(cmd)
-        err_cmd = 'ecpy.app.errors.signal'
 
         # Load the task.
         cmd = 'ecpy.tasks.build_root'
@@ -367,10 +378,7 @@ class Measure(HasPrefAtom):
             measure.root_task = core.invoke_command(cmd, kwarg, measure)
         except Exception:
             msg = 'Building %s, failed to restore task : %s'
-            core.invoke_command(err_cmd,
-                                dict(kind='measure',
-                                     message=msg % (config.get('name'),
-                                                    format_exc())))
+            errors['main task'] = msg % (config.get('name'),  format_exc())
 
         for kind in ('monitors', 'pre_hooks', 'post_hooks'):
             saved = config.get(kind, {})
@@ -383,19 +391,23 @@ class Measure(HasPrefAtom):
 
             for id, state in saved.iteritems():
                 obj = measure_plugin.create(kind[:-1], id, default=False)
+
                 try:
                     obj.set_state(state)
                 except Exception:
-                    mess = 'Failed to restore {} : {}'.format(kind[:-1],
-                                                              format_exc())
-                    core.invoke_command(err_cmd,
-                                        dict(kind='measure', message=mess))
+                    msg = 'Failed to restore {} {}: {}'.format(kind[:-1], id,
+                                                               format_exc())
+                    errors[id] = msg % (config.get('name'),  format_exc())
                     continue
+
                 measure.add_tool(kind[:-1], id, obj)
 
         measure.name = config.get('name', '')
 
-        return measure
+        if errors:
+            measure = None
+
+        return measure, errors
 
     def run_checks(self, workbench, **kwargs):
         """Run all measure checks.
