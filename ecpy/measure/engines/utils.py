@@ -6,8 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-# XXXX
-"""
+"""Useful tools for engines.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -24,36 +23,44 @@ from ...tasks.tools.task_database import TaskDatabase
 
 
 class MeasureSpy(Atom):
-    # XXXX here need a timer to avoid useless transfer
-    """ Spy observing a task database and sending values update into a queue.
+    """Spy observing a task database and sending values update into a queue.
+
+    All updates are sent immediatly as no issues have been detected so far.
+    Using a timer based implementation would complicate things.
 
     """
+    #: Set of entries for which to send notifications.
     observed_entries = Coerced(set)
+
+    #: Reference to the database that needs to be observed.
     observed_database = Typed(TaskDatabase)
+
+    #: Queue in which to send the updates.
     queue = Typed(Queue)
 
     def __init__(self, queue, observed_entries, observed_database):
-        super(MeasureSpy, self).__init__()
-        self.queue = queue
-        self.observed_entries = set(observed_entries)
-        self.observed_database = observed_database
+        super(MeasureSpy, self).__init__(queue=queue,
+                                         observed_database=observed_database,
+                                         observed_entries=observed_entries)
         self.observed_database.observe('notifier', self.enqueue_update)
 
     def enqueue_update(self, change):
+        """Put an update in the queue.
+
+        """
         new = change['value']
         if new[0] in self.observed_entries:
             self.queue.put_nowait(new)
 
     def close(self):
-        # Simply signal the queue the working thread that the spy won't send
-        # any more informations. But don't request the thread to exit this
-        # is the responsability of the engine.
+        """Put a dummy object signaling that no more updates will be sent.
+
+        """
         self.queue.put(('', ''))
 
 
 class ThreadMeasureMonitor(Thread):
-    # XXXX
-    """ Thread sending a queue content to the news signal of a engine.
+    """Thread sending a queue content to the news signal of an engine.
 
     """
 
@@ -63,6 +70,9 @@ class ThreadMeasureMonitor(Thread):
         self.engine = engine
 
     def run(self):
+        """Send the news received from the queue to the engine news signal.
+
+        """
         while True:
             try:
                 news = self.queue.get()
