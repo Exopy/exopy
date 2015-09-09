@@ -18,7 +18,7 @@ from enaml.widgets.api import ObjectCombo, Container
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 
 
-# XXXX would be nicer with regex but I never managed to get the regex right.
+# TODO would be nicer with regex but I never managed to get the regex right.
 def normalize_name(name):
     """Normalize names.
 

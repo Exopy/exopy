@@ -398,7 +398,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         """Refresh the list of template tasks.
 
         """
-        # XXXX rework to handle in an nicer fashion same template in multiple
+        # TODO rework to handle in an nicer fashion same template in multiple
         # folders
         templates = {}
         for path in self.templates_folders:

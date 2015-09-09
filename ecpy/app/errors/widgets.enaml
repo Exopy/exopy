@@ -115,7 +115,7 @@ enamldef BasicErrorsDisplay(Container):
         read_only = True
 
 
-# XXXX refactor later
+# TODO refactor later
 enamldef HierarchicalErrorsDisplay(Container): main:
     """
     """

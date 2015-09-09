@@ -187,7 +187,7 @@ class InterfaceableTaskMixin(InterfaceableMixin):
         and that the interface database entries are added to the task one.
 
         """
-        # XXXX Workaround Atom _DictProxy issue.
+        # HINT Workaround Atom _DictProxy issue.
         new_entries = dict(self.database_entries)
         if old:
             inter = old
@@ -245,7 +245,7 @@ class InterfaceableInterfaceMixin(InterfaceableMixin):
         the task one.
 
         """
-        # XXXX Workaround Atom _DictProxy issue.
+        # HINT Workaround Atom _DictProxy issue.
         task = self.task
         if task:
             new_entries = dict(task.database_entries)
