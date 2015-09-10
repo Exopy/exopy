@@ -497,7 +497,10 @@ class Measure(HasPrefAtom):
 
         """
         if not tool:
-            tool = self.plugin.create(kind, id)
+            try:
+                tool = self.plugin.create(kind, id)
+            except Exception:
+                logger.exception('Failed to create tool %s', id)
 
         tools = getattr(self, kind + 's').copy()
 
