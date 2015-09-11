@@ -16,7 +16,7 @@ import logging
 import os
 from functools import partial
 
-from atom.api import Typed, Unicode, List, ForwardTyped, Enum
+from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool
 
 from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
                                   make_extension_validator)
@@ -85,6 +85,9 @@ class MeasurePlugin(HasPrefPlugin):
 
     #: Default monitors to use for new measures.
     default_monitors = List().tag(pref=True)
+
+    #: Always show monitors on measure startup.
+    auto_show_monitors = Bool(True).tag(pref=True)
 
     #: List of currently available post-execution hooks.
     post_hooks = List()
@@ -158,6 +161,10 @@ class MeasurePlugin(HasPrefPlugin):
         """Stop the plugin and remove all observers.
 
         """
+        # Close the monitors window.
+        self.processor.monitors_window.hide()
+        self.processor.monitors_window.close()
+
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):
             getattr(self, '-'+contrib).stop()

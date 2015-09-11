@@ -24,10 +24,14 @@ from threading import Thread
 
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
+from enaml.widgets.api import Window
+from enaml.layout.api import InsertTab, FloatItem
 
 from .engines import BaseEngine, ExecutionInfos
 from .measure import Measure
 from ..utils.bi_flag import BitFlag
+with enaml.imports():
+    from .workspace.monitors_window import MonitorsWindow
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +63,9 @@ class MeasureProcessor(Atom):
 
     #: Boolean indicating whether or not process all enqueued measures.
     continuous_processing = Bool(True)
+
+    #: Monitors window
+    monitors_window = Typed(Window)
 
     def start_measure(self, measure):
         """Start a new measure.
@@ -189,11 +196,6 @@ class MeasureProcessor(Atom):
         # Process enqueued measure as long as we are supposed to.
         while not self._state.test('stop_processing'):
 
-            # Discard old monitors if there is any remaining.
-            if self.running_measure:
-                for monitor in self.running_measure.monitors.values():
-                    enaml.application.deferred_call(monitor.stop)
-
             # Clear the internal state to start fresh.
             self._clear_state()
 
@@ -289,12 +291,9 @@ class MeasureProcessor(Atom):
         if self._check_for_pause_or_stop():
 
             # Connect new monitors, and start them.
-            ui_plugin = self.workbench.get_plugin('enaml.workbench.ui')
-            for monitor in measure.monitors.values():
-                self.engine.observe('news', monitor.process_news)
-                monitor.start(ui_plugin.window)
+            self._start_monitors()
 
-            # Assemble the job infos for the engine to run the main task.
+            # Assemble the task infos for the engine to run the main task.
             deps = measure.dependencies
             infos = ExecutionInfos(
                 id=meas_id+'.main',
@@ -316,9 +315,7 @@ class MeasureProcessor(Atom):
             measure.task_execution_result = execution_result
 
             # Disconnect monitors.
-            engine = self._engine
-            if engine:
-                engine.unobserve('news')
+            self._stop_monitors()
 
         # Execute all post-execution hooks if pertinent.
         if not self._state.test('no_post_exec'):
@@ -420,6 +417,82 @@ class MeasureProcessor(Atom):
         self._state.clear('running_post_hooks')
 
         return result, full_report
+
+    def _start_monitors(self, measure):
+        """Start the monitors attached to a measure and display them.
+
+        If no dedicated window exists one will be created. For monitors for
+        which a dockitem already exists it is re-used.
+
+        """
+        def start_monitors(self, measure):
+
+            workbench = self.plugin.workbench
+            if not self.monitors_window:
+                ui_plugin = workbench.get_plugin('enaml.workbench.ui')
+                self.monitors_window = MonitorsWindow(ui_plugin.window)
+
+            self.monitors_window.measure = measure
+
+            dock_area = self.monitors_window.dock_area
+            anchor = ''
+            for dock_item in dock_area.dock_items():
+                if dock_item.name not in measure.monitors:
+                    dock_item.destroy()
+                elif not anchor:
+                    anchor = dock_item.name
+
+            ops = []
+            for monitor in measure.monitors.values():
+                decl = monitor.declaration
+                dock_item = dock_area.find(decl.id)
+                if dock_item is None:
+                    try:
+                        dock_item = decl.create_item(workbench, dock_area)
+                        if dock_item.float_default:
+                            ops.append(FloatItem(item=decl.id))
+                        else:
+                            ops.append(InsertTab(item=decl.id, target=anchor))
+                    except Exception:
+                        logger.error('Failed to create widget for monitor %s',
+                                     id)
+                        logger.debug(format_exc())
+                        continue
+
+                self.engine.observe('news', monitor.process_news)
+                dock_item.monitor = monitor
+                monitor.start()
+
+            dock_area.update_layout(ops)
+
+            if self.plugin.auto_show_monitors:
+                self.monitors_window.show()
+
+        # Executed in the main thread to avoid GUI update issues.
+        sheduled = enaml.application.schedule(start_monitors, (self, measure),
+                                              priority=100)
+        while sheduled.pending():
+            sleep(0.05)
+
+    def _stop_monitors(self, measure):
+        """Disconnect the monitors from the engine and stop them.
+
+        The monitors windows is not hidden as the user may want to check it
+        later.
+
+        """
+        def stop_monitors(self, measure):
+            engine = self._engine
+            if engine:
+                engine.unobserve('news')
+            for monitor in measure.monitors.values():
+                monitor.stop()
+
+        # Executed in the main thread to avoid GUI update issues.
+        sheduled = enaml.application.schedule(stop_monitors, (measure),
+                                              priority=100)
+        while sheduled.pending():
+            sleep(0.01)
 
     def _find_next_measure(self):
         """Find the next runnable measure in the queue.

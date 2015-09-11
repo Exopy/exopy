@@ -104,10 +104,9 @@ class MeasureSpace(Workspace):
         """
         plugin = self.plugin
 
-        # Close all remaining monitor if any.
-        if plugin.running_measure:
-            for monitor in plugin.running_measure.monitors.values():
-                monitor.stop()
+        # Hide the monitors window. Not closing allow to preserve the
+        # position and layout.
+        plugin.processor.monitors_window.hide()
 
         plugin.unobserve('selected_engine', self._update_engine_contribution)
 

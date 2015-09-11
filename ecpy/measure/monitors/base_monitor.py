@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import List, Bool
+from atom.api import List,  Typed, Bool
 from enaml.core.api import d_, d_func
 from enaml.widgets.api import DockItem
 
@@ -23,35 +23,26 @@ class BaseMonitor(BaseMeasureTool):
     """ Base class for all monitors.
 
     """
-    # List of database which should be observed
+    #: List of database which should be observed
     database_entries = List()
 
-    # Whether or not to show the monitor on start-up
-    auto_show = Bool(True).tag(pref=True)
-
-    def start(self, parent_ui):
+    def start(self):
         """Start the activity of the monitor.
 
-        It is the reponsability of the monitor to display any widget,
-        the provided widget can be used as parent. The auto-show member value
-        should be respected.
-
-        Parameters
-        ----------
-        parent_ui : Widget
-            Enaml widget to use as a parent for any ui to be shown.
+        When this method is called the monitor is already observing the engine
+        and connected to its view.
 
         """
-        raise NotImplementedError()
+        pass
 
     def stop(self):
         """Stop the activity of the monitor.
 
-        If the monitor opened any window it is responsability to close them at
-        this point.
+        When this method is invoked the monitor is no longer observing the
+        engine.
 
         """
-        raise NotImplementedError()
+        pass
 
     def refresh_monitored_entries(self, entries={}):
         """Refresh all the entries of the monitor.
@@ -87,28 +78,12 @@ class BaseMonitor(BaseMeasureTool):
         the measure is started. The value received will be a tuple containing
         the name of the updated database entry and its new value.
 
+        This method is susceptible to a thread that is not the GUI thread. Any
+        update of memebers that are connected to the view should be done
+        using enaml.application.deferred_call/schedule.
+
         """
         raise NotImplementedError()
-
-    def clear_state(self):
-        """Clear the monitor state.
-
-        """
-        pass
-
-    def show_monitor(self, parent_ui):
-        """Show the monitor if pertinent using the provided parent.
-
-        By default this is a no-op assuming the monitor has no ui. If a ui is
-        already active it should be a no-op or restore the monitor.
-
-        Parameters
-        ----------
-        parent_ui : enaml.widgets.Widget
-            Parent to use for the display.
-
-        """
-        pass
 
     def link_to_measure(self, measure):
         """Start observing the main task database.
@@ -120,11 +95,16 @@ class BaseMonitor(BaseMeasureTool):
                                                self.handle_database_change)
 
 
-# XXXX
 class BaseMonitorItem(DockItem):
+    """Base class for the view associated with a monitor.
+
     """
-    """
-    pass
+    #: Reference to the monitor driving this view. This is susceptible to
+    #: change during the lifetime of the widget.
+    monitor = d_(Typed(BaseMonitor))
+
+    #: Should this item be made floating by default.
+    float_default = d_(Bool())
 
 
 class Monitor(BaseToolDeclaration):
@@ -135,9 +115,11 @@ class Monitor(BaseToolDeclaration):
 
     """
 
-    # XXXX
     @d_func
-    def create_item(self, area):
-        """
+    def create_item(self, workbench, area):
+        """Create a dock item to display the informations of a monitor.
+
+        The declaration id should be used as name of the dock item.
+
         """
         raise NotImplementedError()
