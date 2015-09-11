@@ -1,0 +1,205 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Main objects used to represent all the aspects of a measure (main task,
+ attached tools, dependencies, ...)
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import (Atom, Unicode, List, Dict, Instance)
+from enaml.widgets.api import (ObjectCombo, Dialog, Container, Field, Label,
+                               PushButton)
+from enaml.layout.api import hbox, vbox, spacer
+
+from collections import Counter
+from ....utils.widgets.qt_line_completer import QtLineCompleter
+from ....utils.widgets.list_editor import ListEditor
+
+# XXXX
+class _Entry(Atom):
+    """ Simple place holder class.
+
+    """
+    # XXXX
+    entry = Unicode()
+
+    # XXXX
+    entries = List()
+
+
+# XXXX
+class _EntryBuilder(Atom):
+    """Model for entry creation dialog
+
+    Get all database entries from monitor, and build the easiest to read
+    possible list of entries mapping them to full database paths.
+
+    Parameters
+    ----------
+    monitor : TextMonitor
+        Instance of the monitor for which a new custom entry is created or an
+        existing one is edited.
+
+    new_entry : MonitoredEntry, optional
+        Custom entry being edited.
+
+    """
+    #: Mapping between user readable names and full names of database entries.
+    map_entries = Dict()
+
+    #: List of used database entries.
+    #: This is necessary to build the new entry value.
+    # XXXX need an associated signal to be used by ListEditor
+    used_entries = List()
+
+    def __init__(self, monitor, new_entry=None):
+
+        # Build easy to understand entries names from the full paths of the
+        # database.
+        entries = monitor.all_database_entries
+        short_entries = [entry.rsplit('/', 1)[1] for entry in entries]
+        depth = 2
+
+        while self._remove_duplicates(entries, short_entries, depth):
+            depth += 1
+
+        self.map_entries = {short_entries[i]: entries[i]
+                            for i in xrange(len(entries))}
+
+        # If we are editing an already existing entry get additional infos from
+        # it.
+        if new_entry:
+            aux = self.map_entries.iteritems()
+            entries = self.map_entries.keys()
+            self.used_entries = [_Entry(entry=key, entries=entries)
+                                 for key, val in aux
+                                 if val in new_entry.depend_on]
+
+    def format_(self, format_str):
+        """ Replaced simplified in a string by full path.
+
+        Only the names inside {} are replaced and the {} are conserved so that
+        further formatting can be performed directly.
+
+        Parameters
+        ----------
+        format_str : str
+            String in which the replacement fields using simple names should be
+            replaced by fields using the full path.
+
+        Returns
+        -------
+        formatted : str
+            String in which the replacement fields using simple names has been
+            replaced by fields using the full path.
+
+        """
+        mapping = self.map_entries
+        repl = {name: '{'+mapping[name]+'}'
+                for name in self.get_used_names()}
+        return format_str.format(**repl)
+
+    # XXXX  Bug was fixed so move that to an attr
+    # Kept as a function because of the QtLineCompleter.
+    def get_used_names(self):
+        """ List the simplified names of the used database entries.
+
+        """
+        return [e.entry for e in self.used_entries]
+
+    def get_used_paths(self):
+        """ List the full path of the used database entries.
+
+        """
+        mapping = self.map_entries
+        used = used_entries
+        return [mapping[e.entry] for e in used if e.entry in mapping]
+
+    @staticmethod
+    def _remove_duplicates(entries, short_entries, depth):
+        """ Create the easiest to read database entries names with no doublons.
+
+        """
+        duplicate = [e for e, count in Counter(short_entries).items()
+                     if count > 1]
+        if not duplicate:
+            return False
+
+        for entry in duplicate:
+            indexes = [i for i, x in enumerate(short_entries) if x == entry]
+            for i in indexes:
+                short_entries[i] = '/'.join(entries[i].split('/')[-depth:-1])
+
+        return True
+
+# XXXX
+enamldef _EntrySelection(ObjectCombo):
+    """ Simple custom widget to use in the EntryDialog list editor.
+
+    """
+    attr model
+    items = model.entries
+    selected := model.entry
+
+
+# XXXX
+enamldef EntryDialog(Dialog): dial:
+    """ Dialog used to build a custom user entry for a TextMonitor.
+
+    """
+    attr monitor
+    attr new_entry
+    attr builder = _EntryBuilder(monitor, new_entry)
+
+    title = 'Build your entry'
+
+    Container:
+        constraints << [vbox(hbox(name_lab, name), entries, list,
+                             hbox(for_lab, formating),
+                             hbox(spacer, cancel, ok))]
+        Label: name_lab:
+            text = 'Name'
+        Field: name:
+            hug_width = 'medium'
+
+        Label: entries:
+            text = 'Entries'
+        # XXXX
+        ListEditor(_EntrySelection): list:
+            list.model << builder
+            list.iterable_name = 'used_entries'
+            list.factory = _Entry
+            list.kwargs = {'entries' : builder.map_entries.keys()}
+
+        Label:for_lab:
+            text = 'Formatting'
+        QtLineCompleter: formating:
+            entries_updater = builder.get_used_names
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked::
+                # If we are not editing an existing MonitoredEntry creates one.
+                if not dial.new_entry:
+                    formatting = builder.format_(formating.text)
+                    dependences = builder.get_used_paths()
+                    entry = MonitoredEntry(name=name.text,
+                                           path=name.text,
+                                           formatting=formatting,
+                                           depend_on=dependences
+                                           )
+                    dial.new_entry = entry
+
+                dial.accept()
+
+        PushButton: cancel:
+                text = 'Cancel'
+                clicked::
+                    dial.reject()

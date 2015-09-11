@@ -1,0 +1,208 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+# XXXX
+"""
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from operator import attrgetter
+
+from enaml.core.api import Looper, Conditional
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Menu, Action, Container, Window,
+                               CheckBox, ObjectCombo, Dialog, Page,
+                               Label, Form, Field, GroupBox, CheckBox)
+from enaml.stdlib.message_box import question
+
+from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ....utils.widgets.qt_line_completer import QtLineCompleter
+
+from .entries import MonitoredEntry
+from .custom_entry_building import EntryDialog
+from .monitoring_rules_view import EditRulesView
+
+
+# XXXX
+enamldef TextMonitorPage(Page): dial:
+    """ Notebook page which can be used to edit a TextMonnitor.
+
+    """
+    name = 'text_monitor'
+    attr monitor
+    attr selected
+
+    title = 'Text monitor'
+
+    Container:
+        constraints << [vbox(auto,
+                             hbox(
+                                vbox(undisp_lab, undisp),
+                                vbox(disp_all, disp_one,
+                                     hide_one, hide_all, spacer),
+                                vbox(disp_lab, disp),
+                                vbox(edit_rules, manual_entries,
+                                     hbox(*cond.items), show_hidden),
+                                ),
+                            ),
+                        disp_all.width == disp_one.width,
+                        disp_one.width == hide_one.width,
+                        hide_one.width == hide_all.width]
+
+        # Auto-show parameter.
+        CheckBox: auto:
+            text = 'Show monitor on start-up'
+            checked := monitor.auto_show
+
+        # Undisplayed entries.
+        Label: undisp_lab:
+            text = 'Undisplayed entries'
+
+        QtListStrWidget: undisp:
+            items << [e.name for e in sorted(monitor.undisplayed_entries,
+                                             key=attrgetter('path'),
+                                             reverse=True)]
+            selected_item ::
+                selected = selected_item
+                disp.clear_selection()
+
+        # Displayed entries.
+        Label: disp_lab:
+            text = 'Displayed entries'
+
+        QtListStrWidget: disp:
+            items << [e.name for e in sorted(monitor.displayed_entries,
+                                             key=attrgetter('path'),
+                                             reverse=True)]
+            selected_item ::
+                selected = selected_item
+                undisp.clear_selection()
+
+        # Main buttons for changing displayed/undisplayed.
+        PushButton: disp_all:
+            text = '>>'
+            hug_width = 'strong'
+            clicked ::
+                monitor.displayed_entries += monitor.undisplayed_entries
+                monitor.undisplayed_entries = []
+                disp.refresh_items()
+
+        PushButton: disp_one:
+            text = '>'
+            hug_width = 'strong'
+            clicked ::
+                e = [e for e in monitor.undisplayed_entries
+                        if e.name == undisp.selected_item]
+                if e:
+                    monitor.displayed_entries += e
+                    monitor.undisplayed_entries.remove(e[0])
+                    disp.refresh_items()
+
+        PushButton: hide_all:
+            text = '<<'
+            hug_width = 'strong'
+            clicked ::
+                monitor.undisplayed_entries += monitor.displayed_entries
+                monitor.displayed_entries = []
+                undisp.refresh_items()
+
+        PushButton: hide_one:
+            text = '<'
+            hug_width = 'strong'
+            clicked ::
+                e = [e for e in monitor.displayed_entries
+                        if e.name == disp.selected_item]
+                if e:
+                    monitor.undisplayed_entries.append(e[0])
+                    monitor.displayed_entries.remove(e[0])
+                    undisp.refresh_items()
+
+        CheckBox: show_hidden:
+            text = 'Show hidden entries'
+            checked ::
+                if show_hidden.checked:
+                    monitor.undisplayed_entries += monitor.hidden_entries
+                    undisp.refresh_items()
+                else:
+                    monitor.undisplayed_entries[:] =\
+                        [e for e in monitor.undisplayed_entries
+                            if e not in monitor.hidden_entries]
+
+        # Special edition buttons.
+# TODO refactor
+        PushButton: edit_rules:
+            text = 'Edit rules'
+#            enabled = False
+            clicked ::
+                d = EditRulesView(parent=dial, monitor=monitor)
+                d.exec_()
+                if d.edition_performed:
+                    monitor.refresh_monitored_entries()
+
+        PushButton: manual_entries:
+            text = 'Add entry'
+            clicked ::
+                ent = EntryDialog(parent=dial,
+                                  monitor=monitor)
+                if ent.exec_():
+                    monitor.custom_entries.append(ent.new_entry)
+                    monitor.displayed_entries.append(ent.new_entry)
+
+        Conditional: cond:
+            condition << selected in monitor.custom_entries
+            PushButton:
+                text = 'Edit entry'
+                clicked ::
+                    EntryDialog(parent=dial,
+                                monitor=monitor,
+                                new_entry=selected).exec_()
+
+            PushButton:
+                text = 'Delete entry'
+                clicked::
+                    q = question(dial, 'Confirm deletion',
+                                cleandoc('''Are you sure tou want to delete the
+                                     entry {}'''.format(selected.name)))
+                    if q.action == 'accept':
+                        if selected in monitor.displayed_entries:
+                            monitor.displayed_entries.remove(selected)
+                        else:
+                            monitor.undisplayed_entries.remove(selected)
+                        monitor.custom_entries.remove(selected)
+
+
+# XXXX
+enamldef TextMonitorView(Window):
+    """ View used to display the monitor infos about the measure.
+
+    """
+    attr monitor
+
+    title = 'Text monitor'
+
+    Container:
+        constraints << [vbox(name, hbox(sta_lab, sta, spacer), form)]
+        Label: name:
+            font = 'bold 12pt'
+            text << monitor.measure_name.capitalize()
+        Label: sta_lab:
+            text = 'Status : '
+        Label: sta:
+            text << monitor.measure_status
+        Form: form:
+            Looper:
+                iterable << sorted(monitor.displayed_entries,
+                                   key=attrgetter('path'))
+                Label:
+                    hug_width = 'strong'
+                    text << loop_item.name
+                Field:
+                    read_only = True
+                    text << loop_item.value

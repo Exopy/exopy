@@ -6,11 +6,8 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""The Measure object represents all the aspects of a measure (main task
-hierarchy, attached tools, ...)
-
-This module defines the main class and convenience functions to deal with
-measures
+"""Main objects used to represent all the aspects of a measure (main task,
+ attached tools, dependencies, ...)
 
 """
 from __future__ import (division, unicode_literals, print_function,

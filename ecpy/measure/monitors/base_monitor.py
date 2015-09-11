@@ -12,7 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import List, Str, Bool
+from atom.api import List, Bool
+from enaml.core.api import d_, d_func
+from enaml.widgets.api import DockItem
 
 from ..base_tools import BaseMeasureTool, BaseToolDeclaration
 
@@ -22,7 +24,7 @@ class BaseMonitor(BaseMeasureTool):
 
     """
     # List of database which should be observed
-    database_entries = List(Str())
+    database_entries = List()
 
     # Whether or not to show the monitor on start-up
     auto_show = Bool(True).tag(pref=True)
@@ -51,15 +53,29 @@ class BaseMonitor(BaseMeasureTool):
         """
         raise NotImplementedError()
 
-    # TODO more explicit docstring
     def refresh_monitored_entries(self, entries={}):
         """Refresh all the entries of the monitor.
+
+        This is typically needed after an update of the rules.
 
         Parameters
         ----------
         entries : dict(str), optionnal
             Dict of the database entries to consider, if empty the already
             known entries will be used.
+
+        """
+        raise NotImplementedError()
+
+    def handle_database_change(self, news):
+        """Handle a modification of the database entries.
+
+        Parameters
+        ----------
+        news : tuple|list
+            Modification passed as a tuple ('added', path, value) for creation,
+            as ('renamed', old, new, value) in case of renaming,
+            ('removed', old) in case of deletion or as a list of such tuples.
 
         """
         raise NotImplementedError()
@@ -94,6 +110,22 @@ class BaseMonitor(BaseMeasureTool):
         """
         pass
 
+    def link_to_measure(self, measure):
+        """Start observing the main task database.
+
+        """
+        super(BaseMonitor, self).link_to_measure(measure)
+        if measure.root_task:
+            measure.root_task.database.observe('notifier',
+                                               self.handle_database_change)
+
+
+# XXXX
+class BaseMonitorItem(DockItem):
+    """
+    """
+    pass
+
 
 class Monitor(BaseToolDeclaration):
     """A declarative class for defining a measure monitor contribution.
@@ -101,8 +133,11 @@ class Monitor(BaseToolDeclaration):
     Monitor object can be contributed as extensions child to the
     'monitors' extension point of the 'ecpy.measure' plugin.
 
-    The name member inherited from enaml.core.Object should always be set to an
-    easily understandable name for the user.
-
     """
-    pass
+
+    # XXXX
+    @d_func
+    def create_item(self, area):
+        """
+        """
+        raise NotImplementedError()
