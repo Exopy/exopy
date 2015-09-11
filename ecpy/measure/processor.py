@@ -52,6 +52,9 @@ class MeasureProcessor(Atom):
     """Object reponsible for a measure execution.
 
     """
+    #: Boolean indicating whether or not the processor is working.
+    active = Bool()
+
     #: Reference to the measure plugin.
     plugin = ForwardTyped(plugin)
 
@@ -88,6 +91,7 @@ class MeasureProcessor(Atom):
         else:
             self._state.clear('continuous_processing')
 
+        self.active = True
         self._thread = Thread(target=self._run_measures,
                               args=(measure,))
         self._thread.start()
@@ -130,6 +134,7 @@ class MeasureProcessor(Atom):
         """
         logger.info('Stopping measure {}.'.format(self.running_measure.name))
         self._state.set('stop_attempt')
+        self.running_measure.status = 'STOPPING'
         if no_post_exec or force:
             self._state.set('no_post_exec')
 
@@ -227,8 +232,6 @@ class MeasureProcessor(Atom):
             else:
                 break
 
-            # Process the result of the measure.
-
             # Log the result.
             mess = 'Measure %s processed, status : %s' % (meas_id, status)
             if infos:
@@ -246,6 +249,7 @@ class MeasureProcessor(Atom):
             self._stop_engine()
 
         self._state.clear('processing')
+        enaml.application.deferred_call(setattr, (self, 'active', False))
 
     def _run_measure(self, measure):
         """Run a single measure.

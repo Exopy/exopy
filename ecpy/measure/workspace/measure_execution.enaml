@@ -126,6 +126,7 @@ enamldef ExecutionDockItem(DockItem):
             ed.operations = {'move': move_measure,
                              'remove': remove_measure}
 
+        # XXXX Use processor.active and state of the running measure
         PushButton: start:
             #: Flag indicating the measure is running.
             attr running << workspace.plugin.flags & MeasureFlags.processing
@@ -193,8 +194,8 @@ enamldef ExecutionDockItem(DockItem):
                 workspace.remove_processed_measures()
 
         PushButton: mon:
-            text = 'Open monitors'
-            enabled << workspace.plugin.flags & MeasureFalgs.processing
+            text = 'Show monitors'
+            enabled << workspace.plugin.processor
             clicked::
                 monitors = workspace.plugin.running_measure.monitors.values()
                 for monitor in monitors:
