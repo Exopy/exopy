@@ -195,8 +195,9 @@ enamldef ExecutionDockItem(DockItem):
 
         PushButton: mon:
             text = 'Show monitors'
-            enabled << workspace.plugin.processor
+            enabled << workspace.plugin.processor.monitors_window
             clicked::
-                monitors = workspace.plugin.running_measure.monitors.values()
-                for monitor in monitors:
-                    monitor.show_monitor(mon)
+                window = workspace.plugin.processor.monitors_window
+                window.show()
+                window.restore()
+                window.send_to_front()
