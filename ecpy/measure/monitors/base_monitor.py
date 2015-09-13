@@ -44,16 +44,17 @@ class BaseMonitor(BaseMeasureTool):
         """
         pass
 
-    def refresh_monitored_entries(self, entries={}):
+    def refresh_monitored_entries(self, entries=None):
         """Refresh all the entries of the monitor.
 
         This is typically needed after an update of the rules.
 
         Parameters
         ----------
-        entries : dict(str), optionnal
+        entries : dict[unicode], optionnal
             Dict of the database entries to consider, if empty the already
-            known entries will be used.
+            known entries will be used. Entries should be specified using their
+            full path.
 
         """
         raise NotImplementedError()
@@ -93,6 +94,16 @@ class BaseMonitor(BaseMeasureTool):
         if measure.root_task:
             measure.root_task.database.observe('notifier',
                                                self.handle_database_change)
+
+    def unlink_from_measure(self):
+        """Stop observing the main task database.
+
+        """
+        meas = self.measure
+        if meas.root_task:
+            meas.root_task.database.observe('notifier',
+                                            self.handle_database_change)
+        super(BaseMonitor, self).unlink_from_measure()
 
 
 class BaseMonitorItem(DockItem):
