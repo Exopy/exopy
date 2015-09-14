@@ -6,53 +6,17 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-# XXXX
-"""
+"""Rules allow to defines some automatic handling of database entries in the
+TextMonitor.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (Unicode, List, Bool)
-from enaml.core.api import Declarative
+from atom.api import (Unicode, Bool)
 
-from ....utils.atom_util import HasPrefAtom
-from .entries import MonitoredEntry
-
-
-class BaseRule(HasPrefAtom):
-    # XXXX
-    """
-    """
-    #: Name of the rule.
-    name = Unicode().tag(pref=True)
-
-    #: List of database entries suffixes used to identify the entries which
-    #: contributes to the rule.
-    suffixes = List(['']).tag(pref=True)
-
-    #: Name of the class used for persistence.
-    class_name = Unicode().tag(pref=True)
-
-    def try_apply(self, new_entry, monitor):
-        """ Attempt to apply the rule.
-
-        Parameters
-        ----------
-        new_entry : str
-            Database path of the newly added entry.
-
-        monitor : TextMonitor
-            Instance of the text monitor trying to apply the rule.
-
-        """
-        raise NotImplementedError()
-
-    def _default_class_name(self):
-        """ Default factory for the class_name attribute
-
-        """
-        return type(self).__name__
+from ..entries import MonitoredEntry
+from .base import BaseRule
 
 
 class RejectRule(BaseRule):
@@ -60,15 +24,15 @@ class RejectRule(BaseRule):
 
     """
     def try_apply(self, new_entry, monitor):
-        # XXXX
-        """
+        """Hide an entry if it suffix match.
+
         """
         for suffix in self.suffixes:
             if new_entry.endswith(suffix):
                 for entry in monitor.displayed_entries:
                     if entry.path == new_entry:
-                        monitor.undisplayed_entries.append(entry)
-                        monitor.displayed_entries.remove(entry)
+                        monitor.move_entries('displayed', 'undisplayed',
+                                             (new_entry,))
                         break
 
 
@@ -90,8 +54,9 @@ class FormatRule(BaseRule):
     hide_entries = Bool(True).tag(pref=True)
 
     def try_apply(self, new_entry, monitor):
-        # XXXX
-        """
+        """If all suffixes are found for a single task, create a new entry
+        and hide the components if asked to.
+
         """
         entries = monitor.database_entries
         for suffix in self.suffixes:
@@ -145,17 +110,3 @@ class FormatRule(BaseRule):
                                     break
                 else:
                     break
-
-
-# XXXX
-class Rule(Declarative):
-    """
-    """
-    pass
-
-
-# XXXX
-class RuleConfig(Declarative):
-    """
-    """
-    pass

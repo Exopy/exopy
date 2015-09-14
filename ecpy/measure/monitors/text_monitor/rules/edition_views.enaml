@@ -1,0 +1,104 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Collection of widgets used to create and edit rules.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from operator import attrgetter
+
+from enaml.core.api import Looper
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Container, CheckBox, Dialog,
+                              Label, Form, Field, ObjectCombo)
+from enaml.stdlib.mapped_view import MappedView
+
+from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ....utils.widgets.qt_line_completer import QtLineCompleter
+
+
+enamldef CreateRuleDialog(Dialog): dial:
+    """Dialog used to create a new rule.
+
+    """
+    #: Newly created rule.
+    attr rule
+
+    #: Reference to the text monitor plugin.
+    attr plugin
+
+    title = 'Create a rule'
+
+    Container:
+        constraints << [vbox(
+                        com, vbox(*v.objects),
+                        hbox(spacer, ok, cancel))
+                        ]
+
+        ObjectCombo: com:
+            items << plugin.rule_types
+            selected = None
+            selected ::
+                dial.rule = plugin.get_rule_type(selected)()
+
+        Include: v:
+            objects << [plugin.get_rule_view(dial.rule)]  if dial.rule else []
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+
+enamldef EditRulesView(Dialog): dial:
+    """Dialog to edit all the rules attached to a monitor.
+
+    """
+    #: Reference to the monitor whose rules are being edited.
+    attr monitor
+
+    title = 'Rules'
+
+    Container:
+        constraints << [vbox(
+                            hbox(qlist, vbox(*v.objects),
+                                vbox(add, edit, delete, spacer)),
+                            hbox(spacer, ex))]
+        QtListStrWidget: qlist:
+            items << monitor.rules
+            to_string = attrgetter('name')
+
+        Include: v:
+            objects << ([plugin.get_rule_view(qlist.selected)]
+                        if qlist.selected else [])
+
+        PushButton: add:
+            text = 'Add'
+            clicked ::
+                dial = CreateRuleDialog()
+                if dial.exec_():
+                    monitor.rules.append(dial.rule)
+                    qlist.refresh_items()
+
+        PushButton: delete:
+            text = 'Delete'
+            clicked ::
+                del monitor.rules[qlist.selected_index]
+                qlist.refresh_items()
+
+        PushButton: ex:
+            text = 'Close'
+            clicked ::
+                dial.accept()

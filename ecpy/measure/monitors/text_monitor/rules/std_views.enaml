@@ -1,0 +1,120 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Edition widgets for the two standard rules : reject and format
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from operator import attrgetter
+
+from enaml.core.api import Looper
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Container, CheckBox, Dialog,
+                              Label, Form, Field, ObjectCombo)
+
+from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ....utils.widgets.qt_line_completer import QtLineCompleter
+from .base_views import BaseRuleView
+
+
+enamldef RejectRuleView(BaseRuleView):
+    """Widget allowing to specify the suffix to match for a RejectRule.
+
+    """
+    layout_constraints => ():
+        return Form.layout_constraints(self)
+
+    Label:
+        text = 'Rule name'
+    Field: name:
+        text := rule.name
+    Label:
+        text = 'Suffix'
+    Field:
+        text := rule.suffixes[0]
+
+
+enamldef SuffixField(Dialog): dial:
+    """Dialog used to enter a suffix to match for a FormatRule.
+
+    """
+
+    alias suffix : field.text
+    title = 'Enter a suffix'
+
+    Container:
+        hug_height = 'strong'
+        constraints << [vbox(field, hbox(spacer, cancel, ok))]
+
+        Field: field:
+            pass
+        PushButton: ok:
+            text = 'Ok'
+            clicked :: dial.accept()
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked :: dial.reject()
+
+
+enamldef FormatRuleView(Container):
+    """Widget allowing to specify the suffixes and format for a FormatRule.
+
+    """
+    constraints = [vbox(hbox(name_lab, name),
+                        hbox(suf_lab, spacer),
+                        hbox(qt, vbox(add, edit, delete, spacer)),
+                        hbox(suff_lab, suff),
+                        hbox(for_lab, for_val)),
+                    ]
+
+    Label: name_lab:
+        hug_width = 'strong'
+        text = 'Rule name'
+    Field: name:
+        text := rule.name
+
+    Label: suf_lab:
+        hug_width = 'strong'
+        text = 'Suffixes'
+    QtListStrWidget: qt:
+        items << rule.suffixes
+
+    PushButton: add:
+        text = 'Add'
+        clicked ::
+            dial = SuffixField()
+            if dial.exec_() and dial.suffix:
+                rule.suffixes.append(dial.suffix)
+                qt.refresh_items()
+
+    PushButton: edit:
+        text = 'Edit'
+        clicked ::
+            old = qt.selected_item
+            dial = SuffixField(suffix = old)
+            if dial.exec_() and dial.suffix:
+                rule.suffixes[qt.selected_index] = dial.suffix
+
+    PushButton: delete:
+        text = 'Delete'
+        clicked :: del rule.suffixes[qt.selected_index]
+
+    Label: suff_lab:
+        hug_width = 'strong'
+        text = 'New suffix'
+    Field: suff:
+        text := rule.new_entry_suffix
+
+    Label: for_lab:
+        hug_width = 'strong'
+        text = 'Formatting'
+    QtLineCompleter: for_val:
+        text := rule.new_entry_formatting
+        entries << rule.suffixes
