@@ -70,6 +70,15 @@ class QtListStrWidget(RawWidget):
         """
         self.set_items(self.items)
 
+    def clear_selection(self):
+        """Make no item be selected.
+
+        """
+        # HINT : this only gives a visual hint to the user the selected value
+        # is not updated.
+        widget = self.get_widget()
+        widget.clearSelection()
+
     def create_widget(self, parent):
         """ Create the QListView widget.
 
