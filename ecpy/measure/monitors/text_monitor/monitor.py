@@ -226,7 +226,7 @@ class TextMonitor(BaseMonitor):
     def add_entries(self, section, entries):
         """Add entries to the specified section.
 
-        The entries should not be present in another section.
+        The entries should not be present in another section. (save hidden)
 
         Parameters
         ----------
