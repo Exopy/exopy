@@ -6,37 +6,47 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Main objects used to represent all the aspects of a measure (main task,
- attached tools, dependencies, ...)
+"""Tools to edit and create entries with a custom formatting.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
+
+from collections import Counter
 
 from atom.api import (Atom, Unicode, List, Dict, Instance)
 from enaml.widgets.api import (ObjectCombo, Dialog, Container, Field, Label,
                                PushButton)
 from enaml.layout.api import hbox, vbox, spacer
 
-from collections import Counter
 from ....utils.widgets.qt_line_completer import QtLineCompleter
 from ....utils.widgets.list_editor import ListEditor
 
-# XXXX
+
 class _Entry(Atom):
-    """ Simple place holder class.
+    """Simple place-holder class.
 
     """
-    # XXXX
+    #: Selected database entry.
     entry = Unicode()
 
-    # XXXX
+    #: All database entries that can be used.
     entries = List()
 
 
-# XXXX
+enamldef _EntrySelection(ObjectCombo):
+    """Custom ObjectCombo used to select an entry.
+
+    """
+    #: Reference to the _Entry driving the widget.
+    attr model
+
+    items = model.entries
+    selected := model.entry
+
+
 class _EntryBuilder(Atom):
-    """Model for entry creation dialog
+    """Model for entry edition dialog
 
     Get all database entries from monitor, and build the easiest to read
     possible list of entries mapping them to full database paths.
@@ -47,7 +57,7 @@ class _EntryBuilder(Atom):
         Instance of the monitor for which a new custom entry is created or an
         existing one is edited.
 
-    new_entry : MonitoredEntry, optional
+    entry : MonitoredEntry, optional
         Custom entry being edited.
 
     """
@@ -56,7 +66,6 @@ class _EntryBuilder(Atom):
 
     #: List of used database entries.
     #: This is necessary to build the new entry value.
-    # XXXX need an associated signal to be used by ListEditor
     used_entries = List()
 
     def __init__(self, monitor, new_entry=None):
@@ -83,7 +92,7 @@ class _EntryBuilder(Atom):
                                  if val in new_entry.depend_on]
 
     def format_(self, format_str):
-        """ Replaced simplified in a string by full path.
+        """ Replaced simplified names in a string by full path.
 
         Only the names inside {} are replaced and the {} are conserved so that
         further formatting can be performed directly.
@@ -106,13 +115,22 @@ class _EntryBuilder(Atom):
                 for name in self.get_used_names()}
         return format_str.format(**repl)
 
-    # XXXX  Bug was fixed so move that to an attr
-    # Kept as a function because of the QtLineCompleter.
-    def get_used_names(self):
-        """ List the simplified names of the used database entries.
+    def add_entry(self, index, pos):
+        """Add a database entry to the list of used entries.
 
         """
-        return [e.entry for e in self.used_entries]
+        new = self.used_entries[:]
+        index = index + 1 if pos == 'after' else index
+        new.insert(insert, _Entry(entries=list(self.map_entries.keys())))
+        self.used_entries = new
+
+    def remove_entry(self, index):
+        """Remove a database from the list of used entries.
+
+        """
+        new = self.used_entries[:]
+        del new[index]
+        self.used_entries = new
 
     def get_used_paths(self):
         """ List the full path of the used database entries.
@@ -124,7 +142,7 @@ class _EntryBuilder(Atom):
 
     @staticmethod
     def _remove_duplicates(entries, short_entries, depth):
-        """ Create the easiest to read database entries names with no doublons.
+        """Create the easiest to read database entries names with no doublons.
 
         """
         duplicate = [e for e, count in Counter(short_entries).items()
@@ -139,26 +157,21 @@ class _EntryBuilder(Atom):
 
         return True
 
-# XXXX
-enamldef _EntrySelection(ObjectCombo):
-    """ Simple custom widget to use in the EntryDialog list editor.
 
-    """
-    attr model
-    items = model.entries
-    selected := model.entry
-
-
-# XXXX
 enamldef EntryDialog(Dialog): dial:
     """ Dialog used to build a custom user entry for a TextMonitor.
 
     """
+    #: Reference to the monitor whose entry is edited.
     attr monitor
-    attr new_entry
+
+    #: Reference to the entry being edited.
+    attr entry
+
+    #: Model class doing the database path manipulations.
     attr builder = _EntryBuilder(monitor, new_entry)
 
-    title = 'Build your entry'
+    title = 'Edit entry' if entry else 'Create entry'
 
     Container:
         constraints << [vbox(hbox(name_lab, name), entries, list,
@@ -171,12 +184,11 @@ enamldef EntryDialog(Dialog): dial:
 
         Label: entries:
             text = 'Entries'
-        # XXXX
-        ListEditor(_EntrySelection): list:
-            list.model << builder
-            list.iterable_name = 'used_entries'
-            list.factory = _Entry
-            list.kwargs = {'entries' : builder.map_entries.keys()}
+
+        ListEditor(_EntrySelection): l_editor:
+            l_editor.model << builder
+            l_editor.iterable_name = 'used_entries'
+            l_editor.operations = {'add': }
 
         Label:for_lab:
             text = 'Formatting'
@@ -187,7 +199,7 @@ enamldef EntryDialog(Dialog): dial:
             text = 'Ok'
             clicked::
                 # If we are not editing an existing MonitoredEntry creates one.
-                if not dial.new_entry:
+                if not dial.entry:
                     formatting = builder.format_(formating.text)
                     dependences = builder.get_used_paths()
                     entry = MonitoredEntry(name=name.text,
@@ -195,7 +207,7 @@ enamldef EntryDialog(Dialog): dial:
                                            formatting=formatting,
                                            depend_on=dependences
                                            )
-                    dial.new_entry = entry
+                    dial.entry = entry
 
                 dial.accept()
 
