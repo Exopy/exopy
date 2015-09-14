@@ -6,8 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-# XXXX
-"""
+"""The text monitor displays the database values it observes in a text format.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -17,7 +16,7 @@ from ast import literal_eval
 from textwrap import fill
 
 import enaml
-from atom.api import (List, Dict, ForwardTyped)
+from atom.api import (List, Dict, ForwardTyped, Property)
 
 from ..base_monitor import BaseMonitor
 from .entries import MonitoredEntry
@@ -39,15 +38,17 @@ class TextMonitor(BaseMonitor):
 
     """
     #: List of the entries which should be displayed when a measure is running.
+    #: This should not be manipulated directly by user code.
     displayed_entries = List(MonitoredEntry)
 
     #: List of the entries which should not be displayed when a measure is
-    #: running.
+    #: running. This should not be manipulated directly by user code.
     undisplayed_entries = List(MonitoredEntry)
 
     #: List of the entries which should be not displayed when a measure is
     #: running because they would be redundant with another entry. (created by
     #: a rule for example.)
+    #: This should not be manipulated directly by user code.
     hidden_entries = List(MonitoredEntry)
 
     #: Mapping between a database entry and a list of callable used for
@@ -59,6 +60,9 @@ class TextMonitor(BaseMonitor):
 
     #: List of user created monitor entries.
     custom_entries = List(MonitoredEntry)
+
+    #: List of all the known database entries.
+    known_database_entries = Property()
 
     def process_news(self, news):
         """Handle a news by calling every related entrt updater.
@@ -93,7 +97,6 @@ class TextMonitor(BaseMonitor):
         for entry, value in entries.iteritems():
             self.handle_database_change(('added', entry, value))
 
-    # XXXX
     def handle_database_change(self, news):
         """Generate new entries for added values and clean removed values.
 
@@ -108,7 +111,7 @@ class TextMonitor(BaseMonitor):
 
             # Add a default entry to the displayed monitor entries.
             new_entry = self._create_default_entry(path, value)
-            self.displayed_entries.append(new_entry)  # XXXX GUI
+            self.add_entries('displayed', (new_entry,))
 
             # Try to apply rules.
             for rule in self.rules:
@@ -124,7 +127,7 @@ class TextMonitor(BaseMonitor):
             if hidden_custom:
                 for e in hidden_custom:
                     if all(d in self.database_entries for d in e.depend_on):
-                        self.displayed_entries.append(e)  # XXXX GUI
+                        self.add_entries('displayed', (e,))
 
         # Handle the case of a database entry being suppressed, by removing all
         # monitors entries which where depending on this entry.
@@ -220,13 +223,101 @@ class TextMonitor(BaseMonitor):
         self.undisplayed_entries = undisp
         self.hidden_entries = hidden
 
-    # XXXX
-    @property
-    def all_database_entries(self):
-        """ Getter returning all known database entries.
+    def add_entries(self, section, entries):
+        """Add entries to the specified section.
+
+        The entries should not be present in another section.
+
+        Parameters
+        ----------
+        section : {'displayed', 'undisplayed', 'hidden'}
+            Section in which to add the entries.
+
+        entry : iterable[MonitoredEntry]
+            Entries to add.
 
         """
-        return self._database_values.keys()
+        name = section+'_entries'
+        container = getattr(self, name, None)
+        if container is None:
+            raise ValueError('Section must be one of : displayed, undisplayed,'
+                             ' hidden, not %s' % section)
+
+        copy = container[:]
+        copy.extend(entries)
+
+        if section == 'displayed':
+            for e in entries:
+                self._displayed_entry_added(e)
+
+        setattr(self, name, copy)
+
+    def move_entries(self, origin, destination, entries):
+        """Move entries from a section to another.
+
+        Parameters
+        ----------
+        origin : {'displayed', 'undisplayed', 'hidden'}
+            Section in which the entries currently are.
+
+        destination : {'displayed', 'undisplayed', 'hidden'}
+            Section in which to put the entries.
+
+        entries : iterable[MonitoredEntry]
+            Entries to move.
+
+        """
+        o_name = origin+'_entries'
+        o_container = getattr(self, o_name, None)
+        if o_container is None:
+            raise ValueError('Origin must be one of : displayed, undisplayed,'
+                             ' hidden, not %s' % origin)
+
+        d_name = destination+'_entries'
+        d_container = getattr(self, d_name, None)
+        if d_container is None:
+            raise ValueError('Destination must be one of : displayed, '
+                             'undisplayed, hidden, not %s' % destination)
+
+        if origin == 'displayed':
+            for e in entries:
+                self._displayed_entry_removed(e)
+
+        if destination == 'displayed':
+            for e in entries:
+                self._displayed_entry_added(e)
+
+        setattr(self, o_name, [e for e in o_container if e not in entries])
+
+        copy = d_container[:]
+        copy.extend(entries)
+        setattr(self, d_name, copy)
+
+    def remove_entries(self, section, entries):
+        """Remove entries to the specified section.
+
+        The entries should not be present in another section.
+
+        Parameters
+        ----------
+        section : {'displayed', 'undisplayed', 'hidden'}
+            Section from which to remove the entries.
+
+        entry : iterable[MonitoredEntry]
+            Entries to remove.
+
+        """
+        name = section+'_entries'
+        container = getattr(self, name, None)
+        if container is None:
+            raise ValueError('Origin must be one of : displayed, undisplayed,'
+                             ' hidden, not %s' % section)
+
+        if section == 'displayed':
+            for e in entries:
+                self._displayed_entry_added(e)
+
+        setattr(self, name, [e for e in container if e not in entries])
 
     def add_rule_to_plugin(self, rule_name):
         """ Add a rule definition to the plugin.
@@ -298,56 +389,6 @@ class TextMonitor(BaseMonitor):
             self.custom_entries = []
             self.database_entries = []
 
-    # XXXX
-    def _observe_displayed_entries(self, change):
-        """ Observer updating internals when the displayed entries change.
-
-        This observer ensure that the list of database entries which need to
-        be monitored reflects the actual needs of the monitor and that the
-        monitor entries updaters mapping is up to date.
-
-        """
-        if change['type'] == 'update':
-            added = set(change['value']) - set(change['oldvalue'])
-            removed = set(change['oldvalue']) - set(change['value'])
-
-            for entry in removed:
-                self._displayed_entry_removed(entry)
-            for entry in added:
-                self._displayed_entry_added(entry)
-
-        elif change['type'] == 'container':
-            op = change['operation']
-            if op in ('__iadd__', 'append', 'extend', 'insert'):
-                if 'item' in change:
-                    self._displayed_entry_added(change['item'])
-                if 'items' in change:
-                    for entry in change['items']:
-                        self._displayed_entry_added(entry)
-
-            elif op in ('__delitem__', 'remove', 'pop'):
-                if 'item' in change:
-                    self._displayed_entry_removed(change['item'])
-                if 'items' in change:
-                    for entry in change['items']:
-                        self._displayed_entry_removed(entry)
-
-            elif op in '__setitem__':
-                old = change['olditem']
-                if isinstance(old, list):
-                    for entry in old:
-                        self._displayed_entry_removed(entry)
-                else:
-                    self._displayed_entry_removed(old)
-
-                new = change['newitem']
-                if isinstance(new, list):
-                    for entry in new:
-                        self._displayed_entry_added(entry)
-                else:
-                    self._displayed_entry_added(new)
-
-    # XXXX
     def _displayed_entry_added(self, entry):
         """ Tackle the addition of a displayed monitor entry.
 
@@ -371,7 +412,6 @@ class TextMonitor(BaseMonitor):
             if dependence not in self.database_entries:
                 self.database_entries.append(dependence)
 
-    # XXXX
     def _displayed_entry_removed(self, entry):
         """ Tackle the deletion of a displayed monitor entry.
 
@@ -392,3 +432,9 @@ class TextMonitor(BaseMonitor):
             if not self.updaters[dependence]:
                 del self.updaters[dependence]
                 self.database_entries.remove(dependence)
+
+    def _get_known_database_entries(self):
+        """Getter for the known_database_entries property.
+
+        """
+        return self._database_values.keys()
