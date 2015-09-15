@@ -6,35 +6,25 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Main objects used to represent all the aspects of a measure (main task,
- attached tools, dependencies, ...)
+"""Manifest of the plugin handling the storing of rules for the TextMonitor.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import logging
-from atom.api import Str, List, Subclass, Dict
 
-from enaml.workbench.api import PluginManifest, Extension
-from hqc_meas.utils.preferences.api import Preferences
+from atom.api import List, Subclass, Dict
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+
+from ....app.preferences.api import Preferences
 from ..base_monitor import Monitor
-
+from .rules.base import Rules, RuleType, RuleConfig
 
 # =============================================================================
 # --- Factories ---------------------------------------------------------------
 # =============================================================================
 
-# XXXX
-def monitor_factory(declaration, workbench, raw=False):
-    """ Factory function returning anew TextMonitor instance.
-
-    """
-    plugin = workbench.get_plugin(u'hqc_meas.measure.monitors.text_monitor')
-    return plugin.create_monitor(raw)
-
-
-# XXXX
 def plugin_factory():
     """ Plugin factory for the TextMonitoprPlugin.
 
@@ -44,27 +34,91 @@ def plugin_factory():
 
 
 # =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+RULES_TYPE_DESCRIPTION =\
+'''Plugins can contribute RuleType to this point to add new kind of rules to
+the TextMonitor.'''
+
+
+RULES_CONFIG_DESCRIPTION =\
+'''Plugins can contribute RuleConfig to this point to add defaults
+parametrisation of rules to the TextMonitor. NB : if a user customize such a
+rule it will always be preferred to a default implementation.'''
+
+
+# =============================================================================
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
-# XXXX
-enamldef TextMonitorManifest(PluginManifest):
+
+enamldef TextMonitorManifest(PluginManifest): man:
+    """Plugin handling the storing of rules for the TextMonitor.
+
     """
-    """
-    id = u'hqc_meas.measure.monitors.text_monitor'
+    id = 'ecpy.measure.monitors.text_monitor'
     factory = plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'rules.type'
+        description = RULES_TYPE_DESCRIPTION
+    ExtensionPoint:
+        id = 'rules.config'
+        description = RULES_CONFIG_DESCRIPTION
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
     Extension:
         id = 'monitors'
-        point = u'hqc_meas.measure.monitors'
+        point = 'ecpy.measure.monitors'
         Monitor:
-            id = u'hqc_meas.measure.monitors.text_monitor'
-            name = 'Text monitor'
-            description = u'Monitor displaying infos as text.'
-            factory = monitor_factory
+            id = 'Text monitor'
+            description = 'Monitor displaying infos as text.'
+
+            new => (workbench, default=True):
+                plugin_id = 'ecpy.measure.monitors.text_monitor'
+                plugin = workbench.get_plugin(plugin_id)
+                return plugin.create_monitor(default)
 
     Extension:
         id = 'prefs'
-        point = u'hqc_meas.preferences.pref_plugin'
+        point = 'ecpy.app.preferences.plugin'
         Preferences:
-            pass
+            pass  # TODO add rules edition panel to the preference edition.
 
-    # TODO add contribution to the menus.
+    Extension:
+        id = 'rule_types'
+        point = man.id + '.rules.type'
+        Rules:
+            path = 'ecpy.measure.monitors.text_monitor.rules'
+            RuleType:
+                rule = 'std_rules:RejectRule'
+                view = 'std_views:RejectRuleView'
+
+            RuleType:
+                rule = 'std_rules:FormatRule'
+                view = 'std_views:FormatRuleView'
+
+    Extension:
+        id = 'rule_configs'
+        point = man.id + '.rules.config'
+        RuleConfig:
+            id = 'Measure entries'
+            description = 'Reject all the entries provided by the measure'
+            rule_type = 'ecpy.RejectRule'
+            config = {'suffixes': ['meas_name', 'meas_id', 'meas_date']}
+
+        RuleConfig:
+            id = 'Loop progress'
+            description = ('Format the index and number of point of LoopTask '
+                           'in a progression {index}/{number}')
+            rule_type = 'ecpy.FormatRule'
+            config = {'suffixes': ['index', 'point_number'],
+                      'new_entry_formatting': '{index}/{point_number}',
+                      'new_entry_suffix': 'progress'}

@@ -20,7 +20,7 @@ from .base import BaseRule
 
 
 class RejectRule(BaseRule):
-    """Automatically remove an entry given the specified suffixes.
+    """Automatically remove an entry matching one of the specified suffixes.
 
     """
     def try_apply(self, new_entry, monitor):

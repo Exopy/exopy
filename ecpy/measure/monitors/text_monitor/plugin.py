@@ -23,9 +23,9 @@ from .monitor import TextMonitor
 from .rules.base import RuleType, Rules, RuleConfig
 
 
-RULE_TYPE_POINT = 'ecpy.measure.monitors.text_monitor.rule_type'
+RULE_TYPE_POINT = 'ecpy.measure.monitors.text_monitor.rules.type'
 
-RULE_CONFIG_POINT = 'ecpy.measure.monitors.text_monitor.rule_config'
+RULE_CONFIG_POINT = 'ecpy.measure.monitors.text_monitor.rules.config'
 
 logger = logging.getLogger(__name__)
 
