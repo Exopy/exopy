@@ -62,9 +62,26 @@ def make_handler(id, method_name):
     return handler
 
 
-def make_extension_validator(base_cls, fn_names, attributes=('description',)):
+def make_extension_validator(base_cls, fn_names=(),
+                             attributes=('description',)):
     """Create an extension validation function checking that key methods were
     overridden and attributes values provided.
+
+    Parameters
+    ----------
+    base_cls : type
+        Base class from which the contribution should inherit.
+
+    fn_names : iterable[unicode], optional
+        Names of the function the extensions must override.
+
+    attributes : iterable[unicode], optional
+        Names of the attributes the extension should provide values for.
+
+    Returns
+    -------
+    validator : function
+        Function that can be used to validate an extension contribution.
 
     """
     def validator(contrib):
@@ -111,7 +128,7 @@ class BaseCollector(Atom):
     """Base class for automating extension collection.
 
     """
-    #: Refrence to the application workbench.
+    #: Reference to the application workbench.
     workbench = Typed(Workbench)
 
     #: Id of the extension point to observe.
