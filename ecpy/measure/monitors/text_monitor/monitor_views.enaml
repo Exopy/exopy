@@ -16,17 +16,14 @@ from operator import attrgetter
 
 from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import (PushButton, Menu, Action, Container, Window,
-                               CheckBox, ObjectCombo, Dialog, Page,
-                               Label, Form, Field, GroupBox, CheckBox)
+from enaml.widgets.api import (PushButton, Container, CheckBox, Label, Field,
+                               CheckBox)
 from enaml.stdlib.message_box import question
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
-from ....utils.widgets.qt_line_completer import QtLineCompleter
 from ..base_monitor import BaseMonitorItem
-from .entries import MonitoredEntry
 from .custom_entry_building import EntryDialog
-from .monitoring_rules_view import EditRulesView
+from .rules.edition_views import EditRulesView
 
 
 enamldef TextMonitorEdit(Container): main:

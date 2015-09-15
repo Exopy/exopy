@@ -12,12 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from operator import attrgetter
-
-from enaml.core.api import Looper
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import (PushButton, Container, CheckBox, Dialog,
-                              Label, Form, Field, ObjectCombo)
+from enaml.widgets.api import (PushButton, Container, Dialog, Label, Form,
+                               Field)
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 from ....utils.widgets.qt_line_completer import QtLineCompleter
@@ -63,7 +60,7 @@ enamldef SuffixField(Dialog): dial:
             clicked :: dial.reject()
 
 
-enamldef FormatRuleView(Container):
+enamldef FormatRuleView(BaseRuleView):
     """Widget allowing to specify the suffixes and format for a FormatRule.
 
     """

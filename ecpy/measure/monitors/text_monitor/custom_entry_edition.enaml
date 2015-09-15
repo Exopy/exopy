@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from collections import Counter
 
-from atom.api import (Atom, Unicode, List, Dict, Instance)
+from atom.api import (Atom, Unicode, List, Dict)
 from enaml.widgets.api import (ObjectCombo, Dialog, Container, Field, Label,
                                PushButton)
 from enaml.layout.api import hbox, vbox, spacer

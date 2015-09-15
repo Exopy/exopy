@@ -14,14 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import attrgetter
 
-from atom.api import List
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.validator import Validator
 from enaml.widgets.api import (PushButton, Container, Dialog, CheckBox,
-                              Label, Field, ObjectCombo, MultilineField)
+                               ObjectCombo)
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
-from ....utils.widgets.qt_line_completer import QtLineCompleter
 
 
 enamldef CreateRuleDialog(Dialog): dial:
