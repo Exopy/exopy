@@ -12,12 +12,77 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from enaml.widgets.api import Container
+from atom.api import Coerced, set_default
+from enaml.validator import Validator
+from enaml.layout.api import hbox, spacer
+from enaml.widgets.api import (Container, Label, Field, PushButton,
+                               PopupView, MultilineField)
 
 
-class BaseRuleView(Container):
+class RuleIdValidator(Validator):
+    """Validator checking that the name provided by the user does not
+    already exist.
+
+    """
+    #: Already existing rule ids.
+    ids = Coerced(set)
+
+    #: Message displayed when the input is invalid.
+    message = set_default('The entered rule id already exists')
+
+    def validate(self, text):
+        """Check that the proposed id does not already exist.
+
+        """
+        return text in ids
+
+
+enamldef DescriptionEditionPopup(PopupView): view:
+    """Popup view used to edit the description of a rule.
+
+    """
+    #: Reference to the rule whose description is being edited.
+    attr rule
+
+    close_on_click = False
+
+    Container:
+
+        MultilineField:
+            text = rule.description
+
+        PushButton:
+            text = 'Close'
+            clicked ::
+                view.close()
+
+
+enamldef BaseRuleView(Container):
     """Base class for defining custom widgets to edit a rule.
 
     """
+    #: Reference to teh TextMonitor plugin.
+    attr plugin
+
     #: Reference to the rule driving this view.
     attr rule
+
+    #: Alias allowing to include the standard group used to edit common rule
+    #: attributes.
+    alias name_and_desc : cont
+
+    Container:
+
+        constraints = [hbox(n_lab, n_val, spacer, desc)]
+
+        Label: n_lab:
+            text = 'Id'
+
+        Field:
+            text := rule.id
+            validator << RuleIdValidator(ids=plugin.rules)
+
+        PushButton: desc:
+            text = 'Description'
+            clicked ::
+                DescriptionEditionPopup(rule=rule).show()

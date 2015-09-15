@@ -32,7 +32,10 @@ class BaseRule(HasPrefAtom):
 
     """
     #: Name of the rule.
-    name = Unicode().tag(pref=True)
+    id = Unicode().tag(pref=True)
+
+    #: Quick description of what this rule is intended for.
+    description = d_(Unicode()).tag(pref=True)
 
     #: List of database entries suffixes used to identify the entries which
     #: contributes to the rule.
@@ -197,6 +200,12 @@ class RuleConfig(Declarative):
     is defined.
 
     """
+    #: Id of this rule configuration this should be unique.
+    id = d_(Unicode())
+
+    #: Quick description of what this rule is intended for.
+    description = d_(Unicode())
+
     #: Id of the rule to use. This is dot separated string containing the
     #: name of the package defining the rule type and the rule type name.
     rule_type = d_(Unicode())

@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import attrgetter
 
-from enaml.core.api import Looper
+from atom.api import List
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import (PushButton, Container, CheckBox, Dialog,
-                              Label, Form, Field, ObjectCombo)
-from enaml.stdlib.mapped_view import MappedView
+from enaml.validator import Validator
+from enaml.widgets.api import (PushButton, Container, Dialog, CheckBox,
+                              Label, Field, ObjectCombo, MultilineField)
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 from ....utils.widgets.qt_line_completer import QtLineCompleter
@@ -49,11 +49,18 @@ enamldef CreateRuleDialog(Dialog): dial:
                 dial.rule = plugin.get_rule_type(selected)()
 
         Include: v:
-            objects << [plugin.get_rule_view(dial.rule)]  if dial.rule else []
+            objects << ([plugin.get_rule_view(dial.rule.class_id)]
+                        if dial.rule else []):
+
+        CheckBox: sav:
+            text = 'Save in plugin'
 
         PushButton: ok:
             text = 'Ok'
+            enabled << 1
             clicked ::
+                if sav.checked:
+                    plugin.save_rule(rule)
                 dial.accept()
 
         PushButton: cancel:
@@ -74,7 +81,7 @@ enamldef EditRulesView(Dialog): dial:
     Container:
         constraints << [vbox(
                             hbox(qlist, vbox(*v.objects),
-                                vbox(add, edit, delete, spacer)),
+                                vbox(add, edit, delete, save, spacer)),
                             hbox(spacer, ex))]
         QtListStrWidget: qlist:
             items << monitor.rules
@@ -97,6 +104,20 @@ enamldef EditRulesView(Dialog): dial:
             clicked ::
                 del monitor.rules[qlist.selected_index]
                 qlist.refresh_items()
+
+        PushButton: save:
+            text = 'Save'
+            tool_tip = 'Save the rule definition into the preferences'
+            Menu:
+                Action:
+                    text = 'Save'
+                    triggered ::
+                        plugin.save_rule(qlist.selected)
+                Action:
+                    text = 'Save and add to default'
+                    triggered ::
+                        plugin.save_rule(qlist.selected)
+                        plugin.default_rules.append(qlist.selected.id)
 
         PushButton: ex:
             text = 'Close'

@@ -319,29 +319,6 @@ class TextMonitor(BaseMonitor):
 
         setattr(self, name, [e for e in container if e not in entries])
 
-    def add_rule_to_plugin(self, rule_name):
-        """ Add a rule definition to the plugin.
-
-        Parameters
-        ----------
-        rule_name : unicode
-            Name of the rule whose description should be added to the plugin.
-            If the rule is already known (same name) this is a no-op.
-
-        """
-        plugin = self._plugin
-        if rule_name in self._plugin.rules:
-            return
-
-        config = {}
-        for rule in self.rules:
-            if rule.name == rule_name:
-                config = rule.preferences_from_members()
-                break
-
-        if config:
-            plugin.rules[rule_name] = config
-
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
