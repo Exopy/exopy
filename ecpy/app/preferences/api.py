@@ -12,6 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .app_extensions import AppStartup, AppClosing, AppClosed
+from .preferences.preferences import Preferences
 
-__all__ = ['AppStartup', 'AppClosing', 'AppClosed']
+__all__ = ['Preferences']

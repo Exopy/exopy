@@ -6,12 +6,13 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""All possible contributions to plugin of the app package.
+"""A measure monitor is used to follow the measure progress. It can simply
+displays some database values or request the plotting of some data.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .app_extensions import AppStartup, AppClosing, AppClosed
+from .base_monitor import BaseMonitor, Monitor
 
-__all__ = ['AppStartup', 'AppClosing', 'AppClosed']
+__all__ = ['BaseMonitor', 'Monitor']

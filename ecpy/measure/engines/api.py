@@ -6,12 +6,13 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""All possible contributions to plugin of the app package.
+"""Engines are responsible for the execution of tasks.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .app_extensions import AppStartup, AppClosing, AppClosed
+from .base_editors import BaseEngine, Engine, TaskInfos
 
-__all__ = ['AppStartup', 'AppClosing', 'AppClosed']
+
+__all__ = ['BaseEngine', 'Engine', 'TaskInfos']

@@ -6,12 +6,16 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""All possible contributions to plugin of the app package.
+"""Measure hooks are used to add actions performed before and after a
+measure is run.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .app_extensions import AppStartup, AppClosing, AppClosed
+from .base_hooks import (BasePreExecutionHook, BasePostExecutionHook,
+                         PreExecutionHook, PostExecutionHook)
 
-__all__ = ['AppStartup', 'AppClosing', 'AppClosed']
+
+__all__ = ['BasePreExecutionHook', 'BasePostExecutionHook',
+           'PreExecutionHook', 'PostExecutionHook']
