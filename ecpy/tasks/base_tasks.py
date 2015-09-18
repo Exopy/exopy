@@ -59,7 +59,7 @@ class BaseTask(Atom):
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 
     #: Name of the class, used for persistence.
-    task_class = Unicode().tag(pref=True)
+    class_id = Unicode().tag(pref=True)
 
     #: Name of the task this should be unique in hierarchy.
     name = Unicode().tag(pref=True)
@@ -518,11 +518,12 @@ class BaseTask(Atom):
         else:
             self.perform_ = perform_func
 
-    def _default_task_class(self):
+    def _default_class_id(self):
         """Default value for the task_class member.
 
         """
-        return self.__class__.__name__
+        pack, _ = self.__module__.__name__.split('.', 1)
+        return pack + '.' + type(self).__name__
 
     def _post_setattr_database_entries(self, old, new):
         """Update the database content each time the database entries change.

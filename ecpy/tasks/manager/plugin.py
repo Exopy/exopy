@@ -129,13 +129,14 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         Parameters
         ----------
-        filter_name : unicode, optional
+        filter : unicode, optional
             Name of the filter to use
 
         Returns
         -------
-        tasks : list(str) or None
-            Tasks selected by the filter, or None if the filter does not exist.
+        tasks : list(unicode) or None
+            Task ids selected by the filter, or None if the filter does not
+            exist.
 
         """
         t_filter = self._filters.contributions.get(filter)
@@ -149,7 +150,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         task : unicode
-            Name of the task class for which to return the actual class.
+            Id of the task class for which to return the actual class.
 
         Returns
         -------
@@ -169,7 +170,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         task : unicode
-            Name of the task class for which to return the actual class.
+            Id of the task class for which to return the actual class.
 
         view : bool, optional
             Whether or not to return the view assoicated with the task.
@@ -197,7 +198,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         tasks : list(unicode)
-            Names of the task classes for which to return the actual classes.
+            Ids of the task classes for which to return the actual classes.
 
         Returns
         -------

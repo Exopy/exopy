@@ -26,8 +26,8 @@ def normalize_name(name):
     For templates, only the extension file is removed.
 
     """
-    if name.endswith('.ini'):
-        name, _ = name.split('.', 1)
+    if name.endswith('.task.ini'):
+        name, _, _ = name.rsplit('.', 2)
         return name.capitalize()
 
     if name.endswith('Task'):

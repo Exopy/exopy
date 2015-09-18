@@ -59,11 +59,13 @@ class Task(Declarator):
 
     """
     #: Path to the task object. Path should be dot separated and the class
-    #: name preceded by ':'. If only the task name is provided it will be used
-    #: to update the corresponding TaskInfos (only instruments and interfaces
-    #: can be updated that way).
+    #: name preceded by ':'.
     #: ex: ecpy.tasks.tasks.logic.loop_task:LoopTask
     #: The path of any parent GroupDeclarator object will be prepended to it.
+    #: To update existing TaskInfos (only instruments and interfaces can be
+    #: updated that way), one can specify the name of the top level package
+    #: in which the task is defined followed by its name.
+    #: ex: ecpy.LoopTask
     task = d_(Unicode())
 
     #: Path to the view object associated with the task.
@@ -84,18 +86,21 @@ class Task(Declarator):
         Interface children are also registered.
 
         """
+        # Build the task id by assembling the package name and the class name
+        task_id = self._make_task_id()
+
         # If the task only specifies a name update the matching infos.
-        if ':' not in self.task and '.' not in self.task:
+        if ':' not in self.task:
             if self.task not in collector.contributions:
                 collector._delayed.append(self)
                 return
 
-            infos = collector.contributions[self.task]
+            infos = collector.contributions[task_id]
             infos.instruments.update(self.instruments)
 
             check = check_children(self)
             if check:
-                traceback[self.task] = check
+                traceback[task_id] = check
                 return
 
             for i in self.children:
@@ -112,21 +117,17 @@ class Task(Declarator):
                             if path else self.view).split(':')
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
-            if ':' in self.task:
-                err_id = self.task.split(':')[1]
-                msg = msg % ('view', self.view)
-            else:
-                err_id = 'Error %d' % len(traceback)
-                msg = msg % ('task', self.task)
+            err_id = t_path.split('.', 1)[0] + '.' + task
+            msg = msg % ('view', self.view)
 
             traceback[err_id] = msg
             return
 
         # Check that the task does not already exist.
-        if task in collector.contributions or task in traceback:
+        if task_id in collector.contributions or task_id in traceback:
             i = 1
             while True:
-                err_id = '%s_duplicate%d' % (task, i)
+                err_id = '%s_duplicate%d' % (task_id, i)
                 if err_id not in traceback:
                     break
 
@@ -141,15 +142,15 @@ class Task(Declarator):
             infos.cls = getattr(import_module(t_path), task)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[task] = msg.format(t_path, format_exc())
+            traceback[task_id] = msg.format(t_path, format_exc())
             return
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
-            traceback[task] = msg.format(t_path, task, format_exc())
+            traceback[task_id] = msg.format(t_path, task, format_exc())
             return
         except TypeError:
             msg = '{} should a subclass of BaseTask.\n{}'
-            traceback[task] = msg.format(task, format_exc())
+            traceback[task_id] = msg.format(task, format_exc())
             return
 
         # Get the task view.
@@ -158,26 +159,26 @@ class Task(Declarator):
                 infos.view = getattr(import_module(v_path), view)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[task] = msg.format(v_path, format_exc())
+            traceback[task_id] = msg.format(v_path, format_exc())
             return
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
-            traceback[task] = msg.format(v_path, view, format_exc())
+            traceback[task_id] = msg.format(v_path, view, format_exc())
             return
         except TypeError:
             msg = '{} view should a subclass of BaseTaskView.\n{}'
-            traceback[task] = msg.format(task, format_exc())
+            traceback[task_id] = msg.format(task, format_exc())
             return
 
         # Check children type.
         check = check_children(self)
         if check:
-            traceback[task] = check
+            traceback[task_id] = check
             return
 
         # Add group and add to collector
         infos.metadata['group'] = self.get_group()
-        collector.contributions[task] = infos
+        collector.contributions[task_id] = infos
 
         # Register children.
         for i in self.children:
@@ -203,9 +204,9 @@ class Task(Declarator):
                 return
 
             # Remove infos.
-            task = self.task.split(':')[1]
+            task_id = self._make_task_id()
             try:
-                del collector.contributions[task]
+                del collector.contributions[task_id]
             except KeyError:
                 pass
 
@@ -222,6 +223,23 @@ class Task(Declarator):
         return msg.format(type(self).__name__, self.task, self.view,
                           self.metadata, self.instruments,
                           '\n'.join(' - {}'.format(c) for c in self.children))
+
+    def _make_task_id(self):
+        """Create the unique identifier of the task using the top level package
+        and the class name.
+
+        """
+        if ':' in self.task:
+            path = self.get_path()
+            t_path, task = (path + '.' + self.task
+                            if path else self.task).split(':')
+
+            # Build the task id by assembling the package name and the class
+            # name
+            return t_path.split('.', 1)[0] + '.' + task
+
+        else:
+            return self.task
 
 
 class Interfaces(GroupDeclarator):
