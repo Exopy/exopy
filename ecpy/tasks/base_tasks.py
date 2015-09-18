@@ -59,7 +59,7 @@ class BaseTask(Atom):
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 
     #: Name of the class, used for persistence.
-    class_id = Unicode().tag(pref=True)
+    task_id = Unicode().tag(pref=True)
 
     #: Name of the task this should be unique in hierarchy.
     name = Unicode().tag(pref=True)
@@ -518,7 +518,7 @@ class BaseTask(Atom):
         else:
             self.perform_ = perform_func
 
-    def _default_class_id(self):
+    def _default_task_id(self):
         """Default value for the task_class member.
 
         """

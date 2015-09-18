@@ -17,7 +17,7 @@ from traceback import format_exc
 from inspect import cleandoc
 
 from future.utils import python_2_unicode_compatible
-from atom.api import Unicode, List, Value, Dict
+from atom.api import Unicode, List, Value, Dict, Property
 from enaml.core.api import d_
 import enaml
 
@@ -78,6 +78,9 @@ class Task(Declarator):
     #: List of supported driver names.
     instruments = d_(List())
 
+    #: Id of the task computed from the top-level package and the task name
+    id = Property(cached=True)
+
     def register(self, collector, traceback):
         """Collect task and view and add infos to the DeclaratorCollector
         contributions member.
@@ -87,7 +90,7 @@ class Task(Declarator):
 
         """
         # Build the task id by assembling the package name and the class name
-        task_id = self._make_task_id()
+        task_id = self.id
 
         # If the task only specifies a name update the matching infos.
         if ':' not in self.task:
@@ -204,7 +207,7 @@ class Task(Declarator):
                 return
 
             # Remove infos.
-            task_id = self._make_task_id()
+            task_id = self.id
             try:
                 del collector.contributions[task_id]
             except KeyError:
@@ -224,7 +227,7 @@ class Task(Declarator):
                           self.metadata, self.instruments,
                           '\n'.join(' - {}'.format(c) for c in self.children))
 
-    def _make_task_id(self):
+    def _get_id(self):
         """Create the unique identifier of the task using the top level package
         and the class name.
 
@@ -271,8 +274,8 @@ class Interface(Declarator):
     views = d_(Value())
 
     #: Name of the task/interfaces to which this interface contribute. If this
-    #: interface contributes to a task then the task name is enough, if it
-    #: contributes to an interface a list with the names of the tasks and all
+    #: interface contributes to a task then the task id is enough, if it
+    #: contributes to an interface a list with the ids of the tasks and all
     #: intermediate interfaces should be provided.
     #: When declared as a child of a Task/Interface the names are inferred from
     #: the parents.
@@ -280,6 +283,9 @@ class Interface(Declarator):
 
     #: List of supported driver names.
     instruments = d_(List())
+
+    #: Id of the interface computed from the parents ids and the task name.
+    id = Property(cached=True)
 
     def register(self, collector, traceback):
         """Collect interface and views and add infos to the collector.
@@ -289,15 +295,16 @@ class Interface(Declarator):
         if self.extended:
             pass
         elif isinstance(self.parent, Task):
-            self.extended = [self.parent.task.split(':')[-1]]
+            self.extended = [self.parent.id]
         elif isinstance(self.parent, Interface):
             parent = self.parent
-            self.extended = parent.extended + [parent.interface.split(':')[-1]]
+            self.extended = (parent.extended +
+                             [parent.interface.rsplit(':', 1)[-1]])
         else:
             msg = 'No task/interface declared for {}'
-            interface = self.interface.split(':')[-1]
-            traceback[interface] = msg.format(interface)
+            traceback[self.interface] = msg.format(self.interface)
             return
+
         # Get access to parent infos.
         try:
             parent_infos = collector.contributions[self.extended[0]]
@@ -318,7 +325,7 @@ class Interface(Declarator):
 
             check = check_children(self)
             if check:
-                traceback[self.interface] = check
+                traceback[self.id] = check
                 return
 
             for i in self.children:
@@ -343,20 +350,18 @@ class Interface(Declarator):
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
             if self.interface.count(':') == 1:
-                err_id = self.interface.split(':')[1]
                 msg = msg % ('views', self.views)
             else:
-                err_id = 'Error %d' % len(traceback)
                 msg = msg % ('interface', self.interface)
 
-            traceback[err_id] = msg
+            traceback[self.id] = msg
             return
 
         # Check that the interface does not already exists.
-        if interface in parent_infos.interfaces or interface in traceback:
+        if interface in parent_infos.interfaces or self.id in traceback:
             i = 1
             while True:
-                err_id = '%s_duplicate%d' % (interface, i)
+                err_id = '%s_duplicate%d' % (self.id, i)
                 if err_id not in traceback:
                     break
 
@@ -371,15 +376,15 @@ class Interface(Declarator):
             infos.cls = getattr(import_module(i_path), interface)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[interface] = msg.format(i_path, format_exc())
+            traceback[self.id] = msg.format(i_path, format_exc())
             return
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
-            traceback[interface] = msg.format(i_path, interface, format_exc())
+            traceback[self.id] = msg.format(i_path, interface, format_exc())
             return
         except TypeError:
             msg = 'Interface {} should a subclass of BaseInterface.\n{}'
-            traceback[interface] = msg.format(interface, format_exc())
+            traceback[self.id] = msg.format(interface, format_exc())
             return
 
         # Get the views.
@@ -391,17 +396,17 @@ class Interface(Declarator):
                 infos.views = cls
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[interface] = msg.format(v_path, format_exc())
+            traceback[self.id] = msg.format(v_path, format_exc())
             return
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
-            traceback[interface] = msg.format(v_path, view, format_exc())
+            traceback[self.id] = msg.format(v_path, view, format_exc())
             return
 
         # Check children type.
         check = check_children(self)
         if check:
-            traceback[interface] = check
+            traceback[self.id] = check
             return
 
         parent_infos.interfaces[interface] = infos
@@ -454,6 +459,15 @@ class Interface(Declarator):
                           self.extended, self.instruments,
                           '\n'.join(' - {}'.format(c) for c in self.children))
 
+    def _get_id(self):
+        """Create the unique identifier of the interface using the parents ids
+        and the class name.
+
+        """
+        i_name = (self.interface.rsplit(':', 1)[1] if ':' in self.interface
+                  else self.interface)
+        return '.'.join(self.extended + [i_name])
+
 
 class TaskConfigs(GroupDeclarator):
     """GroupDeclarator for task configs.
@@ -477,8 +491,11 @@ class TaskConfig(Declarator):
     #: The path of any parent GroupDeclarator object will be prepended to it.
     view = d_(Unicode())
 
-    #: Name of the task class for which this configurer should be used.
+    #: Id of the task class for which this configurer should be used.
     task = d_(Unicode())
+
+    #: Id of the config computed from the top-level package and the config name
+    id = Property(cached=True)
 
     def register(self, collector, traceback):
         """Collect config and view and add infos to the DeclaratorCollector
@@ -495,7 +512,7 @@ class TaskConfig(Declarator):
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
             if ':' in self.config:
-                err_id = self.config.split(':')[1]
+                err_id = self.id
                 msg = msg % ('view', self.view)
             else:
                 err_id = 'Error %d' % len(traceback)
@@ -505,7 +522,7 @@ class TaskConfig(Declarator):
             return
 
         if not self.task:
-            traceback[config] = 'Missing supported task.'
+            traceback[self.id] = 'Missing supported task.'
 
         # Check that the configurer does not already exist.
         if config in traceback:
@@ -521,7 +538,7 @@ class TaskConfig(Declarator):
 
         if self.task in collector.contributions:
             msg = 'Duplicate definition for {}, found in {}'
-            traceback[config] = msg.format(self.task, c_path)
+            traceback[self.id] = msg.format(self.task, c_path)
             return
 
         infos = ConfigInfos()
@@ -531,15 +548,15 @@ class TaskConfig(Declarator):
             infos.cls = getattr(import_module(c_path), config)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[config] = msg.format(c_path, format_exc())
+            traceback[self.id] = msg.format(c_path, format_exc())
             return
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
-            traceback[config] = msg.format(c_path, config, format_exc())
+            traceback[self.id] = msg.format(c_path, config, format_exc())
             return
         except TypeError:
             msg = '{} should a subclass of BaseTaskConfig.\n{}'
-            traceback[config] = msg.format(config, format_exc())
+            traceback[self.id] = msg.format(config, format_exc())
             return
 
         # Get the config view.
@@ -548,15 +565,15 @@ class TaskConfig(Declarator):
                 infos.view = getattr(import_module(v_path), view)
         except ImportError:
             msg = 'Failed to import {} :\n{}'
-            traceback[config] = msg.format(v_path, format_exc())
+            traceback[self.id] = msg.format(v_path, format_exc())
             return
         except AttributeError:
             msg = '{} config no attribute {}:\n{}'
-            traceback[config] = msg.format(v_path, view, format_exc())
+            traceback[self.id] = msg.format(v_path, view, format_exc())
             return
         except TypeError:
             msg = '{} view should a subclass of BaseConfigView.\n{}'
-            traceback[config] = msg.format(config, format_exc())
+            traceback[self.id] = msg.format(config, format_exc())
             return
 
         collector.contributions[self.task] = infos
@@ -583,3 +600,20 @@ class TaskConfig(Declarator):
                        config: {}, view : {}, task: {}''')
         return msg.format(type(self).__name__, self.config, self.view,
                           self.task)
+
+    def _get_id(self):
+        """Create the unique identifier of the task using the top level package
+        and the class name.
+
+        """
+        if ':' in self.config:
+            path = self.get_path()
+            c_path, config = (path + '.' + self.config
+                              if path else self.config).split(':')
+
+            # Build the task id by assembling the package name and the class
+            # name
+            return c_path.split('.', 1)[0] + '.' + config
+
+        else:
+            return self.config

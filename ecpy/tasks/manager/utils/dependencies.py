@@ -25,7 +25,7 @@ def collect_task(workbench, obj, getter, dependencies, errors):
     # plugin
     manager = workbench.get_plugin('ecpy.tasks')
 
-    t_cls_name = getter(obj, 'task_class')
+    t_cls_name = getter(obj, 'task_id')
     t_infos = manager.get_task_infos(t_cls_name)
 
     if t_infos is None:
@@ -45,7 +45,7 @@ def collect_interface(workbench, obj, getter, dependencies, errors):
     # plugin
     manager = workbench.get_plugin('ecpy.tasks')
 
-    interface_anchor = getter(obj, 'interface_class')
+    interface_anchor = getter(obj, 'interface_id')
     if not isinstance(interface_anchor, tuple):
         interface_anchor = literal_eval(interface_anchor)
 

@@ -280,7 +280,7 @@ class BaseInterface(HasPrefAtom):
 
     #: Name of the class of the interface and anchor (ie task or interface with
     #: this interface is used with). Used for persistence purposes.
-    interface_class = Tuple().tag(pref=True)
+    interface_id = Tuple().tag(pref=True)
 
     #: Dict of database entries added by the interface.
     database_entries = Dict()
@@ -362,8 +362,8 @@ class TaskInterface(BaseInterface):
         """Update the interface anchor when the task is set.
 
         """
-        self.interface_class = ((type(self).__name__, (new.task_class,)) if new
-                                else ())
+        self.interface_id = ((type(self).__name__, (new.task_id,)) if new
+                             else ())
 
 
 class IInterface(BaseInterface):
@@ -388,10 +388,10 @@ class IInterface(BaseInterface):
 
         """
         if new:
-            self.interface_class = (type(self).__name__,
-                                    self.parent.interface_class[1] +
-                                    (self.parent.interface_class[0],))
+            self.interface_id = (type(self).__name__,
+                                 self.parent.interface_id[1] +
+                                 (self.parent.interface_id[0],))
         else:
-            self.interface_class = (type(self).__name__,)
+            self.interface_id = (type(self).__name__,)
         task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
         task_member.reset(self)

@@ -68,7 +68,7 @@ class LoopTaskConfig(PyTaskConfig):
 
         """
         if new:
-            conf, view = self.manager.get_config(new)
+            conf, view = self.manager.get_config(new.task_id)
             conf.task_name = self.task_name
             view.loop = True
             conf.observe('ready', self._new_subconfig_status)

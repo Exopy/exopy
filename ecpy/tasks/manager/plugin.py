@@ -320,13 +320,13 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return interfaces_cls, missing
 
-    def get_config(self, task):
+    def get_config(self, task_id):
         """Access the proper config for a task.
 
         Parameters
         ----------
-        task : unicode or type
-            Name or class of the task for which a config is required
+        task : unicode
+           Id of the task for which a config is required
 
         Returns
         -------
@@ -335,21 +335,18 @@ class TaskManagerPlugin(HasPrefPlugin):
             visualisation.
 
         """
-        if isinstance(task, type):
-            task = task.__name__
-
         templates = self.templates
-        if task in templates:
+        if task_id in templates:
             infos = configs = self._configs.contributions['__template__']
             config = infos.cls(manager=self,
-                               template_path=templates[task])
+                               template_path=templates[task_id])
             return config, infos.view(config=config)
 
-        elif task in self._tasks.contributions:
+        elif task_id in self._tasks.contributions:
             configs = self._configs.contributions
             # Look up the hierarchy of the selected task to get the appropriate
             # TaskConfig
-            task_class = self._tasks.contributions[task].cls
+            task_class = self._tasks.contributions[task_id].cls
             for t_class in (t.__name__ for t in type.mro(task_class)):
                 if t_class in configs:
                     infos = configs[t_class]
