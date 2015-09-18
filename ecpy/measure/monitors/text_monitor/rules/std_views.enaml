@@ -13,8 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import (PushButton, Container, Dialog, Label, Form,
-                               Field)
+from enaml.widgets.api import PushButton, Container, Dialog, Label, Field
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 from ....utils.widgets.qt_line_completer import QtLineCompleter
@@ -25,16 +24,11 @@ enamldef RejectRuleView(BaseRuleView):
     """Widget allowing to specify the suffix to match for a RejectRule.
 
     """
-    layout_constraints => ():
-        return Form.layout_constraints(self)
+    constraints = [vbox(name_and_desc, (hbox(sufix_lab, sufix_val)))]
 
-    Label:
-        text = 'Rule name'
-    Field: name:
-        text := rule.name
-    Label:
+    Label: sufix_lab:
         text = 'Suffix'
-    Field:
+    Field: sufix_val:
         text := rule.suffixes[0]
 
 
@@ -64,18 +58,12 @@ enamldef FormatRuleView(BaseRuleView):
     """Widget allowing to specify the suffixes and format for a FormatRule.
 
     """
-    constraints = [vbox(hbox(name_lab, name),
+    constraints = [vbox(name_and_desc,
                         hbox(suf_lab, spacer),
                         hbox(qt, vbox(add, edit, delete, spacer)),
                         hbox(suff_lab, suff),
                         hbox(for_lab, for_val)),
                     ]
-
-    Label: name_lab:
-        hug_width = 'strong'
-        text = 'Rule name'
-    Field: name:
-        text := rule.name
 
     Label: suf_lab:
         hug_width = 'strong'
