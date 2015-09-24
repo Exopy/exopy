@@ -16,6 +16,7 @@ import pytest
 import enaml
 from enaml.workbench.api import Workbench
 from configobj import ConfigObj
+from future.utils import python_2_unicode_compatible
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -24,12 +25,43 @@ with enaml.imports():
     from .dependencies_utils import (BuildDep, RuntimeDep)
 
 
+ANALYSE = 'ecpy.app.dependencies.analyse'
+
+VALIDATE = 'ecpy.app.dependencies.validate'
+
 COLLECT = 'ecpy.app.dependencies.collect'
+
+RELEASE = 'ecpy.app.dependencies.release_runtimes'
+
+
+# =============================================================================
+# --- Fixtures ----------------------------------------------------------------
+# =============================================================================
+
+@pytest.yield_fixture
+def dep_workbench():
+    """Setup the workbench to test dependencies related capabilities.
+
+    """
+    workbench = Workbench()
+    workbench.register(CoreManifest())
+    workbench.register(DependenciesManifest())
+    workbench.register(BuildDep())
+    workbench.register(RuntimeDep())
+
+    yield workbench
+
+    workbench.unregister('ecpy.app.dependencies')
+    workbench.unregister('enaml.workbench.core')
 
 
 @pytest.fixture
 def dependent_object():
+    """Access an instance of an object having dependencies.
 
+    """
+
+    @python_2_unicode_compatible
     class Obj(object):
 
         dep_type = 'test'
@@ -41,259 +73,420 @@ def dependent_object():
         def traverse(self):
             yield self
 
+        def __str__(self):
+            return 'Test_object'
+
     return Obj()
 
 
-class TestCollectingFromObject(object):
-    """Test collecting dependencies of live objects.
+@pytest.fixture
+def build_deps(dep_workbench, dependent_object):
+    """Get the build dependencies of a dependent_object.
 
     """
-
-    def setup(self):
-
-        self.workbench = Workbench()
-        self.workbench.register(CoreManifest())
-        self.workbench.register(DependenciesManifest())
-        self.workbench.register(BuildDep())
-        self.workbench.register(RuntimeDep())
-
-    def teardown(self):
-        self.workbench.unregister('ecpy.app.dependencies')
-        self.workbench.unregister('enaml.workbench.core')
-
-    def test_collecting_build(self, dependent_object):
-        """Test collecting only the build dependencies.
-
-        """
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object})
-        assert not dep.errors
-        assert dep.dependencies.keys() == ['test']
-
-    def test_collecting_runtime(self, dependent_object):
-        """Test collecting only the runtime dependencies.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-        assert not dep.errors
-        assert dep.dependencies.keys() == ['test_run']
-
-    def test_collecting_unavailable_runtime(self, dependent_object,
-                                            monkeypatch):
-        """Test collecting only the runtime dependencies.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-
-        for r in plugin.run_deps.contributions.values():
-            monkeypatch.setattr(r, 'una', True)
-
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-        assert not dep.errors
-        assert dep.unavailable['test_run'] == {'run'}
-
-    def test_collecting_all(self, dependent_object):
-        """Test collecting all dependencies.
-
-        """
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        b_dep, r_dep = core.invoke_command(COLLECT,
-                                           {'obj': dependent_object,
-                                            'dependencies': ['build',
-                                                             'runtime'],
-                                            'owner': 'ecpy.test'})
-
-        assert not b_dep.errors and not r_dep.errors
-        assert b_dep.dependencies.keys() == ['test']
-        assert r_dep.dependencies.keys() == ['test_run']
-
-    def test_handling_errors(self, monkeypatch, dependent_object):
-        """Test handling errors occuring when collecting dependencies.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-
-        for b in plugin.build_deps.contributions.values():
-            monkeypatch.setattr(b, 'err', True)
-
-        for r in plugin.run_deps.contributions.values():
-            monkeypatch.setattr(r, 'err', True)
-
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        b_dep, r_dep = core.invoke_command(COLLECT,
-                                           {'obj': dependent_object,
-                                            'dependencies': ['build',
-                                                             'runtime'],
-                                            'owner': 'ecpy.test'})
-
-        assert 'test' in b_dep.errors and 'test_run' in r_dep.errors
-
-    def test_handling_missing_caller(self, dependent_object):
-        """Test handling a missing caller when runtime dependencies are
-        requested.
-
-        """
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime']})
-        assert 'owner' in dep.errors
-
-    def test_handling_unknown_dep_type(self, dependent_object):
-        """Test handling an unknown dep_type.
-
-        """
-        dependent_object.dep_type = 'Unknown'
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object})
-        assert 'Unknown' in dep.errors
-
-    def test_handling_missing_runtime_collector(self, monkeypatch,
-                                                dependent_object):
-        """Test handling an unknown dep_type.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-
-        for b in plugin.build_deps.contributions.values():
-            monkeypatch.setattr(b, 'run', ('unkwown',))
-
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': object()})
-        assert 'runtime' in dep.errors
-
-    def test_requesting_runtimes(self, dependent_object):
-        """Test requesting runtimes dependencies.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
-                                  {'dependencies': dep.dependencies,
-                                   'owner': plugin.manifest.id},
-                                  )
-
-        assert dep.dependencies['test_run']['run'] == 1
-
-    def test_requesting_runtimes_missing(self, monkeypatch, dependent_object):
-        """Test requesting runtimes dependencies when a collector is missing.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-
-        for r in plugin.run_deps.contributions.values():
-            monkeypatch.setattr(r, 'err', True)
-        dep.dependencies['test_missing'] = {}
-        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
-                                  {'dependencies': dep.dependencies,
-                                   'owner': plugin.manifest.id},
-                                  )
-
-        assert 'test_run' in dep.errors
-        assert 'test_missing' in dep.errors
-
-    def test_requesting_runtimes_unavailable(self, monkeypatch,
-                                             dependent_object):
-        """Test requesting runtimes dependencies when a dependency is
-        unavailable.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-
-        for r in plugin.run_deps.contributions.values():
-            monkeypatch.setattr(r, 'una', True)
-
-        dep = core.invoke_command('ecpy.app.dependencies.request_runtimes',
-                                  {'dependencies': dep.dependencies,
-                                   'owner': plugin.manifest.id},
-                                  )
-
-        assert 'test_run' in dep.unavailable
-
-    def test_releasing_runtimes(self, dependent_object):
-        """Test releasing runtime dependencies.
-
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT, {'obj': dependent_object,
-                                            'dependencies': ['runtime'],
-                                            'owner': plugin.manifest.id},
-                                  )
-        # Ensure that an unknown runtime won't crash
-        dep.dependencies['rr'] = {}
-        core.invoke_command('ecpy.app.dependencies.release_runtimes',
-                            {'dependencies': dep.dependencies,
-                             'owner': plugin.manifest.id},
-                            )
-
-        assert 'run' not in dep.dependencies['test_run']
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object})
+    return dep.dependencies
 
 
-class TestCollectingFromConfig(object):
-    """Test collecting dependencies from ConfigObj object.
+@pytest.fixture
+def runtime_deps(dep_workbench, dependent_object):
+    """Get the runtime dependencies of a dependent_object.
 
     """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object,
+                                        'dependencies': ['runtime']}
+                              )
+    return dep.dependencies
 
-    def setup(self):
 
-        self.workbench = Workbench()
-        self.workbench.register(CoreManifest())
-        self.workbench.register(DependenciesManifest())
-        self.workbench.register(BuildDep())
+# =============================================================================
+# --- Analysing ---------------------------------------------------------------
+# =============================================================================
 
-    def teardown(self):
-        self.workbench.unregister('ecpy.app.dependencies')
-        self.workbench.unregister('enaml.workbench.core')
+def test_analysing_build(dep_workbench, dependent_object):
+    """Test analysing only the build dependencies.
 
-    def test_collecting(self):
-        """Test collecting from a dict-like object.
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object})
+    assert not dep.errors
+    assert 'test' in dep.dependencies
+    assert 'r' in dep.dependencies['test']
 
-        """
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT,
-                                  {'obj': ConfigObj({'val': '1',
-                                                     'dep_type': 'test'})}
-                                  )
-        assert dep.dependencies.keys() == ['test']
 
-    def test_handling_errors(self, monkeypatch):
-        """Test handling errors occuring when collecting dependencies.
+def test_analysing_build_from_config(dep_workbench):
+    """Test analysing the build dependencies based on a ConfigObj.
 
-        """
-        plugin = self.workbench.get_plugin('ecpy.app.dependencies')
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE,
+                              {'obj': ConfigObj({'val': '1',
+                                                 'dep_type': 'test'})}
+                              )
+    assert not dep.errors
+    assert 'test' in dep.dependencies
+    assert '1' in dep.dependencies['test']
 
-        for b in plugin.build_deps.contributions.values():
-            monkeypatch.setattr(b, 'err', True)
 
-        core = self.workbench.get_plugin('enaml.workbench.core')
-        dep = core.invoke_command(COLLECT,
-                                  {'obj': ConfigObj({'val': '1',
-                                                     'dep_type': 'test'})}
-                                  )
+def test_analysing_runtime(dep_workbench, dependent_object):
+    """Test analysing only the runtime dependencies.
 
-        assert 'test' in dep.errors
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object,
+                                        'dependencies': ['runtime']}
+                              )
+    assert not dep.errors
+    assert 'test_run' in dep.dependencies
+    assert 2 in dep.dependencies['test_run']
+
+
+def test_analysing_all(dep_workbench, dependent_object):
+    """Test analysing all dependencies.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep, r_dep = core.invoke_command(ANALYSE,
+                                       {'obj': dependent_object,
+                                        'dependencies': ['build',
+                                                         'runtime']})
+
+    assert not b_dep.errors and not r_dep.errors
+    assert 'test' in b_dep.dependencies
+    assert 'test_run' in r_dep.dependencies
+
+
+def test_handling_analysing_errors(dep_workbench, dependent_object):
+    """Test handling errors occuring when analysing dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'err', True)
+
+    for r in plugin.run_deps.contributions.values():
+        setattr(r, 'err', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep, r_dep = core.invoke_command(ANALYSE,
+                                       {'obj': dependent_object,
+                                        'dependencies': ['build',
+                                                         'runtime']})
+
+    assert 'test' in b_dep.errors and 'test_run' in r_dep.errors
+    assert b_dep.errors['test'].get('Test_object')
+    assert r_dep.errors['test_run'].get('Test_object')
+
+
+def test_handling_analysing_exception_in_build(dep_workbench,
+                                               dependent_object):
+    """Test handling errors occuring when analysing dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'exc', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep, r_dep = core.invoke_command(ANALYSE,
+                                       {'obj': dependent_object,
+                                        'dependencies': ['build',
+                                                         'runtime']})
+
+    assert 'test' in b_dep.errors
+    assert 'unhandled' in b_dep.errors['test']
+
+
+def test_handling_analysing_exception_in_runtime(dep_workbench,
+                                                 dependent_object):
+    """Test handling errors occuring when analysing dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for r in plugin.run_deps.contributions.values():
+        setattr(r, 'exc', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep, r_dep = core.invoke_command(ANALYSE,
+                                       {'obj': dependent_object,
+                                        'dependencies': ['build',
+                                                         'runtime']})
+
+    assert 'test_run' in r_dep.errors
+    assert 'unhandled' in r_dep.errors['test_run']
+
+
+def test_handling_missing_build_analyser(dep_workbench, dependent_object):
+    """Test analysing the dependencies of an object whose dep_type match
+    no known collector.
+
+    """
+    dependent_object.dep_type = 'new'
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object})
+    assert 'new' in dep.errors
+
+
+def test_handling_missing_runtime_analyser(dep_workbench, dependent_object):
+    """Test analysing the dependencies of an object for which a runtime
+    collector is missing.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'run', ['dummy'])
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object,
+                                        'dependencies': ['runtime']})
+
+    assert 'runtime' in dep.errors and 'dummy' in dep.errors['runtime']
+
+
+# =============================================================================
+# --- Validating --------------------------------------------------------------
+# =============================================================================
+
+def test_validating_build(dep_workbench, build_deps):
+    """Test validating build dependencies.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    res, err = core.invoke_command(VALIDATE, {'kind': 'build',
+                                              'dependencies': build_deps})
+
+    assert res
+
+
+def test_validating_runtime(dep_workbench, runtime_deps):
+    """Test validating runtime dependencies.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    res, err = core.invoke_command(VALIDATE, {'kind': 'runtime',
+                                              'dependencies': runtime_deps})
+
+    assert res
+
+
+def test_validating_with_wrong_kind(dep_workbench):
+    """Test handling of incorrect kind argument.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    with pytest.raises(ValueError):
+        res, err = core.invoke_command(VALIDATE, {'kind': 'test',
+                                                  'dependencies': {}})
+
+
+def test_handling_validating_errors(dep_workbench, build_deps):
+    """Test reporting errors.
+
+    """
+    build_deps['test'].add('t')
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    res, err = core.invoke_command(VALIDATE, {'kind': 'build',
+                                              'dependencies': build_deps})
+
+    assert not res
+    assert 't' in err['test']
+
+
+def test_handling_validating_exceptions(dep_workbench, build_deps):
+    """Test dealing with unhandled exceptions.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'exc', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    res, err = core.invoke_command(VALIDATE, {'kind': 'build',
+                                              'dependencies': build_deps})
+
+    assert not res
+
+
+def test_handling_missing_validator(dep_workbench, build_deps):
+    """Test handling a missing validator
+
+    """
+    build_deps['dummy'] = set()
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    res, err = core.invoke_command(VALIDATE, {'kind': 'build',
+                                              'dependencies': build_deps})
+
+    assert not res
+
+
+# =============================================================================
+# --- Collecting --------------------------------------------------------------
+# =============================================================================
+
+def test_collecting_build(dep_workbench, build_deps):
+    """Test collecting build dependencies.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(COLLECT, {'kind': 'build',
+                                        'dependencies': build_deps})
+
+    assert dep.dependencies['test']['r'] is object
+    assert not dep.errors
+
+
+def test_collecting_runtime(dep_workbench, runtime_deps):
+    """Test collecting runtime dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(COLLECT, {'kind': 'runtime',
+                                        'dependencies': runtime_deps,
+                                        'owner': plugin.manifest.id})
+
+    assert dep.dependencies['test_run']['run'] == 1
+    assert not dep.errors
+
+
+def test_collecting_unavailable_runtime(dep_workbench, runtime_deps):
+    """Test collecting unavailable runtimes.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+
+    for r in plugin.run_deps.contributions.values():
+        setattr(r, 'una', True)
+
+    dep = core.invoke_command(COLLECT, {'kind': 'runtime',
+                                        'dependencies': runtime_deps,
+                                        'owner': plugin.manifest.id},
+                              )
+    assert not dep.errors
+    assert dep.unavailable['test_run'] == {'run'}
+
+
+def test_handling_collection_errors(dep_workbench, build_deps):
+    """Test handling errors occuring when collecting dependencies.
+
+    """
+    build_deps['test'].add('t')
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep = core.invoke_command(COLLECT,
+                                {'kind': 'build',
+                                 'dependencies': build_deps,
+                                 'owner': 'ecpy.test'})
+
+    assert 't' in b_dep.errors['test']
+
+
+def test_handling_collection_exceptions_in_build(dep_workbench, build_deps):
+    """Test handling errors occuring when collecting dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'exc', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    b_dep = core.invoke_command(COLLECT,
+                                {'kind': 'build',
+                                 'dependencies': build_deps,
+                                 'owner': 'ecpy.test'})
+
+    assert 'test' in b_dep.errors
+
+
+def test_handling_collection_exceptions_in_runtime(dep_workbench,
+                                                   runtime_deps):
+    """Test handling errors occuring when collecting dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+
+    for r in plugin.run_deps.contributions.values():
+        setattr(r, 'exc', True)
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    r_dep = core.invoke_command(COLLECT,
+                                {'kind': 'runtime',
+                                 'dependencies': runtime_deps,
+                                 'owner': 'ecpy.test'})
+
+    assert 'test_run' in r_dep.errors
+
+
+def test_handling_missing_caller(dep_workbench, runtime_deps):
+    """Test handling a missing caller when runtime dependencies are
+    requested.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(COLLECT, {'kind': 'runtime',
+                                        'dependencies': runtime_deps})
+    assert 'owner' in dep.errors
+
+
+def test_handling_missing_collector(dep_workbench, build_deps):
+    """Test handling an unknown collector.
+
+    """
+    build_deps['dummy'] = set()
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(COLLECT, {'kind': 'build',
+                                        'dependencies': build_deps})
+    assert 'dummy' in dep.errors
+
+
+def test_collecting_with_wrong_kind(dep_workbench):
+    """Test handling of incorrect kind argument.
+
+    """
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    with pytest.raises(ValueError):
+        res, err = core.invoke_command(COLLECT, {'kind': 'test',
+                                                 'dependencies': {}})
+
+
+# =============================================================================
+# --- Releasing ---------------------------------------------------------------
+# =============================================================================
+
+def test_releasing_runtimes(dep_workbench, runtime_deps):
+    """Test releasing runtime dependencies.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(COLLECT, {'kind': 'runtime',
+                                        'dependencies': runtime_deps,
+                                        'owner': plugin.manifest.id},
+                              )
+    # Ensure that an unknown runtime won't crash
+    dep.dependencies['rr'] = {}
+    core.invoke_command(RELEASE,
+                        {'dependencies': dep.dependencies,
+                         'owner': plugin.manifest.id},
+                        )
+
+    assert 'run' not in dep.dependencies['test_run']
+
+
+# =============================================================================
+# --- API ---------------------------------------------------------------
+# =============================================================================
+
+def test_importing_api():
+    """Test importing the definitions found in the api.py file.
+
+    """
+    from ecpy.app.dependencies import api
+    assert api.__all__

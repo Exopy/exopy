@@ -12,12 +12,13 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Typed
-from enaml.workbench.api import Plugin
 from operator import getitem
 from collections import defaultdict
+from traceback import format_exc
 
 from configobj import Section
+from atom.api import Atom, Typed
+from enaml.workbench.api import Plugin
 
 from ...utils.configobj_ops import traverse_config
 from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
@@ -152,8 +153,8 @@ class DependenciesPlugin(Plugin):
         builds = self.build_deps.contributions
         runtimes = self.run_deps.contributions
 
-        build_deps = BuildContainer(dependecies=defaultdict(set))
-        runtime_deps = RuntimeContainer(dependecies=defaultdict(set))
+        build_deps = BuildContainer(dependencies=defaultdict(set))
+        runtime_deps = RuntimeContainer(dependencies=defaultdict(set))
         need_runtime = 'runtime' in dependencies
 
         for component in gen:
@@ -164,9 +165,16 @@ class DependenciesPlugin(Plugin):
                 msg = 'No matching collector for dep_type : {}'
                 build_deps.errors[dep_type] = msg.format(dep_type)
                 break
-            run_ids = collector.analyse(self.workbench, component, getter,
-                                        build_deps.dependencies[collector.id],
-                                        build_deps.errors[collector.id])
+
+            c_id = collector.id
+            try:
+                run_ids = collector.analyse(self.workbench, component, getter,
+                                            build_deps.dependencies[c_id],
+                                            build_deps.errors[c_id])
+            except Exception:
+                build_deps.errors[c_id] =\
+                    'An unhandled exception occured : \n%s' % format_exc()
+                break
 
             if need_runtime and run_ids:
                 if any(r not in runtimes for r in run_ids):
@@ -175,9 +183,14 @@ class DependenciesPlugin(Plugin):
                     runtime_deps.errors['runtime'] = msg % missings
                     break
                 for r in run_ids:
-                    runtimes[r].analyse(self.workbench, component,
-                                        getter, runtime_deps.dependencies[r],
-                                        runtime_deps.errors[r])
+                    try:
+                        runtimes[r].analyse(self.workbench, component, getter,
+                                            runtime_deps.dependencies[r],
+                                            runtime_deps.errors[r])
+                    except Exception:
+                        runtime_deps.errors[r] =\
+                            ('An unhandled exception occured : \n%s' %
+                             format_exc())
 
         if 'build' in dependencies and 'runtime' in dependencies:
             build_deps.clean()
@@ -223,14 +236,18 @@ class DependenciesPlugin(Plugin):
             raise ValueError("kind argument must be 'build' or 'runtime' not :"
                              " %s" % kind)
 
-        for id in dependencies:
-            if id not in validators:
+        for dep_id in dependencies:
+            if dep_id not in validators:
                 msg = 'No validator found for this kind of dependence.'
-                container.errors[id] = msg
+                container.errors[dep_id] = msg
                 continue
-
-            validators[id].validate(self.workbench, dependencies[id],
-                                    container.errors[id])
+            try:
+                validators[dep_id].validate(self.workbench,
+                                            dependencies[dep_id],
+                                            container.errors[dep_id])
+            except Exception:
+                container.errors[dep_id] =\
+                    'An unhandled exception occured :\n%s' % format_exc()
 
         container.clean()
         return not container.errors, container.errors
@@ -263,14 +280,21 @@ class DependenciesPlugin(Plugin):
             the requested dependencies.
 
         """
+        dependencies = {k: dict.fromkeys(v)
+                        for k, v in dependencies.iteritems()}
+
         if kind == 'build':
             collectors = self.build_deps.contributions
             container = BuildContainer()
 
             def collect(dep_id):
-                collectors[dep_id].collect(self.workbench,
-                                           dependencies[dep_id],
-                                           container.errors[dep_id])
+                try:
+                    collectors[dep_id].collect(self.workbench,
+                                               dependencies[dep_id],
+                                               container.errors[dep_id])
+                except Exception:
+                    container.errors[dep_id] =\
+                        'An unhandled exception occured :\n%s' % format_exc()
 
         elif kind == 'runtime':
             collectors = self.run_deps.contributions
@@ -279,14 +303,18 @@ class DependenciesPlugin(Plugin):
                 dependencies = ()
                 msg = ('A owner plugin must be specified when collecting '
                        'runtime dependencies.')
-                collectors.errors['owner'] = msg
+                container.errors['owner'] = msg
                 # Next part is skipped as dependencies is empty
 
             def collect(dep_id):
-                collectors[dep_id].collect(self.workbench, owner,
-                                           dependencies[dep_id],
-                                           container.unavailable[dep_id],
-                                           container.errors[dep_id])
+                try:
+                    collectors[dep_id].collect(self.workbench, owner,
+                                               dependencies[dep_id],
+                                               container.unavailable[dep_id],
+                                               container.errors[dep_id])
+                except Exception:
+                    container.errors[dep_id] =\
+                        'An unhandled exception occured :\n%s' % format_exc()
 
         else:
             raise ValueError("kind argument must be 'build' or 'runtime' not :"
@@ -299,6 +327,9 @@ class DependenciesPlugin(Plugin):
                 continue
 
             collect(dep_id)
+
+        if dependencies:
+            container.dependencies = dependencies
 
         container.clean()
         return container
