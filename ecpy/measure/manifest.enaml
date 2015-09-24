@@ -16,7 +16,8 @@ from enaml.stdlib.message_box import warning
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 from enaml.workbench.ui.api import ActionItem
 
-from ..app.api import AppClosing, Preferences
+from ..app.api import AppClosing
+from ..app.preferences.api import Preferences
 
 from .engines import ProcessEngine
 from .editors import Editor

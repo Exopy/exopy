@@ -12,6 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .errors.errors import ErrorHandler
+from .errors import ErrorHandler
 
 __all__ = ['ErrorHandler']

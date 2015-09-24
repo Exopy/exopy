@@ -229,3 +229,15 @@ def test_reporting_multiple_extension_errors(workbench):
 
     with pytest.raises(Exception):
         handler.handle(workbench, {})
+
+
+# =============================================================================
+# --- API import --------------------------------------------------------------
+# =============================================================================
+
+def test_api_import():
+    """Test importing the api module.
+
+    """
+    from ecpy.app.errors import api
+    assert api.__all__

@@ -12,6 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .preferences.preferences import Preferences
+from .preferences import Preferences
 
 __all__ = ['Preferences']

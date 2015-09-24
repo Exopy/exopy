@@ -90,3 +90,15 @@ class TestState(object):
 
         self.workbench.unregister(u'test.states')
         assert not state.alive
+
+
+# =============================================================================
+# --- API import --------------------------------------------------------------
+# =============================================================================
+
+def test_api_import():
+    """Test importing the api module.
+
+    """
+    from ecpy.app.states import api
+    assert api.__all__

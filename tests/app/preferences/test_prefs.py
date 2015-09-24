@@ -371,3 +371,15 @@ class TestPreferencesPlugin(object):
         assert contrib.string == 'test'
         assert self.workbench.get_plugin(PLUGIN_ID).last_directory == \
             prefs_path
+
+
+# =============================================================================
+# --- API import --------------------------------------------------------------
+# =============================================================================
+
+def test_api_import():
+    """Test importing the api module.
+
+    """
+    from ecpy.app.preferences import api
+    assert api.__all__
