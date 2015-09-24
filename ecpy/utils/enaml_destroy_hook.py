@@ -6,17 +6,14 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Definition of the base views for the tasks.
-
-If need be one can inherit from an enamldef class to build a new class using
-class.
+"""Mixin class to provide declarative finalization customisations capabilities.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from atom.api import Event
-from enaml.declarative.api import Declarative, d_
+from enaml.core.api import Declarative, d_
 
 
 class DestroyHook(Declarative):
