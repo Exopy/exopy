@@ -35,6 +35,7 @@ class BitFlag(object):
         self._events = {}
         self._lock = RLock()
         self._state = 0
+        return self
 
     def set(self, *flags):
         """Set specified flags.
@@ -53,10 +54,10 @@ class BitFlag(object):
     def clear(self, *flags):
         """Clear the specified flags.
 
-        If a flag is already cleared this is a no-op. If a thread is waiting
-        on a flag clearing, it gets notified.
+        If a flag is already cleared this is a no-op.
 
         """
+        flags = flags if flags else self.flags
         with self._lock:
             for f in flags:
                 self._state &= ~self._flags[f]
@@ -65,10 +66,10 @@ class BitFlag(object):
         """Test is all specified flags are set.
 
         """
-        res = False
+        res = True
         with self._lock:
             for f in flags:
-                res &= self._state & f
+                res &= bool(self._state & self._flags[f])
 
         return res
 
@@ -96,10 +97,10 @@ class BitFlag(object):
                 if not self.test(f):
                     if f not in self._events:
                         self._events[f] = Event()
-                    events = self._events[f]
+                    events.append(self._events[f])
 
-        res = True
-        for e in events:
-            res &= e.wait(timeout)
+            res = True
+            for e in events:
+                res &= e.wait(timeout)
 
         return res
