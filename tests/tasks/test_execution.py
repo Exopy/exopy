@@ -52,22 +52,22 @@ class TestTaskExecution(object):
 
             database_entries = set_default({'form': '', 'feval': 0})
 
-        tester = Tester(name='test', form='{meas_name}', feval='2*{test_val}',
+        tester = Tester(name='test', form='{default_path}',
+                        feval='2*{test_val}',
                         database_entries={'val': 1, 'form': '', 'feval': 0})
         self.root.default_path = str(tmpdir)
-        self.root.meas_name = 'test'
         self.root.add_child_task(0, tester)
 
         res, tb = self.root.check()
         assert res and tb == {}
-        assert self.root.get_from_database('test_form') == 'test'
+        assert self.root.get_from_database('test_form') == str(tmpdir)
         assert self.root.get_from_database('test_feval') == 2
 
         tester.form = '{test}'
         res, tb = self.root.check()
         assert not res and 'root/test-form' in tb
 
-        tester.form = '{meas_name}'
+        tester.form = '{default_path}'
         tester.feval = '2*{test_val}*'
         res, tb = self.root.check()
         assert not res and 'root/test-feval' in tb

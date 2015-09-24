@@ -32,7 +32,7 @@ def test_loop_config(app, task_workbench):
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'))
+                            task_class=plugin.get_task('ecpy.LoopTask'))
 
     assert config.task_name
     assert config.ready
@@ -47,7 +47,7 @@ def test_loop_config(app, task_workbench):
 
     plugin.auto_task_names = []
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'))
+                            task_class=plugin.get_task('ecpy.LoopTask'))
 
     assert not config.task_name
     assert not config.ready
@@ -64,7 +64,7 @@ def test_loop_config_with_subtask(task_workbench, windows):
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'),
+                            task_class=plugin.get_task('ecpy.LoopTask'),
                             task_name='Test')
 
     show_widget(LoopConfigView(config=config))
@@ -76,7 +76,7 @@ def test_loop_config_with_subtask(task_workbench, windows):
     process_app_events()
     sleep(DIALOG_SLEEP)
 
-    config.subtask = 'BreakTask'
+    config.subtask = 'ecpy.BreakTask'
     assert config.ready
     process_app_events()
     sleep(DIALOG_SLEEP)
@@ -92,7 +92,7 @@ def test_loop_config_with_subtask(task_workbench, windows):
     sleep(DIALOG_SLEEP)
 
     config.use_subtask = True
-    config.subtask = 'ContinueTask'
+    config.subtask = 'ecpy.ContinueTask'
     task = config.build_task()
     assert task.name == 'Test'
     assert type(task.task).__name__ == 'ContinueTask'

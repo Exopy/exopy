@@ -25,7 +25,7 @@ class LoopTaskConfig(PyTaskConfig):
     #: Whether or not to embed a subtask.
     use_subtask = Bool()
 
-    #: Embedded task
+    #: Embedded task id.
     subtask = Unicode()
 
     #: Configurer for the subtask.
@@ -68,7 +68,7 @@ class LoopTaskConfig(PyTaskConfig):
 
         """
         if new:
-            conf, view = self.manager.get_config(new.task_id)
+            conf, view = self.manager.get_config(new)
             conf.task_name = self.task_name
             view.loop = True
             conf.observe('ready', self._new_subconfig_status)

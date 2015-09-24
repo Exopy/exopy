@@ -45,7 +45,7 @@ class BreakTask(SimpleTask):
             test = False
             mess = 'Incorrect parent type: {}, expected LoopTask or WhileTask.'
             traceback[self.path + '/' + self.name + '-parent'] = \
-                mess.format(self.parent.task_class)
+                mess.format(self.parent.task_id)
 
         return test, traceback
 
@@ -82,7 +82,7 @@ class ContinueTask(SimpleTask):
             test = False
             mess = 'Incorrect parent type: {}, expected LoopTask or WhileTask.'
             traceback[self.path + '/' + self.name + '-parent'] = \
-                mess.format(self.parent.task_class)
+                mess.format(self.parent.task_id)
 
         return test, traceback
 

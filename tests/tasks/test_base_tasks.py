@@ -41,9 +41,6 @@ def test_root_registering():
     """
     root = RootTask()
     assert root.get_from_database('default_path') == ''
-    assert root.get_from_database('meas_name') == ''
-    assert root.get_from_database('meas_id') == ''
-    assert root.get_from_database('meas_date') == ''
     root.children = [SimpleTask(name='task2',
                                 database_entries={'val2': 1},
                                 root=root, parent=root,
@@ -70,13 +67,13 @@ def test_database_update():
     """
     root = RootTask()
     entries = root.database_entries.copy()
-    del entries['meas_name']
+    del entries['default_path']
     entries['name'] = 'Test'
     root.database_entries = entries
 
     assert root.get_from_database('name') == 'Test'
     with pytest.raises(KeyError):
-        root.get_from_database('meas_name')
+        root.get_from_database('default_path')
 
 
 def test_database_update_with_exception():
@@ -338,7 +335,7 @@ def test_build_complex_from_config():
     """
     config = {'name': 'test',
               'children_0': {'name': 'test_child',
-                             'task_class': 'SimpleTask'}}
+                             'task_id': 'SimpleTask'}}
     task = ComplexTask.build_from_config(config,
                                          {'ecpy.task':
                                              {'SimpleTask': SimpleTask}})
@@ -354,7 +351,7 @@ def test_build_root_from_config():
     """
     config = {'name': 'test',
               'children_0': {'name': 'test_child',
-                             'task_class': 'SimpleTask'}}
+                             'task_id': 'SimpleTask'}}
     task = RootTask.build_from_config(config,
                                       {'ecpy.task':
                                           {'SimpleTask': SimpleTask}})

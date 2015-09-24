@@ -12,16 +12,20 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from ast import literal_eval
+
+from future.builtins import str
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
-from ...app.api import Preferences, State, BuildDependency
+from ...app.preferences.api import Preferences
+from ...app.states.api import State
+from ...app.dependencies.api import BuildDependency
 from ...utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
-from .utils.dependencies import collect_task, collect_interface
 from .filters import (TaskFilter, GroupTaskFilter, SubclassTaskFilter,
                       MetadataTaskFilter)
 from .declarations import Tasks, Task, TaskConfigs, TaskConfig
@@ -308,7 +312,8 @@ task : RootTask
 # =============================================================================
 
 enamldef TasksManagerManifest(PluginManifest):
-    """
+    """Manifest for the task manager.
+
     """
     id = PLUGIN_ID
     factory = manager_plugin_factory
@@ -389,13 +394,71 @@ enamldef TasksManagerManifest(PluginManifest):
         point = 'ecpy.app.dependencies.build'
         BuildDependency:
             id = 'ecpy.task'
-            collect => (workbench, obj, getter, dependencies, errors):
-                collect_task(workbench, obj, getter, dependencies, errors)
+            analyse => (workbench, obj, getter, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+
+                t_id = getter(obj, 'task_id')
+                t_infos = manager.get_task_infos(t_id)
+
+                if t_infos is None:
+                    errors[t_id] = 'Unknown task.'
+                    return
+
+                dependencies.add(t_id)
+                return t_infos.dependencies
+
+            validate => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for t_id in dependencies:
+                    t_infos = manager.get_task_infos(t_id)
+                    if t_infos is None:
+                        errors[t_id] = 'Unknown task.'
+
+            collect => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for t_id in dependencies:
+                    t_infos = manager.get_task_infos(t_id)
+                    if t_infos is None:
+                        errors[t_id] = 'Unknown task.'
+                        continue
+
+                    dependencies[t_id] = t_infos.cls
+
         BuildDependency:
             id = 'ecpy.tasks.interface'
-            collect => (workbench, obj, getter, dependencies, errors):
-                collect_interfaces(workbench, obj, getter, dependencies,
-                                   errors)
+            analyse => (workbench, obj, getter, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+
+                interface_anchor = getter(obj, 'interface_id')
+                if not isinstance(interface_anchor, tuple):
+                    interface_anchor = literal_eval(interface_anchor)
+
+                i_infos = manager.get_interface_infos(interface_anchor)
+                if i_infos is None:
+                    msg = 'Unknown interface.'
+                    errors[str(interface_anchor)] = msg
+                    return
+
+                dependencies.add(interface_anchor)
+
+                return i_infos.dependencies
+
+            validate => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for i_id in dependencies:
+                    i_infos = manager.get_interface_infos(i_id)
+                    if i_infos is None:
+                        errors[i_id] = 'Unknown interface.'
+
+            collect => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for i_id in dependencies:
+                    i_infos = manager.get_interface_infos(i_id)
+                    if i_infos is None:
+                        errors[i_id] = 'Unknown interface.'
+                        continue
+
+                    dependencies[i_id] = i_infos.cls
 
     Extension:
         id = 'prefs'

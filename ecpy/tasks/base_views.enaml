@@ -21,18 +21,15 @@ from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
-from ..utils.enaml_destroy_hook import DestroyHook
+from ..utils.enaml_destroy_hook import add_destroy_hook
 from .tools.task_editor import TaskEditor, FoldableTaskEditor
 from .base_tasks import BaseTask
 
 
-class _GroupBox(DestroyHook, GroupBox):
-    """Overridden just to install the ended.
+DestroyableGroupBox = add_destroy_hook(GroupBox)
 
-    """
-    pass
 
-enamldef BaseTaskView(_GroupBox):
+enamldef BaseTaskView(DestroyableGroupBox):
     """Base class for all task views.
 
     """
@@ -50,7 +47,7 @@ enamldef BaseTaskView(_GroupBox):
         """
         self.show()
 
-    title << task.name
+    title << task.name + ' (' + task.task_id + ')'
 
 
 enamldef ComplexTaskView(BaseTaskView): main:
@@ -113,12 +110,12 @@ enamldef RootTaskView(BaseTaskView): main:
         """
         if isinstance(obj, BaseTask):
             cmd = 'ecpy.tasks.get_task_infos'
-            infos = core.invoke_command(cmd, {'task': obj.task_class})
+            infos = core.invoke_command(cmd, {'task': obj.task_id})
 
         else:
             cmd = 'ecpy.tasks.get_interface_infos'
             infos = core.invoke_command(cmd,
-                                        {'interface': obj.interface_class})
+                                        {'interface': obj.interface_id})
 
         return [i.cls for i in infos.interfaces.values()]
 
@@ -133,7 +130,7 @@ enamldef RootTaskView(BaseTaskView): main:
             if task not in _cache:
                 cmd = 'ecpy.tasks.get_task'
                 _, view_cls = core.invoke_command(cmd,
-                                                  {'task': type(task).__name__,
+                                                  {'task': task.task_id,
                                                    'view': True})
                 _cache[task] = view_cls(task=task, root=self)
 
@@ -141,9 +138,9 @@ enamldef RootTaskView(BaseTaskView): main:
 
         else:
             cmd = 'ecpy.tasks.get_interface'
-            i_class = obj.interface_class
+            i_id = obj.interface_id
             _, views_cls = core.invoke_command(cmd,
-                                              {'interface': i_class,
+                                              {'interface': i_id,
                                                'views': True})
             return [v(interface=obj, root=self) for v in views_cls]
 

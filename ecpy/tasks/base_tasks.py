@@ -519,10 +519,10 @@ class BaseTask(Atom):
             self.perform_ = perform_func
 
     def _default_task_id(self):
-        """Default value for the task_class member.
+        """Default value for the task_id member.
 
         """
-        pack, _ = self.__module__.__name__.split('.', 1)
+        pack, _ = self.__module__.split('.', 1)
         return pack + '.' + type(self).__name__
 
     def _post_setattr_database_entries(self, old, new):
@@ -912,7 +912,7 @@ class ComplexTask(BaseTask):
                     if child_name not in config:
                         break
                     child_config = config[child_name]
-                    child_class_name = child_config.pop('task_class')
+                    child_class_name = child_config.pop('task_id')
                     child_cls = dependencies[DEP_TYPE][child_class_name]
                     child = child_cls.build_from_config(child_config,
                                                         dependencies)
@@ -923,7 +923,7 @@ class ComplexTask(BaseTask):
                 if name not in config:
                     continue
                 child_config = config[name]
-                child_class_name = child_config.pop('task_class')
+                child_class_name = child_config.pop('task_id')
                 child_class = dependencies[DEP_TYPE][child_class_name]
                 validated = child_class.build_from_config(child_config,
                                                           dependencies)
@@ -1126,8 +1126,9 @@ class RootTask(ComplexTask):
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    def _default_task_class(self):
-        return ComplexTask.__name__
+    def _default_task_id(self):
+        pack, _ = self.__module__.split('.', 1)
+        return pack + '.' + ComplexTask.__name__
 
     def _default_resume(self):
         return threading.Event()

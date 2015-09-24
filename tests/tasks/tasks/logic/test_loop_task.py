@@ -122,11 +122,11 @@ class TestLoopTask(object):
 
         self.root.update_preferences_from_members()
 
-        new = RootTask.build_from_config(self.root.preferences,
-                                         {'ecpy.task': {'RootTask': RootTask,
-                                                        'LoopTask': LoopTask,
-                                                        'CheckTask': CheckTask}
-                                          })
+        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
+                              'ecpy.LoopTask': LoopTask,
+                              'tests.CheckTask': CheckTask}
+                }
+        new = RootTask.build_from_config(self.root.preferences, deps)
 
         assert new.children[0].task.name == 'check'
 
@@ -134,10 +134,11 @@ class TestLoopTask(object):
         self.root.update_preferences_from_members()
         prefs = self.root.preferences
         del prefs['children_0']['task']
-        deps = {'ecpy.task': {'RootTask': RootTask, 'LoopTask': LoopTask,
-                              'CheckTask': CheckTask},
+        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
+                              'ecpy.LoopTask': LoopTask,
+                              'tests.CheckTask': CheckTask},
                 'ecpy.tasks.interface':
-                    {('IterableLoopInterface', ('LoopTask',)):
+                    {('IterableLoopInterface', ('ecpy.LoopTask',)):
                         IterableLoopInterface}
                 }
         new = RootTask.build_from_config(prefs, deps)

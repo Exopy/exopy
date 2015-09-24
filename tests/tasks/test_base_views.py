@@ -49,7 +49,7 @@ def test_root_view(windows, task_workbench):
 
     def answer_dialog(dial):
         selector = dial.selector
-        selector.selected_task = 'ComplexTask'
+        selector.selected_task = 'ecpy.ComplexTask'
         dial.config.task_name = TASK_NAME
         process_app_events()
 
@@ -75,10 +75,10 @@ def test_root_view(windows, task_workbench):
     editor.operations['move'](0, 1)
 
     task.children[1].remove_child_task(0)
-    assert len(view._cache) == 2
+    assert len(view._cache) == 3
 
     editor.operations['remove'](0)
-    assert len(view._cache) == 1
+    assert len(view._cache) == 2
 
 
 @pytest.mark.ui

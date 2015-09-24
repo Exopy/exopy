@@ -34,7 +34,7 @@ def test_py_task_config(app, task_workbench):
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     config = PyTaskConfig(manager=plugin,
-                          task_class=plugin.get_task('ComplexTask'))
+                          task_class=plugin.get_task('ecpy.ComplexTask'))
 
     assert config.task_name
     assert config.ready
@@ -49,7 +49,7 @@ def test_py_task_config(app, task_workbench):
 
     plugin.auto_task_names = []
     config = PyTaskConfig(manager=plugin,
-                          task_class=plugin.get_task('ComplexTask'))
+                          task_class=plugin.get_task('ecpy.ComplexTask'))
 
     assert not config.task_name
     assert not config.ready

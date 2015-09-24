@@ -120,7 +120,7 @@ class InterfaceableMixin(Atom):
                                                                dependencies)
 
         if 'interface' in config:
-            iclass = config['interface'].pop('interface_class')
+            iclass = config['interface'].pop('interface_id')
             inter_class = dependencies[DEP_TYPE][literal_eval(iclass)]
             new.interface = inter_class.build_from_config(config['interface'],
                                                           dependencies)

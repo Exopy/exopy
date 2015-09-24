@@ -464,6 +464,7 @@ class Interface(Declarator):
         and the class name.
 
         """
+        print(self.extended)
         i_name = (self.interface.rsplit(':', 1)[1] if ':' in self.interface
                   else self.interface)
         return '.'.join(self.extended + [i_name])
@@ -525,7 +526,7 @@ class TaskConfig(Declarator):
             traceback[self.id] = 'Missing supported task.'
 
         # Check that the configurer does not already exist.
-        if config in traceback:
+        if self.id in traceback:
             i = 1
             while True:
                 err_id = '%s_duplicate%d' % (config, i)
