@@ -21,6 +21,7 @@ from traceback import format_exc
 import enaml
 from atom.api import List, Typed, Int
 from enaml.workbench.api import Plugin
+from enaml.application import deferred_call
 
 from .errors import ErrorHandler
 from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
@@ -87,7 +88,7 @@ class ErrorsPlugin(Plugin):
         if widget:
             # Show dialog in application modal mode
             dial = ErrorsDialog(errors={kind: widget})
-            enaml.application.deferred_call(dial.exec_)
+            deferred_call(dial.exec_)
 
     def report(self, kind=None):
         """Show a widget summarizing all the errors.
@@ -155,7 +156,7 @@ class ErrorsPlugin(Plugin):
 
             if errors:
                 dial = ErrorsDialog(errors=errors)
-                enaml.application.deferred_call(dial.exec_)
+                deferred_call(dial.exec_)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

@@ -79,9 +79,9 @@ class BaseMonitor(BaseMeasureTool):
         the measure is started. The value received will be a tuple containing
         the name of the updated database entry and its new value.
 
-        This method is susceptible to a thread that is not the GUI thread. Any
-        update of memebers that are connected to the view should be done
-        using enaml.application.deferred_call/schedule.
+        This method is susceptible to be called in a thread that is not the GUI
+        thread. Any update of members that are connected to the view should be
+        done using enaml.application.deferred_call/schedule.
 
         """
         raise NotImplementedError()

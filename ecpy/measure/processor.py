@@ -26,6 +26,7 @@ import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 from enaml.widgets.api import Window
 from enaml.layout.api import InsertTab, FloatItem
+from enaml.application import deferred_call, schedule
 
 from .engines import BaseEngine, ExecutionInfos
 from .measure import Measure
@@ -217,8 +218,7 @@ class MeasureProcessor(Atom):
             if meas is not None:
 
                 meas_id = meas.name + '_' + meas.id
-                enaml.application.deferred_call(setattr, self,
-                                                'running_measure', meas)
+                deferred_call(setattr, self, 'running_measure', meas)
                 self._set_measure_state('RUNNING', 'The measure is being run.')
 
                 msg = 'Starting execution of measure %s'
@@ -249,7 +249,7 @@ class MeasureProcessor(Atom):
             self._stop_engine()
 
         self._state.clear('processing')
-        enaml.application.deferred_call(setattr, (self, 'active', False))
+        deferred_call(setattr, (self, 'active', False))
 
     def _run_measure(self, measure):
         """Run a single measure.
@@ -473,8 +473,7 @@ class MeasureProcessor(Atom):
                 self.monitors_window.show()
 
         # Executed in the main thread to avoid GUI update issues.
-        sheduled = enaml.application.schedule(start_monitors, (self, measure),
-                                              priority=100)
+        sheduled = schedule(start_monitors, (self, measure), priority=100)
         while sheduled.pending():
             sleep(0.05)
 
@@ -493,10 +492,9 @@ class MeasureProcessor(Atom):
                 monitor.stop()
 
         # Executed in the main thread to avoid GUI update issues.
-        sheduled = enaml.application.schedule(stop_monitors, (measure),
-                                              priority=100)
+        sheduled = schedule(stop_monitors, (measure), priority=100)
         while sheduled.pending():
-            sleep(0.01)
+            sleep(0.05)
 
     def _find_next_measure(self):
         """Find the next runnable measure in the queue.
@@ -595,8 +593,8 @@ class MeasureProcessor(Atom):
 
         """
         measure = self.running_measure
-        enaml.application.deferred_call(setattr, measure, 'status', status)
-        enaml.application.deferred_call(setattr, measure, 'infos', infos)
+        deferred_call(setattr, measure, 'status', status)
+        deferred_call(setattr, measure, 'infos', infos)
 
     def _stop_engine(self):
         """Stop the engine.
