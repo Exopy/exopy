@@ -169,7 +169,7 @@ enamldef TaskTreeNode(TreeNode):
     """
     label = 'name'
     get_label => (obj):
-        return obj.name + '(' + obj.task_class + ')'
+        return obj.name + '(' + obj.task_id + ')'
     enter_rename => (obj):
         return obj.name
 

@@ -13,23 +13,24 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from atom.api import Event
-from enaml.core.api import Declarative, d_
+from enaml.core.api import d_
 
 
-class DestroyHook(Declarative):
-    """Declarative subclass providing an event to customize behavior before
-    destroying.
-
-    This class is meant to be used as a Mixin
+def add_destroy_hook(cls):
+    """Add a declarative event signaling that an object will be destroyed.
 
     """
-    #: Event emitted just before destroying the object.
-    ended = d_(Event())
+    class Destroyable(cls):
 
-    def destroy(self):
-        """Re-implemented to emit ended before cleaning up the declarative
-        structure.
+        #: Event emitted just before destroying the object.
+        ended = d_(Event())
 
-        """
-        self.ended = True
-        super(DestroyHook, self).destroy()
+        def destroy(self):
+            """Re-implemented to emit ended before cleaning up the declarative
+            structure.
+
+            """
+            self.ended = True
+            super(Destroyable, self).destroy()
+
+    return Destroyable

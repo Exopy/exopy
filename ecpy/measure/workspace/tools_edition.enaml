@@ -17,7 +17,7 @@ from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.core.api import Declarative
 
-from ...utils.enaml_destroy_hook import DestroyHook
+from ...utils.enaml_destroy_hook import add_destroy_hook
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 
 
@@ -78,13 +78,9 @@ enamldef NonEditableTool(Container):
         text = tool.declaration.description
 
 
-class _Container(DestroyHook, Container):
-    """Overwritten just to install the ended hook.
+DestroyableContainer = add_destroy_hook(Container)
 
-    """
-    pass
-
-enamldef ToolsEditor(_Container): main:
+enamldef ToolsEditor(DestroyableContainer): main:
     """Widget used to edit the tools parameters of a measure.
 
     """
