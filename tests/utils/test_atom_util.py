@@ -9,6 +9,9 @@
 """Test the Atom utility functions and HasPrefAtom object.
 
 """
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
 from atom.api import Str, Float, Enum, List, Dict, Typed, Int, Value, Constant
 from ecpy.utils.atom_util import (tagged_members, member_from_str, HasPrefAtom)
 
