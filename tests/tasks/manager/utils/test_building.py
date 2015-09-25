@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from types import MethodType
+
 import pytest
 from future.builtins import str
 from configobj import ConfigObj
@@ -72,11 +74,29 @@ def test_build_from_config(task_workbench, task_config):
     assert isinstance(task, ComplexTask)
 
 
-def test_build_from_config_dependencies_failure(task_workbench, task_config):
+def test_build_from_config_analyse_dep_failure(task_workbench, task_config):
     """Test creating a task from a config object.
 
     """
     task_config['task_id'] = '__dummy__'
+    with pytest.raises(RuntimeError):
+        build_task_from_config(task_config, task_workbench)
+
+
+def test_build_from_config_collecting_dep_failure(task_workbench, task_config,
+                                                  monkeypatch):
+    """Test creating a task from a config object.
+
+    """
+    plugin = task_workbench.get_plugin('ecpy.app.dependencies')
+    cls = type(plugin.build_deps.contributions['ecpy.task'])
+
+    class FalseCollector(cls):
+        def collect(self, kind, dependencies, owner=None):
+            raise RuntimeError()
+
+    monkeypatch.setitem(plugin.build_deps.contributions, 'ecpy.task',
+                        FalseCollector())
     with pytest.raises(RuntimeError):
         build_task_from_config(task_config, task_workbench)
 

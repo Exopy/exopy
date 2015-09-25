@@ -575,8 +575,8 @@ def test_nested_interfaces_extend1(nested_int_decl, collector):
     interface.instruments = ['test']
 
     task.register(collector, {})
-    interfaces = collector.contributions['ecpy.Task'].interfaces['Test'].interfaces
-    assert interfaces['Nested'].instruments == {'test'}
+    i = collector.contributions['ecpy.Task'].interfaces['Test']
+    assert i.interfaces['Nested'].instruments == {'test'}
     interface.parent.unregister(collector)
 
 
@@ -626,7 +626,7 @@ def test_register_config_decl_path_1(collector, config_decl):
     tb = {}
     config_decl.config = 'ecpy.tasks'
     config_decl.register(collector, tb)
-    assert 'Error 0' in tb
+    assert 'ecpy.tasks' in tb
 
 
 def test_register_config_decl_path2(collector, config_decl):

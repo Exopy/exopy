@@ -464,7 +464,6 @@ class Interface(Declarator):
         and the class name.
 
         """
-        print(self.extended)
         i_name = (self.interface.rsplit(':', 1)[1] if ':' in self.interface
                   else self.interface)
         return '.'.join(self.extended + [i_name])
@@ -513,13 +512,11 @@ class TaskConfig(Declarator):
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
             if ':' in self.config:
-                err_id = self.id
                 msg = msg % ('view', self.view)
             else:
-                err_id = 'Error %d' % len(traceback)
                 msg = msg % ('config', self.config)
 
-            traceback[err_id] = msg
+            traceback[self.id] = msg
             return
 
         if not self.task:

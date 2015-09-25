@@ -12,7 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Str, Float, Enum, List, Dict, Typed, Int, Value, Constant
+from atom.api import (Unicode, Float, Enum, List, Dict, Typed, Int, Value,
+                      Constant)
 from ecpy.utils.atom_util import (tagged_members, member_from_str, HasPrefAtom)
 
 
@@ -23,12 +24,12 @@ class _Aaux(HasPrefAtom):
 
 class _Aux(HasPrefAtom):
 
-    string = Str().tag(pref=True)
+    string = Unicode().tag(pref=True)
     float_n = Float().tag(pref=False)
     enum = Enum('a', 'b').tag(pref=True)
     enum_float = Enum(1.0, 2.0).tag(pref=True)
     list_ = List(Float()).tag(pref=True)
-    dict_ = Dict(Str(), Float()).tag(pref=True)
+    dict_ = Dict(Unicode(), Float()).tag(pref=True)
     value = Value().tag(pref=True)
     const = Constant('r').tag(pref=True)
 
@@ -61,39 +62,39 @@ def test_tagged_members3():
 
 def test_member_from_str1():
     aux = _Aux()
-    assert member_from_str(aux.get_member('string'), 'a') == 'a'
+    assert member_from_str(aux.get_member(str('string')), 'a') == 'a'
 
 
 def test_member_from_str2():
     aux = _Aux()
-    assert member_from_str(aux.get_member('float_n'), '1.0') == 1.0
+    assert member_from_str(aux.get_member(str('float_n')), '1.0') == 1.0
 
 
 def test_member_from_str3():
     aux = _Aux()
-    assert member_from_str(aux.get_member('enum'), 'a') == 'a'
+    assert member_from_str(aux.get_member(str('enum')), 'a') == 'a'
 
 
 def test_member_from_str4():
     aux = _Aux()
-    assert member_from_str(aux.get_member('enum_float'), '1.0') == 1.0
+    assert member_from_str(aux.get_member(str('enum_float')), '1.0') == 1.0
 
 
 def test_member_from_str5():
     aux = _Aux()
-    member = aux.get_member('list_')
+    member = aux.get_member(str('list_'))
     assert member_from_str(member, '[1.0, 2.0]') == [1.0, 2.0]
 
 
 def test_member_from_str6():
     aux = _Aux()
-    member = aux.get_member('dict_')
+    member = aux.get_member(str('dict_'))
     assert member_from_str(member, '{"a": 1.0}') == {'a': 1.0}
 
 
 def test_member_from_str7():
     aux = _Aux()
-    member = aux.get_member('value')
+    member = aux.get_member(str('value'))
     assert member_from_str(member, 'test.test') == 'test.test'
 
 

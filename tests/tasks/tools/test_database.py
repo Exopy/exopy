@@ -179,6 +179,38 @@ def test_access_exceptions_renaming_node():
     assert database.get_value('root', 'val1') == 2.0
 
 
+def test_copy_node_values():
+    """Test copying the values found in a node.
+
+    """
+    database = TaskDatabase()
+    database.set_value('root', 'val1', 1)
+    database.create_node('root', 'node1')
+    database.set_value('root/node1', 'val2', 'a')
+    database.create_node('root', 'node2')
+    database.set_value('root/node2', 'val3', 2.0)
+
+    assert database.copy_node_values() == {'val1': 1}
+    assert database.copy_node_values('root/node1') == {'val2': 'a'}
+
+
+def test_list_nodes():
+    """Test listing the nodes existing in the database.
+
+    """
+    database = TaskDatabase()
+    database.set_value('root', 'val1', 1)
+    database.create_node('root', 'node1')
+    database.set_value('root/node1', 'val2', 'a')
+    database.create_node('root', 'node2')
+    database.set_value('root/node2', 'val3', 2.0)
+
+    nodes = database.list_nodes()
+    assert 'root' in nodes
+    assert 'root/node1' in nodes
+    assert 'root/node2' in nodes
+
+
 # =============================================================================
 # --- Running mode tests ------------------------------------------------------
 # =============================================================================

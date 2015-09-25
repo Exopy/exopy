@@ -16,6 +16,7 @@ import os
 
 import pytest
 from configobj import ConfigObj
+from enaml.widgets.api import Dialog
 
 from ecpy.tasks.api import RootTask, ComplexTask
 
@@ -61,14 +62,14 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
         model.filename = 'test'
         model.doc = 'This is a test'
         dialog.show_result = True
-        with handle_dialog('accept'):
+        with handle_dialog('accept', time=0):
             assert model.accept_template_info(dialog)
 
     core = task_workbench.get_plugin('enaml.workbench.core')
     with handle_dialog('accept', answer_dialog):
         core.invoke_command(CMD, dict(task=task, mode='template'))
 
-    get_window().accept()
+    get_window(Dialog).accept()
     process_app_events()
 
     path = str(tmpdir.join('test.task.ini'))

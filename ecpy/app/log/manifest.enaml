@@ -20,7 +20,8 @@ from enaml.workbench.api import PluginManifest, Extension
 from enaml.workbench.core.api import Command
 
 from ...utils.plugin_tools import make_handler
-from ..api import AppStartup, State
+from ..api import AppStartup
+from ..states.api import State
 from .tools import (DayRotatingTimeHandler, StreamToLogRedirector)
 
 PLUGIN_ID ='ecpy.app.logging'
