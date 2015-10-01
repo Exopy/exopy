@@ -19,9 +19,9 @@ from enaml.workbench.ui.api import ActionItem
 from ..app.api import AppClosing
 from ..app.preferences.api import Preferences
 
-from .engines import ProcessEngine
-from .editors import Editor
-from .hooks import PreExecutionHook
+from .engines.process_engine import ProcessEngine
+from .editors.api import Editor
+from .hooks.api import PreExecutionHook
 
 
 # =============================================================================

@@ -20,7 +20,7 @@ from multiprocessing import Process
 
 from ....app.log.tools import (StreamToLogRedirector, DayRotatingTimeHandler)
 from ....tasks.api import build_task_from_config
-from ..tools import MeasureSpy
+from ..utils import MeasureSpy
 from ...processor import errors_to_msg
 
 

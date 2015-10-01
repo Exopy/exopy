@@ -108,11 +108,11 @@ enamldef ExecutionDockItem(DockItem):
     title = 'Enqueued measures'
 
     func move_measure(old, new):
-        workspace.plugin.move_measure('enqueued', old, new)
+        workspace.plugin.enqueued_measures.move(old, new)
 
     func remove_measure(index):
         measure = workspace.plugin.enqueued_measures[index]
-        workspace.plugin.remove_measures('enqueued', [measure])
+        workspace.plugin.enqueued_measures.remove(measure)
 
     Container:
         constraints << [vbox(ed,

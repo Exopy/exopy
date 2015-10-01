@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 
-from ..base_hooks import BasePreExecutionHook
+from .base_hooks import BasePreExecutionHook
 
 
 class InternalChecksHook(BasePreExecutionHook):

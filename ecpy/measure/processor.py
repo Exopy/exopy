@@ -28,11 +28,10 @@ from enaml.widgets.api import Window
 from enaml.layout.api import InsertTab, FloatItem
 from enaml.application import deferred_call, schedule
 
-from .engines import BaseEngine, ExecutionInfos
+from .engines.api import BaseEngine, ExecutionInfos
 from .measure import Measure
-from ..utils.bi_flag import BitFlag
-with enaml.imports():
-    from .workspace.monitors_window import MonitorsWindow
+from ..utils.flags import BitFlag
+
 
 logger = logging.getLogger(__name__)
 
@@ -434,6 +433,8 @@ class MeasureProcessor(Atom):
             workbench = self.plugin.workbench
             if not self.monitors_window:
                 ui_plugin = workbench.get_plugin('enaml.workbench.ui')
+                with enaml.imports():
+                    from .workspace.monitors_window import MonitorsWindow
                 self.monitors_window = MonitorsWindow(ui_plugin.window)
 
             self.monitors_window.measure = measure

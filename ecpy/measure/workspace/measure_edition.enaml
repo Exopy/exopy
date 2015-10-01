@@ -377,7 +377,7 @@ enamldef MeasureEditorDockItem(DockItem): main:
     alias measure : editor.measure
 
     closed ::
-        workspace.plugin.remove_measures('edited', [measure])
+        workspace.plugin.edited_measures.remove(measure)
 
     stretch = 10
 

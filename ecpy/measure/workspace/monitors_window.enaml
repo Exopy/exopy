@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from enaml.widgets.api import Window, DockArea, Label, Container
+from enaml.widgets.api import Window, DockArea, Label, Container, Field
 from enaml.layout.api import hbox, vbox
 
 

@@ -24,15 +24,19 @@ The existing kind of tools are the following :
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Typed, ForwardTyped, Unicode, Bool
+from atom.api import ForwardTyped, Unicode, Bool
 from enaml.core.api import Declarative, d_, d_func
 
 from ..utils.atom_util import HasPrefAtom
-from .measure import Measure
 
 
 def tool_decl():
     return BaseToolDeclaration
+
+
+def measure():
+    from .measure import Measure
+    return Measure
 
 
 class BaseMeasureTool(HasPrefAtom):
@@ -40,7 +44,7 @@ class BaseMeasureTool(HasPrefAtom):
 
     """
     #: Reference to the measure to which that tool is linked (None if unlinked)
-    measure = Typed(Measure)
+    measure = ForwardTyped(measure)
 
     #: Reference to the declaration of this tool.
     declaration = ForwardTyped(tool_decl)

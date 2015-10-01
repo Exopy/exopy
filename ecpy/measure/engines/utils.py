@@ -19,7 +19,7 @@ from multiprocessing.queues import Queue
 
 from atom.api import Atom, Coerced, Typed
 
-from ...tasks.tools.task_database import TaskDatabase
+from ...tasks.tools.database import TaskDatabase
 
 
 class MeasureSpy(Atom):

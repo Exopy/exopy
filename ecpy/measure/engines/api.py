@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .base_editors import BaseEngine, Engine, TaskInfos
+from .base_engine import BaseEngine, Engine, ExecutionInfos
 
 
-__all__ = ['BaseEngine', 'Engine', 'TaskInfos']
+__all__ = ['BaseEngine', 'Engine', 'ExecutionInfos']

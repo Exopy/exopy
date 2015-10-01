@@ -73,7 +73,7 @@ class MeasureContainer(Atom):
 
         self.changed(notification)
 
-    def move_measure(self, old, new):
+    def move(self, old, new):
         """Move a measure.
 
         Parameters

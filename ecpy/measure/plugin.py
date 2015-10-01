@@ -102,7 +102,6 @@ class MeasurePlugin(HasPrefPlugin):
         """Start the plugin lifecycle by collecting all contributions.
 
         """
-        super(MeasurePlugin, self).start()
         if not os.path.isdir(self.path):
             self.path = ''
 
@@ -140,6 +139,10 @@ class MeasurePlugin(HasPrefPlugin):
                                                ext_class=PostExecutionHook,
                                                validate_ext=checker)
         self._post_hooks.start()
+
+        # This call is delayed till there to avoid loading the preferences
+        # before discovering the contributions (would be an issue for engine).
+        super(MeasurePlugin, self).start()
 
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):

@@ -15,7 +15,7 @@ only available when the task is selected.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .base_editors import BaseEditor, Editor
+from .base_editor import BaseEditor, Editor
 
 
 __all__ = ['BaseEditor', 'Editor']

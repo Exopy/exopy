@@ -21,9 +21,9 @@ from threading import Event as tEvent
 
 from atom.api import Typed, Value, Bool
 
-from ....utils.log.tools import QueueLoggerThread
+from ....app.log.tools import QueueLoggerThread
 from ..base_engine import BaseEngine
-from ..tools import ThreadMeasureMonitor
+from ..utils import ThreadMeasureMonitor
 from .subprocess import TaskProcess
 
 logger = logging.getLogger(__name__)
