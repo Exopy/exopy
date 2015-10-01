@@ -20,10 +20,10 @@ from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool
 
 from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
                                   make_extension_validator)
-from .engines import Engine
-from .monitors import Monitor
-from .hooks import PreExecutionHook, PostExecutionHook
-from .editors import Editor
+from .engines.api import Engine
+from .monitors.api import Monitor
+from .hooks.api import PreExecutionHook, PostExecutionHook
+from .editors.api import Editor
 from .processor import MeasureProcessor
 from .container import MeasureContainer
 
@@ -93,7 +93,7 @@ class MeasurePlugin(HasPrefPlugin):
     post_hooks = List()
 
     #: Default post-execution hooks to use for new measures.
-    default_hooks = List().tag(pref=True)
+    default_post_hooks = List().tag(pref=True)
 
     #: Dict holding the contributed Editor declarations
     editors = List()
@@ -102,8 +102,8 @@ class MeasurePlugin(HasPrefPlugin):
         """Start the plugin lifecycle by collecting all contributions.
 
         """
-        if not os.path.isdir(self.path):
-            self.path = ''
+        core = self.workbench.get_plugin('enaml.workbench.core')
+        core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
         checker = make_extension_validator(Engine, ('new',))
         self._engines = ExtensionsCollector(workbench=self.workbench,
@@ -144,6 +144,10 @@ class MeasurePlugin(HasPrefPlugin):
         # before discovering the contributions (would be an issue for engine).
         super(MeasurePlugin, self).start()
 
+        if not os.path.isdir(self.path):
+            self.path = ''
+
+        cmd = 'ecpy.app.errors.signal'
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):
             self._update_contribs(contrib, None)
@@ -154,26 +158,36 @@ class MeasurePlugin(HasPrefPlugin):
                 if default != avai_default:
                     msg = 'The following {}s have not been found : {}'
                     missing = set(default) - set(avai_default)
-                    logger.info(msg.format(contrib, missing))
+                    core.invoke_command(cmd, dict(kind='error',
+                                                  message=msg.format(contrib,
+                                                                     missing)))
                     setattr(self, 'default_'+contrib, avai_default)
-            getattr(self, '-'+contrib).observe('contributions',
+            getattr(self, '_'+contrib).observe('contributions',
                                                partial(self._update_contribs,
                                                        contrib))
+
+        core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
     def stop(self):
         """Stop the plugin and remove all observers.
 
         """
         # Close the monitors window.
-        self.processor.monitors_window.hide()
-        self.processor.monitors_window.close()
+        if self.processor.monitors_window:
+            self.processor.monitors_window.hide()
+            self.processor.monitors_window.close()
 
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):
-            getattr(self, '-'+contrib).stop()
+            getattr(self, '_'+contrib).stop()
 
     def get_declarations(self, kind, ids):
-        """Get the declarations of engines/editors/tools
+        """Get the declarations of engines/editors/tools.
+
+        If an id does not correspond to a known declarations it will be omitted
+        from the return value, but no error will be raised. This is because the
+        user can easily know which declarations exist by looking at the
+        appropriate member of the plugin.
 
         Parameters
         ----------

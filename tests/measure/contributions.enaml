@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Dummy contributions to the measure plugin used for testing purposes.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension
+from measure.editors.api import Editor
+from measure.hooks.api import PreExecutionHook, PostExecutionHook
+from measure.engines.api import Engine
+from measure.monitors.api import Monitor
+
+
+enamldef MeasureTestManifest(PluginManifest):
+    """Manifest contributing dummy extensions to measure plugin.
+
+    """
+    Extension:
+        id = 'editor'
+        point = 'ecpy.measure.editors'
+        Editor:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                return 1
+
+            is_meant_for => (workbench, selected_task):
+                return True
+
+    Extension:
+        id = 'engines'
+        point = 'ecpy.measure.engines'
+        Engine:
+            id = 'dummy'
+            description = 'This is a dummy'
+
+            attr selected
+            attr workspace_contributing
+            new => (workbench, default=True)
+                return 2
+
+            react_to_selection => (workbench):
+                self.selected = True
+
+            react_to_unselection => (workbench):
+                self.selected = False
+
+            contribute_to_workspace => (workspace):
+                self.workspace_contributing = True
+
+            clean_workspace => (workspace):
+                self.workspace_conytributing = False
+
+    Extension:
+        id = 'pre-hook'
+        point = 'ecpy.measure.pre-execution'
+        PreExecutionHook:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True)
+                return 3
+
+    Extension:
+        id = 'monitors'
+        point = 'ecpy.measure.monitors'
+        Monitor:
+            id  = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                return 4
+
+    Extension:
+        id = 'post-hook'
+        point = 'ecpy.measure.post-execution'
+        PostExecutionHook:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                return 5

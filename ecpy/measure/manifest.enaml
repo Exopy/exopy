@@ -154,6 +154,10 @@ enamldef MeasureManifest(PluginManifest): manifest:
                 from .editors.standard_editor import StandardEditor
                 return StandardEditor(declaration=self,
                                       workbench=workbench)
+
+            is_meant_for => (workbench, selected_task):
+                return True
+
         Editor:
             id = 'Database access'
             description = ('Editor allowing to modify database access '
@@ -163,6 +167,9 @@ enamldef MeasureManifest(PluginManifest): manifest:
                     import DatabaseAccessEditor
                 return DatabaseAccessEditor(declaration=self)
 
+            is_meant_for => (workbench, selected_task):
+                return True
+
         Editor:
             id = 'Execution'
             description = ('Editor allowing to customize execution options: '
@@ -171,6 +178,9 @@ enamldef MeasureManifest(PluginManifest): manifest:
             new => (workbench, default=False):
                 from .editors.execution_editor import ExecutionEditor
                 return ExecutionEditor(declaration=self)
+
+            is_meant_for => (workbench, selected_task):
+                return True
 
     Extension:
         id = 'engines'
@@ -189,8 +199,8 @@ enamldef MeasureManifest(PluginManifest): manifest:
                 return InternalChecksHook(declaration=self)
 
     Extension:
-        id = 'prefs'
-        point = u'ecpy.preferences.plugin'
+        id = 'preferences'
+        point = 'ecpy.app.preferences.plugin'
         Preferences:
             pass
 

@@ -16,7 +16,7 @@ from atom.api import List,  Typed, Bool
 from enaml.core.api import d_, d_func
 from enaml.widgets.api import DockItem
 
-from ..base_tools import BaseMeasureTool, BaseToolDeclaration
+from ..base_tool import BaseMeasureTool, BaseToolDeclaration
 
 
 class BaseMonitor(BaseMeasureTool):

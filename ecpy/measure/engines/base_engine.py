@@ -175,7 +175,7 @@ class Engine(Declarative):
         pass
 
     @d_func
-    def react_to_unselection(self, workbenc):
+    def react_to_unselection(self, workbench):
         """Take any necessary actions when the engine is unselected.
 
         This method is called by the framework at the appropriate time.

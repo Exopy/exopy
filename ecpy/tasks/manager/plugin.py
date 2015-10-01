@@ -111,7 +111,6 @@ class TaskManagerPlugin(HasPrefPlugin):
             self.load_auto_task_names()
         self._bind_observers()
 
-        core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
     def stop(self):
