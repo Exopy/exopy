@@ -12,8 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from types import MethodType
-
 import pytest
 from future.builtins import str
 from configobj import ConfigObj
