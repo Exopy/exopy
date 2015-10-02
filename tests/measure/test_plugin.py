@@ -13,8 +13,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
+import enaml
 
-from .contributions import MeasureTestManifest
+from ..util import set_preferences, ErrorDialogException
+
+with enaml.imports():
+    from .contributions import MeasureTestManifest
 
 
 def test_lifecycle(measure_workbench):
@@ -33,7 +37,8 @@ def test_lifecycle(measure_workbench):
 
     measure_workbench.register(MeasureTestManifest())
 
-    # Test updating of public members
+    for c in ['editors', 'engines', 'pre_hooks', 'post_hooks', 'monitors']:
+        assert 'dummy' in getattr(plugin, c)
 
     measure_workbench.unregister('ecpy.measure')
 
@@ -44,8 +49,9 @@ def test_getting_declarations(measure_workbench):
     """
     plugin = measure_workbench.get_plugin('ecpy.measure')
 
-    assert (plugin.get_declarations('engine', plugin.engines).keys() ==
-            plugin.engines)
+    for c in ['editor', 'engine', 'pre-hook', 'post-hook', 'monitor']:
+        names = getattr(plugin, c.replace('-', '_')+'s')
+        assert plugin.get_declarations(c, names).keys() == names
 
     with pytest.raises(ValueError):
         plugin.get_declarations('test', [])
@@ -58,29 +64,66 @@ def test_creating_tools(measure_workbench):
     plugin = measure_workbench.get_plugin('ecpy.measure')
     measure_workbench.register(MeasureTestManifest())
 
-    for c in ['editor', 'engine', 'pre_hook', 'post_hook', 'monitor']:
+    for c in ['editor', 'engine', 'pre-hook', 'post-hook', 'monitor']:
         assert plugin.create(c, 'dummy')
 
     with pytest.raises(ValueError):
         plugin.create('', 'dummy')
 
     with pytest.raises(ValueError):
-        plugin.create('monitor', 'dummy')
+        plugin.create('monitor', '')
 
 
 def test_selecting_engine(measure_workbench):
+    """Test selecting and unselecting an engine.
+
     """
-    """
-    pass
+    measure_workbench.register(MeasureTestManifest())
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+
+    decl = plugin.get_declarations('engine', ['dummy'])['dummy']
+
+    plugin.selected_engine = 'dummy'
+    assert decl.selected
+    plugin.selected_engine = ''
+    assert not decl.selected
 
 
 def test_starting_with_a_default_selected_engine(measure_workbench):
+    """Test that an engine selected by default is well mounted.
+
     """
+    measure_workbench.register(MeasureTestManifest())
+    set_preferences(measure_workbench,
+                    {'ecpy.measure': {'selected_engine': 'dummy'}})
+
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+
+    decl = plugin.get_declarations('engine', ['dummy'])['dummy']
+
+    assert plugin.selected_engine == 'dummy'
+    assert decl.selected
+
+
+def test_starting_with_default_tools(measure_workbench):
+    """Test staring with default selected tools.
+
     """
-    pass
+    measure_workbench.register(MeasureTestManifest())
+    set_preferences(measure_workbench,
+                    {'ecpy.measure': {'default_monitors': "['dummy']"}})
+
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+
+    assert plugin.default_monitors
 
 
 def test_handling_not_found_default_tools(measure_workbench):
+    """Test handling the non-dectection of default tools.
+
     """
-    """
-    pass
+    set_preferences(measure_workbench,
+                    {'ecpy.measure': {'default_monitors': "['dummy']"}})
+
+    with pytest.raises(ErrorDialogException):
+        measure_workbench.get_plugin('ecpy.measure')

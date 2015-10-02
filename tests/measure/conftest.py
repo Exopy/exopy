@@ -18,6 +18,8 @@ from pprint import pformat
 import enaml
 from enaml.workbench.api import Workbench
 
+from ..util import ErrorDialogException
+
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
 
@@ -36,8 +38,8 @@ def measure_workbench(monkeypatch, app_dir):
     """
     def exit_err(self):
         if self._delayed:
-            raise Exception('Unexpected exceptions occured :\n' +
-                            pformat(self._delayed))
+            raise ErrorDialogException('Unexpected exceptions occured :\n' +
+                                       pformat(self._delayed))
 
     monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
     workbench = Workbench()

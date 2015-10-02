@@ -16,6 +16,7 @@ import os
 from time import sleep
 from contextlib import contextmanager
 
+from configobj import ConfigObj
 from enaml.application import timed_call
 from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window, Dialog
@@ -138,3 +139,30 @@ def show_and_close_widget(widget):
     except Exception:
         close_all_windows()
         raise
+
+
+def set_preferences(workbench, preferences):
+    """Set the preferences stored in the preference plugin.
+
+    This function must be called before accessing any plugin relying on those
+    values.
+
+    Parameters
+    ----------
+    workbench :
+        Application workbench.
+
+    preferences : dict
+        Dictionary describing the preferences.
+
+    """
+    plugin = workbench.get_plugin('ecpy.app.preferences')
+    plugin._prefs = ConfigObj(preferences)
+
+
+class ErrorDialogException(Exception):
+    """Error raised when patching the error plugin to raise rather than show a
+    dialog when exiting error gathering.
+
+    """
+    pass

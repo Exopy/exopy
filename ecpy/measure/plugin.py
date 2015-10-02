@@ -95,7 +95,7 @@ class MeasurePlugin(HasPrefPlugin):
     #: Default post-execution hooks to use for new measures.
     default_post_hooks = List().tag(pref=True)
 
-    #: Dict holding the contributed Editor declarations
+    #: List of currently available editors.
     editors = List()
 
     def start(self):
@@ -140,6 +140,10 @@ class MeasurePlugin(HasPrefPlugin):
                                                validate_ext=checker)
         self._post_hooks.start()
 
+        for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
+                        'post_hooks'):
+            self._update_contribs(contrib, None)
+
         # This call is delayed till there to avoid loading the preferences
         # before discovering the contributions (would be an issue for engine).
         super(MeasurePlugin, self).start()
@@ -148,20 +152,20 @@ class MeasurePlugin(HasPrefPlugin):
             self.path = ''
 
         cmd = 'ecpy.app.errors.signal'
+        for contrib in ('pre_hooks', 'monitors', 'post_hooks'):
+            default = getattr(self, 'default_'+contrib)
+            avai_default = [d for d in default
+                            if d in getattr(self, contrib)]
+            if default != avai_default:
+                msg = 'The following {}s have not been found : {}'
+                missing = set(default) - set(avai_default)
+                core.invoke_command(cmd, dict(kind='error',
+                                              message=msg.format(contrib,
+                                                                 missing)))
+                setattr(self, 'default_'+contrib, avai_default)
+
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):
-            self._update_contribs(contrib, None)
-            if contrib not in ('engines', 'editors'):
-                default = getattr(self, 'default_'+contrib)
-                avai_default = [d for d in default
-                                if d in getattr(self, contrib)]
-                if default != avai_default:
-                    msg = 'The following {}s have not been found : {}'
-                    missing = set(default) - set(avai_default)
-                    core.invoke_command(cmd, dict(kind='error',
-                                                  message=msg.format(contrib,
-                                                                     missing)))
-                    setattr(self, 'default_'+contrib, avai_default)
             getattr(self, '_'+contrib).observe('contributions',
                                                partial(self._update_contribs,
                                                        contrib))
@@ -208,7 +212,7 @@ class MeasurePlugin(HasPrefPlugin):
             msg = 'Expected kind must be one of {}, not {}.'
             raise ValueError(msg.format(kinds, kind))
 
-        decls = getattr(self, '_'+kind+'s').contributions
+        decls = getattr(self, '_'+kind.replace('-', '_')+'s').contributions
         return {k: v for k, v in decls.iteritems() if k in ids}
 
     def create(self, kind, id, default=True):
@@ -241,7 +245,7 @@ class MeasurePlugin(HasPrefPlugin):
             msg = 'Expected kind must be one of {}, not {}.'
             raise ValueError(msg.format(kinds, kind))
 
-        decls = getattr(self, '_'+kind+'s').contributions
+        decls = getattr(self, '_'+kind.replace('-', '_')+'s').contributions
         if id not in decls:
             raise ValueError('Unknown {} : {}'.format(kind, id))
 
@@ -273,14 +277,16 @@ class MeasurePlugin(HasPrefPlugin):
         This is always called before notifying the workspace of the change.
 
         """
+        print('selected engine ', old, new)
         # Destroy old instance if any.
-        self.processor._engine = None
+        self.processor.engine = None
 
         if old in self.engines:
             engine = self._engines.contributions[old]
             engine.react_to_unselection(self.workbench)
-
+        print(self.engines)
         if new and new in self.engines:
+            print('reacting')
             engine = self._engines.contributions[new]
             engine.react_to_selection(self.workbench)
 

@@ -13,10 +13,10 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.workbench.api import PluginManifest, Extension
-from measure.editors.api import Editor
-from measure.hooks.api import PreExecutionHook, PostExecutionHook
-from measure.engines.api import Engine
-from measure.monitors.api import Monitor
+from ecpy.measure.editors.api import Editor
+from ecpy.measure.hooks.api import PreExecutionHook, PostExecutionHook
+from ecpy.measure.engines.api import Engine
+from ecpy.measure.monitors.api import Monitor
 
 
 enamldef MeasureTestManifest(PluginManifest):
@@ -44,7 +44,7 @@ enamldef MeasureTestManifest(PluginManifest):
 
             attr selected
             attr workspace_contributing
-            new => (workbench, default=True)
+            new => (workbench, default=True):
                 return 2
 
             react_to_selection => (workbench):
@@ -65,7 +65,7 @@ enamldef MeasureTestManifest(PluginManifest):
         PreExecutionHook:
             id = 'dummy'
             description = 'This is a dummy'
-            new => (workbench, default=True)
+            new => (workbench, default=True):
                 return 3
 
     Extension:
