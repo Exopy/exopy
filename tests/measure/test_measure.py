@@ -14,11 +14,13 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 import enaml
+from future.builtins import str
 
 from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask
 
 with enaml.imports():
+    from ecpy.tasks.manager.manifest import TasksManagerManifest
     from .contributions import MeasureTestManifest
 
 
@@ -39,7 +41,8 @@ def test_tool_handling(measure, kind):
     """Test adding/moving and removing a tool from a measure.
 
     """
-    member = lambda : getattr(measure, kind.replace('-', '_')+'s')
+    def member():
+        return getattr(measure, kind.replace('-', '_')+'s')
 
     measure.add_tool(kind, 'dummy')
 
@@ -78,10 +81,52 @@ def test_tool_function_kind_checking(measure):
         measure.move_tool('monitor', 0, 1)
 
 
-def test_measure_persistence(measure):
+def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
+    """Test saving and reloading a measure.
+
     """
-    """
-    pass  # Test saving loading
+    measure_workbench.register(TasksManagerManifest())
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+
+    measure.add_tool('pre-hook', 'dummy')
+    measure.root_task.default_path = 'test'
+    measure.pre_hooks['dummy'].fail_check = True
+
+    path = str(tmpdir.join('test.meas.ini'))
+    measure.save(path)
+    assert measure.path == path
+
+    loaded, errors = Measure.load(plugin, path)
+    print(errors)
+    assert loaded.root_task.default_path == 'test'
+    assert loaded.pre_hooks['dummy'].fail_check
+    assert loaded.path == path
+    assert not errors
+
+    # Test handling errors : root_task rebuilding and tool rebuilding.
+    class CommandError(Exception):
+        pass
+
+    def generate_err(self, cmd, infos, u=None):
+        raise CommandError()
+
+    from enaml.workbench.core.core_plugin import CorePlugin
+    monkeypatch.setattr(CorePlugin, 'invoke_command', generate_err)
+
+    class CreationError(Exception):
+        pass
+
+    class Fail(object):
+        def new(self, workbench, default=True):
+            raise CreationError()
+
+    plugin._pre_hooks.contributions['dummy'] = Fail()
+
+    loaded, errors = Measure.load(plugin, path)
+    assert loaded is None
+    assert 'main task' in errors and 'CommandError' in errors['main task']
+    assert 'pre-hook' in errors and 'dummy' in errors['pre-hook']
+    assert 'CreationError' in errors['pre-hook']['dummy']
 
 
 def test_running_checks(measure):

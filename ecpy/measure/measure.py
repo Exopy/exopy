@@ -27,7 +27,6 @@ from configobj import ConfigObj
 from ..tasks.base_tasks import RootTask
 from ..utils.configobj_ops import include_configobj
 from ..utils.atom_util import HasPrefAtom
-from .hooks.internal_checks import InternalChecksHook
 
 
 logger = logging.getLogger(__name__)
@@ -294,7 +293,7 @@ class Measure(HasPrefAtom):
     def __init__(self, **kwargs):
 
         super(Measure, self).__init__(**kwargs)
-        self.add_tool('pre-hook', 'internal', InternalChecksHook())
+        self.add_tool('pre-hook', 'Internal checks')
 
     def save(self, path):
         """Save the measure as a ConfigObj object.
@@ -354,14 +353,13 @@ class Measure(HasPrefAtom):
 
         """
         # Create the measure.
-        measure = cls()
+        measure = cls(plugin=measure_plugin)
         config = ConfigObj(path)
-        measure.plugin = measure_plugin
         measure.path = path
-        measure.update_members_from_preferences(**config)
+        measure.update_members_from_preferences(config)
 
         # Return values storing the errors details.
-        errors = {}
+        errors = defaultdict(dict)
 
         # Get the workbench and core plugin.
         workbench = measure_plugin.workbench
@@ -369,7 +367,8 @@ class Measure(HasPrefAtom):
 
         # Load the task.
         cmd = 'ecpy.tasks.build_root'
-        kwarg = {'mode': 'config', 'config': config['root_task'],
+        build_dep = build_dep if build_dep else workbench
+        kwarg = {'mode': 'from config', 'config': config['root_task'],
                  'build_dep': build_dep}
         try:
             measure.root_task = core.invoke_command(cmd, kwarg, measure)
@@ -377,26 +376,26 @@ class Measure(HasPrefAtom):
             msg = 'Building %s, failed to restore task : %s'
             errors['main task'] = msg % (config.get('name'),  format_exc())
 
-        for kind in ('monitors', 'pre_hooks', 'post_hooks'):
-            saved = config.get(kind, {})
+        for kind in ('monitor', 'pre-hook', 'post-hook'):
+            saved = config.get(kind.replace('-', '_')+'s', {})
 
             # Make sure we always have the internal pre-hook in the right
             # position.
-            if kind == 'pre_hooks':
-                if 'internal' in saved:
-                    del measure.pre_hooks['internal']
+            if kind == 'pre-hook':
+                if 'Internal checks' in saved:
+                    del measure.pre_hooks['Internal checks']
 
             for id, state in saved.iteritems():
                 try:
-                    obj = measure_plugin.create(kind[:-1], id, default=False)
+                    obj = measure_plugin.create(kind, id, default=False)
                     obj.set_state(state)
                 except Exception:
-                    msg = 'Failed to restore {} {}: {}'.format(kind[:-1], id,
+                    msg = 'Failed to restore {} {}: {}'.format(kind, id,
                                                                format_exc())
-                    errors[id] = msg % (config.get('name'),  format_exc())
+                    errors[kind][id] = msg
                     continue
 
-                measure.add_tool(kind[:-1], id, obj)
+                measure.add_tool(kind, id, obj)
 
         measure.name = config.get('name', '')
 

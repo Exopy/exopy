@@ -50,6 +50,7 @@ enamldef SaveAction(Action):
         core = workspace.workbench.get_plugin('enaml.workbench.core')
         ui = workspace.workbench.get_plugin('enaml.workbench.ui')
         cmd = 'ecpy.tasks.save'
+        # XXXX add try except
         core.invoke_command(cmd,
                             dict(task=obj, mode='template', widget=ui.window)
 

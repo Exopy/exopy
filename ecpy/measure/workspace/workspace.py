@@ -175,6 +175,7 @@ class MeasureSpace(Workspace):
         else:
             full_path = measure.path
 
+        # XXXX add try except
         measure.save(full_path)
 
     def load_measure(self, mode, dock_item=None):
@@ -195,7 +196,8 @@ class MeasureSpace(Workspace):
             if not full_path:
                 return
 
-            measure = Measure.load(self.plugin, full_path)
+            measure, errors = Measure.load(self.plugin, full_path)
+            # XXXX handle errors
             self.plugin.edited_measure.add(measure)
             self.plugin.path = full_path
 

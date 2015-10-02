@@ -14,6 +14,8 @@ Those are contributed by the manifest found in contributions.enaml
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from atom.api import Bool
+
 from ecpy.measure.editors.api import BaseEditor
 from ecpy.measure.hooks.api import BasePreExecutionHook, BasePostExecutionHook
 from ecpy.measure.engines.api import BaseEngine
@@ -38,7 +40,7 @@ class DummyPreHook(BasePreExecutionHook):
     """Dummy pre-execution hook used for testing.
 
     """
-    pass
+    fail_check = Bool().tag(pref=True)
 
 
 class DummyMonitor(BaseMonitor):
@@ -52,4 +54,4 @@ class DummyPostHook(BasePostExecutionHook):
     """Dummy post execution hook used for testing.
 
     """
-    pass
+    fail_check = Bool().tag(pref=True)
