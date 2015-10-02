@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Dummy engines, editors and measure tools used for testing.
+
+Those are contributed by the manifest found in contributions.enaml
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from ecpy.measure.editors.api import BaseEditor
+from ecpy.measure.hooks.api import BasePreExecutionHook, BasePostExecutionHook
+from ecpy.measure.engines.api import BaseEngine
+from ecpy.measure.monitors.api import BaseMonitor
+
+
+class DummyEditor(BaseEditor):
+    """Dummy editor used for testing.
+
+    """
+    pass
+
+
+class DummyEngine(BaseEngine):
+    """Dummy engine used for testing.
+
+    """
+    pass
+
+
+class DummyPreHook(BasePreExecutionHook):
+    """Dummy pre-execution hook used for testing.
+
+    """
+    pass
+
+
+class DummyMonitor(BaseMonitor):
+    """Dummy monitor used for testing.
+
+    """
+    pass
+
+
+class DummyPostHook(BasePostExecutionHook):
+    """Dummy post execution hook used for testing.
+
+    """
+    pass

@@ -20,8 +20,8 @@ from itertools import chain
 from datetime import date
 
 from future.builtins import str as text
-from atom.api import (Atom, Instance, Dict, Unicode, Typed, ForwardTyped, Bool,
-                      Enum, Value)
+from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
+                      Value)
 from configobj import ConfigObj
 
 from ..tasks.base_tasks import RootTask
@@ -266,7 +266,7 @@ class Measure(HasPrefAtom):
     path = Unicode()
 
     #: Root task holding the measure logic.
-    root_task = Instance(RootTask)
+    root_task = Typed(RootTask)
 
     #: Dict of active monitor for this measure.
     monitors = Typed(OrderedDict, ())
@@ -294,7 +294,7 @@ class Measure(HasPrefAtom):
     def __init__(self, **kwargs):
 
         super(Measure, self).__init__(**kwargs)
-        self.add_tool('pre_hook', 'internal', InternalChecksHook())
+        self.add_tool('pre-hook', 'internal', InternalChecksHook())
 
     def save(self, path):
         """Save the measure as a ConfigObj object.
@@ -387,9 +387,8 @@ class Measure(HasPrefAtom):
                     del measure.pre_hooks['internal']
 
             for id, state in saved.iteritems():
-                obj = measure_plugin.create(kind[:-1], id, default=False)
-
                 try:
+                    obj = measure_plugin.create(kind[:-1], id, default=False)
                     obj.set_state(state)
                 except Exception:
                     msg = 'Failed to restore {} {}: {}'.format(kind[:-1], id,
@@ -483,7 +482,7 @@ class Measure(HasPrefAtom):
 
         Parameters
         ----------
-        kind : {'monitor', 'pre_hook', 'post_hook'}
+        kind : {'monitor', 'pre-hook', 'post-hook'}
             Kind of tool being added to the measure.
 
         id : unicode
@@ -493,13 +492,17 @@ class Measure(HasPrefAtom):
             Tool being added, if not specified a new instance will be created.
 
         """
-        if not tool:
-            try:
-                tool = self.plugin.create(kind, id)
-            except Exception:
-                logger.exception('Failed to create tool %s', id)
+        if kind not in ('pre-hook', 'monitor', 'post-hook'):
+            msg = ('Tool kind must be "pre-hook", "monitor" or "post-hook" '
+                   'not %s')
+            raise ValueError(msg % kind)
 
-        tools = getattr(self, kind + 's').copy()
+        if not tool:
+            tool = self.plugin.create(kind, id)
+
+        kind = kind.replace('-', '_') + 's'
+
+        tools = getattr(self, kind).copy()
 
         if id in tools:
             msg = 'Tool %s is already present in measure %s'
@@ -508,7 +511,7 @@ class Measure(HasPrefAtom):
         tool.link_to_measure(self)
 
         tools[id] = tool
-        setattr(self, kind + 's', tools)
+        setattr(self, kind, tools)
 
     def move_tool(self, kind, old, new):
         """Modify hooks execution order.
@@ -525,10 +528,14 @@ class Measure(HasPrefAtom):
             New index at which the tool should be.
 
         """
-        msg = 'Tool kind must be "pre_hook" or "post_hook" not %s'
-        assert kind in ('pre_hook', 'post_hook'), msg % kind
+        if kind not in ('pre-hook', 'post-hook'):
+            msg = ('Tool kind must be "pre-hook" or "post-hook" '
+                   'not %s')
+            raise ValueError(msg % kind)
 
-        tools = getattr(self, kind+'s')
+        kind = kind.replace('-', '_') + 's'
+
+        tools = getattr(self, kind)
         keys = list(tools.keys())
         id = keys[old]
         del keys[old]
@@ -548,16 +555,23 @@ class Measure(HasPrefAtom):
             Id of the monitor to remove.
 
         """
-        tools = getattr(self, kind + 's').copy()
+        if kind not in ('pre-hook', 'monitor', 'post-hook'):
+            msg = ('Tool kind must be "pre-hook", "monitor" or "post-hook" '
+                   'not %s')
+            raise ValueError(msg % kind)
+
+        kind = kind.replace('-', '_') + 's'
+
+        tools = getattr(self, kind).copy()
 
         if id not in tools:
             msg = 'Tool %s is not present in measure %s'
             raise KeyError(msg % (id, self.name))
 
-        tools[id].unlink_from_measure(self)
+        tools[id].unlink_from_measure()
 
         del tools[id]
-        setattr(self, kind + 's', tools)
+        setattr(self, kind, tools)
 
     def collect_entries_to_observe(self):
         """Get all the entries the monitors ask to be notified about.
@@ -590,12 +604,12 @@ class Measure(HasPrefAtom):
         self.root_task.write_in_database('meas_date', text(date.today()))
 
     def _post_setattr_root_task(self, old, new):
-        """Make sure the monitors know the name of the measure.
+        """Add the entries contributed by the measure to the task database.
 
         """
-        new.add_database_entry('meas_name', self.name)
-        new.add_database_entry('meas_id', self.id)
-        new.add_database_entry('meas_date', '')
+        entries = new.database_entries.copy()
+        entries.update({'meas_name': self.name, 'meas_id': self.id,
+                        'meas_date': ''})
 
     def _default_dependencies(self):
         """Default value for the dependencies member.

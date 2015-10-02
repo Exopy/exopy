@@ -30,7 +30,8 @@ enamldef MeasureTestManifest(PluginManifest):
             id = 'dummy'
             description = 'This is a dummy'
             new => (workbench, default=True):
-                return 1
+                from .dummies import DummyEditor
+                return DummyEditor(declaration=self)
 
             is_meant_for => (workbench, selected_task):
                 return True
@@ -45,7 +46,8 @@ enamldef MeasureTestManifest(PluginManifest):
             attr selected
             attr workspace_contributing
             new => (workbench, default=True):
-                return 2
+                from .dummies import DummyEngine
+                return DummyEngine(declaration=self)
 
             react_to_selection => (workbench):
                 self.selected = True
@@ -66,7 +68,8 @@ enamldef MeasureTestManifest(PluginManifest):
             id = 'dummy'
             description = 'This is a dummy'
             new => (workbench, default=True):
-                return 3
+                from .dummies import DummyPreHook
+                return DummyPreHook(declaration=self)
 
     Extension:
         id = 'monitors'
@@ -75,7 +78,8 @@ enamldef MeasureTestManifest(PluginManifest):
             id  = 'dummy'
             description = 'This is a dummy'
             new => (workbench, default=True):
-                return 4
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
 
     Extension:
         id = 'post-hook'
@@ -84,4 +88,5 @@ enamldef MeasureTestManifest(PluginManifest):
             id = 'dummy'
             description = 'This is a dummy'
             new => (workbench, default=True):
-                return 5
+                from .dummies import DummyPostHook
+                return DummyPostHook(declaration=self)
