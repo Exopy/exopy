@@ -57,7 +57,18 @@ class DummyMonitor(BaseMonitor):
     """Dummy monitor used for testing.
 
     """
-    pass
+    def refresh_monitored_entries(self):
+        """Do nothing when refreshing.
+
+        """
+        pass
+
+    def handle_database_change(self, news):
+        """Add all entries to the monitored ones.
+
+        """
+        if news[0] == 'added':
+            self.monitored_entries = self.monitored_entries + [news[1]]
 
 
 class DummyPostHook(BasePostExecutionHook):

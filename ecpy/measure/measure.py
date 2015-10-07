@@ -464,8 +464,8 @@ class Measure(HasPrefAtom):
         database = self.root_task.database
         for monitor in self.monitors.values():
             if not database.has_observer('notifier',
-                                         monitor.database_modified):
-                database.observe('notifier', monitor.database_modified)
+                                         monitor.handle_database_change):
+                database.observe('notifier', monitor.handle_database_change)
 
     def enter_running_state(self):
         """Make the measure ready to run.
@@ -473,8 +473,9 @@ class Measure(HasPrefAtom):
         """
         database = self.root_task.database
         for monitor in self.monitors.values():
-            if database.has_observer('notifier', monitor.database_modified):
-                database.unobserve('notifier', monitor.database_modified)
+            if database.has_observer('notifier',
+                                     monitor.handle_database_change):
+                database.unobserve('notifier', monitor.handle_database_change)
 
     def add_tool(self, kind, id, tool=None):
         """Add a tool to the measure.
@@ -574,7 +575,7 @@ class Measure(HasPrefAtom):
         del tools[id]
         setattr(self, kind, tools)
 
-    def collect_entries_to_observe(self):
+    def collect_monitored_entries(self):
         """Get all the entries the monitors ask to be notified about.
 
         Returns
@@ -585,7 +586,7 @@ class Measure(HasPrefAtom):
         """
         entries = []
         for monitor in self.monitors.values():
-            entries.extend(monitor.database_entries)
+            entries.extend(monitor.monitored_entries)
 
         return list(set(entries))
 

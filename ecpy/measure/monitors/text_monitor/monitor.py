@@ -62,7 +62,7 @@ class TextMonitor(BaseMonitor):
     custom_entries = List(MonitoredEntry)
 
     #: List of all the known database entries.
-    known_database_entries = Property()
+    known_monitored_entries = Property()
 
     def process_news(self, news):
         """Handle a news by calling every related entrt updater.
@@ -126,7 +126,7 @@ class TextMonitor(BaseMonitor):
             # more available.
             if hidden_custom:
                 for e in hidden_custom:
-                    if all(d in self.database_entries for d in e.depend_on):
+                    if all(d in self.monitored_entries for d in e.depend_on):
                         self.add_entries('displayed', (e,))
 
         # Handle the case of a database entry being suppressed, by removing all
@@ -141,8 +141,8 @@ class TextMonitor(BaseMonitor):
             self.hidden_entries = [m for m in self.hidden_entries
                                    if path not in m.depend_on]
 
-            if path in self.database_entries:
-                self.database_entries.remove(path)
+            if path in self.monitored_entries:
+                self.monitored_entries.remove(path)
 
             if path in self._database_values:
                 del self._database_values[path]
@@ -364,14 +364,14 @@ class TextMonitor(BaseMonitor):
             self.hidden_entries = []
             self.updaters = {}
             self.custom_entries = []
-            self.database_entries = []
+            self.monitored_entries = []
 
     def _displayed_entry_added(self, entry):
         """ Tackle the addition of a displayed monitor entry.
 
         First this method will add the entry updater into the updaters dict for
         each of its dependence and if one dependence is absent from the
-        database_entries it will be added.
+        monitored_entries it will be added.
 
         Parameters
         ----------
@@ -386,15 +386,15 @@ class TextMonitor(BaseMonitor):
             else:
                 self.updaters[dependence] = [entry.update]
 
-            if dependence not in self.database_entries:
-                self.database_entries.append(dependence)
+            if dependence not in self.monitored_entries:
+                self.monitored_entries.append(dependence)
 
     def _displayed_entry_removed(self, entry):
         """ Tackle the deletion of a displayed monitor entry.
 
         First this method will remove the entry updater for each of its
         dependence and no updater remain for that database entry, the entry
-        will be removed from the database_entries
+        will be removed from the monitored_entries
 
         Parameters
         ----------
@@ -408,10 +408,10 @@ class TextMonitor(BaseMonitor):
 
             if not self.updaters[dependence]:
                 del self.updaters[dependence]
-                self.database_entries.remove(dependence)
+                self.monitored_entries.remove(dependence)
 
-    def _get_known_database_entries(self):
-        """Getter for the known_database_entries property.
+    def _get_known_monitored_entries(self):
+        """Getter for the known_monitored_entries property.
 
         """
         return self._database_values.keys()

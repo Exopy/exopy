@@ -181,12 +181,32 @@ def test_running_checks(measure_workbench, measure):
 
 
 def test_changing_state(measure):
+    """Test going from edition to running and back.
+
     """
-    """
-    pass
+    measure.add_tool('monitor', 'dummy')
+
+    def add_entry(measure, name, value):
+        entries = measure.root_task.database_entries.copy()
+        entries[name] = value
+        measure.root_task.database_entries = entries
+
+    add_entry(measure, 'test', 1)
+    assert 'root/test' in measure.monitors['dummy'].monitored_entries
+
+    measure.enter_running_state()
+    add_entry(measure, 'test2', 2)
+    assert 'root/test2' not in measure.monitors['dummy'].monitored_entries
+
+    measure.enter_edition_state()
+    add_entry(measure, 'test3', 2)
+    assert 'root/test3' in measure.monitors['dummy'].monitored_entries
+
+    assert sorted(measure.collect_monitored_entries()) ==\
+        sorted(['root/test', 'root/test3'])
 
 
-def test_collecting_observed_entries(measure):
+def test_dependencies(measure):
     """
     """
     pass

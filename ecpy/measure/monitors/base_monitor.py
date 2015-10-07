@@ -24,7 +24,7 @@ class BaseMonitor(BaseMeasureTool):
 
     """
     #: List of database which should be observed
-    database_entries = List()
+    monitored_entries = List()
 
     def start(self):
         """Start the activity of the monitor.
