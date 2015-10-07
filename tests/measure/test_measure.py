@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+
 import pytest
 import enaml
 from future.builtins import str
@@ -129,10 +131,53 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
     assert 'CreationError' in errors['pre-hook']['dummy']
 
 
-def test_running_checks(measure):
+def test_running_checks(measure_workbench, measure):
+    """Test running the checks attached to a measure.
+
     """
-    """
-    pass
+    # Add dummy hooks
+    measure.add_tool('pre-hook', 'dummy')
+    measure.add_tool('post-hook', 'dummy')
+
+    # This is necessary for the internal checks.
+    measure_workbench.register(TasksManagerManifest())
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert res
+
+    # Check that the internal hook does run the root_task tests.
+    res, errors = measure.run_checks()
+    assert not res
+    assert 'Internal checks' in errors
+
+    # Check an ideal case
+    measure.root_task.default_path = os.path.dirname(__file__)
+    res, errors = measure.run_checks()
+    assert res
+    assert not errors
+
+    # Check handling error in pre_hook
+    measure.pre_hooks['dummy'].fail_check = True
+    res, errors = measure.run_checks()
+    assert not res
+    assert 'dummy' in errors and errors['dummy'] == 'pre'
+
+    # Check handling error in post_hook
+    measure.pre_hooks['dummy'].fail_check = False
+    measure.post_hooks['dummy'].fail_check = True
+    res, errors = measure.run_checks()
+    assert not res
+    assert 'dummy' in errors and errors['dummy'] == 'post'
+
+    # Check kwargs passing to pre-hooks
+    measure.post_hooks['dummy'].fail_check = False
+    res, errors = measure.run_checks(fail=True)
+    assert not res
+    assert 'dummy' in errors and errors['dummy'] == 'pre'
+
+    # Check kwargs passing to post-hooks
+    res, errors = measure.run_checks(fail_post=True)
+    assert not res
+    assert 'dummy' in errors and errors['dummy'] == 'post'
 
 
 def test_changing_state(measure):
@@ -142,12 +187,6 @@ def test_changing_state(measure):
 
 
 def test_collecting_observed_entries(measure):
-    """
-    """
-    pass
-
-
-def test_dependencies_handling(measure):
     """
     """
     pass

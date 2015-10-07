@@ -271,7 +271,7 @@ class MeasureProcessor(Atom):
         logger.info(mess.replace('\n', ' '))
 
         # Run checks now that we have all the runtimes.
-        res, errors = measure.run_checks(self.workbench)
+        res, errors = measure.run_checks()
         if not res:
             msg = 'Measure %s failed to pass the checks :\n' % meas_id
             return 'FAILED', msg + errors_to_msg(errors)

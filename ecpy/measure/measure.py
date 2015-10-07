@@ -76,7 +76,7 @@ class MeasureDependencies(Atom):
         if not self._runtime_map.get('main'):
             cmd = 'ecpy.app.dependencies.analyse'
             deps = core.invoke_command(cmd,
-                                       {'obj': self.root_task,
+                                       {'obj': self.measure.root_task,
                                         'dependencies': ['build', 'runtime']})
 
             b_deps, r_deps = deps
@@ -90,16 +90,16 @@ class MeasureDependencies(Atom):
             self._update_runtime_analysis(r_deps.dependencies)
 
         # Check that we know the dependencies of the hooks
-        for h in chain(self.measure.pre_hooks, self.measure.post_hooks):
-            hook_id = h.declaration.id
-            if hook_id not in self._runtime_map:
+        for h_id, h in chain(self.measure.pre_hooks.items(),
+                             self.measure.post_hooks.items()):
+            if h_id not in self._runtime_map:
                 deps = h.list_runtimes(workbench)
                 if deps is None:
                     continue  # The hook has no runtime dependencies
 
                 if deps.errors:
                     msg = 'Failed to analyse hook %s runtime dependencies.'
-                    return False, msg % hook_id, deps.errors
+                    return False, msg % h_id, deps.errors
 
                 self._update_runtime_analysis(deps.dependencies)
 
@@ -116,6 +116,7 @@ class MeasureDependencies(Atom):
             return False, msg, deps.unavailable
 
         self._runtime_dependencies = deps.dependencies
+        return True, '', {}
 
     def release_runtimes(self):
         """Release all the runtimes collected for the execution.
@@ -129,7 +130,8 @@ class MeasureDependencies(Atom):
         cmd = 'ecpy.app.dependencies.release_runtimes'
         core.invoke_command(cmd, dict(owner='ecpy.measure',
                                       dependencies=self._runtime_dependencies))
-        self._runtime_dependencies.clear()
+
+        self._runtime_dependencies = None
 
     def get_build_dependencies(self):
         """Get the build dependencies associated with the main task.
@@ -147,7 +149,7 @@ class MeasureDependencies(Atom):
         if not self._build_analysis:
             cmd = 'ecpy.app.dependencies.analyse'
             deps = core.invoke_command(cmd,
-                                       {'obj': self.root_task,
+                                       {'obj': self.measure.root_task,
                                         'dependencies': ['build']})
             if deps.errors:
                 return deps
@@ -156,7 +158,7 @@ class MeasureDependencies(Atom):
         if not self._build_dependencies:
             cmd = 'ecpy.app.dependencies.collect'
             deps = core.invoke_command(cmd,
-                                       dict(dependencies=self._buil_analysis,
+                                       dict(dependencies=self._build_analysis,
                                             kind='build'))
             self._build_dependencies = deps
 
@@ -184,9 +186,9 @@ class MeasureDependencies(Atom):
 
 
         """
-        if not self._runtime_dependencies:
+        if self._runtime_dependencies is None:
             raise RuntimeError('Runtime dependencies must be collected '
-                               '(calling collect_runtimes) before they can be'
+                               '(calling collect_runtimes) before they can be '
                                'queried.')
 
         valids = self._runtime_map.get(id)
@@ -227,7 +229,8 @@ class MeasureDependencies(Atom):
 
     #: Cached runtime dependencies of the main task and the hooks.
     #: Contains the actual dependencies.
-    _runtime_dependencies = Dict()
+    #: Set to None when dependencies have not been collected.
+    _runtime_dependencies = Typed(dict)
 
     #: Mapping determining which component has which dependency.
     _runtime_map = Dict()
@@ -283,7 +286,7 @@ class Measure(HasPrefAtom):
     #: some tests are failing.
     forced_enqueued = Bool()
 
-    #: Dict to store useful runtime infos
+    #: Object handling the collection and access to the measure dependencies.
     dependencies = Typed(MeasureDependencies)
 
     #: Result object returned by the engine when the root_task has been
@@ -404,17 +407,15 @@ class Measure(HasPrefAtom):
 
         return measure, errors
 
-    def run_checks(self, workbench, **kwargs):
+    def run_checks(self, **kwargs):
         """Run all measure checks.
 
         This is done at enqueueing time and before actually executing a measure
-        save it it was forcibly enqueued.
+        save it it was forcibly enqueued. The dependencies needs to be
+        collected before calling this method.
 
         Parameters
         ----------
-        workbench : Workbench
-            Reference to the application workbench.
-
         **kwargs :
             Keyword arguments to pass to the pre-operations.
 
@@ -430,13 +431,14 @@ class Measure(HasPrefAtom):
         """
         result = True
         full_report = {}
+        workbench = self.plugin.workbench
 
         self._write_infos_in_task()
 
         msg = 'Running checks for pre-measure hook %s for measure %s'
         for id, hook in self.pre_hooks.iteritems():
             logger.debug(msg, id, self.name)
-            answer = hook.check(workbench, self, **kwargs)
+            answer = hook.check(workbench, **kwargs)
             if answer is not None:
                 check, errors = answer
                 if errors:
@@ -446,7 +448,7 @@ class Measure(HasPrefAtom):
         msg = 'Running checks for post-measure hook %s for measure %s'
         for id, hook in self.post_hooks.iteritems():
             logger.debug(msg, id, self.name)
-            answer = hook.check(workbench, self, **kwargs)
+            answer = hook.check(workbench, **kwargs)
             if answer is not None:
                 check, errors = answer
                 if errors:

@@ -22,7 +22,7 @@ class InternalChecksHook(BasePreExecutionHook):
 
     """
 
-    def check(self, **kwargs):
+    def check(self, workbench, **kwargs):
         """Run the main task internal checks.
 
         """
@@ -33,7 +33,7 @@ class InternalChecksHook(BasePreExecutionHook):
 
         # Running the checks
         task.run_time = meas.dependencies.get_runtime_dependencies(hook_id)
-        check, errors = task.checks(**kwargs)
+        check, errors = task.check(**kwargs)
         task.run_time.clear()
 
         # Check that no measure with the same name and id is saved in

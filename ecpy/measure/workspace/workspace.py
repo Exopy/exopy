@@ -244,8 +244,7 @@ class MeasureSpace(Workspace):
                 logger.info(msg)
 
         # Run the checks specifying what runtimes are missing.
-        check, errors = measure.run_checks(self.workbench,
-                                           missing=errors['unavailable'])
+        check, errors = measure.run_checks(missing=errors['unavailable'])
 
         # Release the runtimes.
         measure.dependencies.release_runtimes()

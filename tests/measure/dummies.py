@@ -42,6 +42,16 @@ class DummyPreHook(BasePreExecutionHook):
     """
     fail_check = Bool().tag(pref=True)
 
+    def check(self, workbench, **kwargs):
+        """Fail the check if the fail_check member is set or 'fail' is found in
+        the kwargs.
+
+        """
+        if self.fail_check or 'fail' in kwargs:
+            return False, 'pre'
+
+        return True, ''
+
 
 class DummyMonitor(BaseMonitor):
     """Dummy monitor used for testing.
@@ -55,3 +65,13 @@ class DummyPostHook(BasePostExecutionHook):
 
     """
     fail_check = Bool().tag(pref=True)
+
+    def check(self, workbench, **kwargs):
+        """Fail the check if the fail_check member is set or 'fail' is found in
+        the kwargs.
+
+        """
+        if self.fail_check or 'fail_post' in kwargs:
+            return False, 'post'
+
+        # Check that Measure.run_checks can handle a None retur value
