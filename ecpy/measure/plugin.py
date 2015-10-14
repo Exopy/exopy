@@ -98,6 +98,8 @@ class MeasurePlugin(HasPrefPlugin):
     #: List of currently available editors.
     editors = List()
 
+    # TODO add the possibility to deactivate some editors.
+
     def start(self):
         """Start the plugin lifecycle by collecting all contributions.
 

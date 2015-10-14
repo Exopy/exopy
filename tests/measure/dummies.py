@@ -14,8 +14,10 @@ Those are contributed by the manifest found in contributions.enaml
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import enaml
 from atom.api import Bool
 
+from ecpy.app.dependencies.plugin import RuntimeContainer
 from ecpy.measure.editors.api import BaseEditor
 from ecpy.measure.hooks.api import BasePreExecutionHook, BasePostExecutionHook
 from ecpy.measure.engines.api import BaseEngine
@@ -51,6 +53,21 @@ class DummyPreHook(BasePreExecutionHook):
             return False, 'pre'
 
         return True, ''
+
+    def list_runtimes(self, workbench):
+        """Say that dummy is a dependency.
+
+        """
+        with enaml.imports():
+            from .contributions import Flags
+
+        deps = RuntimeContainer()
+
+        if Flags.RUNTIME2_FAIL_ANALYSE:
+            deps.errors[self.declaration.id] = 'rr'
+        else:
+            deps.dependencies = {'dummy2': set(['test'])}
+        return deps
 
 
 class DummyMonitor(BaseMonitor):

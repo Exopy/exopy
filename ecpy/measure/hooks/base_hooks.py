@@ -80,7 +80,7 @@ class BaseExecutionHook(BaseMeasureTool):
         pass
 
     def list_runtimes(self, workbench):
-        """list the runtimes dependencies for this hook.
+        """List the runtimes dependencies for this hook.
 
         Parameters
         ----------

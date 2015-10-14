@@ -23,7 +23,7 @@ from ecpy.tasks.api import RootTask
 
 with enaml.imports():
     from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from .contributions import MeasureTestManifest
+    from .contributions import MeasureTestManifest, Flags
 
 
 @pytest.fixture
@@ -206,7 +206,129 @@ def test_changing_state(measure):
         sorted(['root/test', 'root/test3'])
 
 
-def test_dependencies(measure):
+# =============================================================================
+# --- Test dependencies handling ----------------------------------------------
+# =============================================================================
+
+def test_accessing_build_dependencies(measure, monkeypatch):
+    """Test accessing and collecting if necessary build dependencies.
+
     """
+    class RT(RootTask):
+
+        dep_type = 'unknown'
+
+    # Fail analysis because
+    measure.root_task = RT()
+    deps = measure.dependencies.get_build_dependencies()
+    assert 'unknown' in deps.errors
+
+    class RT(RootTask):
+
+        dep_type = 'dummy'
+
+    # Fail collection
+    measure.root_task = RT()
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', True)
+    deps = measure.dependencies.get_build_dependencies()
+    assert 'dummy' in deps.errors
+
+    # Succeed with cached analysis
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', True)
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', False)
+    deps = measure.dependencies.get_build_dependencies()
+    assert not deps.errors
+
+    # Succeed with cached dependencies
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', True)
+    deps = measure.dependencies.get_build_dependencies()
+    assert not deps.errors
+
+    # Test reset for build related cache
+    measure.dependencies.reset()
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', False)
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', True)
+    deps = measure.dependencies.get_build_dependencies()
+    assert 'dummy' in deps.errors
+
+
+def test_collecting_runtime(measure, monkeypatch):
+    """Test collecting/releasing runtimes.
+
     """
-    pass
+    measure.add_tool('pre-hook', 'dummy')
+    measure.add_tool('post-hook', 'dummy')
+
+    class RT(RootTask):
+
+        dep_type = 'dummy'
+
+    measure.root_task = RT()
+
+    # Fail analysing main task build
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'main' in msg and 'build' in msg
+
+    # Fail analysing main task runtime
+    monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_ANALYSE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'main' in msg and 'runtime' in msg
+
+    # Fail analysing hook runtime
+    monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_ANALYSE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_ANALYSE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'hook' in msg and 'runtime' in msg
+
+    # Fail collecting runtimes
+    monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_ANALYSE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME_FAIL_COLLECT', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'collect' in msg and 'runtime' in msg
+
+    # Runtimes unavailable
+    monkeypatch.setattr(Flags, 'RUNTIME_FAIL_COLLECT', False)
+    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'unavailable' in msg
+
+    # Succeed collecting.
+    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', False)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert res
+
+    # Collecting when already collected
+    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert res
+
+    # Access for unknown id
+    assert not measure.dependencies.get_runtime_dependencies('unknown')
+
+    # Access for known id
+    assert measure.dependencies.get_runtime_dependencies('dummy')
+
+    # Release and test impossibilty to access for uncollected deps.
+    measure.dependencies.release_runtimes()
+    with pytest.raises(RuntimeError):
+        measure.dependencies.get_runtime_dependencies('dummy')
+
+    # Test reseting
+    measure.dependencies.reset()
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+
+    # Test reseting while holding dependencies.
+    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', False)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    with pytest.raises(RuntimeError):
+        measure.dependencies.reset()
+    measure.dependencies.release_runtimes()
+    measure.dependencies.release_runtimes()  # Check that this does not crash

@@ -13,10 +13,25 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.workbench.api import PluginManifest, Extension
+from ecpy.app.dependencies.api import BuildDependency, RuntimeDependency
 from ecpy.measure.editors.api import Editor
 from ecpy.measure.hooks.api import PreExecutionHook, PostExecutionHook
 from ecpy.measure.engines.api import Engine
 from ecpy.measure.monitors.api import Monitor
+
+class Flags(object):
+
+    BUILD_FAIL_ANALYSE = False
+
+    BUILD_FAIL_COLLECT = False
+
+    RUNTIME1_FAIL_ANALYSE = False
+
+    RUNTIME2_FAIL_ANALYSE = False
+
+    RUNTIME_UNAVAILABLE = False
+
+    RUNTIME_FAIL_COLLECT = False
 
 
 enamldef MeasureTestManifest(PluginManifest):
@@ -90,3 +105,55 @@ enamldef MeasureTestManifest(PluginManifest):
             new => (workbench, default=True):
                 from .dummies import DummyPostHook
                 return DummyPostHook(declaration=self)
+
+    Extension:
+        id = 'build-dep'
+        point = 'ecpy.app.dependencies.build'
+        BuildDependency:
+            id = 'dummy'
+            analyse => (workbench, obj, getter, dependencies, errors):
+                if Flags.BUILD_FAIL_ANALYSE:
+                    raise Exception()
+                else:
+                    dependencies.add('test')
+                    return ['dummy1']
+            collect => (workbench, dependencies, errors):
+                if Flags.BUILD_FAIL_COLLECT:
+                    raise Exception()
+                else:
+                    dependencies['test'] = 1
+
+    Extension:
+        id = 'runtime-dep'
+        point = 'ecpy.app.dependencies.runtime'
+        RuntimeDependency:
+            id = 'dummy1'
+            analyse => (workbench, obj, getter, dependencies, errors):
+                if Flags.RUNTIME1_FAIL_ANALYSE:
+                    raise Exception()
+                else:
+                    dependencies.add('test')
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                if Flags.RUNTIME_FAIL_COLLECT:
+                    raise Exception()
+                elif Flags.RUNTIME_UNAVAILABLE:
+                    unavailable.add('test')
+                else:
+                    dependencies['test'] = 1
+            release => (workbench, owner, dependencies):
+                if 'test' in dependencies:
+                    dependencies['test'] = None
+
+    Extension:
+        id = 'runtime-dep2'
+        point = 'ecpy.app.dependencies.runtime'
+        RuntimeDependency:
+            id = 'dummy2'
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                if Flags.RUNTIME_FAIL_COLLECT:
+                    raise Exception()
+                else:
+                    dependencies['test'] = 1
+            release => (workbench, owner, dependencies):
+                if 'test' in dependencies:
+                    dependencies['test'] = None

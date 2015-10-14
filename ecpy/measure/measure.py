@@ -67,7 +67,7 @@ class MeasureDependencies(Atom):
 
         """
         if self._runtime_dependencies:
-            return
+            return True, '', {}
 
         workbench = self.measure.plugin.workbench
         core = workbench.get_plugin('enaml.workbench.core')
@@ -94,6 +94,7 @@ class MeasureDependencies(Atom):
                              self.measure.post_hooks.items()):
             if h_id not in self._runtime_map:
                 deps = h.list_runtimes(workbench)
+
                 if deps is None:
                     continue  # The hook has no runtime dependencies
 
@@ -101,6 +102,7 @@ class MeasureDependencies(Atom):
                     msg = 'Failed to analyse hook %s runtime dependencies.'
                     return False, msg % h_id, deps.errors
 
+                self._runtime_map[h_id] = deps.dependencies
                 self._update_runtime_analysis(deps.dependencies)
 
         cmd = 'ecpy.app.dependencies.collect'
@@ -160,9 +162,13 @@ class MeasureDependencies(Atom):
             deps = core.invoke_command(cmd,
                                        dict(dependencies=self._build_analysis,
                                             kind='build'))
-            self._build_dependencies = deps
+            if not deps.errors:
+                self._build_dependencies = deps
 
-        return self._build_dependencies
+        else:
+            deps = self._build_dependencies
+
+        return deps
 
     def get_runtime_dependencies(self, id):
         """Access the runtime dependencies associated with a hook or the main
@@ -198,17 +204,20 @@ class MeasureDependencies(Atom):
         deps = self._runtime_dependencies
         queried = {}
         for runtime_id, r_deps in valids.iteritems():
-            queried[runtime_id] = {k: deps[k] for k in r_deps}
+            queried[runtime_id] = {k: deps[runtime_id][k] for k in r_deps}
+
         return queried
 
     def reset(self):
         """Cleanup all cached values.
 
         """
+        if self._runtime_dependencies:
+            raise RuntimeError('Cannot reset dependencies while holding '
+                               'runtime dependencies')
         self._build_analysis.clear()
         self._build_dependencies = None
         self._runtime_analysis.clear()
-        self._runtime_dependencies.clear()
         self._runtime_map.clear()
 
     # =========================================================================
