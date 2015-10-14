@@ -23,19 +23,7 @@ from ecpy.tasks.api import RootTask
 
 with enaml.imports():
     from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from .contributions import MeasureTestManifest, Flags
-
-
-@pytest.fixture
-def measure(measure_workbench):
-    """Register the dummy testing tools and create an empty measure.
-
-    """
-    measure_workbench.register(MeasureTestManifest())
-    plugin = measure_workbench.get_plugin('ecpy.measure')
-    measure = Measure(plugin=plugin, root_task=RootTask(),
-                      name='Dummy', id='001')
-    return measure
+    from .contributions import Flags
 
 
 @pytest.mark.parametrize('kind', ['pre-hook', 'monitor', 'post-hook'])

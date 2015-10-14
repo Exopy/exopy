@@ -29,6 +29,11 @@ with enaml.imports():
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.measure.manifest import MeasureManifest
+    from ecpy.measure.measure import Measure
+    from ecpy.tasks.api import RootTask
+
+with enaml.imports():
+    from .contributions import MeasureTestManifest
 
 
 @pytest.fixture
@@ -51,3 +56,15 @@ def measure_workbench(monkeypatch, app_dir):
     workbench.register(MeasureManifest())
 
     return workbench
+
+
+@pytest.fixture
+def measure(measure_workbench):
+    """Register the dummy testing tools and create an empty measure.
+
+    """
+    measure_workbench.register(MeasureTestManifest())
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+    measure = Measure(plugin=plugin, root_task=RootTask(),
+                      name='Dummy', id='001')
+    return measure

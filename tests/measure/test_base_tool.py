@@ -16,8 +16,6 @@ from atom.api import Int
 
 from ecpy.measure.base_tool import BaseMeasureTool
 
-from .test_measure import measure
-
 
 class ToolTester(BaseMeasureTool):
 
