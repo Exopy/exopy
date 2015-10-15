@@ -127,3 +127,20 @@ def test_handling_not_found_default_tools(measure_workbench):
 
     with pytest.raises(ErrorDialogException):
         measure_workbench.get_plugin('ecpy.measure')
+
+
+def test_find_next_measure(measure_workbench):
+    """Test finding the next valid measure in the queue.
+
+    """
+    from .conftest import measure
+    m1 = measure(measure_workbench)
+    m2 = measure(measure_workbench)
+    m3 = measure(measure_workbench)
+    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin.enqueued_measures.add(m1)
+    plugin.enqueued_measures.add(m2)
+    plugin.enqueued_measures.add(m3)
+
+    m1.status = 'COMPLETED'
+    assert plugin.find_next_measure() is m2

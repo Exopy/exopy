@@ -14,8 +14,10 @@ Those are contributed by the manifest found in contributions.enaml
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from threading import Event
+
 import enaml
-from atom.api import Bool
+from atom.api import Bool, Value
 
 from ecpy.app.dependencies.plugin import RuntimeContainer
 from ecpy.measure.editors.api import BaseEditor
@@ -35,7 +37,23 @@ class DummyEngine(BaseEngine):
     """Dummy engine used for testing.
 
     """
-    pass
+    fail_perform = Bool()
+
+    waiting = Value(factory=Event)
+
+    go_on = Value(factory=Event)
+
+    def perform(self, exec_infos):
+        """Simply return the exec_infos.
+
+        """
+        self.waiting.set()
+        self.go_on.wait()
+        self.waiting.clear()
+        self.go_on.clear()
+
+        exec_infos.success = False if self.fail_perform else True
+        return exec_infos
 
 
 class DummyPreHook(BasePreExecutionHook):
@@ -43,6 +61,10 @@ class DummyPreHook(BasePreExecutionHook):
 
     """
     fail_check = Bool().tag(pref=True)
+
+    waiting = Value(factory=Event)
+
+    go_on = Value(factory=Event)
 
     def check(self, workbench, **kwargs):
         """Fail the check if the fail_check member is set or 'fail' is found in
@@ -53,6 +75,12 @@ class DummyPreHook(BasePreExecutionHook):
             return False, 'pre'
 
         return True, ''
+
+    def run(self, workbench, engine):
+        self.waiting.set()
+        self.go_on.wait()
+        self.waiting.clear()
+        self.go_on.clear()
 
     def list_runtimes(self, workbench):
         """Say that dummy is a dependency.
@@ -94,6 +122,10 @@ class DummyPostHook(BasePostExecutionHook):
     """
     fail_check = Bool().tag(pref=True)
 
+    waiting = Value(factory=Event)
+
+    go_on = Value(factory=Event)
+
     def check(self, workbench, **kwargs):
         """Fail the check if the fail_check member is set or 'fail' is found in
         the kwargs.
@@ -103,3 +135,9 @@ class DummyPostHook(BasePostExecutionHook):
             return False, 'post'
 
         # Check that Measure.run_checks can handle a None retur value
+
+    def run(self, workbench, engine):
+        self.waiting.set()
+        self.go_on.wait()
+        self.waiting.clear()
+        self.go_on.clear()

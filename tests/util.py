@@ -166,3 +166,22 @@ class ErrorDialogException(Exception):
 
     """
     pass
+
+
+@contextmanager
+def signal_error_raise():
+    """Make the error plugin raise an exception when signaling.
+
+    """
+    from ecpy.app.errors.plugin import ErrorsPlugin
+    func = ErrorsPlugin.signal
+
+    def raise_for_signal(self, kind, **kwargs):
+        raise ErrorDialogException()
+
+    ErrorsPlugin.signal = raise_for_signal
+
+    try:
+        yield
+    finally:
+        ErrorsPlugin.signal = func

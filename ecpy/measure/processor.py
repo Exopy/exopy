@@ -20,7 +20,7 @@ import os
 import logging
 from time import sleep
 from traceback import format_exc
-from threading import Thread
+from threading import Thread, RLock
 
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
@@ -132,9 +132,10 @@ class MeasureProcessor(Atom):
         """Stop the currently active measure.
 
         """
-        logger.info('Stopping measure {}.'.format(self.running_measure.name))
         self._state.set('stop_attempt')
-        self.running_measure.status = 'STOPPING'
+        if self.running_measure:
+            logger.info('Stopping measure %s.' % self.running_measure.name)
+            self.running_measure.status = 'STOPPING'
         if no_post_exec or force:
             self._state.set('no_post_exec')
 
@@ -148,7 +149,8 @@ class MeasureProcessor(Atom):
         """Stop processing the enqueued measure.
 
         """
-        logger.info('Stopping measure {}.'.format(self.running_measure.name))
+        if self.running_measure:
+            logger.info('Stopping measure %s.' % self.running_measure.name)
         self._state.set('stop_attempt', 'stop_processing')
         self._state.clear('processing')
         if no_post_exec or force:
@@ -168,15 +170,18 @@ class MeasureProcessor(Atom):
 
     #: Internal flags used to keep track of the execution state.
     _state = Typed(BitFlag,
-                   ('processing', 'running_pre_hooks', 'running_main',
-                    'running_post_hooks', 'pause_attempt', 'paused',
-                    'resuming', 'stop_attempt', 'stop_processing',
-                    'no_post_exec', 'continuous_processing')
+                   (('processing', 'running_pre_hooks', 'running_main',
+                     'running_post_hooks', 'pause_attempt', 'paused',
+                     'resuming', 'stop_attempt', 'stop_processing',
+                     'no_post_exec', 'continuous_processing'),)
                    )
 
     #: Hook currently executed. The value is meaningful only when
     #: 'running_pre_hooks' or 'running_post_hooks' is set.
     _active_hook = Value()
+
+    #: Lock to avoid race condition when pausing.
+    _lock = Value(factory=RLock)
 
     def _run_measures(self, measure):
         """Run measures (either all enqueued or only one)
@@ -210,15 +215,15 @@ class MeasureProcessor(Atom):
                 meas = measure
                 measure = None
             else:
-                meas = self.find_next_measure()
+                meas = self.plugin.find_next_measure()
 
             # If there is a measure register it as the running one, update its
             # status and log its execution.
             if meas is not None:
 
                 meas_id = meas.name + '_' + meas.id
-                deferred_call(setattr, self, 'running_measure', meas)
-                self._set_measure_state('RUNNING', 'The measure is being run.')
+                self._set_measure_state('RUNNING', 'The measure is being run.',
+                                        meas)
 
                 msg = 'Starting execution of measure %s'
                 logger.info(msg % meas.name + meas.id)
@@ -248,7 +253,7 @@ class MeasureProcessor(Atom):
             self._stop_engine()
 
         self._state.clear('processing')
-        deferred_call(setattr, (self, 'active', False))
+        deferred_call(setattr, self, 'active', False)
 
     def _run_measure(self, measure):
         """Run a single measure.
@@ -284,7 +289,7 @@ class MeasureProcessor(Atom):
         logger.info('Starting measure {}.'.format(meas_id))
 
         # Execute all pre-execution hooks.
-        result, errors = self._run_pre_execution()
+        result, errors = self._run_pre_execution(measure)
         if not result:
             msg = 'Measure %s failed to run pre-execution hooks :\n' % meas_id
             return 'FAILED', msg + errors_to_msg(errors)
@@ -294,19 +299,23 @@ class MeasureProcessor(Atom):
         if self._check_for_pause_or_stop():
 
             # Connect new monitors, and start them.
-            self._start_monitors()
+            logger.debug('Connecting monitors for measure %s',
+                         meas_id)
+            self._start_monitors(measure)
 
             # Assemble the task infos for the engine to run the main task.
             deps = measure.dependencies
             infos = ExecutionInfos(
                 id=meas_id+'.main',
                 task=measure.root_task,
-                build_deps=deps.get_build_dependencies(),
+                build_deps=deps.get_build_dependencies().dependencies,
                 runtime_deps=deps.get_runtime_dependencies('main'),
-                database_entries=measure.collect_monitored_entries(),
+                observed_entries=measure.collect_monitored_entries(),
                 )
 
             # Ask the engine to perform the main task.
+            logger.debug('Passing measure %s to the engine.',
+                         meas_id)
             self._state.set('running_main')
             execution_result = self.engine.perform(infos)
             self._state.clear('running_main')
@@ -318,11 +327,13 @@ class MeasureProcessor(Atom):
             measure.task_execution_result = execution_result
 
             # Disconnect monitors.
-            self._stop_monitors()
+            logger.debug('Disonnecting monitors for measure %s',
+                         meas_id)
+            self._stop_monitors(measure)
 
         # Execute all post-execution hooks if pertinent.
         if not self._state.test('no_post_exec'):
-            result, errors = self._run_pre_execution()
+            result, errors = self._run_post_execution(measure)
 
         if not result:
             if not execution_result.success:
@@ -353,7 +364,7 @@ class MeasureProcessor(Atom):
         self._state.set('running_pre_hooks')
         meas_id = measure.name + '_' + measure.id
 
-        for id, hook in self.pre_hooks.iteritems():
+        for id, hook in measure.pre_hooks.iteritems():
             if not self._check_for_pause_or_stop():
                 break
             logger.debug('Calling pre-measure hook %s for measure %s',
@@ -362,7 +373,7 @@ class MeasureProcessor(Atom):
                 self._active_hook = hook
 
             try:
-                hook.run(self.plugin.workbench, measure, self.engine)
+                hook.run(self.plugin.workbench, self.engine)
             except Exception:
                 result = False
                 full_report[id] = format_exc()
@@ -399,7 +410,7 @@ class MeasureProcessor(Atom):
         self._state.set('running_post_hooks')
         meas_id = measure.name + '_' + measure.id
 
-        for id, hook in self.pre_hooks.iteritems():
+        for id, hook in self.post_hooks.iteritems():
             if not self._check_for_pause_or_stop():
                 break
             logger.debug('Calling post-measure hook %s for measure %s',
@@ -408,7 +419,7 @@ class MeasureProcessor(Atom):
                 self._active_hook = hook
 
             try:
-                hook.run(self.plugin.workbench, measure, self.engine)
+                hook.run(self.plugin.workbench, self.engine)
             except Exception:
                 result = False
                 full_report[id] = format_exc()
@@ -454,18 +465,21 @@ class MeasureProcessor(Atom):
                 if dock_item is None:
                     try:
                         dock_item = decl.create_item(workbench, dock_area)
-                        if dock_item.float_default:
-                            ops.append(FloatItem(item=decl.id))
-                        else:
-                            ops.append(InsertTab(item=decl.id, target=anchor))
+                        if dock_item is not None:
+                            if dock_item.float_default:
+                                ops.append(FloatItem(item=decl.id))
+                            else:
+                                ops.append(InsertTab(item=decl.id,
+                                                     target=anchor))
                     except Exception:
                         logger.error('Failed to create widget for monitor %s',
-                                     id)
+                                     decl.id)
                         logger.debug(format_exc())
                         continue
 
                 self.engine.observe('news', monitor.process_news)
-                dock_item.monitor = monitor
+                if dock_item:
+                    dock_item.monitor = monitor
                 monitor.start()
 
             dock_area.update_layout(ops)
@@ -485,15 +499,15 @@ class MeasureProcessor(Atom):
         later.
 
         """
-        def stop_monitors(self, measure):
-            engine = self._engine
+        def stop_monitors(engine, measure):
             if engine:
                 engine.unobserve('news')
             for monitor in measure.monitors.values():
                 monitor.stop()
 
         # Executed in the main thread to avoid GUI update issues.
-        sheduled = schedule(stop_monitors, (measure), priority=100)
+        sheduled = schedule(stop_monitors, (self.engine, measure),
+                            priority=100)
         while sheduled.pending():
             sleep(0.05)
 
@@ -589,26 +603,31 @@ class MeasureProcessor(Atom):
             self._engine.unobserve('status', self._watch_engine_state)
             self._set_measure_state('RUNNING', 'The measure has resumed.')
 
-    def _set_measure_state(self, status, infos):
+    def _set_measure_state(self, status, infos, measure=None):
         """Set the measure status and infos in the main thread.
 
         """
-        measure = self.running_measure
-        deferred_call(setattr, measure, 'status', status)
-        deferred_call(setattr, measure, 'infos', infos)
+        def set_state(processor, status, infos, meas):
+            if meas:
+                processor.running_measure = meas
+            measure = processor.running_measure
+            measure.status = status
+            measure.infos = infos
+
+        deferred_call(set_state, self, status, infos, measure)
 
     def _stop_engine(self):
         """Stop the engine.
 
         """
-        engine = self._engine
+        engine = self.engine
         self.stop_processing()
         i = 0
-        while engine and engine.active:
+        while engine and engine.status != 'Stopped':
             sleep(0.5)
             i += 1
             if i > 10:
-                self.force_stop_processing()
+                self.stop_processing(force=True)
 
     def _clear_state(self):
         """Clear the state when starting while preserving persistent settings.
@@ -617,7 +636,7 @@ class MeasureProcessor(Atom):
         flags = list(self._state.flags)
         flags.remove('processing')
         flags.remove('continuous_processing')
-        self._state.clear(self._state.flages)
+        self._state.clear(*flags)
 
     def _post_setattr_continuous_processing(self, old, new):
         """Make sure the internal bit flag does reflect the real setting.

@@ -221,11 +221,13 @@ A |BuildDependency| needs:
   attribute value of the object this dependency collector is meant to act on.
 - 'collect': a method getting the build dependency of an object and
   identifying its runtime dependencies.
+# XXXX validate, analyse
 
 A |RuntimeDependecy| needs:
 
 - an 'id' which must be unique.
 - 'collect': a method getting the runtime dependency of an object.
+# XXXX validate, analyse, release
 
 
 Customizing logging

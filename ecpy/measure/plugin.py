@@ -63,7 +63,7 @@ class MeasurePlugin(HasPrefPlugin):
     enqueued_measures = Typed(MeasureContainer, ())
 
     #: Measure processor responsible for measure execution.
-    processor = Typed(MeasureProcessor, ())
+    processor = Typed(MeasureProcessor)
 
     #: List of currently available engines.
     engines = List()
@@ -253,6 +253,31 @@ class MeasurePlugin(HasPrefPlugin):
 
         return decls[id].new(self.workbench, default)
 
+    def find_next_measure(self):
+        """Find the next runnable measure in the queue.
+
+        Returns
+        -------
+        measure : Measure
+            First valid measurement in the queue or None if there is no
+            available measure.
+
+        """
+        enqueued_measures = self.enqueued_measures.measures
+        i = 0
+        measure = None
+        # Look for a measure not being currently edited. (Can happen if the
+        # user is editing the second measure when the first measure ends).
+        while i < len(enqueued_measures):
+            measure = enqueued_measures[i]
+            if measure.status != 'READY':
+                i += 1
+                measure = None
+            else:
+                break
+
+        return measure
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
@@ -279,16 +304,13 @@ class MeasurePlugin(HasPrefPlugin):
         This is always called before notifying the workspace of the change.
 
         """
-        print('selected engine ', old, new)
         # Destroy old instance if any.
         self.processor.engine = None
 
         if old in self.engines:
             engine = self._engines.contributions[old]
             engine.react_to_unselection(self.workbench)
-        print(self.engines)
         if new and new in self.engines:
-            print('reacting')
             engine = self._engines.contributions[new]
             engine.react_to_selection(self.workbench)
 
@@ -298,3 +320,9 @@ class MeasurePlugin(HasPrefPlugin):
 
         """
         setattr(self, name, list(getattr(self, '_'+name).contributions))
+
+    def _default_processor(self):
+        """Create a MeasureProcessor with a reference to the plugin.
+
+        """
+        return MeasureProcessor(plugin=self)

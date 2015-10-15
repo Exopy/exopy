@@ -132,5 +132,13 @@ class Monitor(BaseToolDeclaration):
 
         The declaration id should be used as name of the dock item.
 
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        area :
+            Dock area to use as the dock item parent.
+
         """
-        raise NotImplementedError()
+        pass

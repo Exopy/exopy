@@ -87,7 +87,6 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
     assert measure.path == path
 
     loaded, errors = Measure.load(plugin, path)
-    print(errors)
     assert loaded.root_task.default_path == 'test'
     assert loaded.pre_hooks['dummy'].fail_check
     assert loaded.path == path

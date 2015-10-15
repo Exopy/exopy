@@ -33,7 +33,7 @@ class BaseExecutionHook(BaseMeasureTool):
     #: succeded to resume.
     resumed = Event()
 
-    def run(self, workbench, measure, engine):
+    def run(self, workbench, engine):
         """Perform additional operations before/after the measure.
 
         This method can raise errors as necessary.
@@ -43,14 +43,11 @@ class BaseExecutionHook(BaseMeasureTool):
         workbench : Workbench
             Reference to the application workbench.
 
-        measure : Measure
-            Reference to the measure.
-
         engine : Engine
             Active engine that can be used to execute tasks.
 
         """
-        raise NotImplementedError()
+        pass
 
     def pause(self):
         """Pause the execution of the hook.

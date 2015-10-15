@@ -13,6 +13,6 @@ displays some database values or request the plotting of some data.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .base_monitor import BaseMonitor, Monitor
+from .base_monitor import BaseMonitor, BaseMonitorItem, Monitor
 
-__all__ = ['BaseMonitor', 'Monitor']
+__all__ = ['BaseMonitor', 'BaseMonitorItem', 'Monitor']

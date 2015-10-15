@@ -63,7 +63,10 @@ def measure(measure_workbench):
     """Register the dummy testing tools and create an empty measure.
 
     """
-    measure_workbench.register(MeasureTestManifest())
+    try:
+        measure_workbench.register(MeasureTestManifest())
+    except ValueError:
+        pass
     plugin = measure_workbench.get_plugin('ecpy.measure')
     measure = Measure(plugin=plugin, root_task=RootTask(),
                       name='Dummy', id='001')

@@ -17,7 +17,7 @@ from ecpy.app.dependencies.api import BuildDependency, RuntimeDependency
 from ecpy.measure.editors.api import Editor
 from ecpy.measure.hooks.api import PreExecutionHook, PostExecutionHook
 from ecpy.measure.engines.api import Engine
-from ecpy.measure.monitors.api import Monitor
+from ecpy.measure.monitors.api import Monitor, BaseMonitorItem
 
 class Flags(object):
 
@@ -38,6 +38,8 @@ enamldef MeasureTestManifest(PluginManifest):
     """Manifest contributing dummy extensions to measure plugin.
 
     """
+    id = 'test.measure'
+
     Extension:
         id = 'editor'
         point = 'ecpy.measure.editors'
@@ -96,6 +98,10 @@ enamldef MeasureTestManifest(PluginManifest):
                 from .dummies import DummyMonitor
                 return DummyMonitor(declaration=self)
 
+            create_item => (workbench, area):
+#                return BaseMonitorItem(area)
+                pass
+
     Extension:
         id = 'post-hook'
         point = 'ecpy.measure.post-execution'
@@ -127,7 +133,9 @@ enamldef MeasureTestManifest(PluginManifest):
         id = 'runtime-dep'
         point = 'ecpy.app.dependencies.runtime'
         RuntimeDependency:
+            name = 'dependencies'
             id = 'dummy1'
+            attr collected
             analyse => (workbench, obj, getter, dependencies, errors):
                 if Flags.RUNTIME1_FAIL_ANALYSE:
                     raise Exception()
@@ -139,8 +147,10 @@ enamldef MeasureTestManifest(PluginManifest):
                 elif Flags.RUNTIME_UNAVAILABLE:
                     unavailable.add('test')
                 else:
+                    self.collected = True
                     dependencies['test'] = 1
             release => (workbench, owner, dependencies):
+                self.collected = False
                 if 'test' in dependencies:
                     dependencies['test'] = None
 
