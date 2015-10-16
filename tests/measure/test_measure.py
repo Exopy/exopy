@@ -189,8 +189,9 @@ def test_changing_state(measure):
     add_entry(measure, 'test3', 2)
     assert 'root/test3' in measure.monitors['dummy'].monitored_entries
 
-    assert sorted(measure.collect_monitored_entries()) ==\
-        sorted(['root/test', 'root/test3'])
+    entries = measure.collect_monitored_entries()
+    assert 'root/test' in entries and 'root/test3' in entries
+    assert 'root/test2' not in entries
 
 
 # =============================================================================
@@ -272,27 +273,42 @@ def test_collecting_runtime(measure, monkeypatch):
     assert not res
     assert 'hook' in msg and 'runtime' in msg
 
-    # Fail collecting runtimes
+    # Fail collecting main task runtimes
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_ANALYSE', False)
-    monkeypatch.setattr(Flags, 'RUNTIME_FAIL_COLLECT', True)
+    monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_COLLECT', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    assert not res
+    assert 'collect' in msg and 'runtime' in msg
+
+    # Fail collecting hook runtimes
+    monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_COLLECT', False)
+    monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', True)
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert not res
     assert 'collect' in msg and 'runtime' in msg
 
     # Runtimes unavailable
-    monkeypatch.setattr(Flags, 'RUNTIME_FAIL_COLLECT', False)
-    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', True)
+    monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', False)
+    monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', True)
+    res, msg, errors = measure.dependencies.collect_runtimes()
+    print(errors)
+    assert not res
+    assert 'unavailable' in msg
+
+    # Runtimes unavailable for hooks
+    monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert not res
     assert 'unavailable' in msg
 
     # Succeed collecting.
-    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', False)
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert res
 
     # Collecting when already collected
-    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', True)
+    monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', True)
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert res
 
@@ -313,7 +329,7 @@ def test_collecting_runtime(measure, monkeypatch):
     assert not res
 
     # Test reseting while holding dependencies.
-    monkeypatch.setattr(Flags, 'RUNTIME_UNAVAILABLE', False)
+    monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', False)
     res, msg, errors = measure.dependencies.collect_runtimes()
     with pytest.raises(RuntimeError):
         measure.dependencies.reset()

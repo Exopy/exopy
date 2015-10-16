@@ -21,8 +21,21 @@ with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
 
     from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from .contributions import Flags
 
 from ..util import (ErrorDialogException, process_app_events)
+
+
+@pytest.fixture
+def measure_with_tools(measure, tmpdir):
+    """Create a measure with all dummy tools attached.
+
+    """
+    measure.add_tool('pre-hook', 'dummy')
+    measure.add_tool('post-hook', 'dummy')
+    measure.add_tool('monitor', 'dummy')
+    measure.root_task.default_path = str(tmpdir)
+    return measure
 
 
 @pytest.fixture
@@ -36,6 +49,19 @@ def processor(measure_workbench, measure):
     plugin = measure_workbench.get_plugin('ecpy.measure')
     plugin.selected_engine = 'dummy'
     return plugin.processor
+
+
+def wait_and_process(waiting_function):
+    """Call a function which can timeout and process app events.
+
+    """
+    i = 0
+    while not waiting_function(0.01):
+        process_app_events()
+        i += 1
+        if i > 100:
+            assert False
+    process_app_events()
 
 
 @pytest.mark.timeout(1)
@@ -74,15 +100,13 @@ def test_starting_measure_thread_not_dying(processor, measure):
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
 
-@pytest.mark.timeout(1)
-def test_running_full_measure(app, processor, measure, tmpdir, windows):
+@pytest.mark.timeout(5)
+def test_running_full_measure(processor, measure_with_tools, windows,
+                              dialog_sleep, tmpdir):
     """Test running a complete measure with pre/post-hooks and monitor.
 
     """
-    measure.add_tool('pre-hook', 'dummy')
-    measure.add_tool('post-hook', 'dummy')
-    measure.add_tool('monitor', 'dummy')
-    measure.root_task.default_path = str(tmpdir)
+    measure = measure_with_tools
     processor.start_measure(measure)
 
     pre_hook = measure.pre_hooks['dummy']
@@ -94,28 +118,16 @@ def test_running_full_measure(app, processor, measure, tmpdir, windows):
 
     pre_hook.go_on.set()
 
-    i = 0
-    while not processor.engine.waiting.wait(0.01):
-        process_app_events()
-        i += 1
-        if i > 100:
-            assert False
-    process_app_events()
+    wait_and_process(processor.engine.waiting.wait)
 
     assert processor.monitors_window
     assert processor.monitors_window.measure is measure
     assert measure.monitors['dummy'].running
-#    sleep(5)
+    sleep(dialog_sleep)
     processor.engine.go_on.set()
 
     post_hook = measure.post_hooks['dummy']
-    i = 0
-    while not post_hook.waiting.wait(0.01):
-        process_app_events()  # Needed to close monitors
-        i += 1
-        if i > 100:
-            assert False
-    process_app_events()
+    wait_and_process(post_hook.waiting.wait)
 
     assert measure.task_execution_result
     assert not measure.monitors['dummy'].running
@@ -126,27 +138,174 @@ def test_running_full_measure(app, processor, measure, tmpdir, windows):
     processor._thread.join()
     process_app_events()
     assert measure.status == 'COMPLETED'
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
 
 
-def test_running_measure_whose_runtime_are_unavailable(processor, measure):
-    pass
+@pytest.mark.timeout(5)
+def test_running_measure_whose_runtime_are_unavailable(processor, monkeypatch,
+                                                       measure_with_tools):
+    """Test running whose runtime dependencies are unavailable.
+
+    """
+    monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
+    processor.start_measure(measure_with_tools)
+
+    processor._thread.join()
+    process_app_events()
+    assert measure_with_tools.status == 'SKIPPED'
 
 
-def test_running_measure_failing_checks(processor, measure):
-    pass
+@pytest.mark.timeout(5)
+def test_running_measure_failing_checks(processor, measure_with_tools):
+    """Test running a measure failing to pass the tests.
+
+    """
+    measure_with_tools.pre_hooks['dummy'].fail_check = True
+    processor.start_measure(measure_with_tools)
+
+    processor._thread.join()
+    process_app_events()
+    assert measure_with_tools.status == 'FAILED'
+    assert 'checks' in measure_with_tools.infos
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
 
 
-def test_running_measure_failing_pre_hooks(processor, measure):
-    pass
+@pytest.mark.timeout(5)
+def test_running_measure_failing_pre_hooks(processor, measure_with_tools):
+    """Test running a measure whose pre-hooks fail to execute.
+
+    """
+    measure_with_tools.pre_hooks['dummy'].fail_run = True
+    processor.start_measure(measure_with_tools)
+
+    processor._thread.join()
+    process_app_events()
+    assert measure_with_tools.status == 'FAILED'
+    assert 'pre-execution' in measure_with_tools.infos
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
 
 
-def test_running_measure_failing_post_hooks(processor, measure):
-    pass
+@pytest.mark.timeout(5)
+def test_running_measure_failing_main_task(processor, measure_with_tools):
+    """Test running a measure whose pre-hooks fail to execute.
+
+    """
+    measure = measure_with_tools
+    processor.engine = processor.plugin.create('engine', 'dummy')
+    processor.engine.fail_perform = True
+    processor.start_measure(measure_with_tools)
+
+    pre_hook = measure.pre_hooks['dummy']
+    assert pre_hook.waiting.wait(5)
+    process_app_events()
+    pre_hook.go_on.set()
+
+    wait_and_process(processor.engine.waiting.wait)
+
+    processor.engine.go_on.set()
+
+    post_hook = measure.post_hooks['dummy']
+    wait_and_process(post_hook.waiting.wait)
+
+    post_hook.go_on.set()
+
+    processor._thread.join()
+    process_app_events()
+
+    assert measure.status == 'FAILED'
+    assert 'main task' in measure_with_tools.infos
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
+
+
+@pytest.mark.timeout(5)
+def test_running_measure_failing_post_hooks(processor, measure_with_tools):
+    """Test running a measure whose post-hooks fail to execute.
+
+    """
+    measure = measure_with_tools
+    measure_with_tools.post_hooks['dummy'].fail_run = True
+    processor.start_measure(measure_with_tools)
+    pre_hook = measure.pre_hooks['dummy']
+    assert pre_hook.waiting.wait(5)
+    process_app_events()
+
+    pre_hook.go_on.set()
+
+    wait_and_process(processor.engine.waiting.wait)
+
+    processor.engine.go_on.set()
+
+    post_hook = measure.post_hooks['dummy']
+    wait_and_process(post_hook.waiting.wait)
+
+    post_hook.go_on.set()
+
+    processor._thread.join()
+    process_app_events()
+    assert measure_with_tools.status == 'FAILED'
+    assert 'post-execution' in measure_with_tools.infos
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
+
+
+@pytest.mark.timeout(5)
+def test_running_forced_enqueued_measure(processor, measure_with_tools):
+    """Test running a measure about which we know that checks are failing.
+
+    """
+    measure = measure_with_tools
+    measure.forced_enqueued = True
+    measure.pre_hooks['dummy'].fail_check = True
+    processor.start_measure(measure_with_tools)
+    pre_hook = measure.pre_hooks['dummy']
+    assert pre_hook.waiting.wait(5)
+    process_app_events()
+
+    pre_hook.go_on.set()
+
+    wait_and_process(processor.engine.waiting.wait)
+
+    processor.engine.go_on.set()
+
+    post_hook = measure.post_hooks['dummy']
+    wait_and_process(post_hook.waiting.wait)
+
+    post_hook.go_on.set()
+
+    processor._thread.join()
+    process_app_events()
 
 # Test not running post-hook based on state
 
 
-def test_stopping_measure(processor, measure):
+def test_stopping_measure_while_preprocessing(processor, measure):
+    """
+    """
+    pass
+
+
+def test_stopping_measure_while_running_main(processor, measure):
+    """
+    """
+    pass
+
+
+def test_stopping_measure_and_skip_preprocessing(processor, measure):
+    """
+    """
+    pass
+
+
+def test_stopping_measure_while_postprocessing(processor, measure):
     """
     """
     pass

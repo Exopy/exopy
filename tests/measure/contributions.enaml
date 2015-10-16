@@ -31,9 +31,15 @@ class Flags(object):
 
     RUNTIME2_FAIL_ANALYSE = False
 
-    RUNTIME_UNAVAILABLE = False
+    RUNTIME1_UNAVAILABLE = False
 
-    RUNTIME_FAIL_COLLECT = False
+    RUNTIME1_FAIL_COLLECT = False
+
+    RUNTIME2_UNAVAILABLE = False
+
+    RUNTIME2_FAIL_COLLECT = False
+
+    MONITOR_FAIL_WIDGET = False
 
 
 enamldef MonitorTestItem(BaseMonitorItem):
@@ -107,6 +113,8 @@ enamldef MeasureTestManifest(PluginManifest):
                 return DummyMonitor(declaration=self)
 
             create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
                 return MonitorTestItem(area)
 
     Extension:
@@ -140,7 +148,7 @@ enamldef MeasureTestManifest(PluginManifest):
         id = 'runtime-dep'
         point = 'ecpy.app.dependencies.runtime'
         RuntimeDependency:
-            name = 'dependencies'
+            name = 'runtime_dummy1'
             id = 'dummy1'
             attr collected
             analyse => (workbench, obj, getter, dependencies, errors):
@@ -149,9 +157,9 @@ enamldef MeasureTestManifest(PluginManifest):
                 else:
                     dependencies.add('test')
             collect => (workbench, owner, dependencies, unavailable, errors):
-                if Flags.RUNTIME_FAIL_COLLECT:
+                if Flags.RUNTIME1_FAIL_COLLECT:
                     raise Exception()
-                elif Flags.RUNTIME_UNAVAILABLE:
+                elif Flags.RUNTIME1_UNAVAILABLE:
                     unavailable.add('test')
                 else:
                     self.collected = True
@@ -165,12 +173,19 @@ enamldef MeasureTestManifest(PluginManifest):
         id = 'runtime-dep2'
         point = 'ecpy.app.dependencies.runtime'
         RuntimeDependency:
+            name = 'runtime_dummy2'
             id = 'dummy2'
+            attr collected
             collect => (workbench, owner, dependencies, unavailable, errors):
-                if Flags.RUNTIME_FAIL_COLLECT:
+                if Flags.RUNTIME2_FAIL_COLLECT:
                     raise Exception()
+                elif Flags.RUNTIME2_UNAVAILABLE:
+                    print('t')
+                    unavailable.add('test')
                 else:
+                    self.collected = True
                     dependencies['test'] = 1
             release => (workbench, owner, dependencies):
+                self.collected = False
                 if 'test' in dependencies:
                     dependencies['test'] = None

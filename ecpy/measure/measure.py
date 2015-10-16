@@ -109,6 +109,7 @@ class MeasureDependencies(Atom):
         deps = core.invoke_command(cmd,
                                    dict(dependencies=self._runtime_analysis,
                                         owner='ecpy.measure', kind='runtime'))
+
         if deps.errors:
             msg = 'Failed to collect some runtime dependencies.'
             return False, msg, deps.errors

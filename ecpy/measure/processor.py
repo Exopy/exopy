@@ -36,10 +36,6 @@ from ..utils.flags import BitFlag
 logger = logging.getLogger(__name__)
 
 
-INVALID_MEASURE_STATUS = ['EDITING', 'SKIPPED', 'FAILED', 'COMPLETED',
-                          'INTERRUPTED']
-
-
 def plugin():
     """Delayed import to avoid circular references.
 
@@ -277,10 +273,11 @@ class MeasureProcessor(Atom):
         logger.info(mess.replace('\n', ' '))
 
         # Run checks now that we have all the runtimes.
-        res, errors = measure.run_checks()
-        if not res:
-            msg = 'Measure %s failed to pass the checks :\n' % meas_id
-            return 'FAILED', msg + errors_to_msg(errors)
+        if not measure.forced_enqueued:
+            res, errors = measure.run_checks()
+            if not res:
+                msg = 'Measure %s failed to pass the checks :\n' % meas_id
+                return 'FAILED', msg + errors_to_msg(errors)
 
         # Now that we know the measure is going to run save it.
         default_filename = meas_id + '.meas.ini'
@@ -334,7 +331,8 @@ class MeasureProcessor(Atom):
 
         # Execute all post-execution hooks if pertinent.
         if not self._state.test('no_post_exec'):
-            result, errors = self._run_post_execution(measure)
+            res, errors = self._run_post_execution(measure)
+            result &= res
 
         if not result:
             if not execution_result.success:
@@ -516,31 +514,6 @@ class MeasureProcessor(Atom):
                             priority=100)
         while sheduled.pending():
             sleep(0.05)
-
-    def _find_next_measure(self):
-        """Find the next runnable measure in the queue.
-
-        Returns
-        -------
-        measure : Measure
-            First valid measurement in the queue or None if there is no
-            available measure.
-
-        """
-        enqueued_measures = self.plugin.enqueued_measures.measures
-        i = 0
-        measure = None
-        # Look for a measure not being currently edited. (Can happen if the
-        # user is editing the second measure when the first measure ends).
-        while i < len(enqueued_measures):
-            measure = enqueued_measures[i]
-            if measure.status in INVALID_MEASURE_STATUS:
-                i += 1
-                measure = None
-            else:
-                break
-
-        return measure
 
     def _check_for_pause_or_stop(self):
         """Check if a pause or stop request is pending and process it.

@@ -47,6 +47,11 @@ def pytest_configure(config):
         DIALOG_SLEEP = s
 
 
+@pytest.fixture
+def dialog_sleep():
+    return DIALOG_SLEEP
+
+
 @pytest.yield_fixture(scope='session', autouse=True)
 def sys_path():
     """Detect installation path of ecpy.

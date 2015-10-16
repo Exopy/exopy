@@ -52,7 +52,6 @@ class DummyEngine(BaseEngine):
         self.go_on.wait()
         self.waiting.clear()
         self.go_on.clear()
-
         exec_infos.success = False if self.fail_perform else True
         return exec_infos
 
@@ -62,6 +61,8 @@ class DummyPreHook(BasePreExecutionHook):
 
     """
     fail_check = Bool().tag(pref=True)
+
+    fail_run = Bool()
 
     waiting = Value(factory=Event)
 
@@ -78,6 +79,8 @@ class DummyPreHook(BasePreExecutionHook):
         return True, ''
 
     def run(self, workbench, engine):
+        if self.fail_run:
+            raise RuntimeError()
         self.waiting.set()
         self.go_on.wait()
         self.waiting.clear()
@@ -138,6 +141,8 @@ class DummyPostHook(BasePostExecutionHook):
     """
     fail_check = Bool().tag(pref=True)
 
+    fail_run = Bool()
+
     waiting = Value(factory=Event)
 
     go_on = Value(factory=Event)
@@ -155,5 +160,7 @@ class DummyPostHook(BasePostExecutionHook):
     def run(self, workbench, engine):
         self.waiting.set()
         self.go_on.wait()
+        if self.fail_run:
+            raise RuntimeError()
         self.waiting.clear()
         self.go_on.clear()
