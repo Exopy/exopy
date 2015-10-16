@@ -99,8 +99,7 @@ enamldef MeasureTestManifest(PluginManifest):
                 return DummyMonitor(declaration=self)
 
             create_item => (workbench, area):
-#                return BaseMonitorItem(area)
-                pass
+                return BaseMonitorItem(area, name=self.id)
 
     Extension:
         id = 'post-hook'

@@ -410,7 +410,7 @@ class MeasureProcessor(Atom):
         self._state.set('running_post_hooks')
         meas_id = measure.name + '_' + measure.id
 
-        for id, hook in self.post_hooks.iteritems():
+        for id, hook in measure.post_hooks.iteritems():
             if not self._check_for_pause_or_stop():
                 break
             logger.debug('Calling post-measure hook %s for measure %s',
