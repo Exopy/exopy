@@ -169,7 +169,7 @@ class TaskProcess(Process):
                 root.should_pause = self.task_pause
                 root.paused = self.task_paused
                 root.should_stop = self.task_stop
-                root.database.prepare_for_running()
+                root.database.prepare_to_run()
 
                 # Perform the checks.
                 check, errors = root.check()

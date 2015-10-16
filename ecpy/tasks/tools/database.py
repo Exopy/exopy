@@ -534,7 +534,7 @@ class TaskDatabase(Atom):
         return {k: v for k, v in node.data.iteritems()
                 if not isinstance(v, DatabaseNode)}
 
-    def prepare_for_running(self):
+    def prepare_to_run(self):
         """Enter a thread safe, flat database state.
 
         This is used when tasks are executed.

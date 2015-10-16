@@ -64,7 +64,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = 'True'
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.check()
 
         self.task.perform()
@@ -75,7 +75,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = '1 < 0'
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.check()
 
         self.task.perform()

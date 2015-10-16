@@ -220,7 +220,7 @@ def test_forbidden_operations():
 
     """
     database = TaskDatabase()
-    database.prepare_for_running()
+    database.prepare_to_run()
     with raises(RuntimeError):
         database.rename_values('root', [], [])
     with raises(RuntimeError):
@@ -242,7 +242,7 @@ def test_flattening_database():
     database.create_node('root', 'node1')
     database.set_value('root/node1', 'val2', 'a')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
 
 
 def test_index_op_on_flat_database1():
@@ -255,7 +255,7 @@ def test_index_op_on_flat_database1():
     database.set_value('root/node1', 'val2', 'a')
     database.create_node('root/node1', 'node2')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert database.get_entries_indexes('root', ['val1']) == {'val1': 0}
     assert database.get_entries_indexes('root/node1', ['val1', 'val2']) == \
         {'val1': 0, 'val2': 1}
@@ -280,7 +280,7 @@ def test_index_op_on_flat_database2():
     database.set_value('root/node1', 'val2', 'a')
     database.add_access_exception('root', 'root/node1', 'val2')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert database.get_entries_indexes('root', ['val1']) == {'val1': 0}
     assert database.get_entries_indexes('root', ['val1', 'val2']) == \
         {'val1': 0, 'val2': 1}
@@ -299,7 +299,7 @@ def test_index_op_on_flat_database3():
     database.add_access_exception('root/node1', 'root/node1/node2', 'val2')
     database.add_access_exception('root', 'root/node1', 'val2')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert database.get_entries_indexes('root', ['val1']) == {'val1': 0}
     assert database.get_entries_indexes('root', ['val1', 'val2']) == \
         {'val1': 0, 'val2': 1}
@@ -314,7 +314,7 @@ def test_get_set_on_flat_database1():
     database.create_node('root', 'node1')
     database.set_value('root/node1', 'val2', 'a')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert not database.set_value('root', 'val1', 2)
     assert database.get_value('root', 'val1') == 2
     assert database.get_value('root/node1', 'val1') == 2
@@ -331,7 +331,7 @@ def test_get_set_on_flat_database2():
     database.set_value('root/node1', 'val2', 'a')
     database.add_access_exception('root', 'root/node1', 'val2')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert not database.set_value('root', 'val2', 2)
     assert database.get_value('root', 'val2') == 2
 
@@ -349,7 +349,7 @@ def test_get_set_on_flat_database3():
     database.add_access_exception('root/node1', 'root/node1/node2', 'val2')
     database.add_access_exception('root', 'root/node1', 'val2')
 
-    database.prepare_for_running()
+    database.prepare_to_run()
     assert not database.set_value('root', 'val2', 2)
     assert database.get_value('root', 'val2') == 2
 

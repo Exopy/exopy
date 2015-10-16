@@ -80,7 +80,7 @@ class TestFormatting(object):
         """Test formatting values with text on both sides of expression.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = 'progress is {val1}/{val2}, it is good.'
         formatted = self.root.format_string(test)
         assert formatted == 'progress is 1/10.0, it is good.'
@@ -94,7 +94,7 @@ class TestFormatting(object):
         """Test formatting values with text only on the left of expression.
 
         """
-        self.root. database.prepare_for_running()
+        self.root. database.prepare_to_run()
         test = 'progress is {val1}/{val2}'
         formatted = self.root.format_string(test)
         assert formatted == 'progress is 1/10.0'
@@ -108,7 +108,7 @@ class TestFormatting(object):
         """Test formatting values with text only on the right of expression.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = '{val1}/{val2}, it is good.'
         formatted = self.root.format_string(test)
         assert formatted == '1/10.0, it is good.'
@@ -122,7 +122,7 @@ class TestFormatting(object):
         """Test formatting values with no other text.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = '{val1}/{val2}'
         formatted = self.root.format_string(test)
         assert formatted == '1/10.0'
@@ -136,7 +136,7 @@ class TestFormatting(object):
         """Test formatting when there is only text.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = 'test'
         formatted = self.root.format_string(test)
         assert formatted == 'test'
@@ -207,7 +207,7 @@ class TestEvaluation(object):
         """Test evaluating a word.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = 'test'
         formatted = self.root.format_and_eval_string(test)
         assert formatted == 'test'
@@ -216,7 +216,7 @@ class TestEvaluation(object):
         """Test eval expression with only standard operators.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = '{val1}/{val2}'
         formatted = self.root.format_and_eval_string(test)
         assert formatted == 0.1
@@ -230,7 +230,7 @@ class TestEvaluation(object):
         """Test eval expression containing a math function.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         test = 'cos({val1}/{val2})'
         formatted = self.root.format_and_eval_string(test)
         assert formatted == cos(0.1)
@@ -244,7 +244,7 @@ class TestEvaluation(object):
         """Test eval expression containing a cmath function.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.database.set_value('root', 'val1', 10.0)
         test = 'cm.sqrt({val1}/{val2})'
         formatted = self.root.format_and_eval_string(test)
@@ -259,7 +259,7 @@ class TestEvaluation(object):
         """Test eval expression containing a numpy function.
 
         """
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.database.set_value('root', 'val1', [1.0, -1.0])
         test = 'np.abs({val1})'
         formatted = self.root.format_and_eval_string(test)

@@ -70,7 +70,7 @@ class TestWhileTask(object):
         """
         self.task.condition = '{Test_index} < 5'
 
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.check()
 
         self.task.perform()
@@ -82,7 +82,7 @@ class TestWhileTask(object):
         """
         self.task.condition = '1 < 0'
 
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.check()
 
         self.task.perform()
@@ -98,7 +98,7 @@ class TestWhileTask(object):
         self.task.add_child_task(0, ContinueTask(name='Continue',
                                                  condition='{Test_index} < 5'))
 
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
         self.root.check()
 
         self.task.perform()

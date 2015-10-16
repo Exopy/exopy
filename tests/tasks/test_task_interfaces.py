@@ -235,7 +235,7 @@ class TestInterfaceableTaskMixin(object):
 
         """
         self.mixin.interface = InterfaceTest()
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
 
         self.mixin.perform()
         assert self.mixin.get_from_database('Simple_itest') == 2.0
@@ -247,7 +247,7 @@ class TestInterfaceableTaskMixin(object):
         self.root.remove_child_task(0)
         self.mixin = IMixin(name='Simple')
         self.root.add_child_task(0, self.mixin)
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
 
         self.mixin.perform()
         assert self.root.get_from_database('Simple_test') == 3.0
@@ -397,7 +397,7 @@ class TestInterfaceableInterfaceMixin(object):
 
         """
         self.mixin.interface = IIinterfaceTest1()
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
 
         self.mixin.perform()
         assert self.root.get_from_database('Simple_itest') == 2.0
@@ -408,7 +408,7 @@ class TestInterfaceableInterfaceMixin(object):
         """
         self.mixin = InterfaceTest4()
         self.root.children[0].interface = self.mixin
-        self.root.database.prepare_for_running()
+        self.root.database.prepare_to_run()
 
         self.mixin.perform()
         assert self.root.get_from_database('Simple_test') == 3.0
