@@ -65,4 +65,3 @@ enamldef MonitorsWindow(Window):
 
         DockArea: area:
             pass
-

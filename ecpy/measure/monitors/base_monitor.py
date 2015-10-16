@@ -130,7 +130,7 @@ class Monitor(BaseToolDeclaration):
     def create_item(self, workbench, area):
         """Create a dock item to display the informations of a monitor.
 
-        The declaration id should be used as name of the dock item.
+        The declaration id will be used as name for the dock item.
 
         Parameters
         ----------

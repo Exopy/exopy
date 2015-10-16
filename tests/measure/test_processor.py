@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import enaml
 import pytest
 from future.builtins import str
@@ -99,10 +101,12 @@ def test_running_full_measure(app, processor, measure, tmpdir, windows):
         if i > 100:
             assert False
     process_app_events()
-    # Test monitors
 
+    assert processor.monitors_window
+    assert processor.monitors_window.measure is measure
+    assert measure.monitors['dummy'].running
+#    sleep(5)
     processor.engine.go_on.set()
-
 
     post_hook = measure.post_hooks['dummy']
     i = 0
@@ -110,10 +114,12 @@ def test_running_full_measure(app, processor, measure, tmpdir, windows):
         process_app_events()  # Needed to close monitors
         i += 1
         if i > 100:
-            print(i)
             assert False
     process_app_events()
 
+    assert measure.task_execution_result
+    assert not measure.monitors['dummy'].running
+    assert measure.monitors['dummy'].received_news
 
     post_hook.go_on.set()
 

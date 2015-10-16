@@ -19,6 +19,8 @@ from ecpy.measure.hooks.api import PreExecutionHook, PostExecutionHook
 from ecpy.measure.engines.api import Engine
 from ecpy.measure.monitors.api import Monitor, BaseMonitorItem
 
+
+from enaml.widgets.api import Container, Field
 class Flags(object):
 
     BUILD_FAIL_ANALYSE = False
@@ -32,6 +34,12 @@ class Flags(object):
     RUNTIME_UNAVAILABLE = False
 
     RUNTIME_FAIL_COLLECT = False
+
+
+enamldef MonitorTestItem(BaseMonitorItem):
+    Container:
+        Field:
+            pass
 
 
 enamldef MeasureTestManifest(PluginManifest):
@@ -99,7 +107,7 @@ enamldef MeasureTestManifest(PluginManifest):
                 return DummyMonitor(declaration=self)
 
             create_item => (workbench, area):
-                return BaseMonitorItem(area, name=self.id)
+                return MonitorTestItem(area)
 
     Extension:
         id = 'post-hook'

@@ -25,7 +25,7 @@ from threading import Thread, RLock
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 from enaml.widgets.api import Window
-from enaml.layout.api import InsertTab, FloatItem
+from enaml.layout.api import InsertTab, FloatItem, TabLayout, DockLayout
 from enaml.application import deferred_call, schedule
 
 from .engines.api import BaseEngine, ExecutionInfos
@@ -94,6 +94,7 @@ class MeasureProcessor(Atom):
         self.active = True
         self._thread = Thread(target=self._run_measures,
                               args=(measure,))
+        self._thread.daemon = True
         self._thread.start()
 
     def pause_measure(self):
@@ -466,18 +467,23 @@ class MeasureProcessor(Atom):
                     try:
                         dock_item = decl.create_item(workbench, dock_area)
                         if dock_item is not None:
+                            dock_item.name = decl.id
                             if dock_item.float_default:
                                 ops.append(FloatItem(item=decl.id))
-                            else:
+                            elif anchor:
                                 ops.append(InsertTab(item=decl.id,
                                                      target=anchor))
+                            else:
+                                layout = DockLayout(TabLayout(decl.id))
+                                dock_area.apply_layout(layout)
+                                anchor = decl.id
                     except Exception:
                         logger.error('Failed to create widget for monitor %s',
                                      decl.id)
                         logger.debug(format_exc())
                         continue
 
-                self.engine.observe('news', monitor.process_news)
+                self.engine.observe('progress', monitor.process_news)
                 if dock_item:
                     dock_item.monitor = monitor
                 monitor.start()

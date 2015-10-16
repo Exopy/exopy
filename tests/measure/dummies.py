@@ -17,7 +17,7 @@ from __future__ import (division, unicode_literals, print_function,
 from threading import Event
 
 import enaml
-from atom.api import Bool, Value
+from atom.api import Bool, List, Value, set_default
 
 from ecpy.app.dependencies.plugin import RuntimeContainer
 from ecpy.measure.editors.api import BaseEditor
@@ -48,6 +48,7 @@ class DummyEngine(BaseEngine):
 
         """
         self.waiting.set()
+        self.progress(('test', True))
         self.go_on.wait()
         self.waiting.clear()
         self.go_on.clear()
@@ -102,6 +103,18 @@ class DummyMonitor(BaseMonitor):
     """Dummy monitor used for testing.
 
     """
+    running = Bool()
+
+    monitored_entries = set_default(['default_path'])
+
+    received_news = List()
+
+    def start(self):
+        self.running = True
+
+    def stop(self):
+        self.running = False
+
     def refresh_monitored_entries(self):
         """Do nothing when refreshing.
 
@@ -114,6 +127,9 @@ class DummyMonitor(BaseMonitor):
         """
         if news[0] == 'added':
             self.monitored_entries = self.monitored_entries + [news[1]]
+
+    def process_news(self, news):
+        self.received_news.append(news)
 
 
 class DummyPostHook(BasePostExecutionHook):
