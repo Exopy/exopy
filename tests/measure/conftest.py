@@ -20,6 +20,9 @@ from enaml.workbench.api import Workbench
 
 from ..util import ErrorDialogException
 
+from ecpy.measure.measure import Measure
+from ecpy.tasks.api import RootTask
+
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
 
@@ -29,8 +32,6 @@ with enaml.imports():
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.measure.manifest import MeasureManifest
-    from ecpy.measure.measure import Measure
-    from ecpy.tasks.api import RootTask
 
 with enaml.imports():
     from .contributions import MeasureTestManifest

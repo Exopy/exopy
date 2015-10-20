@@ -134,7 +134,6 @@ class ProcessEngine(BaseEngine):
                 msg = 'Subprocess was terminated by the user.'
                 logger.debug(msg)
                 self._cleanup(process=False)
-                exec_infos.success = False
                 exec_infos.errors['engine'] = msg
                 return exec_infos
 

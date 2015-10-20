@@ -101,6 +101,12 @@ enamldef MeasureTestManifest(PluginManifest):
             new => (workbench, default=True):
                 from .dummies import DummyPreHook
                 return DummyPreHook(declaration=self)
+        PreExecutionHook:
+            id = 'dummy2'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPreHook
+                return DummyPreHook(declaration=self)
 
     Extension:
         id = 'monitors'
@@ -122,6 +128,12 @@ enamldef MeasureTestManifest(PluginManifest):
         point = 'ecpy.measure.post-execution'
         PostExecutionHook:
             id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPostHook
+                return DummyPostHook(declaration=self)
+        PostExecutionHook:
+            id = 'dummy2'
             description = 'This is a dummy'
             new => (workbench, default=True):
                 from .dummies import DummyPostHook

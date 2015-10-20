@@ -101,8 +101,8 @@ class MeasureProcessor(Atom):
         self.running_measure.status = 'PAUSING'
         self._state.set('pause_attempt')
         if self._state.test('running_main'):
-            self._engine.pause()
-            self._engine.observe('status', self._watch_engine_state)
+            self.engine.pause()
+            self.engine.observe('status', self._watch_engine_state)
         else:
             if self._active_hook:
                 self._active_hook.pause()
@@ -117,8 +117,8 @@ class MeasureProcessor(Atom):
         self._state.clear('paused')
         self._state.set('resuming')
         if self._state.test('running_main'):
-            self._engine.resume()
-            self._engine.observe('status', self._watch_engine_state)
+            self.engine.resume()
+            self.engine.observe('status', self._watch_engine_state)
         else:
             if self._active_hook:
                 self._active_hook.resume()
@@ -137,13 +137,13 @@ class MeasureProcessor(Atom):
             self._state.set('no_post_exec')
 
         if self._state.test('running_main'):
-            self._engine.stop(force)
+            self.engine.stop(force)
         else:
             if self._active_hook:
                 self._active_hook.stop(force)
 
     def stop_processing(self, no_post_exec=False, force=False):
-        """Stop processing the enqueued measure.
+        """Stop processing the enqueued measures.
 
         """
         if self.running_measure:
@@ -153,7 +153,7 @@ class MeasureProcessor(Atom):
         if no_post_exec or force:
             self._state.set('no_post_exec')
         if self._state.test('running_main'):
-            self._engine.stop(force)
+            self.engine.stop(force)
         else:
             if self._active_hook:
                 self._active_hook.stop(force)
@@ -240,10 +240,11 @@ class MeasureProcessor(Atom):
             logger.info(mess)
 
             # Update the status and infos.
-            self._set_measure_state(status, infos)
+            self._set_measure_state(status, infos, clear=True)
 
             # If we are supposed to stop, stop.
-            if not self._state.test('continuous_processing'):
+            if (not self._state.test('continuous_processing') or
+                    self._state.test('stop_processing')):
                 break
 
         if self.engine and self.plugin.engine_policy == 'stop':
@@ -329,10 +330,22 @@ class MeasureProcessor(Atom):
                          meas_id)
             self._stop_monitors(measure)
 
+        # Save the stop_attempt state to allow to run post execution if we
+        # are supposed to do so.
+        state = self._state.test('stop_attempt')
+        self._state.clear('stop_attempt')
+
         # Execute all post-execution hooks if pertinent.
         if not self._state.test('no_post_exec'):
             res, errors = self._run_post_execution(measure)
             result &= res
+
+        if state:
+            self._state.set('stop_attempt')
+
+        if self._state.test('stop_attempt'):
+            return ('INTERRUPTED',
+                    'The measure has been interrupted by the user.')
 
         if not result:
             if not execution_result.success:
@@ -379,6 +392,7 @@ class MeasureProcessor(Atom):
 
             # Prevent issues with pausing/resuming
             with self._lock:
+                self._active_hook.unobserve('paused', self._watch_hook_state)
                 self._active_hook = None
 
         self._state.clear('running_pre_hooks')
@@ -425,6 +439,7 @@ class MeasureProcessor(Atom):
 
             # Prevent issues with pausing/resuming
             with self._lock:
+                self._active_hook.unobserve('paused', self._watch_hook_state)
                 self._active_hook = None
 
         self._state.clear('running_post_hooks')
@@ -531,16 +546,12 @@ class MeasureProcessor(Atom):
             return False
 
         if flag.test('pause_attempt'):
-            flag.set('paused')
             flag.clear('pause_attempt')
             self._set_measure_state('PAUSED', 'The measure is paused.')
-
-            if (flag.test('running_pre_hooks') or
-                    flag.test('running_post_hooks')):
-                self._active_hook.unobserve('paused', self._watch_hook_state)
+            flag.set('paused')
 
             while True:
-                if flag.wait(1, 'resuming'):
+                if flag.wait(0.1, 'resuming'):
                     flag.clear('resuming')
                     self._set_measure_state('RUNNING',
                                             'The measure has resumed.')
@@ -557,14 +568,14 @@ class MeasureProcessor(Atom):
 
         """
         if change['value'] == 'Paused':
-            self._state.set('paused')
             self._state.clear('pause_attempt')
-            self._engine.unobserve('status', self._watch_engine_state)
+            self.engine.unobserve('status', self._watch_engine_state)
             self._set_measure_state('PAUSED', 'The measure is paused.')
+            self._state.set('paused')
 
         elif change['value'] == 'Running':
             self._state.clear('resuming')
-            self._engine.unobserve('status', self._watch_engine_state)
+            self.engine.unobserve('status', self._watch_engine_state)
             self._set_measure_state('RUNNING', 'The measure has resumed.')
 
     def _watch_hook_state(self, change):
@@ -572,41 +583,44 @@ class MeasureProcessor(Atom):
 
         """
         if change['name'] == 'paused':
-            self._state.set('paused')
-            self._state.clear('pause_attempt')
-            self._engine.unobserve('status', self._watch_engine_state)
+            self._active_hook.unobserve('status', self._watch_hook_state)
             self._set_measure_state('PAUSED', 'The measure is paused.')
+            self._state.clear('pause_attempt')
+            self._state.set('paused')
 
         elif change['name'] == 'resumed':
             self._state.clear('resuming')
-            self._engine.unobserve('status', self._watch_engine_state)
+            self._active_hook.unobserve('status', self._watch_hook_state)
             self._set_measure_state('RUNNING', 'The measure has resumed.')
 
-    def _set_measure_state(self, status, infos, measure=None):
+    def _set_measure_state(self, status, infos, measure=None, clear=False):
         """Set the measure status and infos in the main thread.
 
         """
-        def set_state(processor, status, infos, meas):
+        def set_state(processor, status, infos, meas, clear):
             if meas:
                 processor.running_measure = meas
             measure = processor.running_measure
             measure.status = status
             measure.infos = infos
+            if clear:
+                processor.running_measure = None
 
-        deferred_call(set_state, self, status, infos, measure)
+        deferred_call(set_state, self, status, infos, measure, clear)
 
     def _stop_engine(self):
         """Stop the engine.
 
         """
+        logger.debug('Stopping engine')
         engine = self.engine
-        self.stop_processing()
+        engine.shutdown()
         i = 0
         while engine and engine.status != 'Stopped':
             sleep(0.5)
             i += 1
             if i > 10:
-                self.stop_processing(force=True)
+                engine.shutdown(force=True)
 
     def _clear_state(self):
         """Clear the state when starting while preserving persistent settings.
@@ -622,9 +636,9 @@ class MeasureProcessor(Atom):
 
         """
         if new:
-            self._state.clear('continuous_processing')
-        else:
             self._state.set('continuous_processing')
+        else:
+            self._state.clear('continuous_processing')
 
 
 def errors_to_msg(errors):
