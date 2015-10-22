@@ -50,8 +50,8 @@ def test_getting_declarations(measure_workbench):
     plugin = measure_workbench.get_plugin('ecpy.measure')
 
     for c in ['editor', 'engine', 'pre-hook', 'post-hook', 'monitor']:
-        names = getattr(plugin, c.replace('-', '_')+'s')
-        assert plugin.get_declarations(c, names).keys() == names
+        names = sorted(getattr(plugin, c.replace('-', '_')+'s'))
+        assert sorted(plugin.get_declarations(c, names).keys()) == names
 
     with pytest.raises(ValueError):
         plugin.get_declarations('test', [])

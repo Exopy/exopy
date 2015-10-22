@@ -148,7 +148,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
         id = 'editors'
         point = manifest.id + '.editors'
         Editor:
-            id = 'Standard'
+            id = 'ecpy.standard'
             description = 'Editor relying on the task views.'
             new => (workbench, default=False):
                 from .editors.standard_editor import StandardEditor
@@ -159,7 +159,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
                 return True
 
         Editor:
-            id = 'Database access'
+            id = 'ecpy.database_access'
             description = ('Editor allowing to modify database access '
                            'permissions.')
             new => (workbench, default=False):
@@ -171,7 +171,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
                 return True
 
         Editor:
-            id = 'Execution'
+            id = 'ecpy.execution'
             description = ('Editor allowing to customize execution options: '
                            'stopping, execution in parallel, or waiting on'
                            'other tasks.')
@@ -192,7 +192,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
         id = 'pre-execution'
         point = manifest.id + '.pre-execution'
         PreExecutionHook:
-            id = 'Internal checks'
+            id = 'ecpy.internal_checks'
             description = 'Run the internal checks of the main task.'
             new => (workbench, default=False):
                 from .hooks.internal_checks import InternalChecksHook

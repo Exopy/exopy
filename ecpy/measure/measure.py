@@ -306,7 +306,7 @@ class Measure(HasPrefAtom):
     def __init__(self, **kwargs):
 
         super(Measure, self).__init__(**kwargs)
-        self.add_tool('pre-hook', 'Internal checks')
+        self.add_tool('pre-hook', 'ecpy.internal_checks')
 
     def save(self, path):
         """Save the measure as a ConfigObj object.
@@ -395,8 +395,8 @@ class Measure(HasPrefAtom):
             # Make sure we always have the internal pre-hook in the right
             # position.
             if kind == 'pre-hook':
-                if 'Internal checks' in saved:
-                    del measure.pre_hooks['Internal checks']
+                if 'ecpy.internal_checks' in saved:
+                    del measure.pre_hooks['ecpy.internal_checks']
 
             for id, state in saved.iteritems():
                 try:

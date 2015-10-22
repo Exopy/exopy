@@ -62,7 +62,7 @@ enamldef ProcessEngine(Engine):
     """ Manifest contributing the ProcessEngine to the MeasurePlugin.
 
     """
-    id = 'Process engine'
+    id = 'ecpy.process_engine'
     description = 'Engine performing the measure in a subprocess'
 
     new => (workbench, default=False):

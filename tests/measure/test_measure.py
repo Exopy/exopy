@@ -134,7 +134,7 @@ def test_running_checks(measure_workbench, measure):
     # Check that the internal hook does run the root_task tests.
     res, errors = measure.run_checks()
     assert not res
-    assert 'Internal checks' in errors
+    assert 'ecpy.internal_checks' in errors
 
     # Check an ideal case
     measure.root_task.default_path = os.path.dirname(__file__)

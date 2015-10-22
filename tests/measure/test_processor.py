@@ -44,7 +44,7 @@ def measure_with_tools(measure, tmpdir):
 
 
 @pytest.fixture
-def processor(app, measure_workbench, measure):
+def processor(windows, measure_workbench, measure):
     """Fixture starting the measure plugin and returning the processor.
 
     Use app because we need run the event loop
