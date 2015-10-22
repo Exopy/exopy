@@ -25,7 +25,7 @@ from threading import Thread, RLock
 import enaml
 from atom.api import Atom, Typed, ForwardTyped, Value, Bool
 from enaml.widgets.api import Window
-from enaml.layout.api import InsertTab, FloatItem, TabLayout, DockLayout
+from enaml.layout.api import InsertTab, FloatItem
 from enaml.application import deferred_call, schedule
 
 from .engines.api import BaseEngine, ExecutionInfos
@@ -472,6 +472,11 @@ class MeasureProcessor(Atom):
                 elif not anchor:
                     anchor = dock_item.name
 
+            # We show the window now because otherwise the layout ops are not
+            # properly executed.
+            if self.plugin.auto_show_monitors:
+                self.monitors_window.show()
+
             ops = []
             for monitor in measure.monitors.values():
                 decl = monitor.declaration
@@ -480,16 +485,11 @@ class MeasureProcessor(Atom):
                     try:
                         dock_item = decl.create_item(workbench, dock_area)
                         if dock_item is not None:
-                            dock_item.name = decl.id
                             if dock_item.float_default:
                                 ops.append(FloatItem(item=decl.id))
-                            elif anchor:
+                            else:
                                 ops.append(InsertTab(item=decl.id,
                                                      target=anchor))
-                            else:
-                                layout = DockLayout(TabLayout(decl.id))
-                                dock_area.apply_layout(layout)
-                                anchor = decl.id
                     except Exception:
                         logger.error('Failed to create widget for monitor %s',
                                      decl.id)
@@ -501,10 +501,8 @@ class MeasureProcessor(Atom):
                     dock_item.monitor = monitor
                 monitor.start()
 
-            dock_area.update_layout(ops)
-
-            if self.plugin.auto_show_monitors:
-                self.monitors_window.show()
+            if ops:
+                dock_area.update_layout(ops)
 
         # Executed in the main thread to avoid GUI update issues.
         sheduled = schedule(start_monitors, (self, measure), priority=100)

@@ -62,10 +62,10 @@ def wait_and_process(waiting_function):
 
     """
     i = 0
-    while not waiting_function(timeout=0.01):
+    while not waiting_function(timeout=0.001):
         process_app_events()
         i += 1
-        if i > 100:
+        if i > 1000:
             assert False
     process_app_events()
 
@@ -117,7 +117,7 @@ def test_starting_measure_thread_not_dying(processor, measure):
 
 
 @pytest.mark.timeout(5)
-def test_running_full_measure(processor, measure_with_tools, windows,
+def test_running_full_measure(app, processor, measure_with_tools, windows,
                               dialog_sleep, tmpdir):
     """Test running a complete measure with pre/post-hooks and monitor.
 

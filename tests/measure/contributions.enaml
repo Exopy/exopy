@@ -121,7 +121,7 @@ enamldef MeasureTestManifest(PluginManifest):
             create_item => (workbench, area):
                 if Flags.MONITOR_FAIL_WIDGET:
                     raise RuntimeError()
-                return MonitorTestItem(area)
+                return MonitorTestItem(area, name=self.id)
 
     Extension:
         id = 'post-hook'
