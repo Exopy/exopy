@@ -54,9 +54,6 @@ class MeasureSpace(Workspace):
     #: Reference to the last currently edited measure the user selected.
     last_selected_measure = Typed(Measure)
 
-    # XXXX build tools and editors names from their id by splitting on '.'
-    # and keeping the most simple non-redundant name.
-
     window_title = set_default('Measure')
 
     def start(self):

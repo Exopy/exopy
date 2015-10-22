@@ -18,6 +18,7 @@ from enaml.layout.api import vbox, hbox, spacer
 from enaml.core.api import Include
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
 
 
 enamldef EngineSelector(Dialog): dial:
@@ -30,16 +31,20 @@ enamldef EngineSelector(Dialog): dial:
     #: Declaration for the currently selected engine.
     attr selected_decl
 
+    #: Mappping between engine user understandable names and ids.
+    attr _names << ids_to_unique_names(plugin.engines)
+
     Container:
         constraints << [vbox(list_ed, desc, hbox(cancel, ok))]
 
         QtListStrWidget: list_ed:
-            items << plugin.engines
+            items << list(_names)
             selected_item::
                 new_val = change['value']
                 if new_val:
+                    id_ = _names[new_val]
                     dial.selected_decl = plugin.get_declarations('engines',
-                                                                 [new_val])
+                                                                 [id_])
 
         MultilineField: desc:
             text << selected_decl.description if selected_decl else ''
