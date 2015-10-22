@@ -661,3 +661,6 @@ def test_monitor_creation(processor, measure, dialog_sleep):
     measure.add_tool('monitor', 'dummy4')
     run(measure)
     assert len(processor.monitors_window.dock_area.dock_items()) == 2
+
+    processor.plugin.stop()
+    assert not processor.monitors_window

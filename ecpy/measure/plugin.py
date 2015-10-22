@@ -182,6 +182,7 @@ class MeasurePlugin(HasPrefPlugin):
         if self.processor.monitors_window:
             self.processor.monitors_window.hide()
             self.processor.monitors_window.close()
+            self.processor.monitors_window = None
 
         for contrib in ('engines', 'editors', 'pre_hooks', 'monitors',
                         'post_hooks'):
