@@ -123,6 +123,40 @@ enamldef MeasureTestManifest(PluginManifest):
                     raise RuntimeError()
                 return MonitorTestItem(area, name=self.id)
 
+        Monitor:
+            id  = 'dummy2'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
+                return MonitorTestItem(area, name=self.id, float_default=True)
+
+        Monitor:
+            id  = 'dummy3'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
+                return MonitorTestItem(area, name=self.id)
+
+        Monitor:
+            id  = 'dummy4'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                raise RuntimeError()
+
     Extension:
         id = 'post-hook'
         point = 'ecpy.measure.post-execution'

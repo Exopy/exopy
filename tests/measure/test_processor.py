@@ -17,6 +17,7 @@ from time import sleep
 import enaml
 import pytest
 from future.builtins import str
+from threading import Thread
 
 from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask
@@ -625,4 +626,38 @@ def test_pausing_measure(processor, measure_with_tools):
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
-# Test monitor creation there is a number of cases
+
+def test_monitor_creation(processor, measure, dialog_sleep):
+    """Test all possible possibilities when creating a monitor dock item.
+
+    """
+    def run(measure):
+        t = Thread(target=processor._start_monitors, args=(measure,))
+        t.start()
+        while t.is_alive():
+            process_app_events()
+            sleep(0.001)
+        process_app_events()
+        sleep(dialog_sleep)
+
+    processor.engine = processor.plugin.create('engine', 'dummy')
+
+    measure.add_tool('monitor', 'dummy')
+    run(measure)
+    assert len(processor.monitors_window.dock_area.dock_items()) == 1
+
+    measure.add_tool('monitor', 'dummy2')
+    run(measure)
+    assert len(processor.monitors_window.dock_area.dock_items()) == 2
+
+    measure.remove_tool('monitor', 'dummy2')
+    run(measure)
+    assert len(processor.monitors_window.dock_area.dock_items()) == 1
+
+    measure.add_tool('monitor', 'dummy3')
+    run(measure)
+    assert len(processor.monitors_window.dock_area.dock_items()) == 2
+
+    measure.add_tool('monitor', 'dummy4')
+    run(measure)
+    assert len(processor.monitors_window.dock_area.dock_items()) == 2

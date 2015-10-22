@@ -484,17 +484,18 @@ class MeasureProcessor(Atom):
                 if dock_item is None:
                     try:
                         dock_item = decl.create_item(workbench, dock_area)
-                        if dock_item is not None:
-                            if dock_item.float_default:
-                                ops.append(FloatItem(item=decl.id))
-                            else:
-                                ops.append(InsertTab(item=decl.id,
-                                                     target=anchor))
                     except Exception:
                         logger.error('Failed to create widget for monitor %s',
                                      decl.id)
                         logger.debug(format_exc())
                         continue
+
+                    if dock_item is not None:
+                        if dock_item.float_default:
+                            ops.append(FloatItem(item=decl.id))
+                        else:
+                            ops.append(InsertTab(item=decl.id,
+                                                 target=anchor))
 
                 self.engine.observe('progress', monitor.process_news)
                 if dock_item:
