@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 import enaml
+from enaml.widgets.api import Window
 
 from ...util import process_app_events
 
@@ -68,6 +69,7 @@ def test_workspace_lifecycle(workspace):
     assert not engine.workspace_contributing
     workspace.plugin.selected_engine = 'dummy'
 
+    # Test stopping the workspace
     core = workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.close_workspace'
     core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
@@ -77,8 +79,30 @@ def test_workspace_lifecycle(workspace):
     assert workbench.get_manifest('ecpy.measure.workspace.menus') is None
     assert 'ecpy.measure.workspace' not in log.handler_ids
 
+    # Test restarting now that we have one edited measure.
+    cmd = 'enaml.workbench.ui.select_workspace'
+    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    assert len(workspace.plugin.edited_measures.measures) == 1
+
+    # Create a false monitors_window
+    workspace.plugin.processor.monitors_window = Window()
+    workspace.plugin.processor.monitors_window.show()
+    process_app_events()
+
+    # Stop again
+    core = workbench.get_plugin('enaml.workbench.core')
+    cmd = 'enaml.workbench.ui.close_workspace'
+    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    process_app_events()
+
+    assert not workspace.plugin.processor.monitors_window.visible
+
 
 def test_creating_saving_loading_measure(workspace):
+    pass
+
+
+def test_handling_all_tools_combinations(workspace):
     pass
 
 

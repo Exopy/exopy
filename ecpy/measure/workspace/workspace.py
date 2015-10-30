@@ -85,7 +85,7 @@ class MeasureSpace(Workspace):
         if not plugin.edited_measures.measures:
             self.new_measure()
         else:
-            for measure in self.plugin.enqueued_measures.measures:
+            for measure in plugin.edited_measures.measures:
                 self._insert_new_edition_panel(measure)
 
         # Check whether or not an engine can contribute.
