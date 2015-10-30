@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 import os
 import re
+from traceback import format_exc
 
 import enaml
 from atom.api import Typed, Value, set_default
@@ -23,13 +24,13 @@ from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
 from enaml.layout.api import InsertItem
 
-from .measure import Measure
-from .plugin import MeasurePlugin
-from ..tasks.api import RootTask
+from ..measure import Measure
+from ..plugin import MeasurePlugin
+from ...tasks.api import RootTask
 
 with enaml.imports():
     from .checks_display import ChecksDisplay
-    from .engines.selection import EngineSelector
+    from ..engines.selection import EngineSelector
     from .content import MeasureContent
     from .measure_edition import MeasureEditorDockItem
     from .manifest import MeasureSpaceMenu
@@ -61,7 +62,7 @@ class MeasureSpace(Workspace):
         get engine contribution.
 
         """
-        # Add a reference to thet workspace in the plugin and keep a reference
+        # Add a reference to the workspace in the plugin and keep a reference
         # to the plugin.
         plugin = self.workbench.get_plugin('ecpy.measure')
         plugin.workspace = self
@@ -81,17 +82,17 @@ class MeasureSpace(Workspace):
         self.workbench.register(MeasureSpaceMenu(workspace=self))
 
         # Check whether or not a measure is already being edited.
-        if not plugin.edited_measures:
+        if not plugin.edited_measures.measures:
             self.new_measure()
         else:
-            for measure in self.plugin.enqueued_measures:
+            for measure in self.plugin.enqueued_measures.measures:
                 self._insert_new_edition_panel(measure)
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
             id = plugin.selected_engine
             engine = plugin.get_declarations('engine', [id])[id]
-            deferred_call(engine.contribute_workspace, self)
+            deferred_call(engine.contribute_to_workspace, self)
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
@@ -106,7 +107,8 @@ class MeasureSpace(Workspace):
 
         # Hide the monitors window. Not closing allow to preserve the
         # position and layout.
-        plugin.processor.monitors_window.hide()
+        if plugin.processor.monitors_window:
+            plugin.processor.monitors_window.hide()
 
         plugin.unobserve('selected_engine', self._update_engine_contribution)
 
@@ -175,8 +177,13 @@ class MeasureSpace(Workspace):
         else:
             full_path = measure.path
 
-        # XXXX add try except
-        measure.save(full_path)
+        try:
+            measure.save(full_path)
+        except Exception:
+            core = self.plugin.workbench.get_plugin('enaml.workbench.core')
+            cmd = 'ecpy.app.errors.signal'
+            msg = 'Failed to save measure :\n' + format_exc()
+            core.invoke_command(cmd, dict(kind='error', message=msg))
 
     def load_measure(self, mode, dock_item=None):
         """ Load a measure.
@@ -197,7 +204,13 @@ class MeasureSpace(Workspace):
                 return
 
             measure, errors = Measure.load(self.plugin, full_path)
-            # XXXX handle errors
+            if errors:
+                core = self.plugin.workbench.get_plugin('enaml.workbench.core')
+                cmd = 'ecpy.app.errors.signal'
+                msg = 'Failed to load measure.'
+                core.invoke_command(cmd, dict(kind='measure-loading',
+                                              message=msg,
+                                              details=errors))
             self.plugin.edited_measure.add(measure)
             self.plugin.path = full_path
 

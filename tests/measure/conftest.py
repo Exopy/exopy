@@ -39,7 +39,7 @@ with enaml.imports():
 
 @pytest.fixture
 def measure_workbench(monkeypatch, app_dir):
-    """Setup the workbench in such a way that the task manager can be tested.
+    """Setup the workbench in such a way that the measure plugin can be tested.
 
     """
     def exit_err(self):

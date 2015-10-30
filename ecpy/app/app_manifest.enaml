@@ -45,7 +45,8 @@ def application_factory():
     from enaml.qt import QtGui
     import sys
     app = QtApplication()
-    app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
+    # XXXX handle icons
+    #app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
     if sys.platform == 'win32':
         import ctypes
         myappid = 'ecpy.main_app' # arbitrary string

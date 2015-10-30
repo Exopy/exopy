@@ -179,7 +179,7 @@ enamldef ErrorsManifest(PluginManifest):
                     msg = '\n\n'.join([self._format(i) for i in infos])
                     msg = 'Errors occured :\n' + msg
                 else:
-                    msg = 'An error occurred :\n' + self._format(infos)
+                    msg = self._format(infos)
 
                 logger.debug(msg)
                 return MultilineField(read_only=True, text=msg)
@@ -188,6 +188,7 @@ enamldef ErrorsManifest(PluginManifest):
                 def_msg =  'No message found, infos are {}'
                 return infos.get('message', def_msg.format(pformat(infos)))
 
+        # XXXX move to packages manifest
         ErrorHandler:
             attr errors = {}
             id = 'registering'

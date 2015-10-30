@@ -169,10 +169,6 @@ enamldef MeasureSpaceMenu(PluginManifest):
             description = SAVE_AS_DESCRIPTION
             handler = save_measure_as
         Command:
-            id = 'ecpy.measure.workspace.save_as_template'
-            description = SAVE_AS_TEMPLATE_DESCRIPTION
-            handler = save_measure_as_template
-        Command:
             id = 'ecpy.measure.workspace.load'
             description = LOAD_DESCRIPTION
             handler = load_measure
@@ -205,7 +201,7 @@ enamldef MeasureSpaceMenu(PluginManifest):
             command = 'ecpy.measure.workspace.save_as'
             parameters = dict(measure=workspace.last_selected_measure)
             group = 'user'
-            before = 'save_as_template'
+            before = 'load'
         ActionItem:
             path = '/file/load'
             label = 'Load measure'

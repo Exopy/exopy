@@ -71,6 +71,7 @@ enamldef MeasureTestManifest(PluginManifest):
         id = 'engines'
         point = 'ecpy.measure.engines'
         Engine:
+            name = 'dummy_engine'
             id = 'dummy'
             description = 'This is a dummy'
 
@@ -90,7 +91,7 @@ enamldef MeasureTestManifest(PluginManifest):
                 self.workspace_contributing = True
 
             clean_workspace => (workspace):
-                self.workspace_conytributing = False
+                self.workspace_contributing = False
 
     Extension:
         id = 'pre-hook'

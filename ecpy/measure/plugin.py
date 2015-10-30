@@ -41,7 +41,7 @@ EDITORS_POINT = 'ecpy.measure.editors'
 
 
 def _workspace():
-    from .workspace import MeasureSpace
+    from .workspace.workspace import MeasureSpace
     return MeasureSpace
 
 

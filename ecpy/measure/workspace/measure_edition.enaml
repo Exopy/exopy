@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import logging
-from operators import attrgetter
+from operator import attrgetter
 
 from atom.api import Atom, ForwardTyped, Typed, Bool, Dict, List
 from enaml.core.api import Include
@@ -26,7 +26,8 @@ from ...utils.widgets.tree_nodes import TreeNode
 from ...utils.widgets.qt_tree_menu import \
     (CopyAction, CutAction, PasteAction, NewAction, RenameAction, DeleteAction)
 from ...tasks.api import (BaseTask, SimpleTask, ComplexTask)
-from .tools_edition import (ToolsEditorDockItem, ToolsEditorDialog)
+from ..editors.base_editor import BaseEditor
+from .tools_edition import ToolsEditorDockItem
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ enamldef SaveAction(Action):
         cmd = 'ecpy.tasks.save'
         # XXXX add try except
         core.invoke_command(cmd,
-                            dict(task=obj, mode='template', widget=ui.window)
+                            dict(task=obj, mode='template', widget=ui.window))
 
 
 def build_task(workbench):
@@ -73,7 +74,7 @@ enamldef SimpleMenu(Menu): menu:
     attr context
 
     #: Reference to the application workbench.
-    attr workbench
+    attr workspace
 
     NewAction:
         action_context << context
@@ -139,7 +140,7 @@ enamldef ComplexMenu(Menu): menu:
 
     SaveAction:
         action_context << context
-        workbench = workspace.workbench
+        workspace = menu.workspace
 
     Action:
         separator = True
@@ -221,7 +222,7 @@ class _MeasEditionModel(Atom):
 
         # Get the current editor by id.
         current_editors = {editor.declaration.id: editor
-                           for editor in self.valid_editors}:
+                           for editor in self.valid_editors}
         current_ids = set(current_editors)
 
         if valid_ids != current_ids:
@@ -291,10 +292,9 @@ enamldef MeasEditionView(Container): ed:
     #: Controller responsible for the editors handling.
     attr _internal = _MeasEditionModel(workspace=workspace, view=self)
 
-    constraints << [vbox(
-                        hbox(lab, name, id_lab, id_val edition),
-                        hbox(tree, editors)
-                        ),
+    constraints << [vbox(hbox(lab, name, id_lab, id_val, edition),
+                         hbox(tree, editors),
+                         ),
                     align('v_center', lab, name)]
 
     Label: lab:
@@ -329,7 +329,7 @@ enamldef MeasEditionView(Container): ed:
 
         hug_height = 'ignore'
         root_node = measure.root_task
-        selected >> selected_task
+        selected_item >> selected_task
         visible << _internal.tree_visible
         enabled << _internal.tree_enabled
 
@@ -436,7 +436,7 @@ enamldef MeasureEditorDialog(Dialog): main:
     alias workspace : ed.workspace
 
     #: Reference to the edited measure.
-    attr measure : ed.measure
+    alias measure : ed.measure
 
     title = 'Edit measure {}'.format(measure.name)
 
@@ -447,7 +447,7 @@ enamldef MeasureEditorDialog(Dialog): main:
             del measure.store['runtime_deps']
 
     Container:
-        constraints = [vbox(area, hbox(spacer, check, save))]
+        constraints = [vbox(area, hbox(spacer, checks, save))]
 
         DockArea:
             style = 'metro'
@@ -460,7 +460,7 @@ enamldef MeasureEditorDialog(Dialog): main:
                     dock_item = item
 
         # TODO implement (should re-use at best the work did in enqueue)
-        PushButton: save:
+        PushButton: checks:
             text = 'Run checks'
             enabled = False
             hug_width  = 'strong'

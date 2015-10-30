@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.core.api import Conditional
-from enaml.widgets.api import Dialog, PushButton
+from enaml.widgets.api import Dialog, PushButton, Container
 from enaml.layout.api import hbox, vbox, spacer
 
 from ...app.errors.widgets import HierarchicalErrorsDisplay
@@ -31,20 +31,22 @@ enamldef ChecksDisplay(Dialog): dial:
 
     title = 'Measure checks'
 
-    constraints = [vbox(err, hbox(spacer, cls, *enq.items()))]
+    Container:
 
-    HierarchicalErrorsDisplay: err:
-        selected = 'internal' if 'internal' in errors else errors.keys()[0]
-        kind = 'Errors' if not is_warning else 'Warnings'
+        constraints = [vbox(hier, hbox(spacer, cls, *enq.items()))]
 
-    PushButton: cls:
-        text = 'Close'
-        clicked ::
-            dial.reject()
+        HierarchicalErrorsDisplay: hier:
+            selected = 'internal' if 'internal' in errors else errors.keys()[0]
+            kind = 'Errors' if not is_warning else 'Warnings'
 
-    Conditional: enq:
-        condition = is_warning
-        PushButton:
-            text = 'Enqueue'
+        PushButton: cls:
+            text = 'Close'
             clicked ::
-                dial.accept()
+                dial.reject()
+
+        Conditional: enq:
+            condition = is_warning
+            PushButton:
+                text = 'Enqueue'
+                clicked ::
+                    dial.accept()

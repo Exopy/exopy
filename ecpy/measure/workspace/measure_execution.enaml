@@ -22,22 +22,20 @@ from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
 
 from ...utils.widgets.list_editor import ListEditor
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
-from .tools_edition import ToolsEditorDialog
+from ..engines.selection import EngineSelector
 from .measure_edition import MeasureEditorDialog
-from .engines.selection import EngineSelector
-from .plugin import MeasureFlags
 
 enamldef MeasView(GroupBox): widget:
     """Simple visual summary of a measure.
 
     """
     #: Refrence to the measure driving this view.
-    attr measure
+    attr model
 
     title << measure.name
 
     layout_constraints => ():
-        meas = widget.measure
+        meas = widget.model
         children = widget.visible_widgets()
         if meas.status == 'READY':
             return [vbox(hbox(children[0], children[1], spacer),
@@ -51,36 +49,35 @@ enamldef MeasView(GroupBox): widget:
     Label:
         text = 'Status :'
     Label:
-        text << measure.status
-        tool_tip << measure.infos
+        text << model.status
+        tool_tip << model.infos
 
     Conditional: cd1:
-        condition << bool(measure.status in ('READY', 'EDITING'))
+        condition << bool(model.status in ('READY', 'EDITING'))
         PushButton: edit:
             text = 'Edit'
             clicked ::
                 kwargs = {'parent': widget, 'measure': measure,
                           'workspace': measure.plugin.workspace}
                 meas_editor = MeasureEditorDialog(**kwargs)
-                measure.status = 'EDITING'
-                default_path = measure.root_task.default_path
+                model.status = 'EDITING'
                 meas_editor.exec_()
 
-                measure.status = 'READY'
+                model.status = 'READY'
 
         PushButton: process:
             text = 'Process'
-            enabled << 'processing' not in workspace.plugin.flags
+            enabled << not workspace.plugin.processor.active
             clicked ::
-                measure.plugin.workspace.process_single_measure(measure)
+                model.plugin.workspace.process_single_measure(model)
 
     Conditional: cd2:
-        condition << bool(measure.status not in ('READY', 'RUNNING',
-                                                 'EDITING'))
+        condition << bool(model.status not in ('READY', 'RUNNING',
+                                               'EDITING'))
         PushButton:
             text = 'Re-enqueue'
             clicked::
-                measure.plugin.workspace.reenqueue_measure(measure)
+                model.plugin.workspace.reenqueue_measure(model)
 
 
 def label_maker(running, paused):
@@ -126,10 +123,9 @@ enamldef ExecutionDockItem(DockItem):
             ed.operations = {'move': move_measure,
                              'remove': remove_measure}
 
-        # XXXX Use processor.active and state of the running measure
         PushButton: start:
             #: Flag indicating the measure is running.
-            attr running << workspace.plugin.flags & MeasureFlags.processing
+            attr running << workspace.plugin.processor.active
 
             #: Flag indicating the measure is in the process of pausing.
             attr pausing << running and\
