@@ -291,9 +291,9 @@ def test_collecting_runtime(measure, monkeypatch):
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', False)
     monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', True)
     res, msg, errors = measure.dependencies.collect_runtimes()
-    print(errors)
     assert not res
     assert 'unavailable' in msg
+    measure.dependencies.release_runtimes()
 
     # Runtimes unavailable for hooks
     monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', False)
@@ -301,6 +301,7 @@ def test_collecting_runtime(measure, monkeypatch):
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert not res
     assert 'unavailable' in msg
+    measure.dependencies.release_runtimes()
 
     # Succeed collecting.
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', False)

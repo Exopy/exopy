@@ -55,7 +55,9 @@ class MeasureDependencies(Atom):
         Returns
         -------
         result : bool
-            Boolean indicating whether or not the collection succeeded
+            Boolean indicating whether or not the collection succeeded. Note
+            that even if the collection failed, some dependencies may have been
+            collected (other being unavailable) and must hance be released.
 
         msg : unicode
             String explaning why the operation failed if it failed.
@@ -116,6 +118,7 @@ class MeasureDependencies(Atom):
 
         elif deps.unavailable:
             msg = 'Some dependencies are currently unavailable.'
+            self._runtime_dependencies = deps.dependencies
             return False, msg, deps.unavailable
 
         self._runtime_dependencies = deps.dependencies
