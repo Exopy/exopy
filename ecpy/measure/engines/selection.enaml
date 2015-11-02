@@ -34,6 +34,8 @@ enamldef EngineSelector(Dialog): dial:
     #: Mappping between engine user understandable names and ids.
     attr _names << ids_to_unique_names(plugin.engines)
 
+    title = 'Select an engine'
+
     Container:
         constraints << [vbox(list_ed, desc, hbox(cancel, ok))]
 
@@ -51,7 +53,7 @@ enamldef EngineSelector(Dialog): dial:
 
         PushButton: ok:
             text = 'Ok'
-            enabled << selected_decl
+            enabled << bool(selected_decl)
             clicked ::
                 dial.accept()
 

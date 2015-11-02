@@ -98,7 +98,10 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
         or rejecting the dialog.
 
     cls : type, optional
+        Dialog class to identify.
 
+    time : float, optional
+        Time to wait before handling the dialog
 
     """
     def close_dialog():

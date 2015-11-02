@@ -43,9 +43,12 @@ def measure_workbench(monkeypatch, app_dir):
 
     """
     def exit_err(self):
-        if self._delayed:
-            raise ErrorDialogException('Unexpected exceptions occured :\n' +
-                                       pformat(self._delayed))
+        self._gathering_counter -= 1
+        if self._gathering_counter < 1:
+            self._gathering_counter = 0
+            if self._delayed:
+                msg = 'Unexpected exceptions occured :\n'
+                raise ErrorDialogException(msg + pformat(self._delayed))
 
     monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
     workbench = Workbench()

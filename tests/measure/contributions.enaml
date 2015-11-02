@@ -223,11 +223,12 @@ enamldef MeasureTestManifest(PluginManifest):
             name = 'runtime_dummy2'
             id = 'dummy2'
             attr collected
+            attr called
             collect => (workbench, owner, dependencies, unavailable, errors):
+                self.called = True
                 if Flags.RUNTIME2_FAIL_COLLECT:
                     raise Exception()
                 elif Flags.RUNTIME2_UNAVAILABLE:
-                    print('t')
                     unavailable.add('test')
                 else:
                     self.collected = True

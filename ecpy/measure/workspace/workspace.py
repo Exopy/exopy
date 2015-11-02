@@ -129,7 +129,7 @@ class MeasureSpace(Workspace):
         # workspaces.
 
     def new_measure(self, dock_item=None):
-        """ Create a new measure using the default tools.
+        """Create a new edited measure using the default tools.
 
         Parameters
         ----------
@@ -211,7 +211,9 @@ class MeasureSpace(Workspace):
                 core.invoke_command(cmd, dict(kind='measure-loading',
                                               message=msg,
                                               details=errors))
-            self.plugin.edited_measure.add(measure)
+                return
+
+            self.plugin.edited_measures.add(measure)
             self.plugin.path = full_path
 
         elif mode == 'template':
@@ -238,13 +240,13 @@ class MeasureSpace(Workspace):
 
         """
         # Collect the runtime dependencies
-        res, msg, errors = measure.collect_runtimes()
+        res, msg, errors = measure.dependencies.collect_runtimes()
 
         if not res:
             if 'Failed' in msg:
                 dial = ChecksDisplay(errors=errors, title=msg)
                 dial.exec_()
-                return
+                return False
 
             # If some runtime are missing let the user know about it.
             else:
@@ -253,7 +255,8 @@ class MeasureSpace(Workspace):
                        'skipped as a  result but will be run before executing '
                        'the measure.\n Missing dependencies from :\n{}')
                 msg.format(measure.name,
-                           '\n'.join(('-'+id for id in errors['unavailable'])))
+                           '\n'.join(('-'+id for id in errors)))
+                # TODO : log as debug and display in popup
                 logger.info(msg)
 
         # Run the checks specifying what runtimes are missing.
@@ -272,7 +275,7 @@ class MeasureSpace(Workspace):
                 dial.exec_()
                 if not dial.result:
                     measure.dependencies.reset()
-                    return
+                    return False
 
             default_filename = (measure.name + '_' + measure.id +
                                 '.meas.ini')
@@ -281,13 +284,14 @@ class MeasureSpace(Workspace):
             measure.save(path)
             b_deps = measure.dependencies.get_build_dependencies()
 
-            meas, errors = Measure.load(self.plugin, path, b_deps)
+            meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)
             # Provide a nice error message.
             if not meas:
                 msg = 'Failed to rebuild measure from config'
-                dial = ChecksDisplay(errors={'internal': errors}, title=msg)
+                dial = ChecksDisplay(errors={'Building': errors}, title=msg)
                 dial.exec_()
-                return
+                return False
+
             try:
                 os.remove(path)
             except OSError:
@@ -331,7 +335,8 @@ class MeasureSpace(Workspace):
 
         """
         for measure in self.plugin.enqueued_measures.measures[:]:
-            if measure.status != 'READY':
+            if measure.status in ('SKIPPED', 'FAILED', 'COMPLETED',
+                                  'INTERRUPTED'):
                 self.plugin.enqueued_measures.remove(measure)
 
     def start_processing_measures(self):
@@ -343,13 +348,13 @@ class MeasureSpace(Workspace):
         if not self.plugin.selected_engine:
             dial = EngineSelector(plugin=self.plugin)
             dial.exec_()
-            if dial.selected_id:
+            if dial.selected_decl:
                 self.plugin.selected_engine = dial.selected_decl.id
             else:
                 return
 
         measure = self.plugin.find_next_measure()
-        self.plugin.processor.continuous_processing = False
+        self.plugin.processor.continuous_processing = True
         if measure is not None:
             self.plugin.processor.start_measure(measure)
         else:
@@ -409,9 +414,10 @@ class MeasureSpace(Workspace):
         """Add the default tools to a measure.
 
         """
+        # TODO : use error plugin to report that kind of issues
         for pre_id in self.plugin.default_pre_hooks:
             if pre_id in self.plugin.pre_hooks:
-                measure.add_tool('pre_hook', pre_id)
+                measure.add_tool('pre-hook', pre_id)
             else:
                 msg = "Default pre-execution hook {} not found"
                 logger.warn(msg.format(pre_id))
@@ -425,7 +431,7 @@ class MeasureSpace(Workspace):
 
         for post_id in self.plugin.default_post_hooks:
             if post_id in self.plugin.post_hooks:
-                measure.add_tool('post_hook', post_id)
+                measure.add_tool('post-hook', post_id)
             else:
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
@@ -440,24 +446,23 @@ class MeasureSpace(Workspace):
         measure_items = filter(lambda i: test.match(i.name), items)
 
         if not measure_items:
-            op = InsertItem(item=template % 0, target='meas_exec')
+            name = template % 0
+            op = InsertItem(item=name, target='meas_exec')
         else:
             indexes = [int(test.match(i.name).group(1))
                        for i in measure_items]
             indexes.sort()
-            missings = [i for i, (i1, i2) in enumerate(zip(indexes[:-1],
-                                                           indexes[1:]))
-                        if i1 + 1 != i2]
 
-            if missings:
-                ind = missings[0]
+            if len(indexes) <= max(indexes):
+                ind = [i for i, x in enumerate(indexes) if i != x][0]
             else:
                 ind = len(measure_items)
 
-            op = InsertItem(item=template % ind, target=measure_items[-1])
+            name = template % ind
+            op = InsertItem(item=name, target=template % indexes[0])
 
         MeasureEditorDockItem(self.dock_area, workspace=self,
-                              measure=measure)
+                              measure=measure, name=name)
         self.dock_area.update_layout(op)
 
     def _update_engine_contribution(self, change):
