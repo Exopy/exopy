@@ -92,7 +92,7 @@ enamldef BasicErrorsDisplay(Container):
 
     #: Currently selected error.
     alias selected : lis.selected_item
-    selected = errors.keys()[0] if errors else selected
+    selected = errors.keys()[0] if errors else None
 
     #: Kind of the errors.
     alias kind : lis_lab.text
@@ -111,7 +111,7 @@ enamldef BasicErrorsDisplay(Container):
     Label: che_lab:
         text << selected if selected else ''
     MultilineField: che:
-        text << errors[selected] if errors and selected else ''
+        text << errors[selected] if (errors and selected) else ''
         read_only = True
 
 
@@ -124,19 +124,19 @@ enamldef HierarchicalErrorsDisplay(Container): main:
 
     #: Currently selected point.
     alias selected : lis.selected_item
-    selected = errors.keys()[0] if errors else selected
+#    selected = errors.keys()[0] if errors else None
 
     #: Kind of the errors.
     alias kind : lis_lab.text
 
-    constraints = [hbox(vbox(lis_lab, lis), err)]
+    constraints = [hbox(vbox(lis_lab, lis))]
 
     Label: lis_lab:
         pass
     QtListStrWidget: lis:
         items = sorted(errors.keys())
         hug_height = 'ignore'
-
-    BasicErrorsDisplay: err:
-        errors << main.errors.get(selected, {})
-        kind << selected
+#
+#    BasicErrorsDisplay: err:
+#        errors << main.errors.get(main.selected, {})
+#        kind << main.selected
