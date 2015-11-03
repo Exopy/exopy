@@ -54,7 +54,7 @@ class ProcessEngine(BaseEngine):
         # Clear all the flags.
         self._task_pause.clear()
         self._task_paused.clear()
-        self._task_resumed.clear()
+        self._task_resume.clear()
         self._task_stop.clear()
         self._force_stop.clear()
         self._stop_requested = False
@@ -71,7 +71,6 @@ class ProcessEngine(BaseEngine):
                                         self._monitor_queue,
                                         self._task_pause,
                                         self._task_paused,
-                                        self._task_resumed,
                                         self._task_stop,
                                         self._process_stop)
             self._process.daemon = True
@@ -99,13 +98,11 @@ class ProcessEngine(BaseEngine):
         exec_infos.task.update_preferences_from_members()
         config = exec_infos.task.preferences
         database_root_state = exec_infos.task.database.copy_node_values()
-        print('Sending')
         self._pipe.send((exec_infos.id, config,
                          exec_infos.build_deps,
                          exec_infos.runtime_deps,
                          exec_infos.observed_entries,
-                         database_root_state,
-                         exec_infos.checks
+                         database_root_state
                          ))
         logger.debug('Task {} sent'.format(exec_infos.id))
 
@@ -119,7 +116,6 @@ class ProcessEngine(BaseEngine):
                 self._cleanup(process=False)
                 exec_infos.success = False
                 exec_infos.errors['engine'] = msg
-                self.status = 'Stopped'
                 return exec_infos
 
         status = self._pipe.recv()
@@ -129,7 +125,6 @@ class ProcessEngine(BaseEngine):
             self._cleanup()
             exec_infos.success = False
             exec_infos.errors['engine'] = msg
-            self.status = 'Stopped'
             return exec_infos
 
         # Wait for the process to finish the measure and check it has not
@@ -140,7 +135,6 @@ class ProcessEngine(BaseEngine):
                 logger.debug(msg)
                 self._cleanup(process=False)
                 exec_infos.errors['engine'] = msg
-                self.status = 'Stopped'
                 return exec_infos
 
             # Here get message from process and react
@@ -159,7 +153,7 @@ class ProcessEngine(BaseEngine):
 
         """
         self.status = 'Pausing'
-        self._task_resumed.clear()
+        self._task_resume.clear()
         self._task_paused.clear()
         self._task_pause.set()
 
@@ -172,6 +166,7 @@ class ProcessEngine(BaseEngine):
         """
         self.status = 'Resuming'
         self._task_pause.clear()
+        self._task_resume.set()
 
     def stop(self, force=False):
         """Ask the engine to stop the current job.
@@ -323,7 +318,7 @@ class ProcessEngine(BaseEngine):
                 self.status = 'Paused'
                 break
 
-        resuming_sig = self._task_resumed
+        resuming_sig = self._task_resume
 
         while not stop_sig.is_set():
             if resuming_sig.wait(1):
