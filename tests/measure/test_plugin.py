@@ -144,3 +144,9 @@ def test_find_next_measure(measure_workbench):
 
     m1.status = 'COMPLETED'
     assert plugin.find_next_measure() is m2
+
+
+def test_validate_closing():
+    """
+    """
+    pass # XXXX

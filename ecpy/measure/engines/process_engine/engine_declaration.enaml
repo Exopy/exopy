@@ -20,7 +20,7 @@ from enaml.layout.api import InsertItem, RemoveItem
 
 from ....utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
 from ..base_engine import Engine
-from .engine import ProcessEngine
+from .engine import ProcessEngine as PEngine
 
 
 class ProcFilter(Atom):
@@ -28,7 +28,7 @@ class ProcFilter(Atom):
 
     """
     #: Name of the process from which to accept records.
-    process_name = Unicode('MeasureProcess')
+    process_name = Unicode('ecpy.MeasureProcess')
 
     # Bool indicating whether to reject if the process name is wrong (False),
     # or reject if the process name is right (True).
@@ -65,9 +65,10 @@ enamldef ProcessEngine(Engine):
     id = 'ecpy.process_engine'
     description = 'Engine performing the measure in a subprocess'
 
+    attr panel_name = 'ecpy.subprocess_log'
+
     new => (workbench, default=False):
-        return ProcessEngine(workbench=workbench,
-                         declaration=self)
+        return PEngine(declaration=self)
 
     contribute_to_workspace => (workspace):
         """Add a log panel for the subprocess.
@@ -96,7 +97,7 @@ enamldef ProcessEngine(Engine):
 
         # Add the log panel to the dock area at the right of the main log panel
         area = workspace.dock_area
-        dock = SubprocessLogPanel(area, name='subprocess_log',
+        dock = SubprocessLogPanel(area, name=panel_name,
                                   title='Subprocess panel (Process engine)',
                                   model=model)
         op = InsertItem(item='subprocess_log', target='main_log',
@@ -111,12 +112,12 @@ enamldef ProcessEngine(Engine):
         area = workspace.dock_area
         if area:
             for item in area.dock_items():
-                if item.name == 'subprocess_log':
+                if item.name == panel_name:
                     item.destroy()
 
         core = workspace.workbench.get_plugin('enaml.workbench.core')
 
-        # Second remove the added handler (filter automaticallt removed).
+        # Second remove the added handler (filter automatically removed).
         handler_id = 'ecpy.measure.engines.process_engine'
         core.invoke_command('ecpy.app.logging.remove_handler',
                             {'id': handler_id})

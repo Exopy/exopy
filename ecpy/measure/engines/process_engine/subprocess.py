@@ -79,11 +79,12 @@ class TaskProcess(Process):
     """
 
     def __init__(self, pipe, log_queue, monitor_queue, task_pause, task_paused,
-                 task_stop, process_stop):
-        super(TaskProcess, self).__init__(name='MeasureProcess')
+                 task_stop, task_resumed, process_stop):
+        super(TaskProcess, self).__init__(name='ecpy.MeasureProcess')
         self.daemon = True
         self.task_pause = task_pause
         self.task_paused = task_paused
+        self.task_resumed = task_resumed
         self.task_stop = task_stop
         self.process_stop = process_stop
         self.pipe = pipe
@@ -102,10 +103,10 @@ class TaskProcess(Process):
 
         # Redirecting stdout and stderr to the logging system.
         logger = logging.getLogger()
-        redir_stdout = StreamToLogRedirector(logger)
-        sys.stdout = redir_stdout
-        redir_stderr = StreamToLogRedirector(logger, 'stderr')
-        sys.stderr = redir_stderr
+#        redir_stdout = StreamToLogRedirector(logger)
+#        sys.stdout = redir_stdout
+#        redir_stderr = StreamToLogRedirector(logger, 'stderr')
+#        sys.stderr = redir_stderr
         logger.info('Logger parametrised')
 
         logger.info('Process running')
@@ -124,7 +125,7 @@ class TaskProcess(Process):
                     break
 
                 # Get the measure.
-                name, config, build, runtime, entries, database =\
+                name, config, build, runtime, entries, database, checks =\
                     self.pipe.recv()
                 self.pipe.send(True)
 
@@ -156,9 +157,8 @@ class TaskProcess(Process):
                                         name + '.log')
                 if os.path.isfile(log_path):
                     os.remove(log_path)
-                self.meas_log_handler = DayRotatingTimeHandler(log_path,
-                                                               mode='w',
-                                                               maxBytes=10**6)
+                self.meas_log_handler = DayRotatingTimeHandler(log_path)
+
                 aux = '%(asctime)s | %(levelname)s | %(message)s'
                 formatter = logging.Formatter(aux)
                 self.meas_log_handler.setFormatter(formatter)
@@ -169,6 +169,7 @@ class TaskProcess(Process):
                 root.should_pause = self.task_pause
                 root.paused = self.task_paused
                 root.should_stop = self.task_stop
+                root.resumed = self.task_resumed
                 root.database.prepare_to_run()
 
                 # Perform the checks.
@@ -179,11 +180,11 @@ class TaskProcess(Process):
                     logger.info('Check successful')
                     result = root.perform()
 
-                    self.pipe.send(result, root.errors)
+                    self.pipe.send((result, root.errors))
 
                 # They fail, mark the measure as failed and go on.
                 else:
-                    self.pipe.send(False, errors)
+                    self.pipe.send((False, errors))
 
                     # Log the tests that failed.
                     msg = 'Some test failed:\n' + errors_to_msg(errors)
@@ -197,9 +198,9 @@ class TaskProcess(Process):
             except IOError:
                 pass
 
-            except Exception:
-                logger.exception('Error occured during processing')
-                break
+#            except Exception:
+#                logger.exception('Error occured during processing')
+#                break
 
         # Clean up before closing.
         logger.info('Process shuting down')

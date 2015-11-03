@@ -150,6 +150,8 @@ must have :
     20.
 
 
+..todo:: add a section about error reporting.
+
 Using the built in preferences manager
 --------------------------------------
 
