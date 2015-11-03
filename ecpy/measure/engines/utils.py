@@ -47,10 +47,13 @@ class MeasureSpy(Atom):
     def enqueue_update(self, change):
         """Put an update in the queue.
 
+        Notes
+        -----
+        Change is a tuple as this is connected to a Signal.
+
         """
-        new = change['value']
-        if new[0] in self.observed_entries:
-            self.queue.put_nowait(new)
+        if change[0] in self.observed_entries:
+            self.queue.put_nowait(change)
 
     def close(self):
         """Put a dummy object signaling that no more updates will be sent.

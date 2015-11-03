@@ -29,10 +29,10 @@ def test_spy():
     spy = MeasureSpy(queue=q, observed_database=data,
                      observed_entries=('test',))
 
-    data.notifier = {'value': ('test', 1)}
+    data.notifier = ('test', 1)
     assert q.get()
 
-    data.notifier = {'value': ('test', 1)}
+    data.notifier = ('test', 1)
     assert q.empty()
 
     spy.close()
