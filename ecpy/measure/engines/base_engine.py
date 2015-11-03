@@ -40,6 +40,9 @@ class ExecutionInfos(Atom):
     #: processing.
     observed_entries = List()
 
+    #: Boolean indicating whether the engine should run the checks of the task.
+    checks = Bool(True)
+
     #: Boolean set by the engine, indicating whether or not the task was
     #: successfully executed.
     success = Bool()

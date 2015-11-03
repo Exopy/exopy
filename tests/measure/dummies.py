@@ -50,6 +50,8 @@ class DummyEngine(BaseEngine):
 
     should_resume = Bool()
 
+    measure_force_enqueued = Bool()
+
     signal_resuming = Value(factory=Event)
 
     go_on_resuming = Value(factory=Event)
@@ -64,6 +66,7 @@ class DummyEngine(BaseEngine):
         """Simply return the exec_infos.
 
         """
+        self.measure_force_enqueued = exec_infos.forced_enqueued
         self.waiting.set()
         self.progress(('test', True))
         self.go_on.wait()

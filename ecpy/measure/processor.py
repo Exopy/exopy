@@ -310,6 +310,7 @@ class MeasureProcessor(Atom):
                 build_deps=deps.get_build_dependencies().dependencies,
                 runtime_deps=deps.get_runtime_dependencies('main'),
                 observed_entries=measure.collect_monitored_entries(),
+                checks=not measure.forced_enqueued,
                 )
 
             # Ask the engine to perform the main task.

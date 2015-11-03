@@ -303,7 +303,7 @@ def test_running_forced_enqueued_measure(processor, measure_with_tools):
     pre_hook.go_on.set()
 
     wait_and_process(processor.engine.waiting.wait)
-
+    assert processor.engine.measure_force_enqueued
     processor.engine.go_on.set()
 
     post_hook = measure.post_hooks['dummy']
