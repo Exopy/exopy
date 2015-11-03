@@ -46,7 +46,7 @@ def handle_stop_pause(root):
 
     pause_flag = root.should_pause
     if pause_flag.is_set():
-        root.resume.clear()
+        root.resumed.clear()
         root.paused_threads_counter.increment()
         while True:
             sleep(0.05)
@@ -58,13 +58,13 @@ def handle_stop_pause(root):
                     # Prevent issues if a user alter a resource while in pause.
                     for _, resource in root.resources.items():
                         resource.reset()
-                    root.resume.set()
+                    root.resumed.set()
                     root.paused_threads_counter.decrement()
                     break
                 else:
                     # Safety here ensuring the main thread finished
-                    # re-initializing the instr.
-                    root.resume.wait()
+                    # re-initializing the resources.
+                    root.resumed.wait()
                     root.paused_threads_counter.decrement()
                     break
 

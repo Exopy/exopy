@@ -35,6 +35,7 @@ class TestTaskExecution(object):
         root.should_pause = Event()
         root.should_stop = Event()
         root.paused = Event()
+        root.resumed = Event()
         root.default_path = 'toto'
         self.root = root
 
@@ -360,7 +361,7 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert par2.perform_called == 1
         assert par3.perform_called == 1
-        assert root.resume.is_set()
+        assert root.resumed.is_set()
         assert dummy.called == 1
         assert dummy.owner == ''
 

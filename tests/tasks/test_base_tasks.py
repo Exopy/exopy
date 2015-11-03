@@ -358,6 +358,7 @@ def test_build_root_from_config():
     assert task.name == 'Root'
     assert len(task.children) == 1
     assert task.children[0].name == 'test_child'
+    assert task.children[0].root
     assert isinstance(task.children[0], SimpleTask)
 
 

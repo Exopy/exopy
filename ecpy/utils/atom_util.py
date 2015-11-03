@@ -133,11 +133,14 @@ def update_members_from_preferences(self, parameters):
         old_val = getattr(self, name)
         if issubclass(type(old_val), HasPrefAtom):
             old_val.update_members_from_preferences(parameters[name])
+        # This is meant to prevent updating fields which expect a custom
+        # instance
         elif old_val is None:
             pass
         else:
             value = parameters[name]
             converted = member_from_str(member, value)
+
             setattr(self, name, converted)
 
 bind_method(HasPrefAtom, 'preferences_from_members',

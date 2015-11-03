@@ -1020,9 +1020,9 @@ class RootTask(ComplexTask):
     #: Inter-process event signaling the task is paused.
     paused = Typed(Event)
 
-    #: Inter-Thread event signaling the main thread is done, handling the
-    #: measure resuming.
-    resume = Value()
+    #: Inter-process event signaling the main thread is done, handling the
+    #: measure resuming, and hence notifying the task execution has resumed.
+    resumed = Typed(Event)
 
     #: Dictionary used to store errors occuring during performing.
     errors = Dict()
@@ -1122,6 +1122,35 @@ class RootTask(ComplexTask):
         for child in self.gather_children():
             child.register_in_database()
 
+    @classmethod
+    def build_from_config(cls, config, dependencies):
+        """Create a new instance using the provided infos for initialisation.
+
+        Parameters
+        ----------
+        config : dict(str)
+            Dictionary holding the new values to give to the members in string
+            format, or dictionnary like for instance with prefs.
+
+        dependencies : dict
+            Dictionary holding the necessary classes needed when rebuilding.
+            This is assembled by the TaskManager.
+
+        Returns
+        -------
+        task :
+            Newly created and initiliazed task.
+
+        Notes
+        -----
+        This method is fairly powerful and can handle a lot of cases so
+        don't override it without checking that it works.
+
+        """
+        task = super(RootTask, cls).build_from_config(config, dependencies)
+        task._post_setattr_root(None, task)
+        return task
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
@@ -1129,9 +1158,6 @@ class RootTask(ComplexTask):
     def _default_task_id(self):
         pack, _ = self.__module__.split('.', 1)
         return pack + '.' + ComplexTask.__name__
-
-    def _default_resume(self):
-        return threading.Event()
 
     def _child_path(self):
         """Overriden here to not add the task name.
