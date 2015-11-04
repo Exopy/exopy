@@ -12,7 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from time import sleep
 from multiprocessing.queues import Queue
 
 from ecpy.tasks.tools.database import TaskDatabase
@@ -29,10 +28,10 @@ def test_spy():
     spy = MeasureSpy(queue=q, observed_database=data,
                      observed_entries=('test',))
 
-    data.notifier = ('test', 1)
+    data.notifier(('test', 1))
     assert q.get()
 
-    data.notifier = ('test', 1)
+    data.notifier(('test2', 1))
     assert q.empty()
 
     spy.close()
@@ -43,22 +42,22 @@ def test_monitor_thread():
     """Test the monitor thread rerouting news to engine signal.
 
     """
-    news = None
+    from atom.api import Value
 
     class E(BaseEngine):
 
-        def _observe_news(self, val):
-            global news
-            news = val
+        test = Value()
+
+        def _observe_progress(self, val):
+            self.test = val
 
     q = Queue()
-    m = ThreadMeasureMonitor(E(), q)
+    e = E()
+    m = ThreadMeasureMonitor(e, q)
+    m.start()
     q.put('test')
-    sleep(0.01)
-    assert news == 'test'
-
     q.put(('', ''))
-    sleep(0.01)
-
     q.put((None, None))
     m.join()
+
+    assert e.test == 'test'

@@ -81,7 +81,7 @@ class ThreadMeasureMonitor(Thread):
                 news = self.queue.get()
                 if news not in [(None, None), ('', '')]:
                     # Here news is a Signal not Event hence the syntax.
-                    self.engine.news(news)
+                    self.engine.progress(news)
                 elif news == ('', ''):
                     logger = logging.getLogger(__name__)
                     logger.debug('Spy closed')

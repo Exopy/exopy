@@ -74,6 +74,7 @@ def test_workspace_lifecycle(workspace):
     workspace.plugin.selected_engine = ''
     assert not engine.workspace_contributing
     workspace.plugin.selected_engine = 'dummy'
+    assert engine.workspace_contributing
 
     # Test stopping the workspace
     core = workbench.get_plugin('enaml.workbench.core')

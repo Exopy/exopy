@@ -479,4 +479,4 @@ class MeasureSpace(Workspace):
         new = change['value']
         if new and new in self.plugin.engines:
             engine = self.plugin.get_declarations('engine', [new])[new]
-            engine.clean_workspace(self)
+            engine.contribute_to_workspace(self)

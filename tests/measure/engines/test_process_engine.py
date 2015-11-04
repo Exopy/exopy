@@ -105,6 +105,7 @@ class WaitingTask(SimpleTask):
         return self.check_flag, {}
 
     def perform(self):
+        print(self.sock_id)
         s = socket.socket()
         while True:
             if s.connect_ex(('localhost', self.sync_port)) == 0:
@@ -181,6 +182,7 @@ def test_workspace_contribution(workspace):
     assert not workspace.dock_area.find('ecpy.subprocess_log')
 
 
+@pytest.mark.timeout(30)
 def test_perform(process_engine, exec_infos, sync_server):
     """Test perfoming a task.
 
@@ -200,6 +202,7 @@ def test_perform(process_engine, exec_infos, sync_server):
         sleep(0.01)
 
 
+@pytest.mark.timeout(30)
 def test_handle_fail_check(process_engine, exec_infos):
     """Test handling a measure failing the checks.
 
@@ -215,6 +218,7 @@ def test_handle_fail_check(process_engine, exec_infos):
         sleep(0.01)
 
 
+@pytest.mark.timeout(30)
 def test_pause_resume(process_engine, exec_infos, sync_server):
     """Test pausing a measure.
 
@@ -246,6 +250,7 @@ def test_pause_resume(process_engine, exec_infos, sync_server):
         sleep(0.01)
 
 
+@pytest.mark.timeout(30)
 def test_stop(process_engine, exec_infos, sync_server):
     """Test stopping a measure in the middle.
 
@@ -263,6 +268,7 @@ def test_stop(process_engine, exec_infos, sync_server):
         sleep(0.01)
 
 
+@pytest.mark.timeout(30)
 def test_force_stop(process_engine, exec_infos, sync_server):
     """Test forcing the stop of the engine.
 
@@ -275,6 +281,7 @@ def test_force_stop(process_engine, exec_infos, sync_server):
     assert process_engine.status == 'Stopped'
 
 
+@pytest.mark.timeout(30)
 def test_shutdown(process_engine, exec_infos, sync_server):
     """Test shutting down the engine during the execution.
 
@@ -285,9 +292,12 @@ def test_shutdown(process_engine, exec_infos, sync_server):
     process_engine.shutdown()
     sync_server.signal('test1')
     t.join()
-    assert process_engine.status == 'Stopped'
+
+    while not process_engine.status == 'Stopped':
+        sleep(0.01)
 
 
+@pytest.mark.timeout(30)
 def test_force_shutdown(process_engine, exec_infos, sync_server):
     """Test forcing the shutdown of the engine.
 
