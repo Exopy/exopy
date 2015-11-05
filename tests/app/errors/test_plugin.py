@@ -118,10 +118,9 @@ def test_gathering_mode(workbench):
     core = workbench.get_plugin('enaml.workbench.core')
     core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
-    with pytest.raises(UnboundLocalError):
-        core.invoke_command('ecpy.app.errors.signal',
-                            {'kind': 'stupid', 'msg': None})
-        get_window()
+    core.invoke_command('ecpy.app.errors.signal',
+                        {'kind': 'stupid', 'msg': None})
+    assert get_window() is None
 
     with handle_dialog():
         core.invoke_command('ecpy.app.errors.exit_error_gathering')

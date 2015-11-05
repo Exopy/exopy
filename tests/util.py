@@ -63,6 +63,7 @@ def get_window(cls=Window):
     """
     process_app_events()
     sleep(0.1)
+    w_ = None
     for w in Window.windows:
         if isinstance(w, cls):
             w_ = w
@@ -101,11 +102,21 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
         Dialog class to identify.
 
     time : float, optional
-        Time to wait before handling the dialog
+        Time to wait before handling the dialog in ms.
 
     """
     def close_dialog():
-        dial = get_window(cls)
+        i = 0
+        while True:
+            dial = get_window(cls)
+            if dial:
+                break
+            elif i > 10:
+                raise Exception('Dailog timeout')
+            sleep(0.1)
+            process_app_events()
+            i += 1
+
         try:
             custom(dial)
         finally:
