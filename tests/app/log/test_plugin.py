@@ -93,6 +93,19 @@ class TestLogPlugin(object):
         assert log_plugin.handler_ids == []
         assert not logger.handlers
 
+    def test_handler3(self, logger):
+        """Test adding an handler using a non recognised mode.
+
+        """
+        core = self.workbench.get_plugin(u'enaml.workbench.core')
+        core.invoke_command('ecpy.app.logging.add_handler',
+                            {'id': 'ui', 'logger': 'test'},
+                            self)
+        log_plugin = self.workbench.get_plugin(PLUGIN_ID)
+
+        assert log_plugin.handler_ids == []
+        assert not logger.handlers
+
     def test_filter1(self, logger):
         """Test adding removing filter.
 
