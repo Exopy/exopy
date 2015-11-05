@@ -24,6 +24,7 @@ from enaml.widgets.api import Container
 from ecpy.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
+    from ecpy.tasks.manager.widgets.building import BuilderView
 
 from .manager.conftest import task_workbench
 from ..util import show_widget, process_app_events, handle_dialog, get_window
@@ -47,7 +48,7 @@ def test_root_view(windows, task_workbench):
 
     TASK_NAME = 'Foo'
 
-    def answer_dialog(dial):
+    def answer_dialog(dial, cls=BuilderView):
         selector = dial.selector
         selector.selected_task = 'ecpy.ComplexTask'
         dial.config.task_name = TASK_NAME
@@ -62,7 +63,7 @@ def test_root_view(windows, task_workbench):
     sleep(DIALOG_SLEEP)
 
     TASK_NAME = 'Bar'
-    with handle_dialog('accept', answer_dialog):
+    with handle_dialog('accept', answer_dialog, cls=BuilderView):
         editor.operations['add'](0, 'after')
     process_app_events()
     sleep(DIALOG_SLEEP)

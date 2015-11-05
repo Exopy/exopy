@@ -51,7 +51,7 @@ class WhileTask(ComplexTask):
 
             try:
                 for child in self.children:
-                    child.perform_(child)
+                    child.perform_()
             except BreakException:
                 break
             except ContinueException:

@@ -18,17 +18,20 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 import threading
-from atom.api import (Atom, Int, Bool, Value, Unicode, List,
-                      ForwardTyped, Typed, Callable, Dict, Signal,
-                      Tuple, Coerced, Constant, set_default)
-from configobj import Section, ConfigObj
+from multiprocessing.synchronize import Event
+from collections import Iterable
 from inspect import cleandoc
 from textwrap import fill
 from copy import deepcopy
 from traceback import format_exc
+from types import MethodType
+
+from atom.api import (Atom, Int, Bool, Value, Unicode, List,
+                      ForwardTyped, Typed, Callable, Dict, Signal,
+                      Tuple, Coerced, Constant, set_default)
+from configobj import Section, ConfigObj
 from future.utils import istext
-from multiprocessing.synchronize import Event
-from collections import Iterable
+
 
 from ..utils.atom_util import (tagged_members, update_members_from_preferences)
 from ..utils.container_change import ContainerChange
@@ -126,7 +129,7 @@ class BaseTask(Atom):
 
         By default tries to format all members tagged with 'fmt' and try to
         eval all members tagged with 'feval'. If the tag value is 'Warn', the
-        will considered passed but a traceback entry will be filled.
+        test will considered passed but a traceback entry will be filled.
         The perform_ member is also computed at this time.
 
         """
@@ -155,8 +158,34 @@ class BaseTask(Atom):
                 msg = 'Failed to eval %s : %s' % (n, format_exc())
                 traceback[err_path + '-' + n] = msg
 
-        self._build_perform_()
         return res, traceback
+
+    def prepare(self):
+        """Prepare the task to be performed.
+
+        This method is called once by the root task before starting the
+        execution of its children tasks. By default it simply build the
+        perform_ method by wrapping perform with the appropriate decorators.
+        This method can be overridden to execute other task, however keep in
+        my mind that those task must not depende on the state of the system
+        (no link to database).
+
+        """
+        perform_func = self.perform.__func__
+        parallel = self.parallel
+        if parallel.get('activated') and parallel.get('pool'):
+            perform_func = make_parallel(perform_func, parallel['pool'])
+
+        wait = self.wait
+        if wait.get('activated'):
+            perform_func = make_wait(perform_func,
+                                     wait.get('wait'),
+                                     wait.get('no_wait'))
+
+        if self.stoppable:
+            perform_func = make_stoppable(perform_func)
+
+        self.perform_ = MethodType(perform_func, self)
 
     def register_preferences(self):
         """Create the task entries in the preferences object.
@@ -498,26 +527,6 @@ class BaseTask(Atom):
     #: Only used in running mode.
     _eval_cache = Dict()
 
-    def _build_perform_(self):
-        """Make perform_ refects the parallel/wait settings.
-
-        """
-        perform_func = self.perform.__func__
-        parallel = self.parallel
-        if parallel.get('activated') and parallel.get('pool'):
-            perform_func = make_parallel(perform_func, parallel['pool'])
-
-        wait = self.wait
-        if wait.get('activated'):
-            perform_func = make_wait(perform_func,
-                                     wait.get('wait'),
-                                     wait.get('no_wait'))
-
-        if self.stoppable:
-            self.perform_ = make_stoppable(perform_func)
-        else:
-            self.perform_ = perform_func
-
     def _default_task_id(self):
         """Default value for the task_id member.
 
@@ -655,7 +664,7 @@ class ComplexTask(BaseTask):
 
         """
         for child in self.children:
-            child.perform_(child)
+            child.perform_()
 
     def check(self, *args, **kwargs):
         """Run test of all child tasks.
@@ -663,11 +672,24 @@ class ComplexTask(BaseTask):
         """
         test, traceback = super(ComplexTask, self).check(*args, **kwargs)
         for child in self.gather_children():
-            check = child.check(*args, **kwargs)
-            test = test and check[0]
-            traceback.update(check[1])
+            try:
+                check = child.check(*args, **kwargs)
+                test = test and check[0]
+                traceback.update(check[1])
+            except Exception:
+                test = False
+                msg = 'An exception occured while running check :\n%s'
+                traceback[child.path + '/' + child.name] = msg % format_exc()
 
         return test, traceback
+
+    def prepare(self):
+        """Overridden to prepare also children tasks.
+
+        """
+        super(ComplexTask, self).prepare()
+        for child in self.gather_children():
+            child.prepare()
 
     def add_child_task(self, index, child):
         """Add a child task at the given index.
@@ -1090,9 +1112,12 @@ class RootTask(ComplexTask):
         """
         result = True
         self.thread_id = threading.current_thread().ident
+
+        self.prepare()
+
         try:
             for child in self.children:
-                child.perform_(child)
+                child.perform_()
         except Exception:
             log = logging.getLogger(__name__)
             msg = 'The following unhandled exception occured :\n'
@@ -1103,7 +1128,17 @@ class RootTask(ComplexTask):
         finally:
             self.release_resources()
 
+        if self.should_stop.is_set():
+            result = False
+
         return result
+
+    def prepare(self):
+        """Optimise the database for running state and prepare children.
+
+        """
+        self.database.prepare_to_run()
+        super(RootTask, self).prepare()
 
     def release_resources(self):
         """Release all the resources used by tasks.

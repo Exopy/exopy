@@ -73,6 +73,26 @@ class TestTaskExecution(object):
         res, tb = self.root.check()
         assert not res and 'root/test-feval' in tb
 
+    def test_check_complex_task(self, tmpdir):
+        """Check handlign an exception occuring while running the checks.
+
+        """
+        class Tester(CheckTask):
+            """Class declaring a member to format and one to eval.
+
+            """
+            def check(self, *args, **kwargs):
+                raise Exception()
+
+        tester = Tester(name='test')
+
+        self.root.default_path = str(tmpdir)
+        self.root.add_child_task(0, tester)
+
+        res, tb = self.root.check()
+        assert not res
+        assert 'root/test' in tb
+
     @pytest.mark.timeout(1)
     def test_root_perform_empty(self):
         """Test running an empty RootTask.

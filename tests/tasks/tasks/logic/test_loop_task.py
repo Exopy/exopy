@@ -302,8 +302,7 @@ class TestLoopTask(object):
 
         """
         self.task.interface = iterable_interface
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 10
@@ -313,8 +312,7 @@ class TestLoopTask(object):
 
         """
         self.task.interface = linspace_interface
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 2.0
@@ -327,8 +325,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, BreakTask(name='break',
                                               condition='{Test_value} == 5')
                                  )
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 5
@@ -342,8 +339,7 @@ class TestLoopTask(object):
                                CheckTask(name='check')]):
             self.task.add_child_task(i, t)
 
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.task.children[1].perform_called
@@ -354,8 +350,7 @@ class TestLoopTask(object):
         """
         self.task.interface = iterable_interface
         self.task.task = CheckTask(name='check')
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -373,8 +368,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, BreakTask(name='Break',
                                               condition='{Test_index} == 6')
                                  )
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 6
@@ -391,8 +385,7 @@ class TestLoopTask(object):
                                                  condition='True')
                                  )
         self.task.children.append(CheckTask(name='check'))
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -406,8 +399,7 @@ class TestLoopTask(object):
         """
         self.task.interface = iterable_interface
         self.task.timing = True
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 10
@@ -423,8 +415,7 @@ class TestLoopTask(object):
                                               condition='{Test_value} == 0')
                                  )
 
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 0
@@ -440,8 +431,8 @@ class TestLoopTask(object):
                                                  condition='True')
                                  )
         self.task.add_child_task(1, CheckTask(name='check'))
-        self.root.database.prepare_to_run()
-        self.root.check()
+
+        self.root.prepare()
 
         self.task.perform()
         assert not self.task.children[1].perform_called
@@ -455,8 +446,7 @@ class TestLoopTask(object):
         self.task.timing = True
         self.task.task = CheckTask(name='check')
 
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -475,8 +465,7 @@ class TestLoopTask(object):
                                               condition='{Test_index} == 1')
                                  )
 
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 1
@@ -496,8 +485,7 @@ class TestLoopTask(object):
                                  )
         self.task.add_child_task(1, CheckTask(name='check'))
 
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -516,7 +504,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -533,7 +521,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -550,7 +538,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -568,7 +556,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 

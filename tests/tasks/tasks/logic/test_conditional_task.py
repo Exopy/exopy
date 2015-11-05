@@ -64,8 +64,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = 'True'
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.check.perform_called
@@ -75,8 +74,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = '1 < 0'
-        self.root.database.prepare_to_run()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.check.perform_called
