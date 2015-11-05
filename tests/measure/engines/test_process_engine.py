@@ -12,9 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import socket
 from threading import Thread
 from time import sleep
-import socket
 
 import pytest
 import enaml
@@ -24,6 +24,7 @@ from future.builtins import str
 from ecpy.measure.engines.api import ExecutionInfos
 from ecpy.tasks.api import RootTask, SimpleTask
 from ecpy.tasks.manager.infos import TaskInfos
+from ecpy.measure.engines.process_engine.subprocess import TaskProcess
 
 from ..workspace.test_workspace import workspace
 from ...util import process_app_events
@@ -33,6 +34,46 @@ with enaml.imports():
         ProcFilter
     from ecpy.app.log.manifest import LogManifest
     from ecpy.tasks.manager.manifest import TasksManagerManifest
+
+
+class WaitingTask(SimpleTask):
+    """Simple Task whose execution can be controlled using events.
+
+    """
+    check_flag = Bool(True).tag(pref=True)
+    sync_port = Value(()).tag(pref=True)
+    sock_id = Unicode().tag(pref=True)
+
+    def check(self, *args, **kwargs):
+        super(WaitingTask, self).check(*args, **kwargs)
+        return self.check_flag, {'test': 1}
+
+    def perform(self):
+        print(self.sock_id)
+        s = socket.socket()
+        while True:
+            if s.connect_ex(('localhost', self.sync_port)) == 0:
+                break
+            sleep(0.01)
+        s.sendall(self.sock_id.encode('utf-8'))
+        s.recv(4096)
+        s.sendall('Waiting'.encode('utf-8'))
+        s.recv(4096)
+        s.close()
+
+
+class ExecThread(Thread):
+    """Thread storing the return value of the engine perform method.
+
+    """
+    def __init__(self, engine, exec_infos):
+        super(ExecThread, self).__init__()
+        self._engine = engine
+        self._exec_infos = exec_infos
+        self.value = None
+
+    def run(self):
+        self.value = self._engine.perform(self._exec_infos)
 
 
 @pytest.fixture
@@ -85,37 +126,18 @@ def sync_server():
             """
             self._answer_pipes[sock_id].sendall('Go'.encode('utf-8'))
 
+        def reset(self):
+            """Clean up internals.
+
+            """
+            self._received = []
+            self._answer_pipes.clear()
+
     sync = SyncServer()
 
     yield sync
 
     sync._sock.close()
-
-
-class WaitingTask(SimpleTask):
-    """Simple Task whose execution can be controlled using events.
-
-    """
-    check_flag = Bool(True).tag(pref=True)
-    sync_port = Value(()).tag(pref=True)
-    sock_id = Unicode().tag(pref=True)
-
-    def check(self, *args, **kwargs):
-        super(WaitingTask, self).check(*args, **kwargs)
-        return self.check_flag, {}
-
-    def perform(self):
-        print(self.sock_id)
-        s = socket.socket()
-        while True:
-            if s.connect_ex(('localhost', self.sync_port)) == 0:
-                break
-            sleep(0.01)
-        s.sendall(self.sock_id.encode('utf-8'))
-        s.recv(4096)
-        s.sendall('Waiting'.encode('utf-8'))
-        s.recv(4096)
-        s.close()
 
 
 @pytest.fixture
@@ -187,14 +209,27 @@ def test_perform(process_engine, exec_infos, sync_server):
     """Test perfoming a task.
 
     """
-
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    exec_infos.observed_entries = ['test']
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     sync_server.signal('test1')
     sync_server.wait('test2')
     sync_server.signal('test2')
     t.join()
+    assert t.value.success
+    assert not t.value.errors
+    assert process_engine.status == 'Waiting'
+
+    sync_server.reset()
+    t = ExecThread(process_engine, exec_infos)
+    t.start()
+    sync_server.wait('test1')
+    sync_server.signal('test1')
+    sync_server.wait('test2')
+    sync_server.signal('test2')
+    t.join()
+    assert t.value.success
     assert process_engine.status == 'Waiting'
 
     process_engine.shutdown()
@@ -207,10 +242,12 @@ def test_handle_fail_check(process_engine, exec_infos):
     """Test handling a measure failing the checks.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     exec_infos.task.children[0].check_flag = False
     t.start()
     t.join()
+    assert not t.value.success
+    assert 'test' in t.value.errors
     assert process_engine.status == 'Waiting'
 
     process_engine.shutdown()
@@ -219,11 +256,133 @@ def test_handle_fail_check(process_engine, exec_infos):
 
 
 @pytest.mark.timeout(30)
+def test_skipping_checks(process_engine, exec_infos, sync_server):
+    """Test skipping a task checks.
+
+    """
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    exec_infos.checks = False
+    t.start()
+    sync_server.wait('test1')
+    sync_server.signal('test1')
+    sync_server.wait('test2')
+    sync_server.signal('test2')
+    t.join()
+    assert t.value.success
+    assert process_engine.status == 'Waiting'
+
+    process_engine.shutdown()
+    while not process_engine.status == 'Stopped':
+        sleep(0.01)
+
+
+class DummyP(TaskProcess):
+    def run(self):
+        pass
+
+
+@pytest.mark.timeout(30)
+def test_handling_unpected_death_of_subprocess(process_engine, exec_infos,
+                                               monkeypatch):
+    """Test handling a death of the subprocess at startup.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine, 'TaskProcess', DummyP)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'dead' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+
+
+class DummyP1(TaskProcess):
+    def run(self):
+        self.pipe.recv()
+        self.pipe.close()
+
+
+@pytest.mark.timeout(30)
+def test_handling_unexpected_closing_of_pipe1(process_engine, exec_infos,
+                                              monkeypatch):
+    """Test handling pipe closing while expecting answer after sending task.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine, 'TaskProcess', DummyP1)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'dead' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+
+
+class DummyP2(TaskProcess):
+    def run(self):
+        self.pipe.recv()
+        self.pipe.send(True)
+        self.pipe.close()
+
+
+@pytest.mark.timeout(10)
+def test_handling_unexpected_closing_of_pipe2(process_engine, exec_infos,
+                                              monkeypatch):
+    """Test handling pipe closing while expecting execution result.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine, 'TaskProcess', DummyP2)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'dead' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+
+
+def build_subprocess_infos(self, exec_infos):
+    return ()
+
+
+@pytest.mark.timeout(10)
+def test_handling_unexpected_exception_in_sub_process(process_engine,
+                                                      exec_infos,
+                                                      monkeypatch):
+    """Test handling pipe closing while expecting execution result.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
+                        build_subprocess_infos)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'dead' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+
+
+@pytest.mark.timeout(30)
 def test_pause_resume(process_engine, exec_infos, sync_server):
     """Test pausing a measure.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     process_engine.pause()
@@ -243,6 +402,7 @@ def test_pause_resume(process_engine, exec_infos, sync_server):
 
     sync_server.signal('test2')
     t.join()
+    assert t.value.success
     assert process_engine.status == 'Waiting'
 
     process_engine.shutdown()
@@ -251,16 +411,42 @@ def test_pause_resume(process_engine, exec_infos, sync_server):
 
 
 @pytest.mark.timeout(30)
+def test_pause_stop(process_engine, exec_infos, sync_server):
+    """Test pausing a measure and stopping during the pause.
+
+    """
+    t = ExecThread(process_engine, exec_infos)
+    t.start()
+    sync_server.wait('test1')
+    process_engine.pause()
+    assert process_engine.status == 'Pausing'
+
+    sync_server.signal('test1')
+    i = 0
+    while not process_engine.status == 'Paused':
+        i += 1
+        sleep(0.01)
+        if i > 2000:
+            raise RuntimeError()
+
+    process_engine.stop()
+    t.join()
+    assert not t.value.success
+    assert process_engine.status == 'Waiting'
+
+
+@pytest.mark.timeout(30)
 def test_stop(process_engine, exec_infos, sync_server):
     """Test stopping a measure in the middle.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     process_engine.stop()
     sync_server.signal('test1')
     t.join()
+    assert not t.value.success
     assert process_engine.status == 'Waiting'
 
     process_engine.shutdown()
@@ -273,11 +459,13 @@ def test_force_stop(process_engine, exec_infos, sync_server):
     """Test forcing the stop of the engine.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     process_engine.stop(force=True)
     t.join()
+    assert 'engine' in t.value.errors
+    assert 'terminated' in t.value.errors['engine']
     assert process_engine.status == 'Stopped'
 
 
@@ -286,7 +474,7 @@ def test_shutdown(process_engine, exec_infos, sync_server):
     """Test shutting down the engine during the execution.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     process_engine.shutdown()
@@ -302,9 +490,11 @@ def test_force_shutdown(process_engine, exec_infos, sync_server):
     """Test forcing the shutdown of the engine.
 
     """
-    t = Thread(target=process_engine.perform, args=(exec_infos,))
+    t = ExecThread(process_engine, exec_infos)
     t.start()
     sync_server.wait('test1')
     process_engine.shutdown(force=True)
     t.join()
+    assert 'engine' in t.value.errors
+    assert 'terminated' in t.value.errors['engine']
     assert process_engine.status == 'Stopped'

@@ -87,5 +87,6 @@ class ThreadMeasureMonitor(Thread):
                     logger.debug('Spy closed')
                 else:
                     break
-            except Empty:
+
+            except Empty:  # pragma: no cover
                 continue

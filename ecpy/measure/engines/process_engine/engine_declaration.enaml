@@ -88,7 +88,7 @@ enamldef ProcessEngine(Engine):
 
         model = core.invoke_command('ecpy.app.logging.add_handler',
                                     {'id': handler_id, 'mode': 'ui'},
-                                   None)[0]
+                                    None)[0]
         core.invoke_command('ecpy.app.logging.add_filter',
                             {'id' : 'ecpy.measure.engines.process_engine',
                              'filter': ProcFilter(reject_if_equal=False),

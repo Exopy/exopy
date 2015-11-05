@@ -48,6 +48,12 @@ class ProcessEngine(BaseEngine):
             Input object whose values have been updated. This is simply a
             convenience.
 
+        Notes
+        -----
+        IOError in pipe are raised only if an operation is attempted from the
+        process that closed the pipe, but never when trying to poll from a
+        different process.
+
         """
         self.status = 'Running'
 
@@ -96,17 +102,7 @@ class ProcessEngine(BaseEngine):
             self._process.start()
 
         # Send the measure.
-        exec_infos.task.update_preferences_from_members()
-        config = exec_infos.task.preferences
-        database_root_state = exec_infos.task.database.copy_node_values()
-        print('Sending')
-        self._pipe.send((exec_infos.id, config,
-                         exec_infos.build_deps,
-                         exec_infos.runtime_deps,
-                         exec_infos.observed_entries,
-                         database_root_state,
-                         exec_infos.checks
-                         ))
+        self._pipe.send(self._build_subprocess_args(exec_infos))
         logger.debug('Task {} sent'.format(exec_infos.id))
 
         # Check that the engine did receive the task.
@@ -122,15 +118,8 @@ class ProcessEngine(BaseEngine):
                 self.status = 'Stopped'
                 return exec_infos
 
-        status = self._pipe.recv()
-        if not status:
-            msg = "Subprocess can't perform the task."
-            logger.debug(msg)
-            self._cleanup()
-            exec_infos.success = False
-            exec_infos.errors['engine'] = msg
-            self.status = 'Stopped'
-            return exec_infos
+        # Simply empty the pipe the subprocess always send True if it answers
+        self._pipe.recv()
 
         # Wait for the process to finish the measure and check it has not
         # been killed.
@@ -143,12 +132,23 @@ class ProcessEngine(BaseEngine):
                 self.status = 'Stopped'
                 return exec_infos
 
-            # Here get message from process and react
-            result, errors = self._pipe.recv()
-            logger.debug('Subprocess done performing measure')
+            elif not self._process.is_alive():
+                msg = 'Subprocess was found dead unexpectedly'
+                logger.debug(msg)
+                self._log_queue.put(None)
+                self._monitor_queue.put((None, None))
+                self._cleanup(process=False)
+                exec_infos.success = False
+                exec_infos.errors['engine'] = msg
+                self.status = 'Stopped'
+                return exec_infos
 
-            exec_infos.success = result
-            exec_infos.errors.update(errors)
+        # Here get message from process and react
+        result, errors = self._pipe.recv()
+        logger.debug('Subprocess done performing measure')
+
+        exec_infos.success = result
+        exec_infos.errors.update(errors)
 
         self.status = 'Waiting'
 
@@ -310,6 +310,21 @@ class ProcessEngine(BaseEngine):
             logger.debug('Pause thread joined')
 
         self.status = 'Stopped'
+
+    def _build_subprocess_args(self, exec_infos):
+        """Build the tuple to send to the subprocess.
+
+        """
+        exec_infos.task.update_preferences_from_members()
+        config = exec_infos.task.preferences
+        database_root_state = exec_infos.task.database.copy_node_values()
+        return (exec_infos.id, config,
+                exec_infos.build_deps,
+                exec_infos.runtime_deps,
+                exec_infos.observed_entries,
+                database_root_state,
+                exec_infos.checks
+                )
 
     def _wait_for_pause(self):
         """ Wait for the _task_paused event to be set.

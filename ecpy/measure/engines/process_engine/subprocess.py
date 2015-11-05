@@ -153,10 +153,7 @@ class TaskProcess(Process):
                     self.meas_log_handler.close()
                     self.meas_log_handler = None
 
-                log_path = os.path.join(root.get_from_database('default_path'),
-                                        name + '.log')
-                if os.path.isfile(log_path):
-                    os.remove(log_path)
+                log_path = os.path.join(root.default_path, name + '.log')
                 self.meas_log_handler = DayRotatingTimeHandler(log_path)
 
                 aux = '%(asctime)s | %(levelname)s | %(message)s'
@@ -170,10 +167,13 @@ class TaskProcess(Process):
                 root.paused = self.task_paused
                 root.should_stop = self.task_stop
                 root.resumed = self.task_resumed
-                root.database.prepare_to_run()
 
                 # Perform the checks.
-                check, errors = root.check()
+                if checks:
+                    check, errors = root.check()
+                else:
+                    logger.info('Tests skipped')
+                    check = True
 
                 # If checks pass perform the measure.
                 if check:
@@ -188,19 +188,16 @@ class TaskProcess(Process):
 
                     # Log the tests that failed.
                     msg = 'Some test failed:\n' + errors_to_msg(errors)
-                    logger.critical(msg)
+                    logger.debug(msg)
 
                 # If a spy was started kill it
                 if entries:
                     spy.close()
                     del spy
 
-            except IOError:
-                pass # pragma: no cover
-
-#            except Exception:
-#                logger.exception('Error occured during processing')
-#                break
+            except Exception:
+                logger.exception('Error occured during processing')
+                break
 
         # Clean up before closing.
         logger.info('Process shuting down')
