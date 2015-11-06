@@ -66,14 +66,6 @@ enamldef EmptyEditorButton(PushButton):
             editor.task.add_child_task(0, task)
 
 
-enamldef Dummy(Container):
-
-    attr task
-
-    Label:
-        text = task.name
-
-
 class TaskEditor(Container):
     """Custom container used to edit a list of tasks.
 
@@ -85,7 +77,7 @@ class TaskEditor(Container):
     root = d_(Value())
 
     #: Dictionary of operations used by to alter the children member list.
-    operations = Constant()
+    operations = d_(Constant())
 
     padding = set_default(2)
 
@@ -151,7 +143,7 @@ class TaskEditor(Container):
     _empty_button = Typed(EmptyEditorButton)
 
     def _populate(self):
-        """Populate the container based on the children_member.
+        """Populate the container based on the children member.
 
         """
         items = self.task.children
@@ -285,6 +277,8 @@ enamldef FoldableTaskEditor(Container):
 
     #: Direct access to the root of the underlying editor.
     alias root : editor.root
+
+    alias operations : editor.operations
 
     func refresh():
         if stack.index == 0:

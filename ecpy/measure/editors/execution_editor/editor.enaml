@@ -243,6 +243,9 @@ enamldef SimpleTaskExecutionEditor(GroupBox):
     #: Reference to the task this editor is linked to.
     alias task : ed.task
 
+    #: Reference to the root editor managing the cache.
+    attr root
+
     #: Reference to the model driving the whole execution property edition.
     alias _model : ed._model
 
@@ -256,7 +259,7 @@ enamldef SimpleTaskExecutionEditor(GroupBox):
 
     padding = 0
 
-    _ExEditor: ed:
+    _BaseExecutionEditor: ed:
         pass
 
 
@@ -281,7 +284,7 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
         self.show()
         ed.refresh()
 
-    title = task.task_name if task else ''
+    title = task.name if task else ''
 
     layout_constraints => ():
         """Setup the constraints for the children.
@@ -290,13 +293,13 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
         children = self.widgets()
         constraints = [vbox(*children)]
         for child in children:
-            constraints.append(child.left == editor.contents_left)
+            constraints.append(child.left == contents_left)
         return constraints
 
     # The root task does not have that kind of settings
     Conditional:
-        condition << task.task_depth != 0
-        _ExEditor:
+        condition << task.depth != 0
+        _BaseExecutionEditor:
             task = main.task
             _model = main._model
 
@@ -352,7 +355,7 @@ enamldef ExecutionEditor(BaseEditor): editor:
 
         """
         if not pool_model:
-            main.pool_model = ExecutionEditorModel(root=task.root)
+            editor.pool_model = ExecutionEditorModel(root=task.root)
 
         if task:
             view = view_for(task)
@@ -385,4 +388,4 @@ enamldef ExecutionEditor(BaseEditor): editor:
     # =========================================================================
 
     #: Dictionary used to store the view associated with each task.
-    attr _cache : dict = {task: self}
+    attr _cache : dict = {}

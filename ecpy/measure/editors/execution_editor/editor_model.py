@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Base classes for all editors.
+"""Model for the execution editor keeping track of the declared pools.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -63,26 +63,25 @@ class ExecutionEditorModel(Atom):
         if isinstance(task, ComplexTask):
             for m in tagged_members(task, 'child_notifier'):
                 task.observe(m, self._children_observer)
-            for child in task._gather_children_task():
+            for child in task.gather_children():
                 self._bind_observers(child, counter)
 
-        else:
-            pools = []
-            parallel = task.parallel
-            if parallel.get('activated'):
-                pool = parallel['pool']
-                if pool:
-                    pools.append(pool)
+        pools = []
+        parallel = task.parallel
+        if parallel.get('activated'):
+            pool = parallel['pool']
+            if pool:
+                pools.append(pool)
 
-            wait = task.wait
-            if wait.get('activated'):
-                pools.extend(wait.get('wait', []))
-                pools.extend(wait.get('no_wait', []))
+        wait = task.wait
+        if wait.get('activated'):
+            pools.extend(wait.get('wait', []))
+            pools.extend(wait.get('no_wait', []))
 
-            counter.update(pools)
+        counter.update(pools)
 
-            task.observe('parallel', self._task_observer)
-            task.observe('wait', self._task_observer)
+        task.observe('parallel', self._task_observer)
+        task.observe('wait', self._task_observer)
 
     def _unbind_observers(self, task, counter):
         """Remove the observer linked to a specific task.
@@ -90,33 +89,32 @@ class ExecutionEditorModel(Atom):
         """
         if isinstance(task, ComplexTask):
             task.unobserve('children_changed', self._children_observer)
-            for child in task._gather_children_task():
+            for child in task.gather_children():
                 self._unbind_observers(child, counter)
 
-        else:
-            pools = []
-            parallel = task.parallel
-            if parallel.get('activated'):
-                pool = parallel['pool']
-                if pool:
-                    pools.append(pool)
+        pools = []
+        parallel = task.parallel
+        if parallel.get('activated'):
+            pool = parallel['pool']
+            if pool:
+                pools.append(pool)
 
-            wait = task.wait
-            if wait.get('activated'):
-                pools.extend(wait.get('wait', []))
-                pools.extend(wait.get('no_wait', []))
+        wait = task.wait
+        if wait.get('activated'):
+            pools.extend(wait.get('wait', []))
+            pools.extend(wait.get('no_wait', []))
 
-            counter.subtract(pools)
+        counter.subtract(pools)
 
-            task.unobserve('parallel', self._task_observer)
-            task.unobserve('wait', self._task_observer)
+        task.unobserve('parallel', self._task_observer)
+        task.unobserve('wait', self._task_observer)
 
     def _post_setattr_root(self, old, new):
         """Make sure we always observe the right root.
 
         """
         if old:
-            self._unbind_observers(old)
+            self._unbind_observers(old, self._counter)
 
         if new:
             self.bind_observers()
@@ -130,11 +128,11 @@ class ExecutionEditorModel(Atom):
             pool = change['value'].get('pool')
             if not activated and pool:
                 self._counter[pool] -= 1
-                self.pools = list(self._counter)
 
             elif activated and pool:
                 self._counter[pool] += 1
-                self.pools = list(self._counter)
+
+            self._update_pools()
 
         else:
             activated = change['value'].get('activated')
@@ -144,11 +142,11 @@ class ExecutionEditorModel(Atom):
 
             if not activated and counter:
                 self._counter.subtract(counter)
-                self.pools = list(self._counter)
 
             elif activated and counter:
                 self._counter.update(counter)
-                self.pools = list(self._counter)
+
+            self._update_pools()
 
     def _children_observer(self, change):
         """Keep track of children addition and removal.
@@ -167,4 +165,11 @@ class ExecutionEditorModel(Atom):
             self._bind_observers(child, counter)
 
         self._counter.update(counter)
-        self.pools = list(counter)
+        self._update_pools()
+
+    def _update_pools(self, counter=None):
+        """Update the pool with the elements having a positive count.
+
+        """
+        c = counter or self._counter
+        self.pools = list(set(c.elements()))
