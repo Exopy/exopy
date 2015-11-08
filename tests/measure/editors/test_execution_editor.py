@@ -129,9 +129,117 @@ def test_execution_editor_widget(windows, task, dialog_sleep):
     """Test the behavior of the execution editor widget.
 
     """
+    dialog_sleep = dialog_sleep or 1
+    task.children[1].children[0].parallel = {}
+
+    def get_task_widget(editor):
+        return editor.page_widget().widgets()[0].scroll_widget().widgets()[0]
+
     editor = ExecutionEditor(declaration=Editor(id='ecpy.execution_editor'),
                              selected_task=task)
     window = EditorTestingWindow(editor=editor)
     window.show()
     process_app_events()
     sleep(dialog_sleep)
+
+    ctask = task.children[1]
+    editor.selected_task = ctask
+    process_app_events()
+    sleep(dialog_sleep)
+
+    ced = get_task_widget(editor)
+    ced.widgets()[0].checked = not ctask.stoppable
+    process_app_events()
+    assert ced.widgets()[0].checked == ctask.stoppable
+    sleep(dialog_sleep)
+
+    ctask.parallel['pool'] = 'test_'
+    ced.widgets()[1].checked = True
+    process_app_events()
+    assert 'test_' in editor.pool_model.pools
+    sleep(dialog_sleep)
+
+    ced.widgets()[3].checked = False
+    process_app_events()
+    sleep(dialog_sleep)
+    ctask.wait['no_wait'] = ['test2']
+    ced.widgets()[3].checked = True
+    process_app_events()
+    assert 'test2' in editor.pool_model.pools
+    sleep(dialog_sleep)
+
+    ced.widgets()[2].selected = 'test2'
+    process_app_events()
+    assert 'test' not in editor.pool_model.pools
+    sleep(dialog_sleep)
+
+    def get_popup_content(parent):
+        return parent.children[-1].central_widget().widgets()
+
+    ced.widgets()[2].children[0].children[0].triggered = True
+    process_app_events()
+    sleep(dialog_sleep)
+    process_app_events()  # So that the popup shows correctly
+    popup_content = get_popup_content(ced.widgets()[2])
+    popup_content[0].text = 'test3'
+    popup_content[1].clicked = True
+    process_app_events()
+    assert 'test3' in editor.pool_model.pools
+    sleep(dialog_sleep)
+    process_app_events()  # So that the popup is closed correctly
+
+    ced.widgets()[2].children[0].children[0].triggered = True
+    process_app_events()
+    sleep(dialog_sleep)
+    process_app_events()  # So that the popup shows correctly
+    popup_content = get_popup_content(ced.widgets()[2])
+    popup_content[0].text = 'test4'
+    popup_content[2].clicked = True
+    process_app_events()
+    assert 'test4' not in editor.pool_model.pools
+    sleep(dialog_sleep)
+    process_app_events()  # So that the popup is closed correctly
+
+    assert ced.widgets()[4].checked is False
+    ced.widgets()[4].checked = True
+    process_app_events()
+    assert 'wait' in ctask.wait and 'no_wait' not in ctask.wait
+    sleep(dialog_sleep)
+
+    ced.widgets()[7].clicked = True
+    process_app_events()
+    sleep(dialog_sleep)
+    popup_content = get_popup_content(ced.widgets()[7])
+    check_box = popup_content[0].scroll_widget().widgets()[1]
+    print(check_box.text)
+    assert not check_box.checked
+    check_box.checked = True
+    process_app_events()
+    sleep(dialog_sleep)
+    popup_content[-2].clicked = True
+    process_app_events()
+    assert 'test3' in ctask.wait['wait']
+    sleep(dialog_sleep)
+
+    ced.widgets()[7].clicked = True
+    process_app_events()
+    sleep(dialog_sleep)
+    popup_content = get_popup_content(ced.widgets()[7])
+    check_box = popup_content[0].scroll_widget().widgets()[2]
+    print(check_box.text)
+    assert not check_box.checked
+    check_box.checked = True
+    process_app_events()
+    sleep(dialog_sleep)
+    popup_content[-1].clicked = True
+    process_app_events()
+    assert 'test_' not in ctask.wait['wait']
+    sleep(dialog_sleep)
+
+    editor.selected_task = task
+    task.remove_child_task(1)
+    process_app_events()
+    assert ctask not in editor._cache
+    sleep(dialog_sleep)
+
+    editor.ended = True

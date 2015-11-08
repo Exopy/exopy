@@ -12,9 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from operator import attrgetter
+
 from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
                                PopupView, Field, RadioButton,
-                               ObjectCombo, PushButton)
+                               ObjectCombo, PushButton, Menu, Action)
 from enaml.core.api import Looper, Conditional
 from enaml.layout.api import vbox, hbox
 
@@ -103,8 +105,8 @@ def _set_wait(task, key, value):
 
     """
     wait = task.wait.copy()
-    wait[key] = new
-    task.wait = aux
+    wait[key] = value
+    task.wait = wait
 
 
 # A task can be both parallel and wait in such a case the wait occurs in a
@@ -121,8 +123,9 @@ enamldef _BaseExecutionEditor(Container):
     attr _model
 
     padding = 0
-    constraints << [hbox(stop, parallel, wait,
-                         *tuple(par_cond.items + wai_cond.items))]
+    constraints << [hbox(stop,
+                         *((parallel,) + tuple(par_cond.items) + (wait,)
+                           + tuple(wai_cond.items)))]
 
     CheckBox: stop:
         text = 'Stoppable'
@@ -145,7 +148,34 @@ enamldef _BaseExecutionEditor(Container):
         checked ::
             _set_parallel(task, 'activated', change['value'])
 
-            active = change['value']
+            parallel.active = change['value']
+
+    # Select parallel pool of execution.
+    Conditional: par_cond:
+        condition << parallel.active
+
+        ObjectCombo: par_comb:
+            #: Way for the popup to send its answer (popup is non-blocking)
+            attr answer
+
+            items << _model.pools
+            selected << task.parallel.get('pool')
+            selected ::
+                _set_parallel(task, 'pool', change['value'])
+            answer ::
+                _set_parallel(task, 'pool', change['value'])
+
+            Menu:
+                context_menu = True
+                Action:
+                    text = 'Add new pool'
+                    initialized::
+                        # Need to init the value so that the popup answer is
+                        # signaled.
+                        par_comb.answer = '__gg__'
+                    triggered ::
+                        popup = _PopupField(par_comb)
+                        popup.show()
 
     CheckBox: wait:
         text = 'Wait'
@@ -156,38 +186,12 @@ enamldef _BaseExecutionEditor(Container):
         checked ::
             _set_wait(task, 'activated', change['value'])
 
-    # Select parallel pool of execution.
-    Conditional: par_cond:
-        condition << parallel.active
-
-        ObjectCombo:
-            items << _model.pools
-            selected << task.parallel.get('pool')
-            selected ::
-                _set_parallel(task, 'pool', change['value'])
-
-        PushButton:
-            #: Way for the popup to send its answer (popup is non-blocking)
-            attr answer
-
-            text = 'New'
-            hug_width = 'strong'
-
-            initialized::
-                # Need to init the value so that the popup answer is signaled.
-                self.answer = '__gg__'
-            clicked ::
-                popup = _PopupField(self)
-                popup.show()
-            answer ::
-                _set_parallel(task, 'pool', change['value'])
-
     Conditional: wai_cond:
         condition << wait.checked
 
         #: Currently selected pool to wait on.
-        attr selected = set(task.wait.get('wait', []) +
-                                task.wait.get('no_wait', []))
+        attr selected << set(task.wait.get('wait', []) +
+                             task.wait.get('no_wait', []))
 
         RadioButton: r_wait:
             text = 'Wait on'
@@ -226,7 +230,8 @@ enamldef _BaseExecutionEditor(Container):
                 self.answer = ['']
             clicked ::
                 sel = wai_cond.selected.copy()
-                popup = _PopupList(self, selected=sel, pools=_model.pools)
+                popup = _PopupList(self, selected=sel,
+                                   pools=sorted(_model.pools))
                 popup.show()
             answer ::
                 new_sel = change['value']
@@ -346,6 +351,7 @@ enamldef ExecutionEditor(BaseEditor): editor:
         """
         try:
             view = _cache.pop(task)
+            view.set_parent(None)
             view.destroy()
         except KeyError:
             pass
@@ -373,9 +379,9 @@ enamldef ExecutionEditor(BaseEditor): editor:
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
-        tasks = sorted(_cache, attrgetter('depth'))
+        tasks = sorted(_cache, key=attrgetter('depth'))
         for t in tasks:
-            view = _cache[task]
+            view = _cache[t]
             if not view.is_destroyed:
                 view.destroy()
 
