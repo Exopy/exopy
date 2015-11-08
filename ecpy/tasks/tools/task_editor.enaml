@@ -19,7 +19,7 @@ from atom.api import (Typed, Unicode, Constant, Bool, Value, Dict,
                       set_default)
 from enaml.core.declarative import d_, d_func
 from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label
-from enaml.layout.api import vbox, hbox, align
+from enaml.layout.api import vbox, hbox, align, spacer
 
 from ..base_tasks import ComplexTask
 from ...utils.widgets.list_editor import PopupListMenu
@@ -102,7 +102,8 @@ class TaskEditor(Container):
         items = self.task.children
         if items:
             children = self._children_buttons
-            rows = [hbox(*children[o]) for o in items]
+            rows = [hbox(children[o][0], children[o][1], spacer)
+                    for o in items]
             return [vbox(*rows)] + [align('top', *children[o]) for o in items]
         else:
             return [vbox(*self.visible_widgets())]
