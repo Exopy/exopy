@@ -242,7 +242,7 @@ class TaskDatabase(Atom):
 
             if value_name in node.data:
                 del node.data[value_name]
-                self.notifier((node_path + '/' + value_name,))
+                self.notifier(('removed', node_path + '/' + value_name))
             else:
                 err_str = 'No entry {} in node {}'.format(value_name,
                                                           node_path)

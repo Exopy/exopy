@@ -16,7 +16,7 @@ from pytest import raises
 
 from ecpy.tasks.tools.database import TaskDatabase
 
-
+# TODO add tests checking that the notifiers did run properly
 # =============================================================================
 # --- Edition mode tests ------------------------------------------------------
 # =============================================================================
