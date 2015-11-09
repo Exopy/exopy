@@ -48,25 +48,28 @@ enamldef NodeEditor(GroupBox):
         hug_height = 'medium'
 
         Looper:
-            iterable << node.entries
+            iterable << sorted(node.entries)
             FlowItem:
                 Container:
                     padding = 0
                     Label:
                         text << loop_item
-                        background << ('lightblue'
-                                       if loop_item in node.task.access_exs:
-                                       else 'white')
+                        # this is incorrect
+#                        background << ('lightblue'
+#                                       if loop_item in node.task.access_exs:
+#                                       else 'white')
                         Conditional:
+                            # TODO : disable this if an exception exists
                             condition << node.task_depth != 0
                             Menu:
+                                context_menu = True
                                 Action:
                                     text = 'Add access exception'
                                     triggered ::
                                         node.add_exception(loop_item)
 
         Looper:
-            iterable << node.exceptions
+            iterable << sorted(node.exceptions)
             FlowItem:
                 Container:
                     padding = 0
@@ -74,6 +77,7 @@ enamldef NodeEditor(GroupBox):
                         text << loop_item
                         background = 'lightgreen'
                         Menu:
+                            context_menu = True
                             Conditional:
                                 condition << node.task_depth != 0
                                 Action:

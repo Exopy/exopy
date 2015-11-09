@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Typed, List, ForwardTyped, Signal, Dict, Unicode
+from atom.api import Atom, Typed, List, ForwardTyped, Signal, Dict
 
 from ....tasks.api import RootTask, ComplexTask
 from ....tasks.tools.database import DatabaseNode
@@ -25,7 +25,7 @@ class NodeModel(Atom):
 
     """
     #: Reference to the task this node refers to.
-    task = Unicode()
+    task = Typed(ComplexTask)
 
     #: Reference to editor model.
     editor = ForwardTyped(lambda: EditorModel)
@@ -58,14 +58,17 @@ class NodeModel(Atom):
         """
         tasks = filter(lambda t: isinstance(t, ComplexTask),
                        self.task.gather_children())
-        self.children = sorted(self.children, lambda n: tasks.index(n.task))
+        self.children = sorted(self.children,
+                               key=lambda n: tasks.index(n.task))
 
     def add_exception(self, entry):
-        """Add an access exception
+        """Add an access exception.
 
         """
-        entry = entry[len(self.task.name)+1:]
-        self.task.add_access_exception(entry, 1)
+        task, entry = self._find_task_from_entry(entry)
+
+        if entry not in task.access_exs:
+            task.add_access_exception(entry, 1)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -77,6 +80,7 @@ class NodeModel(Atom):
         Only move events are transparent to the database.
 
         """
+        print('re-order')
         if isinstance(change, ContainerChange):
             if change.collapsed:
                 for c in change.collapsed:
@@ -84,6 +88,25 @@ class NodeModel(Atom):
 
             if change.moved:
                 self.sort_nodes()
+
+    def _find_task_from_entry(self, full_entry):
+        """Find the task and short name corresponding to a full entry name.
+
+        """
+        possible_tasks = [t for t in self.task.gather_children() if
+                          full_entry.startswith(t.name)]
+        if len(possible_tasks) > 1:
+            for p in possible_tasks:
+                e = full_entry[len(p.name)+1:]
+                if e in p.database_entries:
+                    break
+            task = p
+            entry = e
+        else:
+            task = possible_tasks[0]
+            entry = full_entry[len(task.name)+1:]
+
+        return task, entry
 
 
 class EditorModel(Atom):
@@ -147,9 +170,8 @@ class EditorModel(Atom):
 
         """
         database_node = self.root.database.go_to_path(path)
-        real_path = database_node.meta.access[entry]
-        task = self._get_task(real_path)
-        entry = entry[len(task.name)+1:]
+        real_path = database_node.meta['access'][entry]
+        task, entry = self.nodes[real_path]._find_task_from_entry(entry)
         level = task.access_exs[entry]
         task.modify_access_exception(entry, level + val)
 
@@ -168,16 +190,14 @@ class EditorModel(Atom):
             new.database.observe('access_notifier', self._react_to_exceptions)
             new.database.observe('nodes_notifier', self._react_to_nodes)
 
-            nodes = {}
-            for p, n in new.database.list_nodes():
-                model = self._model_from_node(p, n)
-                nodes[p] = model
-
+            database_nodes = new.database.list_nodes()
+            nodes = {p: self._model_from_node(p, n)
+                     for p, n in database_nodes.items()}
+            for p, m in nodes.items():
                 if '/' in p:
                     p, _ = p.rsplit('/', 1)
-                    if p in nodes:
-                        model.parent = nodes[p]
-                        nodes[p].children.append(model)
+                    m.parent = nodes[p]
+                    nodes[p].children.append(m)
 
             for nmodel in nodes.values():
                 nmodel.sort_nodes()
@@ -188,6 +208,11 @@ class EditorModel(Atom):
         """Handle modification to entries.
 
         """
+        if isinstance(news, list):
+            for n in news:
+                self._react_to_entries(n)
+            return
+
         path, entry = news[1].rsplit('/', 1)
         n = self.nodes[path]
         if news[0] == 'added':
@@ -199,7 +224,7 @@ class EditorModel(Atom):
             entries.append(news[2].rsplit('/', 1)[1])
             n.entries = entries
 
-        elif news == 'removed':
+        elif news[0] == 'removed':
             entries = n.entries[:]
             del entries[entries.index(entry)]
             n.entries = entries
@@ -208,6 +233,12 @@ class EditorModel(Atom):
         """Handle modifications to the access exceptions.
 
         """
+        print('excep', news)
+        if isinstance(news, list):
+            for n in news:
+                self._react_to_exceptions(n)
+            return
+
         path = news[1]
         n = self.nodes[path]
         if news[0] == 'added':
@@ -219,7 +250,7 @@ class EditorModel(Atom):
             exceptions.append(news[3])
             n.exceptions = exceptions
 
-        elif news == 'removed':
+        elif news[0] == 'removed':
             exceptions = n.exceptions[:]
             del exceptions[exceptions.index(news[2])]
             n.exceptions = exceptions
@@ -228,21 +259,35 @@ class EditorModel(Atom):
         """Handle modifications of the database nodes.
 
         """
+        print('nodes', news)
+        if isinstance(news, list):
+            for n in news:
+                self._react_to_nodes(n)
+            return
+
         path = news[1] + '/' + news[2]
         if news[0] == 'added':
             parent = self.nodes[news[1]]
             model = self._model_from_node(path, news[3])
             model.parent = parent
-            parent.children.append(NodeModel())
+            parent.children.append(model)
             parent.sort_nodes()
+            self.nodes[path] = model
 
         elif news[0] == 'renamed':
-            node = self.nodes[path]
-            node.path = news[1] + '/' + news[3]
+            new_path = news[1] + '/' + news[3]
+            nodes = self.nodes.copy()
+            for k, v in nodes.items():
+                if k.startswith(path):
+                    del self.nodes[k]
+                    self.nodes[new_path + k[len(path):]] = v
 
-        elif news == 'removed':
+        elif news[0] == 'removed':
             node = self.nodes[path]
             del self.nodes[path]
+            parent = node.parent
+            del parent.children[parent.children.index(node)]
+            parent.sort_nodes()
             self.node_deleted(node)
 
     def _get_task(self, path):
@@ -271,5 +316,5 @@ class EditorModel(Atom):
         entries = [k for k, v in node.data.items()
                    if not isinstance(v, DatabaseNode)]
         excs = list(node.meta.get('access', {}).keys())
-        return NodeModel(editor=self, path=path, entries=entries,
+        return NodeModel(editor=self, entries=entries,
                          exceptions=excs, task=self._get_task(path))
