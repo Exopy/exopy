@@ -215,8 +215,11 @@ class TaskDatabase(Atom):
                                                           node_path)
                 raise KeyError(err_str)
 
-        self.notifier(notif)
-        self.access_notifier(acc_notif)
+        # Avoid sending spurious notifications
+        if notif:
+            self.notifier(notif)
+        if acc_notif:
+            self.access_notifier(acc_notif)
 
     def delete_value(self, node_path, value_name):
         """Remove an entry from the specified node
