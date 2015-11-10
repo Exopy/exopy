@@ -21,7 +21,7 @@ from ecpy.utils.container_change import ContainerChange
 from ecpy.tasks.api import RootTask, ComplexTask, SimpleTask
 from ecpy.measure.editors.api import Editor
 from ecpy.measure.editors.database_access_editor.editor_model import\
-     EditorModel, NodeModel
+     EditorModel
 
 from ...util import process_app_events
 
@@ -64,6 +64,9 @@ def test_node_sorting(task):
     assert (sorted(nmodel.children[0].entries) ==
             sorted(['simp2_t', 'comp2_t1', 'comp2_t2']))
 
+    change = ContainerChange(collapsed=[ContainerChange()])
+    nmodel._react_to_task_children_event(change)  # For coverage
+
 
 def test_editor_modifying_exception_level(task):
     """Test modifying the level of an access exception.
@@ -73,6 +76,9 @@ def test_editor_modifying_exception_level(task):
     rnode = ed.nodes['root']
 
     node = rnode.children[0].children[0]
+    # Check that we can desambiguate between task with same prefix
+    node.task.add_child_task(0, SimpleTask(name='simp3_t',
+                                           database_entries={'t': 1}))
     node.add_exception('simp3_t')
     assert 'simp3_t' in node.parent.exceptions
 
@@ -86,6 +92,9 @@ def test_editor_modifying_exception_level(task):
 
     ed.decrease_exc_level('root/comp1', 'simp3_t')
     assert 'simp3_t' not in node.parent.exceptions
+
+    node.parent.add_exception('simp2_t')
+    assert 'simp2_t' in node.parent.parent.exceptions
 
 
 def test_editor_changing_root(task):
@@ -166,6 +175,13 @@ def test_handling_node_manipulation(task):
 
     task.remove_child_task(0)
     assert 'root/cc' not in ed.nodes
+
+    # For coverage check that we could handle a list of changes
+    ed._react_to_nodes([('', '', '')])
+
+    # Test failing to find a task by path
+    with pytest.raises(ValueError):
+        ed._get_task('root/unknown')
 
 
 def test_editor_widget():
