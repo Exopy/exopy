@@ -288,7 +288,10 @@ class BaseTask(Atom):
         """
         access_exs = self.access_exs.copy()
         old = access_exs[entry]
-        access_exs[entry] = new
+        if new > 0:
+            access_exs[entry] = new
+        else:
+            del access_exs[entry]
         full_name = self._task_entry(entry)
 
         parent = self

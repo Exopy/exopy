@@ -297,7 +297,7 @@ def test_access_exceptions():
                         database_entries={'val1': 2.0})
     task2 = ComplexTask(name='task2')
     task3 = SimpleTask(name='task3',
-                       database_entries={'val2': 1},
+                       database_entries={'val2': 1, 'val3': 2},
                        )
 
     task2.add_child_task(0, task3)
@@ -308,13 +308,18 @@ def test_access_exceptions():
         task2.get_from_database('task3_val2')
 
     task3.add_access_exception('val2', 1)
+    task3.add_access_exception('val3', 1)
 
+    assert task2.get_from_database('task3_val2') == 1
     assert task2.get_from_database('task3_val2') == 1
     with pytest.raises(KeyError):
         task1.get_from_database('task3_val2')
 
     task3.modify_access_exception('val2', 2)
+    task3.modify_access_exception('val3', -1)
     assert task1.get_from_database('task3_val2') == 1
+    with pytest.raises(KeyError):
+        task2.get_from_database('task3_val3')
 
     task3.remove_access_exception('val2')
     with pytest.raises(KeyError):

@@ -21,6 +21,7 @@ from ecpy.tasks.tools.database import TaskDatabase
 # --- Edition mode tests ------------------------------------------------------
 # =============================================================================
 
+
 def test_database_nodes():
     """Test all nodes operations.
 
@@ -163,20 +164,22 @@ def test_access_exceptions_renaming_values():
 def test_access_exceptions_renaming_node():
     """Test renaming a node holding an access exception.
 
+    The relative path is exactly the name of the renamed node.
+
     """
     database = TaskDatabase()
     database.create_node('root', 'node1')
     database.create_node('root/node1', 'node2')
     database.set_value('root/node1/node2', 'val1', 2.0)
 
-    database.add_access_exception('root', 'root/node1/node2', 'val1')
-    assert database.get_value('root', 'val1') == 2.0
+    database.add_access_exception('root/node1', 'root/node1/node2', 'val1')
+    assert database.get_value('root/node1', 'val1') == 2.0
 
     database.rename_node('root/node1', 'node2', 'node22')
-    assert database.get_value('root', 'val1') == 2.0
+    assert database.get_value('root/node1', 'val1') == 2.0
 
     database.rename_node('root', 'node1', 'node11')
-    assert database.get_value('root', 'val1') == 2.0
+    assert database.get_value('root/node11', 'val1') == 2.0
 
 
 def test_copy_node_values():

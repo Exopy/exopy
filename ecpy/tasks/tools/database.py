@@ -55,10 +55,12 @@ class TaskDatabase(Atom):
     notifier = Signal()
 
     #: Signal emitted to notify that access exceptions has changed. The update
-    #: is passed as a tuple ('added', path, entry) for creation or as
-    #: ('renamed', path, old, new) in case of renaming of the related entry,
-    #: ('removed', path, old) in case of deletion (if old is None all
-    #: exceptions have been removed) or as a list of such tuples.
+    #: is passed as a tuple ('added', path, relative, entry) for creation or as
+    #: ('renamed', path, relative, old, new) in case of renaming of the related
+    #: entry, ('removed', path, relative, old) in case of deletion (if old is
+    #: None all  exceptions have been removed) or as a list of such tuples.
+    #: Path indicate the node where the exception is located, relative the
+    #: relative path from the 'path' node to the real location of the entry.
     access_notifier = Signal()
 
     #: Signal emitted to notify that the nodes were modified. The update
@@ -150,7 +152,7 @@ class TaskDatabase(Atom):
 
             # Second check if there is a special rule about this entry.
             elif 'access' in node.meta and value_name in node.meta['access']:
-                path = node.meta['access'][value_name]
+                path = assumed_path + '/' + node.meta['access'][value_name]
                 return self.get_value(path, value_name)
 
             # Finally go one step up in the node hierarchy.
@@ -209,7 +211,7 @@ class TaskDatabase(Atom):
                         count -= 1
                     path = n.meta['access'].pop(old_name)
                     n.meta['access'][new[i]] = path
-                    acc_notif.append(('renamed', p, old_name, new[i]))
+                    acc_notif.append(('renamed', p, path, old_name, new[i]))
             else:
                 err_str = 'No entry {} in node {}'.format(old_name,
                                                           node_path)
@@ -401,12 +403,13 @@ class TaskDatabase(Atom):
 
         """
         node = self.go_to_path(node_path)
+        rel_path = entry_node[len(node_path)+1:]
         if 'access' in node.meta:
             access_exceptions = node.meta['access']
-            access_exceptions[entry] = entry_node
+            access_exceptions[entry] = rel_path
         else:
-            node.meta['access'] = {entry: entry_node}
-        self.access_notifier(('added', node_path, entry))
+            node.meta['access'] = {entry: rel_path}
+        self.access_notifier(('added', node_path, rel_path, entry))
 
     def remove_access_exception(self, node_path, entry=None):
         """Remove an access exception from a node for a given entry.
@@ -424,10 +427,12 @@ class TaskDatabase(Atom):
         node = self.go_to_path(node_path)
         if entry:
             access_exceptions = node.meta['access']
+            relative_path = access_exceptions[entry]
             del access_exceptions[entry]
         else:
+            relative_path = ''
             del node.meta['access']
-        self.access_notifier(('removed', node_path, entry))
+        self.access_notifier(('removed', node_path, relative_path, entry))
 
     def create_node(self, parent_path, node_name):
         """Method used to create a new node in the database
@@ -481,13 +486,9 @@ class TaskDatabase(Atom):
                 parent_node = parent_node.parent
                 continue
             access = parent_node.meta['access'].copy()
-            old_path_part = '/' + old_name + '/'
             for k, v in access.items():
-                if v.endswith(old_name):
-                    path, _ = v.rsplit('/', 1)
-                    parent_node.meta['access'][k] = path + '/' + new_name
-                elif old_path_part in v:
-                    new_path = v.replace(old_path_part, '/' + new_name + '/')
+                if old_name in v:
+                    new_path = v.replace(old_name, new_name)
                     parent_node.meta['access'][k] = new_path
 
             parent_node = parent_node.parent
@@ -567,7 +568,7 @@ class TaskDatabase(Atom):
             access = node.meta.get('access', [])
             for entry in access:
                 short_path = node_path + '/' + entry
-                full_path = access[entry] + '/' + entry
+                full_path = node_path + '/' + access[entry] + '/' + entry
                 mapping[short_path] = mapping[full_path]
 
         self._flat_database = datas
@@ -638,8 +639,6 @@ class TaskDatabase(Atom):
 
     #: Lock to make the database thread safe in running mode.
     _lock = Value()
-
-
 
     def _find_index(self, assumed_path, entry):
         """Find the index associated with a path.
