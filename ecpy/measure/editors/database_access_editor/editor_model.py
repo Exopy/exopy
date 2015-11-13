@@ -36,6 +36,9 @@ class NodeModel(Atom):
     #: Database exceptions present on the node.
     exceptions = List()
 
+    #: Database entries for which an access exception exists
+    has_exceptions = List()
+
     #: Reference to the node which a parent of this one.
     parent = ForwardTyped(lambda: NodeModel)
 
@@ -66,9 +69,11 @@ class NodeModel(Atom):
 
         """
         task, entry = self._find_task_from_entry(entry)
+        print(task.name)
 
         if entry not in task.access_exs:
             task.add_access_exception(entry, 1)
+            print(task.access_exs)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -170,7 +175,7 @@ class EditorModel(Atom):
 
         """
         database_node = self.root.database.go_to_path(path)
-        real_path = database_node.meta['access'][entry]
+        real_path = path + '/' + database_node.meta['access'][entry]
         task, entry = self.nodes[real_path]._find_task_from_entry(entry)
         level = task.access_exs[entry]
         task.modify_access_exception(entry, level + val)
@@ -241,19 +246,35 @@ class EditorModel(Atom):
 
         path = news[1]
         n = self.nodes[path]
+        origin_node = self.nodes[path + '/' + news[2]]
         if news[0] == 'added':
-            n.exceptions = n.exceptions[:] + [news[2]]
+            n.exceptions = n.exceptions[:] + [news[3]]
+
+            origin_node.has_exceptions = n.has_exceptions[:] + [news[3]]
 
         elif news[0] == 'renamed':
             exceptions = n.exceptions[:]
-            del exceptions[exceptions.index(news[2])]
-            exceptions.append(news[3])
+            del exceptions[exceptions.index(news[3])]
+            exceptions.append(news[4])
             n.exceptions = exceptions
+
+            exs = origin_node.has_exceptions[:]
+            del exs[exs.index(news[3])]
+            exs.append(news[4])
+            origin_node.has_exceptions = exs
 
         elif news[0] == 'removed':
             exceptions = n.exceptions[:]
-            del exceptions[exceptions.index(news[2])]
-            n.exceptions = exceptions
+            if news[3]:
+                del exceptions[exceptions.index(news[3])]
+                n.exceptions = exceptions
+
+                exs = origin_node.has_exceptions[:]
+                del exs[exs.index(news[3])]
+                origin_node.has_exceptions = exs
+            else:
+                n.exceptions = []
+                origin_node.has_exceptions = []
 
     def _react_to_nodes(self, news):
         """Handle modifications of the database nodes.

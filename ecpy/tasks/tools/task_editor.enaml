@@ -71,7 +71,7 @@ class TaskEditor(Container):
 
     """
     #: Reference to the task whose children are edited.
-    task = d_(Typed(ComplexTask))
+    task = d_(Value())
 
     #: Reference to the root view of the hierarchy.
     root = d_(Value())
@@ -102,7 +102,7 @@ class TaskEditor(Container):
         items = self.task.children
         if items:
             children = self._children_buttons
-            rows = [hbox(children[o][0], children[o][1], spacer)
+            rows = [hbox(children[o][0], children[o][1])
                     for o in items]
             return [vbox(*rows)] + [align('top', *children[o]) for o in items]
         else:

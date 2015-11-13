@@ -81,6 +81,7 @@ def test_editor_modifying_exception_level(task):
                                            database_entries={'t': 1}))
     node.add_exception('simp3_t')
     assert 'simp3_t' in node.parent.exceptions
+    assert 't' in node.task.children[1].access_exs
 
     ed.increase_exc_level('root/comp1', 'simp3_t')
     assert 'simp3_t' not in node.parent.exceptions
@@ -92,6 +93,7 @@ def test_editor_modifying_exception_level(task):
 
     ed.decrease_exc_level('root/comp1', 'simp3_t')
     assert 'simp3_t' not in node.parent.exceptions
+    assert 't' not in node.task.children[1].access_exs
 
     node.parent.add_exception('simp2_t')
     assert 'simp2_t' in node.parent.parent.exceptions
@@ -150,16 +152,20 @@ def test_handling_exceptions_modifications(task):
     child.add_access_exception('t', 1)
 
     assert 'simp3_t' in ed.nodes['root/comp1'].exceptions
+    assert 'simp3_t' in ed.nodes['root/comp1/comp2'].has_exceptions
 
     child.name = 'ss'
     assert 'ss_t' in ed.nodes['root/comp1'].exceptions
+    assert 'ss_t' in ed.nodes['root/comp1/comp2'].has_exceptions
 
     parent = task.children[1]
     parent.name = 'cc'
     assert 'ss_t' in ed.nodes['root/cc'].exceptions
+    assert 'ss_t' in ed.nodes['root/cc/comp2'].has_exceptions
 
     child.remove_access_exception('t')
     assert 'ss_t' not in ed.nodes['root/cc'].exceptions
+    assert 'ss_t' not in ed.nodes['root/cc/comp2'].has_exceptions
 
 
 def test_handling_node_manipulation(task):
@@ -184,5 +190,95 @@ def test_handling_node_manipulation(task):
         ed._get_task('root/unknown')
 
 
-def test_editor_widget():
-    pass
+def test_editor_widget(windows, task, dialog_sleep):
+    """That the interaction with the editor widget makes sense.
+
+    """
+    dialog_sleep = dialog_sleep or 1
+
+    def get_task_widget(editor):
+        return editor.page_widget().widgets()[0].scroll_widget()
+
+    def get_menu(task_widget, widget_index):
+        flow_area = task_widget.widgets()[0]
+        flow_item = flow_area.flow_items()[widget_index]
+        menu = flow_item.flow_widget().widgets()[0].children[0]
+        return menu
+
+    task_with_exs = task.children[1].children[1].children[0]
+
+    editor = DatabaseAccessEditor(declaration=Editor(id='ecpy.database'),
+                                  selected_task=task)
+    window = EditorTestingWindow(editor=editor)
+    window.show()
+    process_app_events()
+    sleep(dialog_sleep)
+
+    r_widget = get_task_widget(editor)
+    flow_area = r_widget.children[0]
+    # Check that there is no contextual menu attached.
+    assert len(flow_area.children[0].children[0].children) == 1
+
+    # Add an access exception to the lowest level.
+    editor.selected_task = task.children[1].children[1]
+    process_app_events()
+    sleep(dialog_sleep)
+
+    widget = get_task_widget(editor)
+    add_ex_action = get_menu(widget, 0).items()[0]
+    add_ex_action.triggered = True
+    process_app_events()
+    assert task_with_exs.access_exs['t'] == 1
+    sleep(dialog_sleep)
+
+    # Move the exception up
+    editor.selected_task = task.children[1]
+    process_app_events()
+    assert len(flow_area.flow_items()) == 4
+    sleep(dialog_sleep)
+
+    widget = get_task_widget(editor)
+    flow_area = widget.children[0]
+    menu = get_menu(widget, -1)
+    assert len(menu.items()) == 2  # Check that both actions are there.
+    move_up_action = menu.items()[0]
+    move_up_action.triggered = True
+    process_app_events()
+    assert task_with_exs.access_exs['t'] == 2
+    sleep(dialog_sleep)
+
+    # Move the exception down
+    editor.selected_task = task
+    process_app_events()
+    assert len(flow_area.flow_items()) == 3
+    sleep(dialog_sleep)
+
+    widget = get_task_widget(editor)
+    flow_area = widget.children[0]
+    menu = get_menu(widget, -1)
+    assert len(menu.items()) == 1  # Check that only one action is there.
+    move_down_action = menu.items()[0]
+    move_down_action.triggered = True
+    process_app_events()
+    assert task_with_exs.access_exs['t'] == 1
+    sleep(dialog_sleep)
+
+    # Move the exception down (it disappears)
+    editor.selected_task = task.children[1]
+    process_app_events()
+    sleep(dialog_sleep)
+
+    widget = get_task_widget(editor)
+    flow_area = widget.children[0]
+    assert len(flow_area.flow_items()) == 4
+
+    menu = get_menu(widget, -1)
+    move_down_action = menu.items()[1]
+    move_down_action.triggered = True
+    process_app_events()
+    assert not task_with_exs.access_exs
+    sleep(dialog_sleep)
+
+    editor.selected_task = task
+    process_app_events()
+    sleep(dialog_sleep)

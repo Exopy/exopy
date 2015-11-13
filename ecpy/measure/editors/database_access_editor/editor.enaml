@@ -33,9 +33,14 @@ enamldef NodeEditor(GroupBox):
     attr node
 
     #: Reference to the root view holding the cache.
-    attr root
+    alias root : ed.root
 
     title << node.task.name if node else ''
+
+    tool_tip = ('Right click an entry to add an access exception, allowing \n'
+                'to access an entry from a node higer in the hierarchy.\n'
+                'Entries for which an exception exists are colored in blue\n'
+                'and exceptions are colored in green.')
 
     func refresh():
         """Function making sure that the editor is displayed correctly.
@@ -46,6 +51,7 @@ enamldef NodeEditor(GroupBox):
 
     FlowArea:
         hug_height = 'medium'
+        hug_width = 'ignore'
 
         Looper:
             iterable << sorted(node.entries)
@@ -54,13 +60,12 @@ enamldef NodeEditor(GroupBox):
                     padding = 0
                     Label:
                         text << loop_item
-                        # this is incorrect
-#                        background << ('lightblue'
-#                                       if loop_item in node.task.access_exs:
-#                                       else 'white')
+                        background << ('lightblue'
+                                       if loop_item in node.has_exceptions
+                                       else None)
                         Conditional:
-                            # TODO : disable this if an exception exists
-                            condition << node.task_depth != 0
+                            condition << (node.task.depth != 0 and
+                                          loop_item not in node.has_exceptions)
                             Menu:
                                 context_menu = True
                                 Action:
@@ -79,27 +84,32 @@ enamldef NodeEditor(GroupBox):
                         Menu:
                             context_menu = True
                             Conditional:
-                                condition << node.task_depth != 0
+                                condition << node.task.depth != 0
                                 Action:
                                     text = 'Move up'
                                     triggered ::
-                                        editor.increase_exc_level(node.path,
-                                                                  loop_item)
+                                        e = node.editor
+                                        t = node.task
+                                        p = t.path + '/' + t.name
+                                        e.increase_exc_level(p, loop_item)
                             Action:
                                 text = 'Move down'
                                 tool_tip = ('Move the exception to a lower '
                                             'node, if necessary removing it '
                                             'completetly')
                                 triggered ::
-                                    editor.decrease_exc_level(node.path,
-                                                              loop_item)
+                                    e = node.editor
+                                    t = node.task
+                                    p = (t.path + '/' + t.name if t.depth
+                                         else t.path)
+                                    e.decrease_exc_level(p, loop_item)
 
     FoldableTaskEditor: ed:
         # This abuses the task editor but it is really nice.
         task = node
         operations = {}
 
-enamldef DatabaseAccessEditor(BaseEditor): editor:
+enamldef DatabaseAccessEditor(BaseEditor): main:
     """Editor allowing to extend the accessibility of database entries.
 
     """
@@ -134,11 +144,14 @@ enamldef DatabaseAccessEditor(BaseEditor): editor:
 
         """
         if not database_model:
-            main.pool_model = EditorModel(root=task.root)
-            main.pool_model.observe('node_deleted', discard_view)
+            main.database_model = EditorModel(root=task.root)
+            main.database_model.observe('node_deleted', discard_view)
 
         if task:
-            node = database_model.nodes[task.path + '/' + task.name]
+            if task.name == 'Root':
+                node = database_model.nodes['root']
+            else:
+                node = database_model.nodes[task.path + '/' + task.name]
             view = view_for(node)
             view.set_parent(scroll)
             view.refresh()
@@ -169,4 +182,4 @@ enamldef DatabaseAccessEditor(BaseEditor): editor:
     # =========================================================================
 
     #: Dictionary used to store the view associated with each task.
-    attr _cache : dict = {task: self}
+    attr _cache : dict = {}
