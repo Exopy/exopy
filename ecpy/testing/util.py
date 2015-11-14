@@ -30,7 +30,7 @@ def ecpy_path():
     """Get the ecpy path as determined by the sys_path fixture.
 
     """
-    from .conftest import ECPY
+    from .fixtures import ECPY
     assert ECPY
     return ECPY
 
@@ -61,8 +61,8 @@ def get_window(cls=Window):
     UnboundLocalError : if no window exists.
 
     """
-    process_app_events()
     sleep(0.1)
+    process_app_events()
     w_ = None
     for w in Window.windows:
         if isinstance(w, cls):
@@ -109,7 +109,7 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
         i = 0
         while True:
             dial = get_window(cls)
-            if dial:
+            if dial is not None:
                 break
             elif i > 10:
                 raise Exception('Dailog timeout')
@@ -121,7 +121,7 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
             custom(dial)
         finally:
             process_app_events()
-            from .conftest import DIALOG_SLEEP
+            from .fixtures import DIALOG_SLEEP
             sleep(DIALOG_SLEEP)
             getattr(dial, op)()
     timed_call(time, close_dialog)
@@ -144,7 +144,7 @@ def show_and_close_widget(widget):
     """Show a widget in a window and then close it.
 
     """
-    from .conftest import DIALOG_SLEEP
+    from .fixtures import DIALOG_SLEEP
     try:
         win = show_widget(widget)
         sleep(DIALOG_SLEEP)

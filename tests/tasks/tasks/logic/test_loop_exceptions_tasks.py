@@ -26,7 +26,7 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.loop_exceptions_views\
         import BreakView, ContinueView
 
-from ....util import show_and_close_widget
+from ecpy.testing.util import show_and_close_widget
 
 
 @pytest.fixture(params=(BreakTask, ContinueTask))

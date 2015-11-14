@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 import enaml
 
-from ..util import set_preferences, ErrorDialogException
+from ecpy.testing.util import set_preferences, ErrorDialogException
 
 with enaml.imports():
     from .contributions import MeasureTestManifest
@@ -144,9 +144,3 @@ def test_find_next_measure(measure_workbench):
 
     m1.status = 'COMPLETED'
     assert plugin.find_next_measure() is m2
-
-
-def test_validate_closing():
-    """
-    """
-    pass # XXXX

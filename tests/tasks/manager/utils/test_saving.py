@@ -20,7 +20,7 @@ from enaml.widgets.api import Dialog
 
 from ecpy.tasks.api import RootTask, ComplexTask
 
-from ....util import handle_dialog, process_app_events, get_window
+from ecpy.testing.util import handle_dialog, process_app_events, get_window
 
 
 CMD = 'ecpy.tasks.save'

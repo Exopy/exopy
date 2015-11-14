@@ -23,7 +23,7 @@ from ecpy.measure.editors.api import Editor
 from ecpy.measure.editors.execution_editor.editor_model import\
      ExecutionEditorModel
 
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from ecpy.measure.editors.execution_editor import ExecutionEditor

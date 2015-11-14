@@ -17,7 +17,7 @@ import enaml
 from enaml.workbench.api import Workbench
 from future.utils import python_2_unicode_compatible
 
-from ...util import handle_dialog, get_window
+from ecpy.testing.util import handle_dialog, get_window
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -93,7 +93,7 @@ def test_signal_command_with_unknown(workbench, windows):
 
 
 @pytest.mark.ui
-def test_handling_error_in_handlers(workbench):
+def test_handling_error_in_handlers(workbench, windows):
     """Test handling an error occuring in a specilaized handler.
 
     """
@@ -111,7 +111,7 @@ def test_handling_error_in_handlers(workbench):
 
 
 @pytest.mark.ui
-def test_gathering_mode(workbench):
+def test_gathering_mode(workbench, windows):
     """Test gathering multiple errors.
 
     """
@@ -127,7 +127,7 @@ def test_gathering_mode(workbench):
 
 
 @pytest.mark.ui
-def test_report_command(workbench):
+def test_report_command(workbench, windows):
     """Test generating an application errors report.
 
     """

@@ -17,7 +17,7 @@ import enaml
 from atom.api import Atom, Bool, Value, Unicode
 from enaml.workbench.api import Workbench
 
-from ...util import handle_dialog, process_app_events
+from ecpy.testing.util import handle_dialog, process_app_events
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -129,7 +129,7 @@ def test_unmet_requirement(monkeypatch, workbench, windows):
 
 
 @pytest.mark.ui
-def test_wrong_return_type(monkeypatch, workbench):
+def test_wrong_return_type(monkeypatch, workbench, app):
     """Test handling a wrong return type from the callable returned by load.
 
     """
@@ -151,7 +151,7 @@ def test_wrong_return_type(monkeypatch, workbench):
 
 
 @pytest.mark.ui
-def test_non_manifest(monkeypatch, workbench):
+def test_non_manifest(monkeypatch, workbench, app):
     """Test handling a non PluginManifest in the list of manifests.
 
     """
@@ -173,7 +173,7 @@ def test_non_manifest(monkeypatch, workbench):
 
 
 @pytest.mark.ui
-def test_registering_issue(monkeypatch, workbench):
+def test_registering_issue(monkeypatch, workbench, app):
     """Test handling an error when registering a manifest.
 
     """

@@ -545,7 +545,7 @@ def nested_int_decl(int_decl):
     return task, i
 
 
-# XXXX this is part broken as the class is not a subclass of IInterface
+# HINT this is part broken as the class is not a subclass of IInterface
 def test_nested_interfaces_register(nested_int_decl, collector):
     """Test registering and unregistering an interface to an interface.
 

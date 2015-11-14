@@ -22,7 +22,7 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
 
 from ...execution_testing import CheckTask
-from ....util import show_and_close_widget
+from ecpy.testing.util import show_and_close_widget
 
 
 class TestConditionTask(object):

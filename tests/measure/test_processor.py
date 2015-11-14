@@ -22,7 +22,7 @@ from threading import Thread
 from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask
 
-from ..util import (ErrorDialogException, process_app_events)
+from ecpy.testing.util import ErrorDialogException, process_app_events
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest

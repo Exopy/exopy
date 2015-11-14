@@ -18,7 +18,7 @@ from ecpy.app.log.tools import (StreamToLogRedirector, QueueHandler,
                                 LogModel, DayRotatingTimeHandler,
                                 GuiHandler, QueueLoggerThread)
 
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 
 def test_log_model():

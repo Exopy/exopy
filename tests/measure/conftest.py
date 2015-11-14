@@ -18,7 +18,7 @@ from pprint import pformat
 import enaml
 from enaml.workbench.api import Workbench
 
-from ..util import ErrorDialogException
+from ecpy.testing.util import ErrorDialogException
 
 from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask

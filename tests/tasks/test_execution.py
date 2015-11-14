@@ -22,7 +22,7 @@ from enaml.application import deferred_call
 from ecpy.tasks.base_tasks import RootTask, ComplexTask
 
 from .execution_testing import CheckTask, ExceptionTask
-from ..util import process_app_events
+from ecpy.testing.util import process_app_events
 
 
 class TestTaskExecution(object):

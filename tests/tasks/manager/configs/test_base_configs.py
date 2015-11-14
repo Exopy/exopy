@@ -23,7 +23,7 @@ with enaml.imports():
     from ecpy.tasks.manager.configs.base_config_views\
         import (PyConfigView, TemplateConfigView)
 
-from ....util import show_and_close_widget
+from ecpy.testing.util import show_and_close_widget
 
 
 @pytest.mark.ui

@@ -26,7 +26,7 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.while_view\
         import WhileView
 
-from ....util import show_and_close_widget
+from ecpy.testing.util import show_and_close_widget
 from ...execution_testing import CheckTask
 
 

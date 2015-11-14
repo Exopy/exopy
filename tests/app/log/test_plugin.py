@@ -26,7 +26,7 @@ with enaml.imports():
 
 from ecpy.app.log.tools import (LogModel, GuiHandler, StreamToLogRedirector)
 
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 
 PLUGIN_ID = 'ecpy.app.logging'

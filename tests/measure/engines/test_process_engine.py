@@ -27,7 +27,7 @@ from ecpy.tasks.manager.infos import TaskInfos
 from ecpy.measure.engines.process_engine.subprocess import TaskProcess
 
 from ..workspace.test_workspace import workspace
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from ecpy.measure.engines.process_engine.engine_declaration import\

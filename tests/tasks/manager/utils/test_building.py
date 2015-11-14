@@ -18,7 +18,7 @@ from configobj import ConfigObj
 
 from ecpy.tasks.manager.utils.building import build_task_from_config
 
-from ....util import handle_dialog, process_app_events
+from ecpy.testing.util import handle_dialog, process_app_events
 
 
 def test_create_task1(app, task_workbench):

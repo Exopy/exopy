@@ -19,7 +19,7 @@ import enaml
 from enaml.widgets.api import Window
 from future.builtins import str
 
-from ...util import process_app_events, handle_dialog
+from ecpy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest

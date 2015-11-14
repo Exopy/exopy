@@ -23,7 +23,7 @@ from ecpy.measure.editors.api import Editor
 from ecpy.measure.editors.database_access_editor.editor_model import\
      EditorModel
 
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from ecpy.measure.editors.database_access_editor import\

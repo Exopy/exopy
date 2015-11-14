@@ -30,7 +30,7 @@ with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
 
 from ...execution_testing import CheckTask
-from ....util import show_and_close_widget
+from ecpy.testing.util import show_and_close_widget
 
 
 @pytest.fixture

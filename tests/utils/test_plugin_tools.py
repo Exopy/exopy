@@ -15,7 +15,7 @@ from enaml.workbench.api import Workbench
 
 from ecpy.utils.plugin_tools import make_extension_validator
 
-from ..util import handle_dialog
+from ecpy.testing.util import handle_dialog
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -29,7 +29,6 @@ with enaml.imports():
                                        DContributor3, DContributor4,
                                        DContributor5,
                                        PLUGIN_ID)
-
 
 def test_make_extension_validator():
     """Test the building of generic extension validators.
@@ -229,7 +228,7 @@ class TestDeclaratorCollector(object):
             self.workbench.get_plugin(PLUGIN_ID)
 
     @pytest.mark.ui
-    def test_unsatifiable_requirement(self):
+    def test_unsatifiable_requirement(self, windows):
         """Test the case of a declarator always adding itself to _deflayed.
 
         """
