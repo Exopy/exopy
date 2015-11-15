@@ -29,7 +29,7 @@ def plugin_factory():
     """ Plugin factory for the TextMonitoprPlugin.
 
     """
-    from .text_monitor_plugin import TextMonitorPlugin
+    from .plugin import TextMonitorPlugin
     return TextMonitorPlugin()
 
 
@@ -64,10 +64,10 @@ enamldef TextMonitorManifest(PluginManifest): man:
     # =========================================================================
 
     ExtensionPoint:
-        id = 'rules.type'
+        id = man.id + '.rules.type'
         description = RULES_TYPE_DESCRIPTION
     ExtensionPoint:
-        id = 'rules.config'
+        id = man.id + '.rules.config'
         description = RULES_CONFIG_DESCRIPTION
 
     # =========================================================================

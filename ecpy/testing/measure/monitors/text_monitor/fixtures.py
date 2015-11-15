@@ -6,26 +6,30 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Container object to store rules declarations.
+"""Fixtures used to test text monitor related systems.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import pytest
 import enaml
-from atom.api import Atom, Subclass
 
-from .base import BaseRule
 with enaml.imports():
-    from .base_views import BaseRuleView
+    from ecpy.measure.monitors.text_monitor.manifest import TextMonitorManifest
 
 
-class RuleInfos(Atom):
-    """Container object to store rules declarations.
+pytest_plugins = str('ecpy.testing.measure.fixtures'),
+
+
+@pytest.yield_fixture
+def text_monitor_workbench(app, measure_workbench):
+    """Register the text monitor manifest.
 
     """
-    #: Class implementing the logic of the rule.
-    cls = Subclass(BaseRule)
+    m = TextMonitorManifest()
+    measure_workbench.register(m)
 
-    #: Enaml widget used to edit the rules parameters.
-    view = Subclass(BaseRuleView)
+    yield measure_workbench
+
+    measure_workbench.unregister(m.id)

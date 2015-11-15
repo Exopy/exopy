@@ -71,7 +71,7 @@ enamldef BaseRuleView(Container):
     #: attributes.
     alias name_and_desc : cont
 
-    Container:
+    Container: cont:
 
         constraints = [hbox(n_lab, n_val, spacer, desc)]
 

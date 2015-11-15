@@ -15,8 +15,8 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.layout.api import hbox, spacer, vbox
 from enaml.widgets.api import PushButton, Container, Dialog, Label, Field
 
-from ....utils.widgets.qt_list_str_widget import QtListStrWidget
-from ....utils.widgets.qt_line_completer import QtLineCompleter
+from .....utils.widgets.qt_list_str_widget import QtListStrWidget
+from .....utils.widgets.qt_completers import QtLineCompleter
 from .base_views import BaseRuleView
 
 

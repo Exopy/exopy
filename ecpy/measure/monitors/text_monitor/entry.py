@@ -14,14 +14,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, List)
 from enaml.application import deferred_call
-from hqc_meas.utils.atom_util import HasPrefAtom
+from ecpy.utils.atom_util import HasPrefAtom
 
 
 class MonitoredEntry(HasPrefAtom):
     """Entry to display by the text monitor.
 
     """
-    #: User understandable name of the monitor entry.
+    #: User understandable name of the monitored entry.
     name = Unicode().tag(pref=True)
 
     #: Full name of the entry as found or built from the database.

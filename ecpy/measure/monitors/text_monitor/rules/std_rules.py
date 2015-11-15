@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, Bool)
 
-from ..entries import MonitoredEntry
+from ..entry import MonitoredEntry
 from .base import BaseRule
 
 
@@ -32,7 +32,7 @@ class RejectRule(BaseRule):
                 for entry in monitor.displayed_entries:
                     if entry.path == new_entry:
                         monitor.move_entries('displayed', 'undisplayed',
-                                             (new_entry,))
+                                             (entry,))
                         break
 
 
@@ -58,7 +58,7 @@ class FormatRule(BaseRule):
         and hide the components if asked to.
 
         """
-        entries = monitor.database_entries
+        entries = monitor.monitored_entries
         for suffix in self.suffixes:
             # Check whether the new entry match one suffix
             if new_entry.endswith(suffix):
@@ -97,7 +97,7 @@ class FormatRule(BaseRule):
                     entry = MonitoredEntry(name=name, path=path,
                                            formatting=formatting,
                                            depend_on=depend)
-                    monitor.displayed_entries.append(entry)
+                    monitor.add_entries('displayed', [entry])
 
                     # If requested hide all the entries redundant with the
                     # one created by the rule.
@@ -105,8 +105,8 @@ class FormatRule(BaseRule):
                         for prefixed_entry in prefixed_entries:
                             for entry in monitor.displayed_entries:
                                 if entry.path == prefixed_entry:
-                                    monitor.hidden_entries.append(entry)
-                                    monitor.displayed_entries.remove(entry)
+                                    monitor.move_entries('displayed', 'hidden',
+                                                         (entry,))
                                     break
                 else:
                     break

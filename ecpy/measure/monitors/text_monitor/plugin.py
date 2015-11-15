@@ -15,9 +15,8 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 from atom.api import List, Dict, Typed
 
-from ....utils.has_pref_plugin import HasPrefPlugin
 from ....utils.plugin_tools import (DeclaratorsCollector, ExtensionsCollector,
-                                    make_extension_validator)
+                                    make_extension_validator, HasPrefPlugin)
 from ..base_monitor import Monitor
 from .monitor import TextMonitor
 from .rules.base import RuleType, Rules, RuleConfig
@@ -52,7 +51,7 @@ class TextMonitorPlugin(HasPrefPlugin):
         self._rule_types = DeclaratorsCollector(workbench=self.workbench,
                                                 point=RULE_TYPE_POINT,
                                                 ext_class=(Rules, RuleType))
-        self._rules_types.start()
+        self._rule_types.start()
 
         validator = make_extension_validator(RuleConfig,
                                              attributes=('id', 'description',
@@ -61,13 +60,13 @@ class TextMonitorPlugin(HasPrefPlugin):
         self._rule_configs = ExtensionsCollector(workbench=self.workbench,
                                                  point=RULE_CONFIG_POINT,
                                                  ext_class=RuleConfig,
-                                                 valiadtor=validator)
+                                                 validate_ext=validator)
         self._rule_configs.start()
 
         # List all the rule types and rules and remove unknown rules from
         # the default ones.
-        self._update_rule_types()
-        self._update_rules()
+        self._update_rule_types(None)
+        self._update_rules(None)
         defaults = [r for r in self.default_rules if r in self.rules]
         if defaults != self.default_rules:
             msg = ('The following rules for the TextMonitor are not defined, '
@@ -120,10 +119,10 @@ class TextMonitorPlugin(HasPrefPlugin):
             config = name_or_config
 
         class_id = config.pop('class_id')
-        rule_class = self._rule_types.contributions.get(class_id)
-        if rule_class is not None:
-            rule = rule_class()
-            rule.update_members_from_preferences(**config)
+        rule_infos = self._rule_types.contributions.get(class_id)
+        if rule_infos is not None:
+            rule = rule_infos.cls()
+            rule.update_members_from_preferences(config)
             return rule
 
         else:
@@ -168,7 +167,7 @@ class TextMonitorPlugin(HasPrefPlugin):
         monitor = TextMonitor(_plugin=self,
                               declaration=decl)
 
-        if not default:
+        if default:
             rules = []
             for rule_name in self.default_rules:
                 config = self.rules.get(rule_name).copy()
@@ -210,7 +209,7 @@ class TextMonitorPlugin(HasPrefPlugin):
         """
         contrib = set(self._rule_configs.contributions)
         users = set(self._user_rules)
-        self.rules = list(contrib + users)
+        self.rules = list(contrib | users)
 
     def _bind_observers(self):
         """Observe the collectors to update public attributes.

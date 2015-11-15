@@ -6,26 +6,23 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Container object to store rules declarations.
+"""Test the MonitoredEntry class.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import enaml
-from atom.api import Atom, Subclass
-
-from .base import BaseRule
-with enaml.imports():
-    from .base_views import BaseRuleView
+from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
+from ecpy.testing.util import process_app_events
 
 
-class RuleInfos(Atom):
-    """Container object to store rules declarations.
+def test_entry_formatting():
+    """Test that we can correctly format an entry.
 
     """
-    #: Class implementing the logic of the rule.
-    cls = Subclass(BaseRule)
+    e = MonitoredEntry(name='test', formating='{a} = {b}',
+                       depend_on=['a', 'b'])
 
-    #: Enaml widget used to edit the rules parameters.
-    view = Subclass(BaseRuleView)
+    e.update(dict(a=1, b=2, c=3))
+    process_app_events()
+    assert e.value == '1 = 2'

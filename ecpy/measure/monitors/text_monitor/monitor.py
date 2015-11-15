@@ -29,7 +29,7 @@ def import_monitor_plugin():
     """ Delayed import of the plugin to avoid circular imports.
 
     """
-    from .text_monitor_plugin import TextMonitorPlugin
+    from .plugin import TextMonitorPlugin
     return TextMonitorPlugin
 
 
@@ -63,6 +63,11 @@ class TextMonitor(BaseMonitor):
 
     #: List of all the known database entries.
     known_monitored_entries = Property()
+
+    def start(self):
+        """
+        """
+        pass
 
     def process_news(self, news):
         """Handle a news by calling every related entrt updater.
@@ -144,6 +149,9 @@ class TextMonitor(BaseMonitor):
             if path in self.monitored_entries:
                 self.monitored_entries.remove(path)
 
+            if path in self.updaters:
+                del self.updaters[path]
+
             if path in self._database_values:
                 del self._database_values[path]
 
@@ -191,7 +199,7 @@ class TextMonitor(BaseMonitor):
                           if name.startswith('custom_')]
         for custom_config in customs_config:
             entry = MonitoredEntry()
-            entry.update_members_from_preferences(**custom_config)
+            entry.update_members_from_preferences(custom_config)
             self.custom_entries.append(entry)
 
         self.refresh_monitored_entries(entries)
@@ -217,7 +225,7 @@ class TextMonitor(BaseMonitor):
             information(parent=None,
                         title='Unhandled entries',
                         text=fill(mess.format(e_l)))
-            pref_disp += list(m_entries)
+            disp += list(m_entries)
 
         self.displayed_entries = disp
         self.undisplayed_entries = undisp
@@ -315,7 +323,7 @@ class TextMonitor(BaseMonitor):
 
         if section == 'displayed':
             for e in entries:
-                self._displayed_entry_added(e)
+                self._displayed_entry_removed(e)
 
         setattr(self, name, [e for e in container if e not in entries])
 

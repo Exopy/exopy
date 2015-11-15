@@ -23,8 +23,7 @@ from atom.api import Unicode, List, Dict
 from enaml.core.api import Declarative, d_
 
 from .....utils.atom_util import HasPrefAtom
-from .....utils.declarators import Declarator, GroupDeclarator
-from .infos import RuleInfos
+from .....utils.declarator import Declarator, GroupDeclarator
 
 
 class BaseRule(HasPrefAtom):
@@ -39,7 +38,7 @@ class BaseRule(HasPrefAtom):
 
     #: List of database entries suffixes used to identify the entries which
     #: contributes to the rule.
-    suffixes = List(['']).tag(pref=True)
+    suffixes = List(default=['']).tag(pref=True)
 
     #: Id of the class used for persistence.
     class_id = Unicode().tag(pref=True)
@@ -62,7 +61,7 @@ class BaseRule(HasPrefAtom):
         """Default factory for the class_id attribute
 
         """
-        pack, _ = self.__module__.__name__.split('.', 1)
+        pack, _ = self.__module__.split('.', 1)
         return '.'.join((pack, type(self).__name__))
 
 
@@ -129,6 +128,7 @@ class RuleType(Declarator):
             traceback[err_id] = msg.format(rule, r_path)
             return
 
+        from .infos import RuleInfos
         r_infos = RuleInfos()
 
         # Get the rule class.
@@ -147,14 +147,18 @@ class RuleType(Declarator):
             traceback[rule_id] = msg.format(rule, format_exc())
             return
 
-        # Get the task view.
+        # Get the rule view.
+        with enaml.imports():
+            try:
+
+                mod = import_module(v_path)
+            except Exception:
+                msg = 'Failed to import {} :\n{}'
+                traceback[rule_id] = msg.format(v_path, format_exc())
+                return
+
         try:
-            with enaml.imports():
-                r_infos.view = getattr(import_module(v_path), view)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[rule_id] = msg.format(v_path, format_exc())
-            return
+            r_infos.view = getattr(mod, view)
         except AttributeError:
             msg = '{} has no attribute {}:\n{}'
             traceback[rule_id] = msg.format(v_path, view, format_exc())
