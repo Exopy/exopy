@@ -242,7 +242,7 @@ class EditorModel(Atom):
 
         path = news[1]
         n = self.nodes[path]
-        origin_node = self.nodes[path + '/' + news[2]]
+        origin_node = self.nodes[path + '/' + news[2] if news[2] else path]
         if news[0] == 'added':
             n.exceptions = n.exceptions[:] + [news[3]]
 

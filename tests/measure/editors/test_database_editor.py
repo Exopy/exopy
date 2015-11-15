@@ -167,6 +167,9 @@ def test_handling_exceptions_modifications(task):
     assert 'ss_t' not in ed.nodes['root/cc'].exceptions
     assert 'ss_t' not in ed.nodes['root/cc/comp2'].has_exceptions
 
+    # For coverage try removing all exceptions.
+    task.database.remove_access_exception('root/cc')
+
 
 def test_handling_node_manipulation(task):
     """Test handling manipulation occuring on a node.

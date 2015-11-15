@@ -88,8 +88,10 @@ enamldef RootTaskView(BaseTaskView): main:
         self.show()
         editor.refresh()
 
+    # TODO pass the future parent task so that config can do name inspections
+    # and avoid duplicate names.
     func create_new_task():
-        """Create a new task to answer into the hierarchy.
+        """Create a new task to insert into the hierarchy.
 
         """
         return core.invoke_command('ecpy.tasks.create_task', dict(widget=self))

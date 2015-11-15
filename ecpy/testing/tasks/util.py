@@ -52,16 +52,3 @@ class ExceptionTask(SimpleTask):
 
     def perform(self):
         raise Exception()
-
-
-def join_threads(root):
-    """Wait for all threads to stop.
-
-    """
-    for pool_name in root.resources['threads']:
-        with root.resources['threads'].safe_access(pool_name) as pool:
-            for thread in pool[0]:
-                try:
-                    thread.join()
-                except Exception:
-                    pass

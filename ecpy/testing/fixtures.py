@@ -13,11 +13,15 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
-import pytest
 import logging
-from configobj import ConfigObj
 from inspect import getabsfile
+
+import pytest
+from configobj import ConfigObj
+from future.builtins import str as text
 from enaml.qt.qt_application import QtApplication
+
+
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
                    ecpy_path)
 
@@ -29,7 +33,7 @@ ECPY = ''
 DIALOG_SLEEP = 0
 
 
-pytest_plugins = str('capturelog')
+pytest_plugins = str('pytest_capturelog')
 
 
 def pytest_addoption(parser):
@@ -124,7 +128,7 @@ def app_dir(tmpdir):
     # Create a trash app_directory.ini file. The global fixture ensure
     # that it cannot be a user file.
     app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
-    app_dir = str(tmpdir)
+    app_dir = text(tmpdir)
     conf = ConfigObj()
     conf.filename = app_pref
     conf['app_path'] = app_dir
