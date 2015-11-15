@@ -26,9 +26,11 @@ with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
     from ecpy.tasks.manager.widgets.building import BuilderView
 
-from .manager.conftest import task_workbench
 from ecpy.testing.util import (show_widget, process_app_events, handle_dialog,
                                get_window)
+
+
+pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
 
 
 @pytest.mark.ui

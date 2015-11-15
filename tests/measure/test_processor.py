@@ -28,7 +28,7 @@ with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
 
     from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from .contributions import Flags
+    from ecpy.testing.measure.contributions import Flags
 
 
 @pytest.fixture

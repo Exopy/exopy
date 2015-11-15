@@ -18,7 +18,7 @@ import enaml
 from ecpy.testing.util import set_preferences, ErrorDialogException
 
 with enaml.imports():
-    from .contributions import MeasureTestManifest
+    from ecpy.testing.measure.contributions import MeasureTestManifest
 
 
 def test_lifecycle(measure_workbench):
@@ -133,7 +133,7 @@ def test_find_next_measure(measure_workbench):
     """Test finding the next valid measure in the queue.
 
     """
-    from .conftest import measure
+    from ecpy.testing.measure.fixtures import measure
     m1 = measure(measure_workbench)
     m2 = measure(measure_workbench)
     m3 = measure(measure_workbench)

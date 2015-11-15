@@ -29,8 +29,11 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.loop_view import LoopView
     from ecpy.tasks.base_views import RootTaskView
 
-from ...execution_testing import CheckTask
+from ecpy.testing.tasks.util import CheckTask
 from ecpy.testing.util import show_and_close_widget
+
+
+pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
 
 
 @pytest.fixture
@@ -124,7 +127,7 @@ class TestLoopTask(object):
 
         deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
                               'ecpy.LoopTask': LoopTask,
-                              'tests.CheckTask': CheckTask}
+                              'ecpy.CheckTask': CheckTask}
                 }
         new = RootTask.build_from_config(self.root.preferences, deps)
 
@@ -136,7 +139,7 @@ class TestLoopTask(object):
         del prefs['children_0']['task']
         deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
                               'ecpy.LoopTask': LoopTask,
-                              'tests.CheckTask': CheckTask},
+                              'ecpy.CheckTask': CheckTask},
                 'ecpy.tasks.interface':
                     {('IterableLoopInterface', ('ecpy.LoopTask',)):
                         IterableLoopInterface}
@@ -562,8 +565,6 @@ class TestLoopTask(object):
 
         assert self.task.children[0].perform_called == 1
 
-
-from ...manager.conftest import task_workbench
 
 @pytest.mark.ui
 def test_view(windows, task_workbench):

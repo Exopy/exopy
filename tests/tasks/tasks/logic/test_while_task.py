@@ -27,7 +27,7 @@ with enaml.imports():
         import WhileView
 
 from ecpy.testing.util import show_and_close_widget
-from ...execution_testing import CheckTask
+from ecpy.testing.tasks.util import CheckTask
 
 
 class TestWhileTask(object):

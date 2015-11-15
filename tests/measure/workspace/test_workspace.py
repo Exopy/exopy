@@ -2,9 +2,9 @@
 # -----------------------------------------------------------------------------
 # Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
 #
-# Distributed under the terms of the BSD license.
+# Ditextibuted under the terms of the BSD license.
 #
-# The full license is in the file LICENCE, distributed with this software.
+# The full license is in the file LICENCE, ditextibuted with this software.
 # -----------------------------------------------------------------------------
 """Test measure workspace capabilities.
 
@@ -17,7 +17,7 @@ from time import sleep
 import pytest
 import enaml
 from enaml.widgets.api import Window
-from future.builtins import str
+from future.builtins import str as text
 
 from ecpy.testing.util import process_app_events, handle_dialog
 
@@ -25,7 +25,10 @@ with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
     from ecpy.app.log.manifest import LogManifest
     from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from ..contributions import Flags
+    from ecpy.testing.measure.contributions import Flags
+
+
+pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
 
 
 @pytest.fixture
@@ -131,7 +134,7 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     # Test saving.
     @classmethod
     def get(*args, **kwargs):
-        return str(f)
+        return text(f)
     monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
     workspace.save_measure(measure)
     sleep(0.1)
@@ -149,7 +152,7 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     # Test saving as in a new file.
     @classmethod
     def get(*args, **kwargs):
-        return str(f)
+        return text(f)
     monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
     workspace.save_measure(measure, False)
 
@@ -175,13 +178,13 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     # Test loading measure.
     @classmethod
     def get(*args, **kwargs):
-        return str(f)
+        return text(f)
     monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
     workspace.load_measure('file')
 
     assert len(workspace.plugin.edited_measures.measures) == 3
     m = workspace.plugin.edited_measures.measures[2]
-    assert m.path == str(f)
+    assert m.path == text(f)
 
     # Test handling loading error.
     @classmethod
@@ -219,7 +222,7 @@ def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
 
     """
     m = workspace.plugin.edited_measures.measures[0]
-    m.root_task.default_path = str(tmpdir)
+    m.root_task.default_path = text(tmpdir)
     from ecpy.measure.workspace.workspace import os
     m.add_tool('pre-hook', 'dummy')
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
@@ -300,7 +303,7 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir):
 
     """
     m = workspace.plugin.edited_measures.measures[0]
-    m.root_task.default_path = str(tmpdir)
+    m.root_task.default_path = text(tmpdir)
     from ecpy.measure.measure import Measure
 
     witness = []
@@ -329,7 +332,7 @@ def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir):
 
     """
     m = workspace.plugin.edited_measures.measures[0]
-    m.root_task.default_path = str(tmpdir)
+    m.root_task.default_path = text(tmpdir)
     from ecpy.measure.measure import Measure
 
     witness = []
@@ -444,7 +447,7 @@ def test_remove_processed_measures(workspace):
                                 'INTERRUPTED')
 
 
-def test_creating_measure_when_low_index_was_destroyed(workspace):
+def test_creating_measure_when_low_index_was_detextoyed(workspace):
     """Test that adding an edited measure when a previous one panel was closed
     re-use the index.
 

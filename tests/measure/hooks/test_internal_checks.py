@@ -59,7 +59,7 @@ def test_fail_build_collection(fake_meas, tmpdir, monkeypatch):
 
     import enaml
     with enaml.imports():
-        from ..contributions import Flags
+        from ecpy.testing.measure.contributions import Flags
     monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', True)
 
     fake_meas.dependencies.collect_runtimes()

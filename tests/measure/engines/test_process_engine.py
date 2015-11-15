@@ -19,14 +19,13 @@ from time import sleep
 import pytest
 import enaml
 from atom.api import Value, Bool, Unicode
-from future.builtins import str
+from future.builtins import str as text
 
 from ecpy.measure.engines.api import ExecutionInfos
 from ecpy.tasks.api import RootTask, SimpleTask
 from ecpy.tasks.manager.infos import TaskInfos
 from ecpy.measure.engines.process_engine.subprocess import TaskProcess
 
-from ..workspace.test_workspace import workspace
 from ecpy.testing.util import process_app_events
 
 with enaml.imports():
@@ -34,6 +33,9 @@ with enaml.imports():
         ProcFilter
     from ecpy.app.log.manifest import LogManifest
     from ecpy.tasks.manager.manifest import TasksManagerManifest
+
+
+pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
 
 
 class WaitingTask(SimpleTask):
@@ -147,7 +149,7 @@ def exec_infos(measure_workbench, measure, tmpdir, process_engine,
     tp = measure_workbench.get_plugin('ecpy.tasks')
     tp._tasks.contributions['tests.WaitingTask'] = TaskInfos(cls=WaitingTask)
 
-    r = RootTask(default_path=str(tmpdir))
+    r = RootTask(default_path=text(tmpdir))
     r.add_child_task(0, WaitingTask(name='test1', sock_id='test1',
                                     sync_port=sync_server.port))
     r.add_child_task(1, WaitingTask(name='test2', sock_id='test2',

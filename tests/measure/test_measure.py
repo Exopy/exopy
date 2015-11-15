@@ -23,7 +23,7 @@ from ecpy.tasks.api import RootTask
 
 with enaml.imports():
     from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from .contributions import Flags
+    from ecpy.testing.measure.contributions import Flags
 
 
 @pytest.mark.parametrize('kind', ['pre-hook', 'monitor', 'post-hook'])

@@ -21,7 +21,7 @@ from ecpy.tasks.tasks.logic.conditional_task import ConditionalTask
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
 
-from ...execution_testing import CheckTask
+from ecpy.testing.tasks.util import CheckTask
 from ecpy.testing.util import show_and_close_widget
 
 

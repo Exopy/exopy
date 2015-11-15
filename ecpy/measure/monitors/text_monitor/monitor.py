@@ -19,7 +19,7 @@ import enaml
 from atom.api import (List, Dict, ForwardTyped, Property)
 
 from ..base_monitor import BaseMonitor
-from .entries import MonitoredEntry
+from .entry import MonitoredEntry
 
 with enaml.imports():
     from enaml.stdlib.message_box import information

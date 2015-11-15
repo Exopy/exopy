@@ -27,7 +27,7 @@ from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from ecpy.measure.editors.execution_editor import ExecutionEditor
-    from .testing_window import EditorTestingWindow
+    from ecpy.testing.measure.editors.testing_window import EditorTestingWindow
 
 
 @pytest.fixture
