@@ -69,11 +69,9 @@ class NodeModel(Atom):
 
         """
         task, entry = self._find_task_from_entry(entry)
-        print(task.name)
 
         if entry not in task.access_exs:
             task.add_access_exception(entry, 1)
-            print(task.access_exs)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -85,7 +83,6 @@ class NodeModel(Atom):
         Only move events are transparent to the database.
 
         """
-        print('re-order')
         if isinstance(change, ContainerChange):
             if change.collapsed:
                 for c in change.collapsed:
@@ -238,7 +235,6 @@ class EditorModel(Atom):
         """Handle modifications to the access exceptions.
 
         """
-        print('excep', news)
         if isinstance(news, list):
             for n in news:
                 self._react_to_exceptions(n)
@@ -280,7 +276,6 @@ class EditorModel(Atom):
         """Handle modifications of the database nodes.
 
         """
-        print('nodes', news)
         if isinstance(news, list):
             for n in news:
                 self._react_to_nodes(n)
