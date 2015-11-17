@@ -22,7 +22,7 @@ from ecpy.utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
 @python_2_unicode_compatible
-class TestingDeclarator(Declarator):
+class DummyDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 
     """
@@ -62,7 +62,7 @@ def declarators():
     gdecl1 = GroupDeclarator(path='foo')
     gdecl2 = GroupDeclarator(path='bar', group='int')
     gdecl1.insert_children(None, [gdecl2])
-    decl = TestingDeclarator()
+    decl = DummyDeclarator()
     gdecl2.insert_children(None, [decl])
     return (gdecl1, gdecl2, decl)
 

@@ -30,6 +30,7 @@ with enaml.imports():
                                        DContributor5,
                                        PLUGIN_ID)
 
+
 def test_make_extension_validator():
     """Test the building of generic extension validators.
 
@@ -179,20 +180,35 @@ class TestDeclaratorCollector(object):
         """Test contribs update when a new plugin is registered.
 
         """
+        class Witness(object):
+
+            called = 0
+
+            def see(self, change):
+                print('r')
+                self.called += 1
+
+        w = Witness()
+
         self.workbench.register(DContributor2())
         plugin = self.workbench.get_plugin(PLUGIN_ID)
+        plugin.contribs.observe('contributions', w.see)
+
         d = DContributor1()
         self.workbench.register(d)
 
         assert 'contrib1' in plugin.contribs.contributions
+        assert w.called == 1
 
         self.workbench.unregister(d.id)
 
         assert 'contrib1' not in plugin.contribs.contributions
+        assert w.called == 2
 
         plugin.contribs.stop()
 
         assert not plugin.contribs.contributions
+        assert w.called == 2
         assert not plugin.contribs._extensions
 
     def test_factory(self, windows):

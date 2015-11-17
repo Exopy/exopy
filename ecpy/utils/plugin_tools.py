@@ -249,14 +249,15 @@ class ExtensionsCollector(BaseCollector):
         tb = {}
         workbench = self.workbench
         point = workbench.get_extension_point(self.point)
-        extensions = point.extensions
 
         # If no extension remain clear everything
-        if not extensions:
+        if not point or not point.extensions:
             # Force a notification to be emitted.
             self.contributions = {}
             self._extensions.clear()
             return
+
+        extensions = point.extensions
 
         # Get the contributions declarations for all extensions.
         new_extensions = defaultdict(list)
@@ -357,13 +358,14 @@ class DeclaratorsCollector(BaseCollector):
         self._register_decls(extensions)
 
     def _register_decls(self, extensions):
-        """Register the task declaration linked to some extensions.
+        """Register the declaration linked to some extensions.
 
-        Handle multiple registerin attempts.
+        Handle multiple registering attempts.
 
         """
         # Get the declarators for all extensions.
         tb = {}
+        contributions = self.contributions.copy()
         new_extensions = defaultdict(list)
         old_extensions = self._extensions
         for extension in extensions:
@@ -397,6 +399,13 @@ class DeclaratorsCollector(BaseCollector):
             tb['Missing declarations'] = msg.format(self._delayed)
 
         self._extensions.update(new_extensions)
+
+        if self.contributions != contributions:
+            c = self.contributions
+            with self.suppress_notifications():
+                self.contributions = contributions
+            self.contributions = c
+
         if tb:
             core = self.workbench.get_plugin('enaml.workbench.core')
             core.invoke_command('ecpy.app.errors.signal',
@@ -424,10 +433,17 @@ class DeclaratorsCollector(BaseCollector):
         """Unregister the declarations linked to some extensions.
 
         """
+        contributions = self.contributions.copy()
         for extension in extensions:
             for declarator in extensions[extension]:
                 declarator.unregister(self)
             del self._extensions[extension]
+
+        if self.contributions != contributions:
+            c = self.contributions
+            with self.suppress_notifications():
+                self.contributions = contributions
+            self.contributions = c
 
     def _on_contribs_updated(self, change):
         """Update the registered declarations when an extension is
