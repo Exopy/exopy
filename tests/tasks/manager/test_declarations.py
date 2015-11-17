@@ -478,12 +478,11 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
     task = Task(task='ecpy.tasks.tasks.logic.loop_task:LoopTask',
                 view='ecpy.tasks.tasks.logic.views.loop_view:LoopView')
     i = Interface(interface='ecpy.tasks.tasks.logic.loop_iterable_interface:IterableLoopInterface',
-                  views=['views.loop_iterable_view:IterableLoopLabel'])
+                  views=['_dumy__:Test', 'ecpy.testing.broken_enaml:Task'])
     task.insert_children(None, [i])
-    i.views = ['ecpy.testing.broken_enaml:Task']
     task.register(collector, tb)
-    assert ('ecpy.LoopTask.IterableLoopInterface' in tb and
-            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface'])
+    assert ('ecpy.LoopTask.IterableLoopInterface_1' in tb and
+            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
 
 
 def test_register_interface_decl_view2(int_decl, collector):
