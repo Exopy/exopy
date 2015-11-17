@@ -12,17 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from importlib import import_module
 from traceback import format_exc
 from inspect import cleandoc
 
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Value, Dict, Property
 from enaml.core.api import d_
-import enaml
 
 from .infos import TaskInfos, InterfaceInfos, ConfigInfos
-from ...utils.declarator import Declarator, GroupDeclarator
+from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
 def check_children(declarator):
@@ -141,36 +139,27 @@ class Task(Declarator):
         infos = TaskInfos(metadata=self.metadata, instruments=self.instruments)
 
         # Get the task class.
+        t_cls = import_and_get(t_path, task, traceback, task_id)
+        if t_cls is None:
+            return
+
         try:
-            infos.cls = getattr(import_module(t_path), task)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[task_id] = msg.format(t_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[task_id] = msg.format(t_path, task, format_exc())
-            return
+            infos.cls = t_cls
         except TypeError:
             msg = '{} should a subclass of BaseTask.\n{}'
-            traceback[task_id] = msg.format(task, format_exc())
+            traceback[task_id] = msg.format(t_cls, format_exc())
             return
 
         # Get the task view.
+        t_view = import_and_get(v_path, view, traceback, task_id)
+        if t_view is None:
+            return
+
         try:
-            with enaml.imports():
-                infos.view = getattr(import_module(v_path), view)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[task_id] = msg.format(v_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[task_id] = msg.format(v_path, view, format_exc())
-            return
+            infos.view = t_view
         except TypeError:
-            msg = '{} view should a subclass of BaseTaskView.\n{}'
-            traceback[task_id] = msg.format(task, format_exc())
+            msg = '{} should a subclass of BaseTaskView.\n{}'
+            traceback[task_id] = msg.format(t_cls, format_exc())
             return
 
         # Check children type.
@@ -372,36 +361,32 @@ class Interface(Declarator):
         infos = InterfaceInfos(instruments=self.instruments)
 
         # Get the interface class.
+        i_cls = import_and_get(i_path, interface, traceback, self.id)
+        if i_cls is None:
+            return
+
         try:
-            infos.cls = getattr(import_module(i_path), interface)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[self.id] = msg.format(i_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[self.id] = msg.format(i_path, interface, format_exc())
-            return
+            infos.cls = i_cls
         except TypeError:
-            msg = 'Interface {} should a subclass of BaseInterface.\n{}'
-            traceback[self.id] = msg.format(interface, format_exc())
+            msg = '{} should a subclass of BaseInterface.\n{}'
+            traceback[self.id] = msg.format(i_cls, format_exc())
             return
 
         # Get the views.
-        try:
-            with enaml.imports():
-                cls = []
-                for v_path, view in views:
-                    cls.append(getattr(import_module(v_path), view))
-                infos.views = cls
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[self.id] = msg.format(v_path, format_exc())
+        store = []
+        v_id = self.id
+        counter = 1
+        for v_path, view in views:
+            if v_id in traceback:
+                v_id = self.id + '_%d' % counter
+                counter += 1
+            view = import_and_get(v_path, view, traceback, v_id)
+            if view is not None:
+                store.append(view)
+
+        if len(views) != len(store):  # Some error occured
             return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[self.id] = msg.format(v_path, view, format_exc())
-            return
+        infos.views = store
 
         # Check children type.
         check = check_children(self)
@@ -542,36 +527,27 @@ class TaskConfig(Declarator):
         infos = ConfigInfos()
 
         # Get the config class.
+        c_cls = import_and_get(c_path, config, traceback, self.id)
+        if c_cls is None:
+            return
+
         try:
-            infos.cls = getattr(import_module(c_path), config)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[self.id] = msg.format(c_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[self.id] = msg.format(c_path, config, format_exc())
-            return
+            infos.cls = c_cls
         except TypeError:
             msg = '{} should a subclass of BaseTaskConfig.\n{}'
-            traceback[self.id] = msg.format(config, format_exc())
+            traceback[self.id] = msg.format(c_cls, format_exc())
             return
 
         # Get the config view.
+        view = import_and_get(v_path, view, traceback, self.id)
+        if view is None:
+            return
+
         try:
-            with enaml.imports():
-                infos.view = getattr(import_module(v_path), view)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[self.id] = msg.format(v_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} config no attribute {}:\n{}'
-            traceback[self.id] = msg.format(v_path, view, format_exc())
-            return
+            infos.view = view
         except TypeError:
-            msg = '{} view should a subclass of BaseConfigView.\n{}'
-            traceback[self.id] = msg.format(config, format_exc())
+            msg = '{} should a subclass of BaseConfigView.\n{}'
+            traceback[self.id] = msg.format(c_cls, format_exc())
             return
 
         collector.contributions[self.task] = infos

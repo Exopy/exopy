@@ -18,7 +18,7 @@ from future.utils import python_2_unicode_compatible
 from atom.api import Bool
 from enaml.core.api import Declarative
 
-from ecpy.utils.declarator import Declarator, GroupDeclarator
+from ecpy.utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
 @python_2_unicode_compatible
@@ -130,3 +130,21 @@ def test_group_registering3(declarators):
     gr.register(None, tb)
 
     assert 'Error 0' in tb
+
+
+def test_import_and_get():
+    """Test the behavior of the import and get utility function.
+
+    """
+    assert (import_and_get('ecpy.utils.declarator', 'Declarator', {}, '') is
+            Declarator)
+
+    tb = {}
+    import_and_get('___ecpy', 'r', tb, 'test')
+    assert 'ImportError' in tb['test']
+
+    import_and_get('ecpy.testing.broken_enaml', 'r', tb, 'test')
+    assert 'NameError' in tb['test']
+
+    import_and_get('ecpy.utils.declarator', '___D', tb, 'test')
+    assert 'AttributeError' in tb['test']

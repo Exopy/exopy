@@ -137,13 +137,23 @@ def test_register_task_decl_duplicate2(collector, task_decl):
 
 
 def test_register_task_decl_taskcls1(collector, task_decl):
-    """Test handling task class issues : failed import.
+    """Test handling task class issues : failed import no such module.
 
     """
     tb = {}
     task_decl.task = 'ecpy.tasks.foo:Task'
     task_decl.register(collector, tb)
     assert 'ecpy.Task' in tb and 'import' in tb['ecpy.Task']
+
+
+def test_register_task_decl_taskcls1_bis(collector, task_decl):
+    """Test handling task class issues : failed import error while importing.
+
+    """
+    tb = {}
+    task_decl.task = 'ecpy.testing.broken_module:Task'
+    task_decl.register(collector, tb)
+    assert 'ecpy.Task' in tb and 'NameError' in tb['ecpy.Task']
 
 
 def test_register_task_decl_taskcls2(collector, task_decl):
@@ -167,13 +177,23 @@ def test_register_task_decl_taskcls3(collector, task_decl):
 
 
 def test_register_task_decl_view1(collector, task_decl):
-    """Test handling view issues : failed import.
+    """Test handling view issues : failed import no such module.
 
     """
     tb = {}
     task_decl.view = 'ecpy.tasks.foo:Task'
     task_decl.register(collector, tb)
     assert 'ecpy.RootTask' in tb and 'import' in tb['ecpy.RootTask']
+
+
+def test_register_task_decl_view1_bis(collector, task_decl):
+    """Test handling view issues : failed import error while importing.
+
+    """
+    tb = {}
+    task_decl.view = 'ecpy.testing.broken_enaml:Task'
+    task_decl.register(collector, tb)
+    assert 'ecpy.RootTask' in tb and 'NameError' in tb['ecpy.RootTask']
 
 
 def test_register_task_decl_view2(collector, task_decl):
@@ -389,14 +409,31 @@ def test_register_interface_decl_duplicate2(int_decl, collector):
 
 
 def test_register_interface_decl_cls1(int_decl, collector):
-    """Test handling interface class issues : failed import.
+    """Test handling interface class issues : failed import wrong path.
 
     """
     tb = {}
     task, i = int_decl
     i.interface = 'foo.bar:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.baz' in tb
+    assert ('ecpy.LoopTask.baz' in tb and
+            'ImportError' in tb['ecpy.LoopTask.baz'])
+
+
+def test_register_interface_decl_cls1_bis(collector):
+    """Test handling interface class issues : failed import Name error.
+
+    """
+    tb = {}
+    task = Task(task='ecpy.tasks.tasks.logic.loop_task:LoopTask',
+                view='ecpy.tasks.tasks.logic.views.loop_view:LoopView')
+    i = Interface(interface='loop_iterable_interface:IterableLoopInterface',
+                  views=['views.loop_iterable_view:IterableLoopLabel'])
+    task.insert_children(None, [i])
+    i.interface = 'ecpy.testing.broken_module:Test'
+    task.register(collector, tb)
+    assert ('ecpy.LoopTask.Test' in tb and
+            'NameError' in tb['ecpy.LoopTask.Test'])
 
 
 def test_register_interface_decl_cls2(int_decl, collector):
@@ -423,7 +460,7 @@ def test_register_interface_decl_cls3(collector, int_decl):
 
 
 def test_register_interface_decl_view1(int_decl, collector):
-    """Test handling view issues : failed import.
+    """Test handling view issues : failed import due to wrong path.
 
     """
     tb = {}
@@ -431,6 +468,22 @@ def test_register_interface_decl_view1(int_decl, collector):
     i.views = 'foo.bar:baz'
     task.register(collector, tb)
     assert 'ecpy.LoopTask.IterableLoopInterface' in tb
+
+
+def test_register_interface_decl_view1_bis(int_decl, collector):
+    """Test handling view issues : failed import due to NameError.
+
+    """
+    tb = {}
+    task = Task(task='ecpy.tasks.tasks.logic.loop_task:LoopTask',
+                view='ecpy.tasks.tasks.logic.views.loop_view:LoopView')
+    i = Interface(interface='ecpy.tasks.tasks.logic.loop_iterable_interface:IterableLoopInterface',
+                  views=['views.loop_iterable_view:IterableLoopLabel'])
+    task.insert_children(None, [i])
+    i.views = ['ecpy.testing.broken_enaml:Task']
+    task.register(collector, tb)
+    assert ('ecpy.LoopTask.IterableLoopInterface' in tb and
+            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface'])
 
 
 def test_register_interface_decl_view2(int_decl, collector):
@@ -659,13 +712,23 @@ def test_register_config_decl_duplicate2(collector, config_decl):
 
 
 def test_register_config_decl_cls1(collector, config_decl):
-    """Test handling task class issues : failed import.
+    """Test handling task class issues : failed import wrong path.
 
     """
     tb = {}
     config_decl.config = 'ecpy.tasks.foo:Task'
     config_decl.register(collector, tb)
     assert 'ecpy.Task' in tb and 'import' in tb['ecpy.Task']
+
+
+def test_register_config_decl_cls1_bis(collector, config_decl):
+    """Test handling task class issues : failed import NameError.
+
+    """
+    tb = {}
+    config_decl.config = 'ecpy.testing.broken_module:Task'
+    config_decl.register(collector, tb)
+    assert 'ecpy.Task' in tb and 'NameError' in tb['ecpy.Task']
 
 
 def test_register_task_decl_cls2(collector, config_decl):
@@ -689,13 +752,23 @@ def test_register_task_decl_cls3(collector, config_decl):
 
 
 def test_register_config_decl_view1(collector, config_decl):
-    """Test handling view issues : failed import.
+    """Test handling view issues : failed import wrong path.
 
     """
     tb = {}
     config_decl.view = 'ecpy.tasks.foo:Task'
     config_decl.register(collector, tb)
     assert 'ecpy.PyTaskConfig' in tb and 'import' in tb['ecpy.PyTaskConfig']
+
+
+def test_register_config_decl_view1bis(collector, config_decl):
+    """Test handling view issues : failed import NameError.
+
+    """
+    tb = {}
+    config_decl.view = 'ecpy.testing.broken_module:Task'
+    config_decl.register(collector, tb)
+    assert 'ecpy.PyTaskConfig' in tb and 'NameError' in tb['ecpy.PyTaskConfig']
 
 
 def test_register_config_decl_view2(collector, config_decl):
