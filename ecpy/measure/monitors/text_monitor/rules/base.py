@@ -164,9 +164,12 @@ class RuleType(Declarator):
         """
         if self.is_registered:
             # Remove infos.
-            rule = self.rule.split(':')[1]
+            path = self.get_path()
+            r_path, rule = (path + '.' + self.rule
+                            if path else self.rule).split(':')
+            rule_id = r_path.split('.', 1)[0] + '.' + rule
             try:
-                del collector.contributions[rule]
+                del collector.contributions[rule_id]
             except KeyError:
                 pass
 
@@ -178,7 +181,7 @@ class RuleType(Declarator):
         """
         msg = cleandoc('''{} with:
                        rule: {}, view : {}''')
-        pack, _ = self.__module__.__name__.split('.', 1)
+        pack, _ = self.__module__.split('.', 1)
         return msg.format(pack + '.' + type(self).__name__,
                           self.rule, self.view)
 
