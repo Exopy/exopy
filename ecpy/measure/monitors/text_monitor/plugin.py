@@ -106,17 +106,20 @@ class TextMonitorPlugin(HasPrefPlugin):
         if not isinstance(name_or_config, dict):
             if name_or_config in self._user_rules:
                 config = self._user_rules[name_or_config].copy()
-            elif name_or_config in self._rule_configs:
-                rule_config = self._rule_configs[name_or_config]
-                config = rule_config.configs.copy()
+                config['id'] = name_or_config
+            elif name_or_config in self._rule_configs.contributions:
+                rule_config = self._rule_configs.contributions[name_or_config]
+                config = rule_config.config.copy()
                 config['class_id'] = rule_config.rule_type
+                config['description'] = rule_config.description
+                config['id'] = name_or_config
             else:
                 msg = 'Requested rule not found : {}'.format(name_or_config)
                 logger.warn(msg)
                 return
 
         else:
-            config = name_or_config
+            config = name_or_config.copy()
 
         class_id = config.pop('class_id')
         rule_infos = self._rule_types.contributions.get(class_id)
@@ -139,14 +142,15 @@ class TextMonitorPlugin(HasPrefPlugin):
         """CReate a view corresponding to the given object.
 
         """
-        return self._rule_types.contributions[rule].view(rule=rule,
-                                                         plugin=self)
+        return self._rule_types.contributions[rule.class_id].view(rule=rule,
+                                                                  plugin=self)
 
     def save_rule(self, rule):
         """Add a rule present on a plugin to the saved rules.
 
         """
         self._user_rules[rule.id] = rule.preferences_from_members()
+        self._update_rules(None)
 
     def create_monitor(self, default=False):
         """ Create a new monitor.
@@ -170,14 +174,9 @@ class TextMonitorPlugin(HasPrefPlugin):
         if default:
             rules = []
             for rule_name in self.default_rules:
-                config = self.rules.get(rule_name).copy()
-                if config is not None:
-                    rule = self.build_rule(config)
+                rule = self.build_rule(rule_name)
+                if rule:
                     rules.append(rule)
-                else:
-                    logger = logging.getLogger(__name__)
-                    mess = 'Requested rule not found : {}'.format(rule_name)
-                    logger.warn(mess)
 
             monitor.rules = rules
 
