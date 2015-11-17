@@ -102,9 +102,9 @@ class FormatRule(BaseRule):
                     # If requested hide all the entries redundant with the
                     # one created by the rule.
                     if self.hide_entries:
-                        for prefixed_entry in prefixed_entries:
+                        for e in depend:
                             for entry in monitor.displayed_entries:
-                                if entry.path == prefixed_entry:
+                                if entry.path == e:
                                     monitor.move_entries('displayed', 'hidden',
                                                          (entry,))
                                     break
