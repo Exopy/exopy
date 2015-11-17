@@ -23,7 +23,7 @@ pytest_plugins = str('ecpy.testing.measure.fixtures'),
 
 
 @pytest.yield_fixture
-def text_monitor_workbench(app, measure_workbench):
+def text_monitor_workbench(windows, measure_workbench):
     """Register the text monitor manifest.
 
     """

@@ -20,7 +20,7 @@ def test_entry_formatting():
     """Test that we can correctly format an entry.
 
     """
-    e = MonitoredEntry(name='test', formating='{a} = {b}',
+    e = MonitoredEntry(name='test', formatting='{a} = {b}',
                        depend_on=['a', 'b'])
 
     e.update(dict(a=1, b=2, c=3))

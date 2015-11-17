@@ -14,16 +14,15 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from inspect import cleandoc
-from importlib import import_module
 from traceback import format_exc
 
-import enaml
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Dict
 from enaml.core.api import Declarative, d_
 
 from .....utils.atom_util import HasPrefAtom
-from .....utils.declarator import Declarator, GroupDeclarator
+from .....utils.declarator import (Declarator, GroupDeclarator,
+                                   import_and_get)
 
 
 class BaseRule(HasPrefAtom):
@@ -132,40 +131,27 @@ class RuleType(Declarator):
         r_infos = RuleInfos()
 
         # Get the rule class.
+        rule_cls = import_and_get(r_path, rule, traceback, rule_id)
+        if rule_cls is None:
+            return
+
         try:
-            r_infos.cls = getattr(import_module(r_path), rule)
-        except ImportError:
-            msg = 'Failed to import {} :\n{}'
-            traceback[rule_id] = msg.format(r_path, format_exc())
-            return
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[rule_id] = msg.format(r_path, rule, format_exc())
-            return
+            r_infos.cls = rule_cls
         except TypeError:
             msg = '{} should a subclass of BaseRule.\n{}'
-            traceback[rule_id] = msg.format(rule, format_exc())
+            traceback[rule_id] = msg.format(rule_cls, format_exc())
             return
 
         # Get the rule view.
-        with enaml.imports():
-            try:
-
-                mod = import_module(v_path)
-            except Exception:
-                msg = 'Failed to import {} :\n{}'
-                traceback[rule_id] = msg.format(v_path, format_exc())
-                return
+        rule_view = import_and_get(v_path, view, traceback, rule_id)
+        if rule_view is None:
+            return
 
         try:
-            r_infos.view = getattr(mod, view)
-        except AttributeError:
-            msg = '{} has no attribute {}:\n{}'
-            traceback[rule_id] = msg.format(v_path, view, format_exc())
-            return
+            r_infos.view = rule_view
         except TypeError:
-            msg = '{} view should a subclass of BaseRuleView.\n{}'
-            traceback[rule_id] = msg.format(rule, format_exc())
+            msg = '{} should a subclass of BaseRuleView.\n{}'
+            traceback[rule_id] = msg.format(rule_view, format_exc())
             return
 
         collector.contributions[rule_id] = r_infos
