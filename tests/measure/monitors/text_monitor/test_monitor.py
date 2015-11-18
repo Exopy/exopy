@@ -26,8 +26,8 @@ def monitor(text_monitor_workbench):
     """Bare text monitor as created by the plugin.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
-    return p.create_monitor(False)
+    p = text_monitor_workbench.get_plugin('ecpy.measurr')
+    return p.create('monitor', 'ecpy.Text monitor', False)
 
 
 def test_create_default_entry(monitor):
@@ -361,3 +361,44 @@ def test_known_monitored_entries(monitor):
     test = {'test': 1, '2': 'aux'}
     monitor._database_values = test
     assert sorted(monitor.known_monitored_entries) == sorted(test)
+
+
+# XXXX
+def test_edition_window(text_monitor_workbench):
+    """Test the capabalities of the widget used to edit a text monitor.
+
+    """
+    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    m = p.create_monitor(False)
+    # Need to apply a format rule
+    m.handle_database_change(('added', 'root/test', 0))
+    m.handle_database_change(('added', 'root/simp/test', 0))
+    m.handle_database_change(('added', 'root/comp/test', 0))
+    # Need a custom entry
+    return m
+
+    # Test hide all
+
+    # Test show one
+
+    # Test hide one
+
+    # Test hide all
+
+    # Test show hidden
+
+    # Test edit rules
+
+    # Test add entry
+
+    # Test edit entry
+
+    # Test delete entry
+
+
+def test_text_monitor_item(test_monitor_workbench, monitor, measure):
+    """Test that the dock item of the text monitor does display the right
+    entries.
+
+    """
+    # Check only displayed entries are indeed shown.

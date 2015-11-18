@@ -31,7 +31,9 @@ enamldef CreateRuleDialog(Dialog): dial:
     #: Reference to the text monitor plugin.
     attr plugin
 
-    title = 'Create a rule'
+    title = 'Select/Create a rule'
+
+    # XXXX use a notebook to allow selecting among existing rules
 
     Container:
         constraints << [vbox(
@@ -50,7 +52,7 @@ enamldef CreateRuleDialog(Dialog): dial:
                         if dial.rule else []):
 
         CheckBox: sav:
-            text = 'Save in plugin'
+            text = 'Save in preferences'
 
         PushButton: ok:
             text = 'Ok'
@@ -82,7 +84,7 @@ enamldef EditRulesView(Dialog): dial:
                             hbox(spacer, ex))]
         QtListStrWidget: qlist:
             items << monitor.rules
-            to_string = attrgetter('name')
+            to_string = attrgetter('id')
 
         Include: v:
             objects << ([plugin.get_rule_view(qlist.selected)]

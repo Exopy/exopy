@@ -81,6 +81,7 @@ enamldef FormatRuleView(BaseRuleView):
 
     PushButton: edit:
         text = 'Edit'
+        enabled << bool(qt.selected_item)
         clicked ::
             old = qt.selected_item
             dial = SuffixField(suffix = old)
@@ -89,6 +90,7 @@ enamldef FormatRuleView(BaseRuleView):
 
     PushButton: delete:
         text = 'Delete'
+        enabled << bool(qt.selected_item)
         clicked :: del rule.suffixes[qt.selected_index]
 
     Label: suff_lab:

@@ -74,3 +74,25 @@ def test_format_rule(monitor):
     f.try_apply('root/simp/test_number', monitor)
     assert len(monitor.displayed_entries) == 5
     assert len(monitor.hidden_entries) == 2
+
+
+def test_reject_rule_editor(monitor):
+    """
+    """
+    pass
+    # Test editing suffix
+
+
+def test_format_rule_editor(monitor):
+    """
+    """
+    pass
+    # Test adding filtering suffix
+
+    # Test editing filtering suffix
+
+    # Test deleting filtering suffix
+
+    # Set new suffix
+
+    # Set new formatting

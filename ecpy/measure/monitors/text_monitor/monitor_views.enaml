@@ -166,22 +166,13 @@ enamldef TextMonitorItem(BaseMonitorItem):
     """
     title = 'Text monitor'
 
-    Container:
-        constraints << [vbox(name, hbox(sta_lab, sta, spacer), form)]
-        Label: name:
-            font = 'bold 12pt'
-            text << monitor.meaure.name + ' ' + monitor.meaure.id
-        Label: sta_lab:
-            text = 'Measure status : '
-        Label: sta:
-            text << monitor.measure.status
-        Form: form:
-            Looper:
-                iterable << sorted(monitor.displayed_entries,
-                                   key=attrgetter('path'))
-                Label:
-                    hug_width = 'strong'
-                    text << loop_item.name
-                Field:
-                    read_only = True
-                    text << loop_item.value
+    Form: form:
+        Looper:
+            iterable << sorted(monitor.displayed_entries,
+                               key=attrgetter('path'))
+            Label:
+                hug_width = 'strong'
+                text << loop_item.name
+            Field:
+                read_only = True
+                text << loop_item.value
