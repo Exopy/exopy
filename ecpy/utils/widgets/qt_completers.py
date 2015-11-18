@@ -124,7 +124,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
         """Update the completer completion model.
 
         """
-        self.setModel(QtGui.QStringListModel(entries, self.completer))
+        self.setModel(QtGui.QStringListModel(entries))
 
     def _text_edit_complete(self):
         """Propose completion for QTextEdit.

@@ -19,8 +19,9 @@ from enaml.widgets.api import (ObjectCombo, Dialog, Container, Field, Label,
                                PushButton)
 from enaml.layout.api import hbox, vbox, spacer
 
-from ....utils.widgets.qt_line_completer import QtLineCompleter
+from ....utils.widgets.qt_completers import QtLineCompleter
 from ....utils.widgets.list_editor import ListEditor
+from .entry import MonitoredEntry
 
 
 class _Entry(Atom):
@@ -72,7 +73,7 @@ class _EntryBuilder(Atom):
 
         # Build easy to understand entries names from the full paths of the
         # database.
-        entries = monitor.all_database_entries
+        entries = monitor.known_monitored_entries
         short_entries = [entry.rsplit('/', 1)[1] for entry in entries]
         depth = 2
 
@@ -85,11 +86,10 @@ class _EntryBuilder(Atom):
         # If we are editing an already existing entry get additional infos from
         # it.
         if new_entry:
-            aux = self.map_entries.iteritems()
+            reversed_map = {v: k for k, v in self.map_entries.iteritems()}
             entries = self.map_entries.keys()
-            self.used_entries = [_Entry(entry=key, entries=entries)
-                                 for key, val in aux
-                                 if val in new_entry.depend_on]
+            self.used_entries = [_Entry(entry=reversed_map[d], entries=entries)
+                                 for d in new_entry.depend_on]
 
     def format_(self, format_str):
         """ Replaced simplified names in a string by full path.
@@ -112,7 +112,7 @@ class _EntryBuilder(Atom):
         """
         mapping = self.map_entries
         repl = {name: '{'+mapping[name]+'}'
-                for name in self.get_used_names()}
+                for name in self.get_used_paths()}
         return format_str.format(**repl)
 
     def add_entry(self, index, pos):
@@ -121,7 +121,7 @@ class _EntryBuilder(Atom):
         """
         new = self.used_entries[:]
         index = index + 1 if pos == 'after' else index
-        new.insert(insert, _Entry(entries=list(self.map_entries.keys())))
+        new.insert(index, _Entry(entries=list(self.map_entries.keys())))
         self.used_entries = new
 
     def remove_entry(self, index):
@@ -137,8 +137,8 @@ class _EntryBuilder(Atom):
 
         """
         mapping = self.map_entries
-        used = used_entries
-        return [mapping[e.entry] for e in used if e.entry in mapping]
+        used = self.used_entries
+        return {e.entry: mapping[e.entry] for e in used if e.entry in mapping}
 
     @staticmethod
     def _remove_duplicates(entries, short_entries, depth):
@@ -153,7 +153,7 @@ class _EntryBuilder(Atom):
         for entry in duplicate:
             indexes = [i for i, x in enumerate(short_entries) if x == entry]
             for i in indexes:
-                short_entries[i] = '/'.join(entries[i].split('/')[-depth:-1])
+                short_entries[i] = '/'.join(entries[i].split('/')[-depth:])
 
         return True
 
@@ -169,18 +169,19 @@ enamldef EntryDialog(Dialog): dial:
     attr entry
 
     #: Model class doing the database path manipulations.
-    attr builder = _EntryBuilder(monitor, new_entry)
+    attr builder = _EntryBuilder(monitor, entry)
 
     title = 'Edit entry' if entry else 'Create entry'
 
     Container:
-        constraints << [vbox(hbox(name_lab, name), entries, list,
+        constraints << [vbox(hbox(name_lab, name), entries, l_editor,
                              hbox(for_lab, formating),
                              hbox(spacer, cancel, ok))]
         Label: name_lab:
             text = 'Name'
         Field: name:
             hug_width = 'medium'
+            # TODO add a validator preventing shadowing any names already there
 
         Label: entries:
             text = 'Entries'
@@ -188,26 +189,25 @@ enamldef EntryDialog(Dialog): dial:
         ListEditor(_EntrySelection): l_editor:
             l_editor.model << builder
             l_editor.iterable_name = 'used_entries'
-            l_editor.operations = {'add': }
+            l_editor.operations = {'add': builder.add_entry,
+                                   'remove': builder.remove_entry}
 
         Label:for_lab:
             text = 'Formatting'
         QtLineCompleter: formating:
-            entries_updater = builder.get_used_names
+            entries << [e.entry for e in builder.used_entries]
 
         PushButton: ok:
             text = 'Ok'
             clicked::
-                # If we are not editing an existing MonitoredEntry creates one.
-                if not dial.entry:
-                    formatting = builder.format_(formating.text)
-                    dependences = builder.get_used_paths()
-                    entry = MonitoredEntry(name=name.text,
-                                           path=name.text,
-                                           formatting=formatting,
-                                           depend_on=dependences
-                                           )
-                    dial.entry = entry
+                formatting = builder.format_(formating.text)
+                dependences = list(builder.get_used_paths().values())
+                entry = MonitoredEntry(name=name.text,
+                                       path=name.text,
+                                       formatting=formatting,
+                                       depend_on=dependences
+                                       )
+                dial.entry = entry
 
                 dial.accept()
 
