@@ -64,11 +64,6 @@ class TextMonitor(BaseMonitor):
     #: List of all the known database entries.
     known_monitored_entries = Property()
 
-    def start(self):
-        """
-        """
-        pass
-
     def process_news(self, news):
         """Handle a news by calling every related entrt updater.
 
@@ -169,7 +164,10 @@ class TextMonitor(BaseMonitor):
         # Get the definitions of the rules.
         for i, rule in enumerate(self.rules):
             aux = 'rule_{}'.format(i)
-            prefs[aux] = rule.preferences_from_members()
+            if rule.id in self.monitor._rule_configs:
+                prefs[aux] = rule.id
+            else:
+                prefs[aux] = rule.preferences_from_members()
 
         # Get the state of each entry based on its path.
         prefs['displayed'] = repr([e.path for e in self.displayed_entries])

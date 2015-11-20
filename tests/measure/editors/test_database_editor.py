@@ -28,7 +28,7 @@ from ecpy.testing.util import process_app_events
 with enaml.imports():
     from ecpy.measure.editors.database_access_editor import\
         DatabaseAccessEditor
-    from ecpy.testing.measure.editors.testing_window import EditorTestingWindow
+    from ecpy.testing.windows import PageTestingWindow
 
 
 @pytest.fixture
@@ -212,7 +212,7 @@ def test_editor_widget(windows, task, dialog_sleep):
 
     editor = DatabaseAccessEditor(declaration=Editor(id='ecpy.database'),
                                   selected_task=task)
-    window = EditorTestingWindow(editor=editor)
+    window = PageTestingWindow(widget=editor)
     window.show()
     process_app_events()
     sleep(dialog_sleep)

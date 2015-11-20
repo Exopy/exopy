@@ -16,7 +16,8 @@ from operator import attrgetter
 
 from enaml.layout.api import hbox, spacer, vbox
 from enaml.widgets.api import (PushButton, Container, Dialog, CheckBox,
-                               ObjectCombo)
+                               ObjectCombo, Notebook, Page)
+from enaml.stdlib.message_box import warning
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 
@@ -33,34 +34,69 @@ enamldef CreateRuleDialog(Dialog): dial:
 
     title = 'Select/Create a rule'
 
-    # XXXX use a notebook to allow selecting among existing rules
-
-    Container:
-        constraints << [vbox(
-                        com, vbox(*v.objects),
-                        hbox(spacer, ok, cancel))
-                        ]
-
-        ObjectCombo: com:
-            items << plugin.rule_types
-            selected = None
+    Notebook:
+        Page: p_select:
+            attr rule
+            title = 'Existing rules'
             selected ::
-                dial.rule = plugin.get_rule_type(selected)()
+                dial.rule = self.rule
 
-        Include: v:
-            objects << ([plugin.get_rule_view(dial.rule.class_id)]
-                        if dial.rule else []):
+            Container:
+                constraints = [hbox(qlist, *v.objects)]
 
-        CheckBox: sav:
-            text = 'Save in preferences'
+                QtListStrWidget: qlist:
+                    items = plugin.rules
+                    selected_item::
+                        p_select.rule = plugin.build_rule(selected_item)
+                        dial.rule = p_select.rule
+
+                Include: v_select:
+                    enabled = False
+                    objects << ([plugin.get_rule_view(p_select.rule)]
+                                if p_select.rule else [])
+
+        Page: p_build:
+            title = 'Build rule'
+            attr rule
+
+            selected ::
+                dial.rule = self.rule
+
+            Container:
+                constraints << [vbox(
+                                com, vbox(*v.objects),
+                                hbox(spacer, ok, cancel))
+                                ]
+
+                ObjectCombo: com:
+                    items << plugin.rule_types
+                    selected = None
+                    selected ::
+                        p_build.rule = plugin.get_rule_type(selected)()
+                        dial_rule = p_build.rule
+
+                Include: v_build:
+                    objects << ([plugin.get_rule_view(p_build.rule)]
+                                if p_build.rule else []):
+
+                CheckBox: sav:
+                    text = 'Save in preferences'
 
         PushButton: ok:
             text = 'Ok'
-            enabled << 1
+            enabled << dial.rule
             clicked ::
-                if sav.checked:
-                    plugin.save_rule(rule)
-                dial.accept()
+                if dial.rule is p_select.rule:
+                    v = v_select.objects[0]
+                else:
+                    v = v_build.objects[0]
+                res, msg = v.validate()
+                if not res:
+                    warning(self, 'Wrong parameters', msg)
+                else:
+                    if sav.checked:
+                        plugin.save_rule(rule)
+                    dial.accept()
 
         PushButton: cancel:
             text = 'Cancel'
@@ -93,7 +129,7 @@ enamldef EditRulesView(Dialog): dial:
         PushButton: add:
             text = 'Add'
             clicked ::
-                dial = CreateRuleDialog()
+                dial = CreateRuleDialog(plugin=monitor.plugin)
                 if dial.exec_():
                     monitor.rules.append(dial.rule)
                     qlist.refresh_items()
@@ -107,6 +143,9 @@ enamldef EditRulesView(Dialog): dial:
         PushButton: save:
             text = 'Save'
             tool_tip = 'Save the rule definition into the preferences'
+            enabled << (bool(qlist.selected) and
+                        bool(qlist.selected.id not in
+                             monitor.plugin._rule_configs))
             Menu:
                 Action:
                     text = 'Save'

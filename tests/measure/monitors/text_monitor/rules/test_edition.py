@@ -26,11 +26,20 @@ with enaml.imports():
 
 pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
 
+PLUGIN_ID = 'ecpy.measure.monitors.text_monitor'
 
-def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep):
+
+@pytest.fixture(params=[True, False])
+def should_save(request):
+    return request.param
+
+
+def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep,
+                              should_save):
+    """Test the creation of a new rule using the dialog.
+
     """
-    """
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    p = text_monitor_workbench.get_plugin(PLUGIN_ID)
 
     d = CreateRuleDialog(plugin=p)
     d.show()
@@ -41,16 +50,17 @@ def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep):
 
     # Parametrize rule
 
-    # Choose whether or not to save (use a parametrization of the test function)
+    # Choose whether or not to save: use a parametrization of the test function
 
     # Check the created rule
 
 
-def test_rule_edition_dialog(text_monitor_workbench):
+def test_rule_edition_dialog(text_monitor_workbench, dialog_sleep):
+    """Test editing a rule using the dialog widget.
+
     """
-    """
-     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
-     m = p.create_monitor(False)
+    p = text_monitor_workbench.get_plugin(PLUGIN_ID)
+    m = p.create_monitor(False)
 
     d = EditRulesView(monitor=m)
     d.show()

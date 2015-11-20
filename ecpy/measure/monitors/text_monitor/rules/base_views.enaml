@@ -71,6 +71,21 @@ enamldef BaseRuleView(Container):
     #: attributes.
     alias name_and_desc : cont
 
+    func validate():
+        """Validate that the current state of the rule allow to stop edition.
+
+        Returns
+        -------
+        res : bool
+            Boolean indicating whether or not the state of the rule makes
+            sense to stop editing.
+
+        msg : unicode
+            Message explaning what it is wrong if anything.
+
+        """
+        raise NotImplementedError()
+
     Container: cont:
 
         constraints = [hbox(n_lab, n_val, spacer, desc)]

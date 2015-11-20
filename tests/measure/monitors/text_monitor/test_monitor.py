@@ -12,11 +12,21 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import pytest
+import enaml
+
+from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
 
 from ecpy.measure.monitors.text_monitor.rules.std_rules import (FormatRule,
                                                                 RejectRule)
-from ecpy.testing.util import process_app_events
+from ecpy.testing.util import process_app_events, handle_dialog
+with enaml.imports():
+    from ecpy.testing.windows import (ContainerTestingWindow,
+                                      DockItemTestingWindow)
+    from ecpy.measure.monitors.text_monitor.monitor_views\
+        import (TextMonitorItem, TextMonitorEdit)
 
 pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
 
@@ -26,7 +36,7 @@ def monitor(text_monitor_workbench):
     """Bare text monitor as created by the plugin.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measurr')
+    p = text_monitor_workbench.get_plugin('ecpy.measure')
     return p.create('monitor', 'ecpy.Text monitor', False)
 
 
@@ -363,42 +373,116 @@ def test_known_monitored_entries(monitor):
     assert sorted(monitor.known_monitored_entries) == sorted(test)
 
 
-# XXXX
-def test_edition_window(text_monitor_workbench):
+def test_edition_window(text_monitor_workbench, dialog_sleep):
     """Test the capabalities of the widget used to edit a text monitor.
 
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
     m = p.create_monitor(False)
-    # Need to apply a format rule
+    m.rules.append(p.build_rule(dict(id='test', class_id='ecpy.FormatRule',
+                                     formatting='{index}/{number}',
+                                     suffixes=['index', 'number'],
+                                     new_entry_suffix='progress')))
+    m.custom_entry.append(MonitoredEntry(name='dummy', path='dummy',
+                                         formatting='2*{root/test}',
+                                         depend_on=['root/test']))
     m.handle_database_change(('added', 'root/test', 0))
     m.handle_database_change(('added', 'root/simp/test', 0))
-    m.handle_database_change(('added', 'root/comp/test', 0))
-    # Need a custom entry
-    return m
+    m.handle_database_change(('added', 'root/comp/index', 0))
+    m.handle_database_change(('added', 'root/comp/number', 0))
+
+    w = ContainerTestingWindow(widget=TextMonitorEdit(monitor=m))
+    w.show()
+    process_app_events()
+    sleep(dialog_sleep)
+    editor = w.widget
 
     # Test hide all
+    editor.widgets()[6].clicked = True
+    process_app_events()
+    assert not m.displayed_entries
+    sleep(dialog_sleep)
 
     # Test show one
+    editor.selected = m.undisplayed_entries[0]
+    editor.widgets()[5].clicked = True
+    process_app_events()
+    assert m.displayed_entries
+    sleep(dialog_sleep)
 
     # Test hide one
+    editor.selected = m.displayed_entries[0]
+    editor.widgets()[7].clicked = True
+    process_app_events()
+    assert not m.displayed_entries
+    sleep(dialog_sleep)
 
-    # Test hide all
+    # Test show all
+    editor.widgets()[6].clicked = True
+    process_app_events()
+    assert not m.undisplayed_entries
+    sleep(dialog_sleep)
 
     # Test show hidden
+    editor.widgets()[8].checked = True
+    process_app_events()
+    assert m.hidden_entries
+    for e in m.hidden_entries:
+        assert e in m.undisplayed_entries
 
     # Test edit rules
+    def handle_rule_edition(dialog):
+        # XXXX
+        pass
+
+    with handle_dialog(custom=handle_rule_edition):
+        editor.widgets()[9].clicked = True
+    assert 'dummy' not in [e.name for e in m.displayed_entries]
 
     # Test add entry
+    def handle_entry_creation(dialog):
+        # XXXX
+        pass
+
+    with handle_dialog(custom=handle_entry_creation):
+        editor.widgets()[10].clicked = True
+
+    assert 'new_entry' in [e.name for e in m.displayed_entries]
 
     # Test edit entry
+    e = [e for e in m.displayed_entries if e.name == 'new_entry'][0]
+    editor.selected = e
+    with handle_dialog('reject'):
+        editor.widgets()[11].clicked = True
 
     # Test delete entry
+    with handle_dialog('accept'):
+        editor.widgets()[12].clicked = True
+    assert e not in m.displayed_entries
+
+    m.add_entries('undisplayed', [e])
+    with handle_dialog('accept'):
+        editor.widgets()[12].clicked = True
+    assert e not in m.undisplayed_entries
 
 
-def test_text_monitor_item(test_monitor_workbench, monitor, measure):
+def test_text_monitor_item(test_monitor_workbench, monitor):
     """Test that the dock item of the text monitor does display the right
     entries.
 
     """
     # Check only displayed entries are indeed shown.
+    monitor.handle_database_change(('added', 'root/test', 0))
+    monitor.handle_database_change(('added', 'root/simp/test', 0))
+    monitor.handle_database_change(('added', 'root/comp/index', 0))
+    monitor.move_entries('displayed', 'undisplayed',
+                         monitor.displayed_entries[0])
+    w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor))
+    f = w.widget.widgets()[0]
+    assert (sorted([l.text for l in f.widgets[::2]]) ==
+            sorted([e.name for e in monitor.displayed_entries]))
+    e = monitor.displayed_entries[0]
+    e.name = 'new'
+    e.value = '1'
+    assert f.widgets()[0].text == 'new'
+    assert f.widgets()[1].text == '1'

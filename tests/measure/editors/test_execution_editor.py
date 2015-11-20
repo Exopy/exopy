@@ -27,7 +27,7 @@ from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from ecpy.measure.editors.execution_editor import ExecutionEditor
-    from ecpy.testing.measure.editors.testing_window import EditorTestingWindow
+    from ecpy.testing.windows import PageTestingWindow
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ def test_execution_editor_widget(windows, task, dialog_sleep):
 
     editor = ExecutionEditor(declaration=Editor(id='ecpy.execution_editor'),
                              selected_task=task)
-    window = EditorTestingWindow(editor=editor)
+    window = PageTestingWindow(widget=editor)
     window.show()
     process_app_events()
     sleep(dialog_sleep)

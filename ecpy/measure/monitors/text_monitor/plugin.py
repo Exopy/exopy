@@ -142,8 +142,9 @@ class TextMonitorPlugin(HasPrefPlugin):
         """CReate a view corresponding to the given object.
 
         """
-        return self._rule_types.contributions[rule.class_id].view(rule=rule,
-                                                                  plugin=self)
+        infos = self._rule_types.contributions[rule.class_id]
+        return infos.view(rule=rule, plugin=self,
+                          enabled=(rule.id in self._rule_configs))
 
     def save_rule(self, rule):
         """Add a rule present on a plugin to the saved rules.
@@ -193,6 +194,8 @@ class TextMonitorPlugin(HasPrefPlugin):
     _rule_configs = Typed(ExtensionsCollector)
 
     #: User defined rules config saved in the preferences.
+    #: TODO This should be saved as sperate files in a folder under the
+    #: application folder.
     _user_rules = Dict().tag(pref=True)
 
     def _update_rule_types(self, change):

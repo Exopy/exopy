@@ -6,23 +6,46 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Window used to test task editors behavior.
+"""Window used to test widget.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.core.api import Include
-from enaml.widgets.api import Window, Container, Notebook
+from enaml.widgets.api import Window, Container, Notebook, DockArea
 
 
-enamldef EditorTestingWindow(Window):
-    """Window used to test an editor.
+enamldef ContainerTestingWindow(Window):
+    """Window used to test a container.
 
     """
-    attr editor
+    attr widget
+
+    Container:
+        Include:
+            objects << [widget]
+
+
+enamldef PageTestingWindow(Window):
+    """Window used to test a page.
+
+    """
+    attr widget
 
     Container:
         Notebook:
             Include:
-                objects << [editor]
+                objects << [widget]
+
+
+enamldef DockItemTestingWindow(Window):
+    """Window used to test a dock item.
+
+    """
+    attr widget
+
+    Container:
+        DockArea:
+            Include:
+                objects << [widget]
