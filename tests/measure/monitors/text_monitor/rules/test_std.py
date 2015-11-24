@@ -12,21 +12,39 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import pytest
+import enaml
 
 from ecpy.measure.monitors.text_monitor.rules.std_rules import (RejectRule,
                                                                 FormatRule)
+from ecpy.testing.util import process_app_events
+
+with enaml.imports():
+    from ecpy.measure.monitors.text_monitor.rules.std_views\
+        import SuffixesValidator, RejectRuleView, FormatRuleView
+    from ecpy.testing.windows import ContainerTestingWindow
+
 
 pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
 
 
 @pytest.fixture
-def monitor(text_monitor_workbench):
-    """Text with some entries.
+def plugin(text_monitor_workbench):
+    """Text monitor plugin.
 
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
-    m = p.create_monitor(False)
+    return p
+
+
+@pytest.fixture
+def monitor(plugin):
+    """Text with some entries.
+
+    """
+    m = plugin.create_monitor(False)
     m.handle_database_change(('added', 'root/test_value', 0))
     m.handle_database_change(('added', 'root/test_index', 0))
     m.handle_database_change(('added', 'root/test_number', 0))
@@ -76,23 +94,117 @@ def test_format_rule(monitor):
     assert len(monitor.hidden_entries) == 2
 
 
-def test_reject_rule_editor(monitor):
+def test_suffixes_validator():
+    """Test that the regex does validate only strings that can be seen as lists
+
     """
-    """
-    pass
-    # Test editing suffix
+    v = SuffixesValidator()
+    assert v.validate('e, e_e, e1, r_1')
+    assert not v.validate('e, ')
+    assert not v.validate('e, /')
 
 
-def test_format_rule_editor(monitor):
-    """
-    """
-    pass
-    # Test adding filtering suffix
+def test_reject_rule_editor(windows, plugin, dialog_sleep):
+    """Test editing a reject rule.
 
-    # Test editing filtering suffix
+    """
+    r = RejectRule(suffixes=['foo', 'bar'])
+    w = RejectRuleView(plugin=plugin, rule=r)
 
-    # Test deleting filtering suffix
+    window = ContainerTestingWindow(widget=w)
+    window.show()
+    process_app_events()
+    assert w.widgets()[-1].text == 'foo, bar'
+    sleep(dialog_sleep)
+
+    w.widgets()[-1].text = 'bar'
+    process_app_events()
+    assert r.suffixes == ['bar']
+    sleep(dialog_sleep)
+
+    r.suffixes = ['foo']
+    process_app_events()
+    assert w.widgets()[-1].text == 'foo'
+    sleep(dialog_sleep)
+
+    w.widgets()[-1].text = 'bar, foo, barfoo'
+    process_app_events()
+    assert r.suffixes == ['bar', 'foo', 'barfoo']
+    sleep(dialog_sleep)
+
+    assert w.validate()[0]
+    r.suffixes = []
+    print(r.suffixes, w.rule.suffixes)
+    assert not w.validate()[0]
+
+
+def test_format_rule_editor(windows, plugin, dialog_sleep):
+    """Test editing a format rule.
+
+    """
+    r = FormatRule(suffixes=['foo', 'bar'], new_entry_suffix='barfoo',
+                   new_entry_formatting='{bar}/{foo}')
+    w = FormatRuleView(plugin=plugin, rule=r)
+
+    # Test editing suffixes
+    window = ContainerTestingWindow(widget=w)
+    window.show()
+    process_app_events()
+    widget = w.widgets()[-6]
+    assert widget.text == 'foo, bar'
+    sleep(dialog_sleep)
+
+    widget.text = 'bar'
+    process_app_events()
+    assert r.suffixes == ['bar']
+    sleep(dialog_sleep)
+
+    r.suffixes = ['foo']
+    process_app_events()
+    assert widget.text == 'foo'
+    sleep(dialog_sleep)
+
+    widget.text = 'bar, foo, barfoo'
+    process_app_events()
+    assert r.suffixes == ['bar', 'foo', 'barfoo']
+    sleep(dialog_sleep)
 
     # Set new suffix
+    widget = w.widgets()[-4]
+    assert widget.text == 'barfoo'
+    widget.text = 'foobar'
+    process_app_events()
+    assert r.new_entry_suffix == 'foobar'
+    sleep(dialog_sleep)
 
     # Set new formatting
+    widget = w.widgets()[-2]
+    assert widget.text == '{bar}/{foo}'
+    widget.text = '{foo}/{bar}'
+    process_app_events()
+    assert r.new_entry_formatting == '{foo}/{bar}'
+    sleep(dialog_sleep)
+
+    # Set hide entries
+    widget = w.widgets()[-1]
+    assert widget.checked
+    widget.checked = False
+    process_app_events()
+    assert not r.hide_entries
+    sleep(dialog_sleep)
+
+    # Test validate function
+    r.suffixes = ['foo', 'bar']
+    assert w.validate()[0]
+    r.suffixes = []
+    assert not w.validate()[0]
+    r.suffixes = ['foo', 'bar']
+    assert w.validate()
+
+    r.new_entry_suffix = ''
+    assert not w.validate()[0]
+    r.new_entry_suffix = 'foobar'
+    assert w.validate()[0]
+
+    r.new_entry_formatting = '{foo}'
+    assert not w.validate()[0]

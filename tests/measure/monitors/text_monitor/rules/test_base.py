@@ -213,7 +213,7 @@ def test_unregister_rule_decl2(collector, rule_decl):
     # Would raise an error if the error was not properly catched.
 
 
-def test_str_ruele(rule_decl):
+def test_str_rule(rule_decl):
     """Test string representation.
 
     """

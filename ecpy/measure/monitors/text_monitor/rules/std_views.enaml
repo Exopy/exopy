@@ -15,8 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 import re
 from textwrap import fill
 
+from atom.api import set_default
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import PushButton, Container, Dialog, Label, Field
+from enaml.widgets.api import (PushButton, Container, Dialog, Label, Field,
+                               CheckBox)
+from enaml.validator import Validator
+
 
 from .....utils.widgets.qt_list_str_widget import QtListStrWidget
 from .....utils.widgets.qt_completers import QtLineCompleter
@@ -37,7 +41,7 @@ class SuffixesValidator(Validator):
         """
         return bool(self._reg.match(text))
 
-    _reg = re.compile(r'[\w](,\s*[\w]+)*')
+    _reg = re.compile(r'^\w(,\s*\w+)*$')
 
 
 enamldef RejectRuleView(BaseRuleView):
@@ -59,6 +63,7 @@ enamldef RejectRuleView(BaseRuleView):
         text << ', '.join(rule.suffixes)
         text ::
             rule.suffixes = [s.strip() for s in text.split(',')
+                             if s.strip()]
         tool_tip = fill('Enter the list of suffixes to reject as a comma '
                         'separated list.')
         validator = SuffixesValidator()
@@ -69,8 +74,8 @@ enamldef FormatRuleView(BaseRuleView):
 
     """
     constraints = [vbox(name_and_desc,
-                        hbox(suf_lab, spacer),
-                        hbox(qt, vbox(add, edit, delete, spacer)),
+                        hbox(suffixes_lab, spacer),
+                        suffixes_val,
                         hbox(suff_lab, suff),
                         hbox(for_lab, for_val),
                         hi_box,)
@@ -89,14 +94,14 @@ enamldef FormatRuleView(BaseRuleView):
         if not rule.new_entry_suffix:
             return False, 'A suffix must be provided to name the new entry.'
 
-        if not rule.new_entries_formatting:
+        if not rule.new_entry_formatting:
             return False, 'A formatting needs to be provided.'
 
-        f = rule.new_entries_formatting
-        if not re.match(r'^(\w*\s*\{[\w]\}\s*)+\w*\s*$', f):
+        f = rule.new_entry_formatting
+        if not re.match(r'^(.*\{\w+\}\s*)+.*$', f):
             return False, 'Formatting must be of the form "xx {aaa} eee".'
 
-        used = set([p.split('}')[0] for p in f.split('{')])
+        used = set([p.split('}')[0] for p in f.split('{') if p])
         declared = set(rule.suffixes)
         if not declared == used:
             unused = declared - used
@@ -112,13 +117,13 @@ enamldef FormatRuleView(BaseRuleView):
 
         return True, ''
 
-    Label: suf_lab:
+    Label: suffixes_lab:
         hug_width = 'strong'
         text = 'Suffixes'
-    Field: sufix_val:
+    Field: suffixes_val:
         text << ', '.join(rule.suffixes)
         text ::
-            rule.suffixes = [s.strip() for s in text.split(',')
+            rule.suffixes = [s.strip() for s in text.split(',')]
         tool_tip = fill('Enter the list of suffixes to use to build the new '
                         'entry as a comma separated list.')
         validator = SuffixesValidator()

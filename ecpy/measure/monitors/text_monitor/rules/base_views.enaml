@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import Coerced, set_default
 from enaml.validator import Validator
-from enaml.layout.api import hbox, spacer
+from enaml.layout.api import hbox, spacer, align
 from enaml.widgets.api import (Container, Label, Field, PushButton,
                                PopupView, MultilineField)
 
@@ -88,12 +88,14 @@ enamldef BaseRuleView(Container):
 
     Container: cont:
 
-        constraints = [hbox(n_lab, n_val, spacer, desc)]
+        constraints = [hbox(n_lab, n_val, spacer, desc),
+                       align('v_center', n_lab, n_val),
+                       align('v_center', desc, n_val)]
 
         Label: n_lab:
             text = 'Id'
 
-        Field:
+        Field: n_val:
             text := rule.id
             validator << RuleIdValidator(ids=plugin.rules)
 
