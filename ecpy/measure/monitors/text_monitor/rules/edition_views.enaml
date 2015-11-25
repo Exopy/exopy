@@ -95,7 +95,6 @@ enamldef CreateRuleDialog(Dialog): dial:
                 if not res:
                     warning(self, 'Wrong parameters', msg)
                 else:
-                    print(dial.rule is not p_select.rule, sav.checked)
                     if dial.rule is not p_select.rule and sav.checked:
                         plugin.save_rule(rule)
                     dial.accept()
@@ -120,17 +119,19 @@ enamldef EditRulesView(Dialog): dial:
 
     Container:
         constraints << [vbox(
-                            hbox(qlist, vbox(*v.objects),
-                                vbox(add, delete, save, spacer)),
+                            hbox(qlist, *(v.objects +
+                                 [vbox(add, delete, save, spacer)])),
                             hbox(spacer, ex))]
         QtListStrWidget: qlist:
             items << monitor.rules
             to_string = attrgetter('id')
+            selected_item = None
+            selected_item ::
+                v.objects = ([plugin.get_rule_view(qlist.selected_item)]
+                             if qlist.selected_item else [])
 
         Include: v:
             pass
-#            objects << ([plugin.get_rule_view(qlist.selected_item)]
-#                        if qlist.selected_item else [])
 
         PushButton: add:
             text = 'Add'

@@ -42,7 +42,7 @@ enamldef TextMonitorEdit(Container): main:
                               hide_one, hide_all, spacer),
                          vbox(disp_lab, disp),
                          vbox(edit_rules, manual_entries,
-                              hbox(*cond.items), show_hidden),
+                              *(cond.items + [show_hidden, spacer])),
                          ),
                     disp_all.width == disp_one.width,
                     disp_one.width == hide_one.width,

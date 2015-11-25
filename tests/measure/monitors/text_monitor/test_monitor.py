@@ -325,6 +325,8 @@ def test_get_set_state(monitor, monkeypatch):
                       new_entry_formatting='{index}/{loop}')
     monitor.rules.append(rule)
 
+    monitor.rules.append(monitor._plugin.build_rule('Measure entries'))
+
     monitor.handle_database_change(('added', 'root/test_loop', 10))
     monitor.handle_database_change(('added', 'root/test2_index', 1))
     monitor.handle_database_change(('added', 'root/test_index', 1))
@@ -406,38 +408,38 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
     sleep(dialog_sleep)
     editor = w.widget
 
-#    # Test hide all
-#    editor.widgets()[6].clicked = True
-#    process_app_events()
-#    assert not m.displayed_entries
-#    sleep(dialog_sleep)
-#
-#    # Test show one
-#    editor.widgets()[1].selected_item = m.undisplayed_entries[0]
-#    editor.widgets()[5].clicked = True
-#    process_app_events()
-#    assert m.displayed_entries
-#    sleep(dialog_sleep)
-#
-#    # Test hide one
-#    editor.widgets()[3].selected_item = m.displayed_entries[0]
-#    editor.widgets()[7].clicked = True
-#    process_app_events()
-#    assert not m.displayed_entries
-#    sleep(dialog_sleep)
-#
-#    # Test show all
-#    editor.widgets()[4].clicked = True
-#    process_app_events()
-#    assert not m.undisplayed_entries
-#    sleep(dialog_sleep)
-#
-#    # Test show hidden
-#    editor.widgets()[8].checked = True
-#    process_app_events()
-#    assert m.hidden_entries
-#    for e in m.hidden_entries:
-#        assert e in m.undisplayed_entries
+    # Test hide all
+    editor.widgets()[6].clicked = True
+    process_app_events()
+    assert not m.displayed_entries
+    sleep(dialog_sleep)
+
+    # Test show one
+    editor.widgets()[1].selected_item = m.undisplayed_entries[0]
+    editor.widgets()[5].clicked = True
+    process_app_events()
+    assert m.displayed_entries
+    sleep(dialog_sleep)
+
+    # Test hide one
+    editor.widgets()[3].selected_item = m.displayed_entries[0]
+    editor.widgets()[7].clicked = True
+    process_app_events()
+    assert not m.displayed_entries
+    sleep(dialog_sleep)
+
+    # Test show all
+    editor.widgets()[4].clicked = True
+    process_app_events()
+    assert not m.undisplayed_entries
+    sleep(dialog_sleep)
+
+    # Test show hidden
+    editor.widgets()[8].checked = True
+    process_app_events()
+    assert m.hidden_entries
+    for e in m.hidden_entries:
+        assert e in m.undisplayed_entries
 
     # Test edit rules
     def handle_rule_edition(dialog):
