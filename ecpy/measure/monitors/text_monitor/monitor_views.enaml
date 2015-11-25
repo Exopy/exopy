@@ -17,12 +17,12 @@ from operator import attrgetter
 from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox
 from enaml.widgets.api import (PushButton, Container, CheckBox, Label, Field,
-                               CheckBox)
+                               CheckBox, Form)
 from enaml.stdlib.message_box import question
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
 from ..base_monitor import BaseMonitorItem
-from .custom_entry_building import EntryDialog
+from .custom_entry_edition import EntryDialog
 from .rules.edition_views import EditRulesView
 
 
@@ -43,7 +43,6 @@ enamldef TextMonitorEdit(Container): main:
                          vbox(disp_lab, disp),
                          vbox(edit_rules, manual_entries,
                               hbox(*cond.items), show_hidden),
-                              ),
                          ),
                     disp_all.width == disp_one.width,
                     disp_one.width == hide_one.width,
@@ -84,10 +83,10 @@ enamldef TextMonitorEdit(Container): main:
         hug_width = 'strong'
         clicked ::
             e = [e for e in monitor.undisplayed_entries
-                 if e.name == undisp.selected_item]
+                 if e == undisp.selected_item]
             if e:
                 index = undisp.selected_index - 1
-                monitor.move_entries('undisplayed', 'displayed', (e,))
+                monitor.move_entries('undisplayed', 'displayed', e)
                 if index > 0:
                     undisp.selected_index = index
 
@@ -104,10 +103,10 @@ enamldef TextMonitorEdit(Container): main:
         hug_width = 'strong'
         clicked ::
             e = [e for e in monitor.displayed_entries
-                    if e.name == disp.selected_item]
+                    if e == disp.selected_item]
             if e:
                 index = disp.selected_index - 1
-                monitor.move_entries('undisplayed', 'displayed', (e,))
+                monitor.move_entries('displayed', 'undisplayed', e)
                 if index > 0:
                     disp.selected_index = index
 
@@ -123,16 +122,14 @@ enamldef TextMonitorEdit(Container): main:
     PushButton: edit_rules:
         text = 'Edit rules'
         clicked ::
-            d = EditRulesView(parent=dial, monitor=monitor)
+            d = EditRulesView(monitor=monitor)
             d.exec_()
-            if d.edition_performed:
-                monitor.refresh_monitored_entries()
 
     PushButton: manual_entries:
         text = 'Add entry'
         clicked ::
-            dial = EntryDialog(parent=dial,
-                              monitor=monitor)
+            dial = EntryDialog(parent=main,
+                               monitor=monitor)
             if dial.exec_():
                 monitor.custom_entries.append(dial.entry)
                 monitor.add_entries('displayed', (dial.entry,))

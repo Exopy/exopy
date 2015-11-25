@@ -93,7 +93,8 @@ class BaseToolDeclaration(Declarative):
     """Base class for defining a measure tool contribution.
 
     """
-    #: Unique name used to identify the tool. Should be user understandable.
+    #: Unique name used to identify the tool.
+    #: The usual format is top_level_package_name.tool_name
     id = d_(Unicode())
 
     #: Description of the tool.

@@ -134,7 +134,6 @@ def test_reject_rule_editor(windows, plugin, dialog_sleep):
 
     assert w.validate()[0]
     r.suffixes = []
-    print(r.suffixes, w.rule.suffixes)
     assert not w.validate()[0]
 
 

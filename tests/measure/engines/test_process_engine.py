@@ -51,7 +51,6 @@ class WaitingTask(SimpleTask):
         return self.check_flag, {'test': 1}
 
     def perform(self):
-        print(self.sock_id)
         s = socket.socket()
         while True:
             if s.connect_ex(('localhost', self.sync_port)) == 0:

@@ -211,7 +211,6 @@ def test_execution_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
     popup_content = get_popup_content(ced.widgets()[7])
     check_box = popup_content[0].scroll_widget().widgets()[1]
-    print(check_box.text)
     assert not check_box.checked
     check_box.checked = True
     process_app_events()
@@ -226,7 +225,6 @@ def test_execution_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
     popup_content = get_popup_content(ced.widgets()[7])
     check_box = popup_content[0].scroll_widget().widgets()[2]
-    print(check_box.text)
     assert not check_box.checked
     check_box.checked = True
     process_app_events()

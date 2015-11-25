@@ -119,7 +119,7 @@ class TextMonitor(BaseMonitor):
 
             # Check whether any custom entry is currently hidden.
             hidden_custom = [e for e in self.custom_entries
-                             if e not in self.displayed_entries or
+                             if e not in self.displayed_entries and
                              e not in self.undisplayed_entries]
 
             # If there is one checks whether all the dependences are once
@@ -164,7 +164,7 @@ class TextMonitor(BaseMonitor):
         # Get the definitions of the rules.
         for i, rule in enumerate(self.rules):
             aux = 'rule_{}'.format(i)
-            if rule.id in self.monitor._rule_configs:
+            if rule.id in self._plugin._rule_configs.contributions:
                 prefs[aux] = rule.id
             else:
                 prefs[aux] = rule.preferences_from_members()

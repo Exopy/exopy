@@ -116,6 +116,7 @@ def test_editing_cusom_entry(monitor, dialog_sleep):
     sleep(dialog_sleep)
 
     w = d.central_widget().widgets()
+    assert w[1].text == 'test'
     w[1].text = 'dummy'
     process_app_events()
     sleep(dialog_sleep)

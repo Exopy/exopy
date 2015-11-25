@@ -34,7 +34,7 @@ class RuleIdValidator(Validator):
         """Check that the proposed id does not already exist.
 
         """
-        return text not in ids
+        return text not in self.ids
 
 
 enamldef DescriptionEditionPopup(PopupView): view:

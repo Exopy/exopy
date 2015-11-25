@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from time import sleep
+from operator import attrgetter
 
 import pytest
 import enaml
@@ -37,7 +38,7 @@ def monitor(text_monitor_workbench):
 
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure')
-    return p.create('monitor', 'ecpy.Text monitor', False)
+    return p.create('monitor', 'ecpy.text_monitor', False)
 
 
 def test_create_default_entry(monitor):
@@ -226,12 +227,16 @@ def test_handle_database_change4(monitor):
     assert monitor._database_values == {'root/aux': 1, 'root/test': 2}
     assert len(monitor.updaters['root/test']) == 2
 
+    monitor.handle_database_change(('added', 'root/new', 2))
+
+    assert len(monitor.displayed_entries) == 4
+
     monitor.handle_database_change(('removed', 'root/test',))
-    assert monitor.monitored_entries == ['root/aux']
-    assert len(monitor.displayed_entries) == 1
+    assert monitor.monitored_entries == ['root/aux', 'root/new']
+    assert len(monitor.displayed_entries) == 2
     assert not monitor.undisplayed_entries
     assert not monitor.hidden_entries
-    assert monitor._database_values == {'root/aux': 1}
+    assert monitor._database_values == {'root/aux': 1, 'root/new': 2}
     assert monitor.custom_entries
     assert 'root/test' not in monitor.updaters
 
@@ -373,23 +378,27 @@ def test_known_monitored_entries(monitor):
     assert sorted(monitor.known_monitored_entries) == sorted(test)
 
 
-def test_edition_window(text_monitor_workbench, dialog_sleep):
+def test_edition_window(text_monitor_workbench, dialog_sleep,
+                        monkeypatch):
     """Test the capabalities of the widget used to edit a text monitor.
 
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
     m = p.create_monitor(False)
     m.rules.append(p.build_rule(dict(id='test', class_id='ecpy.FormatRule',
-                                     formatting='{index}/{number}',
+                                     new_entry_formatting='{index}/{number}',
                                      suffixes=['index', 'number'],
                                      new_entry_suffix='progress')))
-    m.custom_entry.append(MonitoredEntry(name='dummy', path='dummy',
-                                         formatting='2*{root/test}',
-                                         depend_on=['root/test']))
+    assert m.rules[0]
+    m.custom_entries.append(MonitoredEntry(name='dummy', path='dummy',
+                                           formatting='2*{root/test}',
+                                           depend_on=['root/test']))
     m.handle_database_change(('added', 'root/test', 0))
-    m.handle_database_change(('added', 'root/simp/test', 0))
-    m.handle_database_change(('added', 'root/comp/index', 0))
-    m.handle_database_change(('added', 'root/comp/number', 0))
+    m.handle_database_change(('added', 'root/simp/t_test2', 0))
+    m.handle_database_change(('added', 'root/comp/t_index', 0))
+    m.handle_database_change(('added', 'root/comp/t_number', 0))
+    assert len(m.displayed_entries) == 4
+    assert len(m.hidden_entries) == 2
 
     w = ContainerTestingWindow(widget=TextMonitorEdit(monitor=m))
     w.show()
@@ -397,52 +406,52 @@ def test_edition_window(text_monitor_workbench, dialog_sleep):
     sleep(dialog_sleep)
     editor = w.widget
 
-    # Test hide all
-    editor.widgets()[6].clicked = True
-    process_app_events()
-    assert not m.displayed_entries
-    sleep(dialog_sleep)
-
-    # Test show one
-    editor.selected = m.undisplayed_entries[0]
-    editor.widgets()[5].clicked = True
-    process_app_events()
-    assert m.displayed_entries
-    sleep(dialog_sleep)
-
-    # Test hide one
-    editor.selected = m.displayed_entries[0]
-    editor.widgets()[7].clicked = True
-    process_app_events()
-    assert not m.displayed_entries
-    sleep(dialog_sleep)
-
-    # Test show all
-    editor.widgets()[6].clicked = True
-    process_app_events()
-    assert not m.undisplayed_entries
-    sleep(dialog_sleep)
-
-    # Test show hidden
-    editor.widgets()[8].checked = True
-    process_app_events()
-    assert m.hidden_entries
-    for e in m.hidden_entries:
-        assert e in m.undisplayed_entries
+#    # Test hide all
+#    editor.widgets()[6].clicked = True
+#    process_app_events()
+#    assert not m.displayed_entries
+#    sleep(dialog_sleep)
+#
+#    # Test show one
+#    editor.widgets()[1].selected_item = m.undisplayed_entries[0]
+#    editor.widgets()[5].clicked = True
+#    process_app_events()
+#    assert m.displayed_entries
+#    sleep(dialog_sleep)
+#
+#    # Test hide one
+#    editor.widgets()[3].selected_item = m.displayed_entries[0]
+#    editor.widgets()[7].clicked = True
+#    process_app_events()
+#    assert not m.displayed_entries
+#    sleep(dialog_sleep)
+#
+#    # Test show all
+#    editor.widgets()[4].clicked = True
+#    process_app_events()
+#    assert not m.undisplayed_entries
+#    sleep(dialog_sleep)
+#
+#    # Test show hidden
+#    editor.widgets()[8].checked = True
+#    process_app_events()
+#    assert m.hidden_entries
+#    for e in m.hidden_entries:
+#        assert e in m.undisplayed_entries
 
     # Test edit rules
     def handle_rule_edition(dialog):
-        # XXXX
-        pass
+        dialog.monitor.rules.append(RejectRule(id='__dummy',
+                                               suffixes=['test2']))
+        dialog.monitor.refresh_monitored_entries()
 
     with handle_dialog(custom=handle_rule_edition):
         editor.widgets()[9].clicked = True
-    assert 'dummy' not in [e.name for e in m.displayed_entries]
+    assert 't_test2' not in [e.name for e in m.displayed_entries]
 
     # Test add entry
     def handle_entry_creation(dialog):
-        # XXXX
-        pass
+        dialog.entry = MonitoredEntry(name='new_entry')
 
     with handle_dialog(custom=handle_entry_creation):
         editor.widgets()[10].clicked = True
@@ -456,17 +465,36 @@ def test_edition_window(text_monitor_workbench, dialog_sleep):
         editor.widgets()[11].clicked = True
 
     # Test delete entry
-    with handle_dialog('accept'):
-        editor.widgets()[12].clicked = True
-    assert e not in m.displayed_entries
+    with enaml.imports():
+        from ecpy.measure.monitors.text_monitor import monitor_views
+
+    def false_question(*args, **kwargs):
+        class O(object):
+            action = 'reject'
+        return O
+
+    monkeypatch.setattr(monitor_views, 'question', false_question)
+    editor.widgets()[12].clicked = True
+    process_app_events()
+    assert e in m.displayed_entries
+    sleep(dialog_sleep)
 
     m.add_entries('undisplayed', [e])
-    with handle_dialog('accept'):
-        editor.widgets()[12].clicked = True
-    assert e not in m.undisplayed_entries
+    with enaml.imports():
+        from ecpy.measure.monitors.text_monitor import monitor_views
+
+    def false_question(*args, **kwargs):
+        class O(object):
+            action = 'accept'
+        return O
+
+    monkeypatch.setattr(monitor_views, 'question', false_question)
+    editor.widgets()[12].clicked = True
+    assert e not in m.displayed_entries
+    sleep(dialog_sleep)
 
 
-def test_text_monitor_item(test_monitor_workbench, monitor):
+def test_text_monitor_item(text_monitor_workbench, monitor, dialog_sleep):
     """Test that the dock item of the text monitor does display the right
     entries.
 
@@ -476,13 +504,18 @@ def test_text_monitor_item(test_monitor_workbench, monitor):
     monitor.handle_database_change(('added', 'root/simp/test', 0))
     monitor.handle_database_change(('added', 'root/comp/index', 0))
     monitor.move_entries('displayed', 'undisplayed',
-                         monitor.displayed_entries[0])
+                         [monitor.displayed_entries[0]])
     w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor))
-    f = w.widget.widgets()[0]
-    assert (sorted([l.text for l in f.widgets[::2]]) ==
+    w.show()
+    process_app_events()
+    f = w.widget.dock_widget()
+    assert (sorted([l.text for l in f.widgets()[::2]]) ==
             sorted([e.name for e in monitor.displayed_entries]))
-    e = monitor.displayed_entries[0]
+    sleep(dialog_sleep)
+
+    e = sorted(monitor.displayed_entries, key=attrgetter('path'))[0]
     e.name = 'new'
     e.value = '1'
+    process_app_events()
     assert f.widgets()[0].text == 'new'
     assert f.widgets()[1].text == '1'

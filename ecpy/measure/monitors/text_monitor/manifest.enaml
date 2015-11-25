@@ -78,7 +78,7 @@ enamldef TextMonitorManifest(PluginManifest): man:
         id = 'monitors'
         point = 'ecpy.measure.monitors'
         Monitor:
-            id = 'Text monitor'
+            id = 'ecpy.text_monitor'
             description = 'Monitor displaying infos as text.'
             has_view = True
 

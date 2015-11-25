@@ -143,8 +143,9 @@ class TextMonitorPlugin(HasPrefPlugin):
 
         """
         infos = self._rule_types.contributions[rule.class_id]
+        is_user = rule.id not in self._rule_configs.contributions
         return infos.view(rule=rule, plugin=self,
-                          enabled=(rule.id in self._rule_configs))
+                          enabled=is_user)
 
     def save_rule(self, rule):
         """Add a rule present on a plugin to the saved rules.

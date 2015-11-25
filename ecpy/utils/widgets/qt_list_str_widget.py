@@ -52,15 +52,6 @@ class QtListStrWidget(RawWidget):
     hug_width = set_default(str('strong'))
     hug_height = set_default(str('ignore'))
 
-    #: Guard bit field.
-    _guard = Int(0)
-
-    #: Mapping between user list index and widget list index
-    _map = Dict()
-
-    #: Mapping between the widget list index and the user list index
-    _rmap = Dict()
-
     def refresh_items(self):
         """Refresh the items displayed in the list.
 
@@ -130,6 +121,7 @@ class QtListStrWidget(RawWidget):
 
         """
         widget = self.get_widget()
+        widget.clearSelection()
         widget.clear()
         self._set_items(items, widget)
         item = widget.item(0)
@@ -151,6 +143,15 @@ class QtListStrWidget(RawWidget):
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
+
+    #: Guard bit field.
+    _guard = Int(0)
+
+    #: Mapping between user list index and widget list index
+    _map = Dict()
+
+    #: Mapping between the widget list index and the user list index
+    _rmap = Dict()
 
     def _post_setattr_items(self, old, new):
         """Update the widget content when the items changes.
@@ -197,6 +198,7 @@ class QtListStrWidget(RawWidget):
         """Update the widget when the selected item is changed externally.
 
         """
+        pass
         if not self._guard & INDEX_GUARD and self.items:
             self._guard ^= INDEX_GUARD
             index = self.items.index(new)

@@ -181,6 +181,7 @@ enamldef EntryDialog(Dialog): dial:
             text = 'Name'
         Field: name:
             hug_width = 'medium'
+            text = entry.name if entry else ''
             # TODO add a validator preventing shadowing any names already there
 
         Label: entries:
@@ -195,6 +196,7 @@ enamldef EntryDialog(Dialog): dial:
         Label:for_lab:
             text = 'Formatting'
         QtLineCompleter: formating:
+            text = entry.formatting if entry else ''
             entries << [e.entry for e in builder.used_entries]
 
         PushButton: ok:
