@@ -188,7 +188,7 @@ enamldef ErrorsManifest(PluginManifest):
                 def_msg =  'No message found, infos are {}'
                 return infos.get('message', def_msg.format(pformat(infos)))
 
-        # XXXX move to packages manifest
+        # Standard error handlers for plugin tools.
         ErrorHandler:
             attr errors = {}
             id = 'registering'

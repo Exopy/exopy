@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from collections import Mapping
+
 from atom.api import Atom, Typed, Value, Unicode, ForwardTyped, List
 
 from .qt_tree_widget import QtTreeWidget
@@ -53,7 +55,7 @@ class Node(Atom):
         """
         nodes = []
         for k, v in self._mapping.items():
-            if isinstance(v, dict):
+            if isinstance(v, Mapping):
                 nodes.append(Node(name=k, _mapping=v))
             else:
                 nodes.append(Leaf(name=k, value=v))

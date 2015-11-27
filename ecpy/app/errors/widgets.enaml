@@ -118,7 +118,7 @@ enamldef BasicErrorsDisplay(Container):
         read_only = True
 
 
-def format_err(node):
+def format_error(node):
     """Build a nice string representation of a node.
 
     """
@@ -126,7 +126,7 @@ def format_err(node):
         return str(Leaf.value)
     else:
         msg = 'Node %s contains the following entries :\n' % node.name
-        for n in nodes:
+        for n in node.nodes:
             if isinstance(n, Leaf):
                 msg += '- %s : %s\n' % (n.name, str(n.value).split('\n', 1)[0])
             else:
@@ -159,4 +159,4 @@ enamldef HierarchicalErrorsDisplay(Container): main:
         hug_height = 'ignore'
 
     MultilineField: txt:
-        text << format_error(tr.slected_item)
+        text << format_error(tr.selected_item)
