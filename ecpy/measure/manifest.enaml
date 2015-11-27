@@ -12,17 +12,24 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import logging
+from collections import Mapping
+from pprint import pformat
+
 from enaml.stdlib.message_box import warning
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 from enaml.workbench.ui.api import ActionItem
 
 from ..app.api import AppClosing
 from ..app.preferences.api import Preferences
+from ..app.errors.api import ErrorHandler
+from ..app.errors.widgets import HierarchicalErrorsDisplay
 
 from .engines.process_engine import ProcessEngine
 from .editors.api import Editor
 from .hooks.api import PreExecutionHook
 
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # --- Factories ---------------------------------------------------------------
@@ -100,6 +107,13 @@ POST_EXECUTION_DESCRIPTION =\
 customizing the process of execution of a measure. Such hook are executed
 after running the measure. They can clean after the measure no matter how it
 ended, ...
+
+"""
+
+MEASURE_LOADING_ERROR_DESCRIPTION =\
+"""Report errors which occured while trying to load a measure in a hierarchical
+fashion. Expected infos are 'message' used only for logging, and 'details'
+which should be a dict containing the errors.
 
 """
 
@@ -210,7 +224,27 @@ enamldef MeasureManifest(PluginManifest): manifest:
 #        InstrUser:
 #            default_policy = 'unreleasable'
 
-    # XXXX add a error handler for measure loading.
+    Extension:
+        id = 'err_handlers'
+        point = 'ecpy.app.errors.handler'
+        ErrorHandler:
+            id = 'measure-loading'
+            description = MEASURE_LOADING_ERROR_DESCRIPTION
+            handle => (workbench, infos):
+                if not isinstance(infos, Mapping):
+                    mapping = {'meas_%d' % i: m.get('details', m)
+                               for i, m in enumerate(infos)}
+                else:
+                    mapping = infos.get('details', infos)
+
+
+                logger.debug(_format(infos))
+                return HierarchicalErrorsDisplay(errors=mapping)
+
+            func _format(infos):
+                def_msg =  'No message found, infos are {}'
+                return (infos.get('message', def_msg.format(pformat(infos))) +
+                        pformat(infos.get('details', infos)))
 
     Extension:
         id = 'app_closing'
