@@ -156,7 +156,18 @@ enamldef ExecutionDockItem(DockItem):
             enabled << 'processing' in workspace.plugin.flags
 
             func should_process_all():
-                # XXXX open a question asking whether or not to keep processing
+                if not workspace.plugin.processor.continuous_processing:
+                    return
+
+                if not workspace.plugin.find_next_measure():
+                    return
+
+                res = question(parent=stop,
+                               title='Should process following measures ?',
+                               text=('Do you want to process the next '
+                                     'measures in the queue ?'))
+                if not res or res.text == 'No':
+                    workspace.plugin.processor.continue_processing = False
 
             Menu:
                 Action:
@@ -164,7 +175,7 @@ enamldef ExecutionDockItem(DockItem):
                     triggered ::
                         workspace.stop_current_measure(no_post_exec=True,
                                                        force=stopping)
-                        if workspace.plugin.processor.continuous_processing:
+
                             should_process_all()
                 Action:
                     text = 'Run post execution'

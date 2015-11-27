@@ -259,7 +259,7 @@ class MeasurePlugin(HasPrefPlugin):
 
         Returns
         -------
-        measure : Measure
+        measure : Measure|None
             First valid measurement in the queue or None if there is no
             available measure.
 
