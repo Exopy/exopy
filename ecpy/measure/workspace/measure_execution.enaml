@@ -18,6 +18,7 @@ from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox, factory
 from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
                                DockItem, Label, GroupBox)
+from enaml.stdlib.message_box import question
 
 
 from ...utils.widgets.list_editor import ListEditor
@@ -113,8 +114,9 @@ enamldef ExecutionDockItem(DockItem):
 
     Container:
         constraints << [vbox(ed,
-                            hbox(start, spacer, stop, stop_all),
-                            hbox(clean, spacer, mon))]
+                             hbox(start, stop, spacer, mon),
+                             hbox(clean, spacer, proc_all),
+                             en)]
 
         ListEditor(MeasView): ed:
             ed.model = workspace.plugin
@@ -147,45 +149,43 @@ enamldef ExecutionDockItem(DockItem):
                     else:
                         workspace.pause_current_measure()
 
-        # XXXX Refactor to make more clear what this does.
         PushButton: stop:
-            text = 'Stop measure'
+            attr stopping << \
+                workspace.plugin.running_measure.status == 'STOPPING'
+            text = 'Stop' if not stopping else 'Force stop'
             enabled << 'processing' in workspace.plugin.flags
+
+            func should_process_all():
+                # XXXX open a question asking whether or not to keep processing
+
             Menu:
                 Action:
-                    text = 'Stop measure'
+                    text = 'Skip post execution'
                     triggered ::
-                        workspace.stop_current_measure()
+                        workspace.stop_current_measure(no_post_exec=True,
+                                                       force=stopping)
+                        if workspace.plugin.processor.continuous_processing:
+                            should_process_all()
                 Action:
-                    text = 'Force measure stop'
-                    enabled << 'stop_attempt' in workspace.plugin.flags
-                    triggered::
-                        workspace.force_stop_measure()
-
-        PushButton: stop_all:
-            text = 'Stop all'
-            enabled << 'processing' in workspace.plugin.flags
-            clicked ::
-                workspace.stop_processing()
-            Menu:
-                Action:
-                    text = 'Stop engine'
+                    text = 'Run post execution'
                     triggered ::
-                        workspace.stop_processing_measures()
-                Action:
-                    text = 'Force processing stop'
-                    enabled << 'stop_attempt' in workspace.plugin.flags
-                    triggered::
-                        workspace.force_stop_processing()
+                        workspace.stop_current_measure(force=stopping)
+                        if workspace.plugin.processor.continuous_processing:
+                            should_process_all()
 
-        # XXXX add a way to know whether or not we are in single shot and
-        # a way to change it (CheckBox) ?
+        CheckBox: proc_all:
+            text = 'Process all'
+            tool_tip = ('When checked all measures in the queue are processed '
+                        'in order otherwise execution will stop at the end of '
+                        'the execution of the currently/next executed measure.'
+                        )
+            checked := workspace.plugin.processor.continuous_processing
 
         PushButton: clean:
             text = 'Clean'
             tool_tip = 'Remove all measure which have already been processed'
-            enabled << bool(workspace.plugin.enqueued_measures) \
-                and not workspace.plugin.flags & MeasureFalgs.processing
+            enabled << (bool(workspace.plugin.enqueued_measures) and
+                        not workspace.plugin.processor.active)
             clicked ::
                 workspace.remove_processed_measures()
 
@@ -197,3 +197,23 @@ enamldef ExecutionDockItem(DockItem):
                 window.show()
                 window.restore()
                 window.send_to_front()
+
+        GroupBox: en:
+            attr proc = workspace.plugin.processor
+            title = 'Engine'
+            visible << bool(proc.engine)
+
+            constraints = [hbox(en_st, en_st_val, en_sh]
+
+            Label: en_st:
+                text = 'Status'
+
+            Field: en_st_val:
+                text << proc.engine.status if proc.engine else ''
+                read_only = True
+
+            PushButton: en_sh:
+                text = 'Shutdown'
+                tool_tip = ('Completetly stop the engine used to perform '
+                            'measure.')
+                enabled << not proc.active and proc.engine.status != 'Stopped'
