@@ -12,12 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from future.builtins import str
 from enaml.core.api import Looper, Include, Conditional
 from enaml.layout.api import vbox, hbox, align
+from enaml.stdlib.mapped_view import MappedView
 from enaml.widgets.api import (Container, MultilineField, Notebook, Dialog,
                                Page, Label)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.widgets.dict_tree_view import DictTreeView, Leaf, Node
 
 
 enamldef ErrorsDialog(Dialog):
@@ -115,28 +118,45 @@ enamldef BasicErrorsDisplay(Container):
         read_only = True
 
 
-# TODO refactor later
-enamldef HierarchicalErrorsDisplay(Container): main:
+def format_err(node):
+    """Build a nice string representation of a node.
+
     """
+    if isinstance(node, Leaf):
+        return str(Leaf.value)
+    else:
+        msg = 'Node %s contains the following entries :\n' % node.name
+        for n in nodes:
+            if isinstance(n, Leaf):
+                msg += '- %s : %s\n' % (n.name, str(n.value).split('\n', 1)[0])
+            else:
+                msg += '- %s : node\n' % n.name
+
+        return msg
+
+
+enamldef HierarchicalErrorsDisplay(Container): main:
+    """Widget used to display a nested dictionary.
+
+    Keys must always be unicode and values should unicode or dict.
+
     """
     #: Dict listing the errors as point: errors.
-    attr errors
+    alias errors : tr.mapping
 
-    #: Currently selected point.
-    alias selected : lis.selected_item
-#    selected = errors.keys()[0] if errors else None
+    #: Currently selected error.
+    alias selected : tr.selected_item
 
     #: Kind of the errors.
     alias kind : lis_lab.text
 
-    constraints = [hbox(vbox(lis_lab, lis))]
+    constraints = [hbox(vbox(lis_lab, tr), txt)]
 
     Label: lis_lab:
         pass
-    QtListStrWidget: lis:
-        items = sorted(errors.keys())
+    DictTreeView: tr:
+        mapping = errors
         hug_height = 'ignore'
-#
-#    BasicErrorsDisplay: err:
-#        errors << main.errors.get(main.selected, {})
-#        kind << main.selected
+
+    MultilineField: txt:
+        text << format_error(tr.slected_item)
