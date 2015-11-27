@@ -106,7 +106,7 @@ class TaskEditor(Container):
                     for o in items]
             return [vbox(*rows)] + [align('top', *children[o]) for o in items]
         else:
-            return [vbox(*self.visible_widgets())]
+            return [vbox(self._empty_button)]
 
     def initialize(self):
         """Overridden initializer to setup member observers.

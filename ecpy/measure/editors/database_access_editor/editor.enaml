@@ -46,8 +46,8 @@ enamldef NodeEditor(GroupBox):
         """Function making sure that the editor is displayed correctly.
 
         """
-        self.show()
         ed.refresh()
+        self.show()
 
     FlowArea:
         hug_height = 'medium'
@@ -108,6 +108,7 @@ enamldef NodeEditor(GroupBox):
         # This abuses the task editor but it is really nice.
         task = node
         operations = {}
+
 
 enamldef DatabaseAccessEditor(BaseEditor): main:
     """Editor allowing to extend the accessibility of database entries.

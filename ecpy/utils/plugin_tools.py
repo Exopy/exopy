@@ -409,7 +409,7 @@ class DeclaratorsCollector(BaseCollector):
         if tb:
             core = self.workbench.get_plugin('enaml.workbench.core')
             core.invoke_command('ecpy.app.errors.signal',
-                                {'kind': 'extension', 'point': self.point,
+                                {'kind': 'extensions', 'point': self.point,
                                  'errors': tb})
 
     def _get_decls(self, extension):

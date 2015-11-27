@@ -183,7 +183,7 @@ class TestDeclarator(Declarator):
 
     def register(self, collector, traceback):
         if self.fail_register:
-            traceback[self.id]= ''
+            traceback[self.id]= 'Failed to register.'
         elif self.delay:
             collector._delayed.append(self)
             if self.delay != 'Always':
@@ -284,6 +284,7 @@ enamldef DContributor4(PluginManifest):
         id = 'contrib'
         point = 'test.contrib'
         TestDeclarator:
+            id = 'test_registration'
             fail_register = True
 
 
