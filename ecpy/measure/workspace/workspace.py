@@ -239,6 +239,9 @@ class MeasureSpace(Workspace):
             True is the measure was successfully enqueued, False otherwise.
 
         """
+        # Reset the forced enqueued flag
+        measure.forced_enqueued = False
+
         # Collect the runtime dependencies
         res, msg, errors = measure.dependencies.collect_runtimes()
 
@@ -276,37 +279,44 @@ class MeasureSpace(Workspace):
                 if not dial.result:
                     measure.dependencies.reset()
                     return False
-
-            default_filename = (measure.name + '_' + measure.id +
-                                '.meas.ini')
-            path = os.path.join(measure.root_task.default_path,
-                                default_filename)
-            measure.save(path)
-            b_deps = measure.dependencies.get_build_dependencies()
-
-            meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)
-            # Provide a nice error message.
-            if not meas:
-                msg = 'Failed to rebuild measure from config'
-                dial = ChecksDisplay(errors={'Building': errors}, title=msg)
-                dial.exec_()
-                return False
-
-            try:
-                os.remove(path)
-            except OSError:
-                logger.debug('Failed to remove temp save file')
-
-            meas.status = 'READY'
-            meas.infos = 'The measure is ready to be performed by an engine.'
-            self.plugin.enqueued_measures.add(meas)
-
-            return True
-
         else:
             measure.dependencies.reset()
-            ChecksDisplay(errors=errors).exec_()
+            dial = ChecksDisplay(errors=errors, is_warning=True)
+            dial.exec_()
+            if not dial.result:
+                measure.dependencies.reset()
+                return False
+            measure.forced_enqueued = True
+
+        default_filename = (measure.name + '_' + measure.id +
+                            '.meas.ini')
+        path = os.path.join(measure.root_task.default_path,
+                            default_filename)
+        measure.save(path)
+        b_deps = measure.dependencies.get_build_dependencies()
+
+        meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)
+
+        # Provide a nice error message.
+        if not meas:
+            measure.forced_enqueued = False
+            msg = 'Failed to rebuild measure from config'
+            dial = ChecksDisplay(errors={'Building': errors}, title=msg)
+            dial.exec_()
             return False
+
+        meas.forced_enqueued = measure.forced_enqueued
+
+        try:
+            os.remove(path)
+        except OSError:
+            logger.debug('Failed to remove temp save file')
+
+        meas.status = 'READY'
+        meas.infos = 'The measure is ready to be performed by an engine.'
+        self.plugin.enqueued_measures.add(meas)
+
+        return True
 
     def reenqueue_measure(self, measure):
         """ Mark a measure already in queue as fitted to be executed.

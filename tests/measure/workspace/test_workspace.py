@@ -108,7 +108,7 @@ def test_workspace_lifecycle(workspace):
     assert not workspace.plugin.processor.monitors_window.visible
 
 
-@pytest.mark.timeout(10)
+@pytest.mark.timeout(30)
 def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     """Test creating, saving, loading a measure.
 
@@ -192,7 +192,7 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
         return None, {'r': 't'}
 
     monkeypatch.setattr(Measure, 'load', r)
-    with handle_dialog():
+    with handle_dialog(custom=lambda dial: dial.maximize()):
         workspace.load_measure('file')
 
     with pytest.raises(NotImplementedError):
@@ -286,7 +286,7 @@ def test_enqueueing_fail_checks(workspace):
 
     """
     m = workspace.plugin.edited_measures.measures[0]
-    with handle_dialog():
+    with handle_dialog('reject'):
         workspace.enqueue_measure(m)
 
     assert not workspace.plugin.enqueued_measures.measures
@@ -324,6 +324,50 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir):
     assert not workspace.plugin.enqueued_measures.measures
 
     assert witness
+
+
+@pytest.mark.timeout(10)
+def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir):
+    """Test enqueueing after some checks raised warnings.
+
+    """
+    m = workspace.plugin.edited_measures.measures[0]
+    m.root_task.default_path = text(tmpdir)
+    from ecpy.measure.measure import Measure
+
+    witness = []
+
+    def check(*args, **kwargs):
+        witness.append(None)
+        return True, {'r': {'t': 's'}}
+    monkeypatch.setattr(Measure, 'run_checks', check)
+
+    with handle_dialog():
+        assert workspace.enqueue_measure(m)
+
+    # Make sure runtimes are always released.
+    m = workspace.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
+
+    assert witness
+
+
+@pytest.mark.timeout(10)
+def test_force_enqueueing(workspace):
+    """Test enqueueing a measure not passing the checks.
+
+    """
+    m = workspace.plugin.edited_measures.measures[0]
+    with handle_dialog():
+        workspace.enqueue_measure(m)
+
+    assert workspace.plugin.enqueued_measures.measures
+
+    # Make sure runtimes are always released.
+    m = workspace.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
 
 
 @pytest.mark.timeout(10)
