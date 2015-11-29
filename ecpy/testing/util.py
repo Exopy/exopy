@@ -112,7 +112,7 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
             if dial is not None:
                 break
             elif i > 10:
-                raise Exception('Dailog timeout')
+                raise Exception('Dialog timeout')
             sleep(0.1)
             process_app_events()
             i += 1

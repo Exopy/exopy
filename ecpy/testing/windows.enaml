@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from enaml.core.api import Include
 from enaml.widgets.api import Window, Container, Notebook, DockArea
+from enaml.layout.api import InsertItem
 
 
 enamldef ContainerTestingWindow(Window):
@@ -44,8 +45,17 @@ enamldef DockItemTestingWindow(Window):
 
     """
     attr widget
+    widget ::
+        set_layout()
+
+    activated ::
+        set_layout()
+
+    func set_layout():
+        op = InsertItem(item=widget.name)
+        area.update_layout(op)
 
     Container:
-        DockArea:
+        DockArea: area:
             Include:
                 objects << [widget]
