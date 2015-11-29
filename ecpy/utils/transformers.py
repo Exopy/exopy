@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 
 def basic_name_formatter(name):
@@ -59,4 +59,5 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
                                 separator + name)
                     valid_names[new_name].append(i)
 
-    return {k: v[0] for k, v in valid_names.items()}
+    names = {v[0]: k for k, v in valid_names.items()}
+    return OrderedDict(((names[i], i) for i in ids))
