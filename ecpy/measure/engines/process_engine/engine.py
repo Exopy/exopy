@@ -187,6 +187,7 @@ class ProcessEngine(BaseEngine):
             the call to this method block.
 
         """
+        self.status = 'Stopping'
         self._stop_requested = True
         self._task_stop.set()
 
@@ -220,6 +221,7 @@ class ProcessEngine(BaseEngine):
             the call to this method block.
 
         """
+        self.status = 'Shutting down'
         self._stop_requested = True
         self._task_stop.set()
 

@@ -18,7 +18,7 @@ from traceback import format_exc
 
 from atom.api import Atom, ForwardTyped, Typed, Bool, Dict, List
 from enaml.core.api import Include
-from enaml.layout.api import hbox, vbox, align, InsertTab
+from enaml.layout.api import hbox, vbox, align, spacer, InsertTab
 from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
                                Label, Field, Notebook, DockItem, DockArea)
 
@@ -297,7 +297,7 @@ enamldef MeasEditionView(Container): ed:
     attr dock_item
 
     #: Controller responsible for the editors handling.
-    attr _internal = _MeasEditionModel(workspace=workspace, view=self)
+    attr _internal = _MeasEditionModel(view=self)
 
     constraints << [vbox(hbox(lab, name, id_lab, id_val, edition),
                          hbox(tree, editors),
@@ -448,15 +448,12 @@ enamldef MeasureEditorDialog(Dialog): main:
     title = 'Edit measure {}'.format(measure.name)
 
     closed::
-        if 'build_deps' in measure.store:
-            del measure.store['build_deps']
-        if 'runtime_deps' in measure.store:
-            del measure.store['runtime_deps']
+        measure.dependencies.reset()
 
     Container:
         constraints = [vbox(area, hbox(spacer, checks, save))]
 
-        DockArea:
+        DockArea: area:
             style = 'metro'
             DockItem: item:
 
@@ -473,7 +470,7 @@ enamldef MeasureEditorDialog(Dialog): main:
             hug_width  = 'strong'
             hug_height = 'strong'
             clicked ::
-                workspace.save_measure(measure, mode='file')
+                pass
 
         PushButton: save:
             text = 'Save'

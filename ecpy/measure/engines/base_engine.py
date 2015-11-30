@@ -60,7 +60,7 @@ class BaseEngine(Atom):
 
     #: Current status of the engine.
     status = Enum('Stopped', 'Waiting', 'Running', 'Pausing', 'Paused',
-                  'Resuming')
+                  'Resuming', 'Stopping', 'Shutting down')
 
     #: Signal used to pass news about the measurement progress.
     progress = Signal()

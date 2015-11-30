@@ -16,7 +16,7 @@ from time import sleep
 
 import enaml
 
-from ecpy.testing.util import process_app_events, handle_dialog, get_window
+from ecpy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
     from ecpy.testing.windows import DockItemTestingWindow

@@ -14,10 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 
+from enaml.application import deferred_call
 from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox, factory
 from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
-                               DockItem, Label, GroupBox)
+                               DockItem, Label, GroupBox, Field)
 from enaml.stdlib.message_box import question
 
 
@@ -33,19 +34,19 @@ enamldef MeasView(GroupBox): widget:
     #: Refrence to the measure driving this view.
     attr model
 
-    title << measure.name
+    title << model.name
 
     layout_constraints => ():
         meas = widget.model
-        children = widget.visible_widgets()
+        widgets = widget.visible_widgets()
         if meas.status == 'READY':
-            return [vbox(hbox(children[0], children[1], spacer),
-                         hbox(children[2], spacer, children[3]))]
+            return [vbox(hbox(widgets[0], widgets[1], spacer),
+                         hbox(widgets[2], spacer, widgets[3]))]
         elif meas.status not in ('READY', 'RUNNING'):
-            return [vbox(hbox(children[0], children[1], spacer),
-                         children[2])]
+            return [vbox(hbox(widgets[0], widgets[1], spacer),
+                         widgets[2])]
         else:
-            return [hbox(children[0], children[1], spacer)]
+            return [hbox(widgets[0], widgets[1], spacer)]
 
     Label:
         text = 'Status :'
@@ -58,8 +59,8 @@ enamldef MeasView(GroupBox): widget:
         PushButton: edit:
             text = 'Edit'
             clicked ::
-                kwargs = {'parent': widget, 'measure': measure,
-                          'workspace': measure.plugin.workspace}
+                kwargs = {'parent': widget, 'measure': model,
+                          'workspace': model.plugin.workspace}
                 meas_editor = MeasureEditorDialog(**kwargs)
                 model.status = 'EDITING'
                 meas_editor.exec_()
@@ -68,7 +69,7 @@ enamldef MeasView(GroupBox): widget:
 
         PushButton: process:
             text = 'Process'
-            enabled << not workspace.plugin.processor.active
+            enabled << not model.plugin.processor.active
             clicked ::
                 model.plugin.workspace.process_single_measure(model)
 
@@ -109,7 +110,7 @@ enamldef ExecutionDockItem(DockItem):
         workspace.plugin.enqueued_measures.move(old, new)
 
     func remove_measure(index):
-        measure = workspace.plugin.enqueued_measures[index]
+        measure = workspace.plugin.enqueued_measures.measures[index]
         workspace.plugin.enqueued_measures.remove(measure)
 
     Container:
@@ -119,9 +120,9 @@ enamldef ExecutionDockItem(DockItem):
                              en)]
 
         ListEditor(MeasView): ed:
-            ed.model = workspace.plugin
-            ed.iterable_name = 'enqueued_measures'
-            ed.signal_name = 'enqueued_measures_changed'
+            ed.model = workspace.plugin.enqueued_measures
+            ed.iterable_name = 'measures'
+            ed.signal_name = 'changed'
             ed.operations = {'move': move_measure,
                              'remove': remove_measure}
 
@@ -131,11 +132,11 @@ enamldef ExecutionDockItem(DockItem):
 
             #: Flag indicating the measure is in the process of pausing.
             attr pausing << running and\
-                workspace.plugin.running_measure.status == 'PAUSING'
+                workspace.plugin.processor.running_measure.status == 'PAUSING'
 
             #: Flag indicating the measure is in pause.
             attr paused << running and\
-                workspace.plugin.running_measure.status == 'PAUSED'
+                workspace.plugin.processor.running_measure.status == 'PAUSED'
 
             text << label_maker(running, paused)
             enabled << bool(workspace.plugin.enqueued_measures) and not pausing
@@ -150,10 +151,11 @@ enamldef ExecutionDockItem(DockItem):
                         workspace.pause_current_measure()
 
         PushButton: stop:
-            attr stopping << \
-                workspace.plugin.running_measure.status == 'STOPPING'
-            text = 'Stop' if not stopping else 'Force stop'
-            enabled << 'processing' in workspace.plugin.flags
+            attr proc = workspace.plugin.processor
+            attr stopping << (proc.running_measure and
+                              proc.running_measure.status == 'STOPPING')
+            text << 'Stop' if not stopping else 'Force stop'
+            enabled << workspace.plugin.processor.active
 
             func should_process_all():
                 if not workspace.plugin.processor.continuous_processing:
@@ -167,7 +169,7 @@ enamldef ExecutionDockItem(DockItem):
                                text=('Do you want to process the next '
                                      'measures in the queue ?'))
                 if not res or res.text == 'No':
-                    workspace.plugin.processor.continue_processing = False
+                    workspace.plugin.processor.continuous_processing = False
 
             Menu:
                 Action:
@@ -175,14 +177,14 @@ enamldef ExecutionDockItem(DockItem):
                     triggered ::
                         workspace.stop_current_measure(no_post_exec=True,
                                                        force=stopping)
+                        should_process_all()
 
-                            should_process_all()
+
                 Action:
                     text = 'Run post execution'
                     triggered ::
                         workspace.stop_current_measure(force=stopping)
-                        if workspace.plugin.processor.continuous_processing:
-                            should_process_all()
+                        should_process_all()
 
         CheckBox: proc_all:
             text = 'Process all'
@@ -195,14 +197,23 @@ enamldef ExecutionDockItem(DockItem):
         PushButton: clean:
             text = 'Clean'
             tool_tip = 'Remove all measure which have already been processed'
-            enabled << (bool(workspace.plugin.enqueued_measures) and
+            enabled << (bool(workspace.plugin.enqueued_measures.measures) and
                         not workspace.plugin.processor.active)
             clicked ::
                 workspace.remove_processed_measures()
 
+            initialized ::
+                workspace.plugin.enqueued_measures.observe('changed',
+                                                           set_enabled)
+
+            func set_enabled(change):
+                clean.enabled = \
+                    (bool(workspace.plugin.enqueued_measures.measures) and
+                     not workspace.plugin.processor.active)
+
         PushButton: mon:
             text = 'Show monitors'
-            enabled << workspace.plugin.processor.monitors_window
+            enabled << bool(workspace.plugin.processor.monitors_window)
             clicked::
                 window = workspace.plugin.processor.monitors_window
                 window.show()
@@ -210,21 +221,49 @@ enamldef ExecutionDockItem(DockItem):
                 window.send_to_front()
 
         GroupBox: en:
+
+            # Reference to the processor (easier access)
             attr proc = workspace.plugin.processor
+
+            # Flag keeping track of engine status, always updated in main
+            # thread.
+            attr eng_status = ''
+
             title = 'Engine'
             visible << bool(proc.engine)
 
-            constraints = [hbox(en_st, en_st_val, en_sh]
+            constraints = [hbox(en_st, en_st_val, en_sh)]
+
+            initialized ::
+                proc.observe('engine', observe_status)
+                if proc.engine:
+                    update_status({'change': proc.engine.status})
+
+            # This is necessary an the engine status can be updated by a thread
+            # which is not the main one.
+            func observe_status(change):
+                old = change.get('oldvalue')
+                if old:
+                    old.unobserve('status', update_status)
+                new = change['value']
+                if new:
+                    new.observe('status', update_status)
+
+            func update_status(change):
+                deferred_call(setattr, self, 'eng_status', change['value'])
 
             Label: en_st:
                 text = 'Status'
 
             Field: en_st_val:
-                text << proc.engine.status if proc.engine else ''
+                text << eng_status
                 read_only = True
 
             PushButton: en_sh:
-                text = 'Shutdown'
-                tool_tip = ('Completetly stop the engine used to perform '
-                            'measure.')
-                enabled << not proc.active and proc.engine.status != 'Stopped'
+                text << ('Shut down' if eng_status != 'Shutting down' else
+                         'Force shut down')
+                tool_tip = ('Completetly stops the engine used to perform '
+                            'measures.')
+                enabled << not proc.active and eng_status != 'Stopped'
+                clicked ::
+                    proc.engine.shutdown(force=eng_status == 'Shutting down')
