@@ -199,3 +199,16 @@ def signal_error_raise():
         yield
     finally:
         ErrorsPlugin.signal = func
+
+
+class CallSpy(object):
+
+    __slots__ = ('called', 'args', 'kwargs')
+
+    def __init__(self):
+        self.called = 0
+
+    def __call__(self, *args, **kwargs):
+        self.called += 1
+        self.args = args
+        self.kwargs = kwargs
