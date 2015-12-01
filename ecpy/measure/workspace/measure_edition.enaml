@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Widget related to measure edition tasks.
+"""Widgest related to measure edition tasks.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -15,10 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 from operator import attrgetter
 from traceback import format_exc
+from textwrap import fill
+from inspect import cleandoc
 
 from atom.api import Atom, ForwardTyped, Typed, Bool, Dict, List
 from enaml.core.api import Include
-from enaml.layout.api import hbox, vbox, align, spacer, InsertTab
+from enaml.layout.api import hbox, vbox, align, spacer, InsertTab, TabLayout
 from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
                                Label, Field, Notebook, DockItem, DockArea)
 
@@ -48,7 +50,7 @@ enamldef SaveAction(Action):
     text = 'Save template'
 
     triggered ::
-        widget, node, obj, nid = action_context['data']
+        _, _, obj, _ = action_context['data']
         core = workspace.workbench.get_plugin('enaml.workbench.core')
         ui = workspace.workbench.get_plugin('enaml.workbench.ui')
         cmd = 'ecpy.tasks.save'
@@ -56,11 +58,12 @@ enamldef SaveAction(Action):
             core.invoke_command(cmd, dict(task=obj, mode='template',
                                           widget=ui.window))
         except Exception:
-            core = workspace.get_plugin('enaml.workbench.core')
+            core = workspace.workbench.get_plugin('enaml.workbench.core')
             cmd = 'ecpy.app.errors.signal'
             msg = 'Failed to save task %s:\n%s'
             core.invoke_command(cmd, dict(kind='error',
-                                          message=msg % (obj.name)))
+                                          message=msg % (obj.name,
+                                                         format_exc())))
 
 
 def build_task(workbench):
@@ -69,7 +72,7 @@ def build_task(workbench):
     """
     core = workbench.get_plugin('enaml.workbench.core')
     ui = workbench.get_plugin('enaml.workbench.ui')
-    return core.invoke_command('ecpy.task_manager.build_task',
+    return core.invoke_command('ecpy.tasks.create_task',
                                {'parent_ui': ui.window})
 
 
@@ -206,6 +209,10 @@ class _MeasEditionModel(Atom):
     #: Should the tree be visible given the currently selected editor.
     tree_visible = Bool(True)
 
+    def __init__(self, **kwargs):
+        super(_MeasEditionModel, self).__init__(**kwargs)
+        self.view.observe('selected_task', self.update_after_task_selection)
+
     def clear_state(self, ):
         """ Destroy all previously used editors.
 
@@ -213,14 +220,13 @@ class _MeasEditionModel(Atom):
         self.selected_editor = None
         self.valid_editors = []
 
-    #--- Private API ----------------------------------------------------------
-
-    def _post_setattr_selected_task(self, old, new):
+    def update_after_task_selection(self, change):
         """Keep the list of valid editors up to date and update editor.
 
         """
+        new_task = change['value']
         plugin = self.view.workspace.plugin
-        editors = plugin.get_declarations('editors', plugin.editors)
+        editors = plugin.get_declarations('editor', plugin.editors)
 
         # Find all valid editors.
         valid_decls = {id: editor for id, editor in editors.iteritems()
@@ -235,7 +241,7 @@ class _MeasEditionModel(Atom):
         if valid_ids != current_ids:
 
             to_add = valid_ids - current_ids
-            order = sorted(valid_decls.values(), attrgetter('rank', 'id'))
+            order = sorted(valid_decls.values(), key=attrgetter('rank', 'id'))
 
             valid_editors = []
             for decl in order:
@@ -248,31 +254,38 @@ class _MeasEditionModel(Atom):
                 else:
                     valid_editors.append(current_editors[decl.id])
 
-            self.valid_editors = valid_editors
+            if self.selected_editor not in valid_editors:
+                self.valid_editors = valid_editors
+                self.view.editors.selected_tab =\
+                    valid_editors[0].declaration.id
 
-        if not self.selected_editor:
-            self.selected_editor = self.valid_editors[0]
+            else:
+                self.valid_editors = valid_editors
 
         # Update selected editor with new selected task. If the editor changed
         # this is a no-op.
         self.selected_editor.selected_task = new_task
+
+    #--- Private API ----------------------------------------------------------
 
     def _post_setattr_selected_editor(self, old, new):
         """ Update infos for newly selected editor.
 
         """
         if old:
-            old.unselected = True
+            old.react_to_unselection(self.view.workspace.workbench)
 
         if new:
+            editor = new
             # Update selected task.
-            editor.selected_task = self.selected_task
+            editor.selected_task = self.view.selected_task
 
             # Get tree preferences.
             self.tree_enabled = editor.tree_enabled
             self.tree_visible = editor.tree_visible
 
-            editor.selected = True
+            editor.react_to_selection(self.view.workspace.workbench)
+
 
 enamldef MeasEditionView(Container): ed:
     """Main view for measurement edition.
@@ -283,26 +296,35 @@ enamldef MeasEditionView(Container): ed:
 
     #: Reference to the measure being edited.
     attr measure
-    measure ::
-        _internal.clear_state()
-        ed.selected_task = change['value'].root_task
-        tree.root_node = change['value'].root_task
-        tree.selection = change['value'].root_task
-        editors.selected_tab = _internal.valid_editors[0].id
+    measure :: post_set_measure()
 
     #: Currently selected task.
-    attr selected_task = measure.root_task
+    attr selected_task
 
     #: Reference to the dock item this editor is embedded into.
     attr dock_item
 
+    #: Reference to the notebook to allow setting the selected tab.
+    alias editors : nb
+
     #: Controller responsible for the editors handling.
     attr _internal = _MeasEditionModel(view=self)
 
+    func post_set_measure():
+        if measure:
+            _internal.clear_state()
+            ed.selected_task = measure.root_task
+            tree.root_node = measure.root_task
+            tree.selected_item = measure.root_task
+            editors.selected_tab = _internal.valid_editors[0].declaration.id
+
     constraints << [vbox(hbox(lab, name, id_lab, id_val, edition),
-                         hbox(tree, editors),
+                         hbox(tree, nb),
                          ),
                     align('v_center', lab, name)]
+
+    activated ::
+        post_set_measure()
 
     Label: lab:
         text = 'Name'
@@ -323,10 +345,10 @@ enamldef MeasEditionView(Container): ed:
                     'hooks linked to the measure.')
         clicked ::
             name = dock_item.name + '_tools'
+            dock_area = dock_item.parent
             if not any([item.name == name for item in dock_area.dock_items()]):
                 # The editor does not exists so create it.
-                ToolsEditorDockItem(dock_item.parent, name=name,
-                                    measure=measure)
+                ToolsEditorDockItem(dock_area, name=name, measure=measure)
 
             # Now insert the item in a tab with the measure editor.
             dock_area.update_layout(InsertTab(item=name,
@@ -360,15 +382,14 @@ enamldef MeasEditionView(Container): ed:
             SimpleMenu:
                 workspace = ed.workspace
 
-    Notebook: editors:
+    Notebook: nb:
         # Update the selected editor when the user click a tab or when the
         # previously selected editor is removed.
         tabs_closable = False
         hug_width = 'ignore'
         selected_tab ::
             ed = self.find(selected_tab)
-            if ed != editors:
-                _internal.selected_editor = ed
+            _internal.selected_editor = ed
         Include:
             objects << _internal.valid_editors
 
@@ -388,6 +409,8 @@ enamldef MeasureEditorDockItem(DockItem): main:
         workspace.plugin.edited_measures.remove(measure)
 
     stretch = 10
+
+    title << measure.name
 
     Container:
         constraints = [vbox(editor,
@@ -455,6 +478,7 @@ enamldef MeasureEditorDialog(Dialog): main:
 
         DockArea: area:
             style = 'metro'
+            layout = TabLayout('measure')
             DockItem: item:
 
                 name = 'measure'
@@ -477,4 +501,4 @@ enamldef MeasureEditorDialog(Dialog): main:
             hug_width  = 'strong'
             hug_height = 'strong'
             clicked ::
-                workspace.save_measure(measure, mode='file')
+                workspace.save_measure(measure)

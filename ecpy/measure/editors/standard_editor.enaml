@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.widgets.api import Container, ScrollArea
 
 from ...tasks.base_views import RootTaskView
-from ..base_editor import BaseEditor
+from .base_editor import BaseEditor
 
 
 enamldef StandardEditor(BaseEditor): main:
@@ -42,6 +42,7 @@ enamldef StandardEditor(BaseEditor): main:
         if task:
             view = root_view.view_for(task)
             view.set_parent(scroll)
+            view.refresh()
             view.show()
 
     selected_task ::

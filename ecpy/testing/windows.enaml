@@ -48,14 +48,17 @@ enamldef DockItemTestingWindow(Window):
     widget ::
         set_layout()
 
+    alias area : area_
+
     activated ::
         set_layout()
 
     func set_layout():
         op = InsertItem(item=widget.name)
-        area.update_layout(op)
+        area_.update_layout(op)
 
     Container:
-        DockArea: area:
+        DockArea: area_:
+            style = 'metro'
             Include:
                 objects << [widget]

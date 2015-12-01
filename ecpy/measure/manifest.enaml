@@ -16,6 +16,7 @@ import logging
 from collections import Mapping
 from pprint import pformat
 
+import enaml
 from enaml.stdlib.message_box import warning
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 from enaml.workbench.ui.api import ActionItem
@@ -164,10 +165,13 @@ enamldef MeasureManifest(PluginManifest): manifest:
         Editor:
             id = 'ecpy.standard'
             description = 'Editor relying on the task views.'
+            rank = 0
             new => (workbench, default=False):
-                from .editors.standard_editor import StandardEditor
+                with enaml.imports():
+                    from .editors.standard_editor import StandardEditor
                 return StandardEditor(declaration=self,
-                                      workbench=workbench)
+                                      workbench=workbench,
+                                      name=self.id)
 
             is_meant_for => (workbench, selected_task):
                 return True
@@ -179,10 +183,11 @@ enamldef MeasureManifest(PluginManifest): manifest:
             new => (workbench, default=False):
                 from .editors.database_access_editor\
                     import DatabaseAccessEditor
-                return DatabaseAccessEditor(declaration=self)
+                return DatabaseAccessEditor(declaration=self, name=self.id)
 
             is_meant_for => (workbench, selected_task):
-                return True
+                from ..tasks.base_tasks import ComplexTask
+                return isinstance(selected_task, ComplexTask)
 
         Editor:
             id = 'ecpy.execution'
@@ -191,7 +196,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
                            'other tasks.')
             new => (workbench, default=False):
                 from .editors.execution_editor import ExecutionEditor
-                return ExecutionEditor(declaration=self)
+                return ExecutionEditor(declaration=self, name=self.id)
 
             is_meant_for => (workbench, selected_task):
                 return True
