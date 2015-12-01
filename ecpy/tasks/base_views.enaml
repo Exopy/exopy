@@ -160,7 +160,7 @@ enamldef RootTaskView(BaseTaskView): main:
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
-        tasks = sorted(_cache, attrgetter('depth'))
+        tasks = sorted(_cache, key=attrgetter('depth'))
         for t in tasks:
             view = _cache[task]
             if not view.is_destroyed:

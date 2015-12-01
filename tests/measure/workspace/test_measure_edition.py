@@ -42,7 +42,8 @@ def edition_view(measure, workspace, windows):
     measure.root_task.add_child_task(0, BreakTask(name='Test'))
 
     item = MeasureEditorDockItem(workspace=workspace,
-                                 measure=measure)
+                                 measure=measure,
+                                 name='test')
     return DockItemTestingWindow(widget=item)
 
 
