@@ -30,7 +30,7 @@ def test_create_task1(app, task_workbench):
     def answer_dialog(dial):
         selector = dial.selector
         selector.selected_filter = 'Logic'
-        selector.selected_task = 'WhileTask'
+        selector.selected_task = 'ecpy.WhileTask'
         dial.config.task_name = 'Test'
         process_app_events()
         assert dial.config.ready

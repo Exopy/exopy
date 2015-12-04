@@ -16,6 +16,7 @@ from enaml.core.api import Conditional, Include
 from enaml.widgets.api import ObjectCombo, Container
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ....utils.transformers import ids_to_unique_names
 
 
 # TODO would be nicer with regex but I never managed to get the regex right.
@@ -32,6 +33,11 @@ def normalize_name(name):
 
     if name.endswith('Task'):
         name = name[:-4] + '\0'
+
+    package = None
+    if '.' in name:
+        package, name = name.rsplit('.', 1)
+
     aux = ''
     for i, char in enumerate(name):
         if char == '_':
@@ -55,10 +61,11 @@ def normalize_name(name):
                     aux += char.upper()
                 else:
                     aux += char
-    return aux
+
+    return package + '.' + aux if package else aux
 
 
-enamldef TaskSelector(Container):
+enamldef TaskSelector(Container): sel:
     """Basic widget displaying a list of tasks acording to the selected filter.
 
     """
@@ -80,11 +87,16 @@ enamldef TaskSelector(Container):
         else:
             self.tasks = manager.list_tasks()
 
-    #: Alias for the items in the list str widget.
-    alias tasks : t_select.items
+    #: Tasks to display in the selector.
+    attr tasks = manager.list_tasks(selected_filter)
 
-    #: Alias for the list selected item.
-    alias selected_task : t_select.selected_item
+    #: Currently selected task.
+    attr selected_task
+
+    #: Mappping between engine user understandable names and ids.
+    attr _task_map << (ids_to_unique_names([normalize_name(t) for t in tasks],
+                                            normalize_name)
+                       if tasks else {})
 
     Conditional:
         condition << display_filters
@@ -93,5 +105,9 @@ enamldef TaskSelector(Container):
             selected << selected_filter
 
     QtListStrWidget: t_select:
-        to_string = normalize_name
-        items = sorted(manager.list_tasks(selected_filter))
+        items << sorted(_task_map)
+        selected_item ::
+            new_val = change['value']
+            if new_val:
+                sel.selected_task = _task_map[new_val]
+

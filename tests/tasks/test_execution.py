@@ -93,7 +93,7 @@ class TestTaskExecution(object):
         assert not res
         assert 'root/test' in tb
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_empty(self):
         """Test running an empty RootTask.
 
@@ -105,7 +105,7 @@ class TestTaskExecution(object):
         assert not root.should_pause.is_set()
         assert not root.should_stop.is_set()
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_exc(self):
         """Test handling a child raising an exception.
 
@@ -118,7 +118,7 @@ class TestTaskExecution(object):
         assert not root.should_pause.is_set()
         assert root.should_stop.is_set()
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_simple(self):
         """Test running a simple task.
 
@@ -133,7 +133,7 @@ class TestTaskExecution(object):
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_complex(self):
         """Test running a simple task.
 
@@ -150,7 +150,7 @@ class TestTaskExecution(object):
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_parallel(self):
         """Test running a simple task in parallel.
 
@@ -195,7 +195,7 @@ class TestTaskExecution(object):
         assert root.should_stop.is_set()
         assert aux.perform_called == 1
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_wait_all(self):
         """Test running a simple task waiting on all pools.
 
@@ -228,7 +228,7 @@ class TestTaskExecution(object):
         assert wait.perform_called == 1
         assert not root.resources['threads']['test']
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_wait_single(self):
         """Test running a simple task waiting on a single pool.
 
@@ -262,7 +262,7 @@ class TestTaskExecution(object):
         assert not root.resources['threads']['test']
         assert root.resources['threads']['aux']
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_root_perform_no_wait_single(self):
         """Test running a simple task not waiting on a single pool.
 
@@ -296,7 +296,7 @@ class TestTaskExecution(object):
         assert not root.resources['threads']['test']
         assert root.resources['threads']['aux']
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_stop(self):
         """Test stopping the execution.
 
@@ -313,7 +313,7 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert not par2.perform_called
 
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(10)
     def test_stop_unstoppable(self):
         """Try stopping unstoppable task.
 
@@ -330,7 +330,7 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert par2.perform_called == 1
 
-    @pytest.mark.timeout(5)
+    @pytest.mark.timeout(10)
     def test_pause1(self, app):
         """Test pausing and resuming the execution. (add instrs)
 
@@ -385,7 +385,7 @@ class TestTaskExecution(object):
         assert dummy.called == 1
         assert dummy.owner == ''
 
-    @pytest.mark.timeout(5)
+    @pytest.mark.timeout(10)
     def test_pause2(self, app):
         """Test pausing and stopping the execution.
 
