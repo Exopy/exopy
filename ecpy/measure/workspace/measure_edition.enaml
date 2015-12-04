@@ -23,6 +23,7 @@ from enaml.core.api import Include
 from enaml.layout.api import hbox, vbox, align, spacer, InsertTab, TabLayout
 from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
                                Label, Field, Notebook, DockItem, DockArea)
+from enaml.stdlib.message_box import question
 
 from ...utils.widgets.qt_tree_widget import QtTreeWidget
 from ...utils.widgets.tree_nodes import TreeNode
@@ -394,7 +395,25 @@ enamldef MeasEditionView(Container): ed:
             objects << _internal.valid_editors
 
 
-enamldef MeasureEditorDockItem(DockItem): main:
+class _MeasDockItem(DockItem):
+    """Overrides close to show confirmation dialog.
+
+    """
+    def _item_closed(self):
+        """Ask the user to confirm closing and close tools edition panel if
+        opened.
+
+        """
+        btn = question(self, 'Confirm closing',
+                       'Are you sure you want to close this measure ?')
+        if btn and btn.action == 'accept':
+            tool_dock = self.parent.find(self.name + '_tools')
+            if tool_dock:
+                tool_dock.destroy()
+            super(_MeasDockItem, self)._item_closed()
+
+
+enamldef MeasureEditorDockItem(_MeasDockItem): main:
     """ DockItem used for editing a measure, main component of the workspace
     content.
 
@@ -414,16 +433,10 @@ enamldef MeasureEditorDockItem(DockItem): main:
 
     Container:
         constraints = [vbox(editor,
-                            hbox(new, save, load, spacer, enqueue_button))]
+                            hbox(save, load, spacer, enqueue_button))]
 
         MeasEditionView: editor:
             dock_item = main
-
-        PushButton: new:
-            text = 'New'
-            hug_width  = 'strong'
-            hug_height = 'strong'
-            clicked :: workspace.new_measure(dock_item=main)
 
         PushButton: save:
             text = 'Save'

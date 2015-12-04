@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from time import sleep
+from collections import namedtuple
 
 import pytest
 import enaml
@@ -187,6 +188,49 @@ def test_creating_tools_edition_panel(edition_view, dialog_sleep):
     process_app_events()
 
     assert len(edition_view.area.dock_items()) == 2
+
+
+def test_closing_measure(edition_view, monkeypatch, dialog_sleep):
+    """Test closing the measure dock item.
+
+    """
+    edition_view.show()
+    process_app_events()
+    sleep(dialog_sleep)
+
+    # Open the tools edition panel to check that we will properly close the
+    # it later
+    ed = edition_view.widget.dock_widget().widgets()[0]
+    btn = ed.widgets()[4]
+
+    btn.clicked = True
+    process_app_events()
+
+    # Monkeypatch question (handle_dialog does not work on it on windows)
+    with enaml.imports():
+        from ecpy.measure.workspace import measure_edition
+
+    monkeypatch.setattr(measure_edition, 'question', lambda *args: None)
+    edition_view.widget.proxy.on_closed()
+    edition_view.widget.measure.name = 'First'
+    process_app_events()
+    assert len(edition_view.area.dock_items()) == 2
+    sleep(dialog_sleep)
+
+    false_btn = namedtuple('FalseBtn', ['action'])
+    monkeypatch.setattr(measure_edition, 'question',
+                        lambda *args: false_btn('reject'))
+    edition_view.widget.proxy.on_closed()
+    edition_view.widget.measure.name = 'Second'
+    process_app_events()
+    assert len(edition_view.area.dock_items()) == 2
+    sleep(dialog_sleep)
+
+    monkeypatch.setattr(measure_edition, 'question',
+                        lambda *args: false_btn('accept'))
+    edition_view.widget.proxy.on_closed()
+    process_app_events()
+    assert len(edition_view.area.dock_items()) == 0
 
 
 def test_measure_edition_dialog(workspace, measure, windows, monkeypatch,
