@@ -22,7 +22,7 @@ from atom.api import Typed, Value, set_default
 from enaml.application import deferred_call
 from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
-from enaml.layout.api import InsertItem
+from enaml.layout.api import InsertItem, InsertTab
 
 from ..measure import Measure
 from ..plugin import MeasurePlugin
@@ -138,7 +138,8 @@ class MeasureSpace(Workspace):
             created and inserted in the dock area.
 
         """
-        measure = Measure(plugin=self.plugin)
+        # TODO make sure this name is unique.
+        measure = Measure(plugin=self.plugin, name='M', id='001')
         measure.root_task = RootTask()
 
         self._attach_default_tools(measure)
@@ -446,7 +447,7 @@ class MeasureSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    def _insert_new_edition_panel(self, measure, dock_name=None):
+    def _insert_new_edition_panel(self, measure):
         """Handle inserting a new MeasureEditorDockItem in the content.
 
         """
@@ -469,11 +470,12 @@ class MeasureSpace(Workspace):
                 ind = len(measure_items)
 
             name = template % ind
-            op = InsertItem(item=name, target=template % indexes[0])
+            op = InsertTab(item=name, target=template % indexes[0])
 
         MeasureEditorDockItem(self.dock_area, workspace=self,
                               measure=measure, name=name)
-        self.dock_area.update_layout(op)
+
+        deferred_call(self.dock_area.update_layout, op)
 
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect

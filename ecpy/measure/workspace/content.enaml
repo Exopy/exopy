@@ -29,9 +29,7 @@ enamldef MeasureContent(Container): main:
 
     DockArea:
         # Sizes are exppressed in pixels
-        layout = VSplitLayout(
-                    HSplitLayout('meas_editor', 'meas_exec', sizes=[5000,10]),
-                    'main_log', sizes=[5000,10])
+        layout = VSplitLayout('meas_0', 'meas_exec', 'main_log')#, sizes=[5000,10])
 
         style = 'metro'
 

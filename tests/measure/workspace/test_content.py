@@ -6,16 +6,18 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Measure workspace fixture functions.
+"""Test the measure workspace content widget.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
 
-import pytest
 import enaml
+import pytest
 
+from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
@@ -26,8 +28,8 @@ with enaml.imports():
 pytests_plugin = str('ecpy.testing.measure.fixtures'),
 
 
-@pytest.yield_fixture
-def workspace(measure_workbench, measure, windows):
+@pytest.fixture
+def content_workbench(measure_workbench, measure, windows):
     """Create a measure workspace.
 
     """
@@ -37,17 +39,30 @@ def workspace(measure_workbench, measure, windows):
     measure_plugin = measure_workbench.get_plugin('ecpy.measure')
     measure_plugin.selected_engine = 'dummy'
     measure_plugin.default_monitors = ['dummy']
-    core = measure_workbench.get_plugin('enaml.workbench.core')
+
+    return measure_workbench
+
+
+@pytest.mark.timeout(30)
+def test_content(content_workbench, windows, dialog_sleep):
+    """Test creating the content of the workspace.
+
+    """
+    w = content_workbench
+    ui = w.get_plugin('enaml.workbench.ui')
+    ui.show_window()
+    process_app_events()
+    sleep(dialog_sleep)
+
+    core = content_workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.select_workspace'
     core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    process_app_events()
+    sleep(dialog_sleep)
 
-    yield measure_plugin.workspace
+    pl = content_workbench.get_plugin('ecpy.measure')
+    pl.workspace.new_measure()
+    process_app_events()
+    sleep(dialog_sleep)
 
-    cmd = 'enaml.workbench.ui.close_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
-
-    for m_id in ('ecpy.tasks', 'ecpy.app.logging'):
-        try:
-            measure_workbench.unregister(m_id)
-        except ValueError:
-            pass
+    ui.close_window()

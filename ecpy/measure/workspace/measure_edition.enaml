@@ -429,7 +429,7 @@ enamldef MeasureEditorDockItem(_MeasDockItem): main:
 
     stretch = 10
 
-    title << measure.name
+    title << measure.name + ' ' + measure.id
 
     Container:
         constraints = [vbox(editor,

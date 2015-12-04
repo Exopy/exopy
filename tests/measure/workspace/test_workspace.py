@@ -491,7 +491,7 @@ def test_remove_processed_measures(workspace):
                                 'INTERRUPTED')
 
 
-def test_creating_measure_when_low_index_was_detextoyed(workspace):
+def test_creating_measure_when_low_index_was_destroyed(workspace):
     """Test that adding an edited measure when a previous one panel was closed
     re-use the index.
 
