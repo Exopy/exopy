@@ -435,6 +435,10 @@ def test_pause_stop(process_engine, exec_infos, sync_server):
     assert not t.value.success
     assert process_engine.status == 'Waiting'
 
+    process_engine.shutdown()
+    while not process_engine.status == 'Stopped':
+        sleep(0.01)
+
 
 @pytest.mark.timeout(30)
 def test_stop(process_engine, exec_infos, sync_server):

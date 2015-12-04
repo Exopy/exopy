@@ -37,7 +37,7 @@ enamldef EngineSelector(Dialog): dial:
     title = 'Select an engine'
 
     Container:
-        constraints << [vbox(list_ed, desc, hbox(cancel, ok))]
+        constraints << [hbox(list_ed, desc, vbox(ok, cancel, spacer))]
 
         QtListStrWidget: list_ed:
             items << list(_names)

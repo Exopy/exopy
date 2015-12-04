@@ -51,10 +51,10 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
 
     while any(len(v) > 1 for v in valid_names.values()):
         for name in list(valid_names):
-            ids = valid_names[name]
-            if len(ids) > 1:
+            non_uniques = valid_names[name]
+            if len(non_uniques) > 1:
                 del valid_names[name]
-                for i in ids:
+                for i in non_uniques:
                     new_name = (mapping[i][-len(name.split(separator))-1] +
                                 separator + name)
                     valid_names[new_name].append(i)

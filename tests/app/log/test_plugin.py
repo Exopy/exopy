@@ -33,14 +33,13 @@ PLUGIN_ID = 'ecpy.app.logging'
 
 
 class CMDArgs(object):
-            pass
+    pass
 
 
 class TestLogPlugin(object):
     """Test all the commands deined by the LogPLugin.
 
     """
-
     def setup(self):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
@@ -241,17 +240,21 @@ class TestLogPlugin(object):
         """
         cmd_args = CMDArgs()
         cmd_args.nocapture = False
+        old = sys.stdout
 
         app = self.workbench.get_plugin('ecpy.app')
         app.run_app_startup(cmd_args)
         plugin = self.workbench.get_plugin(PLUGIN_ID)
 
-        assert os.path.isdir(os.path.join(app_dir, 'logs'))
-        assert 'ecpy.file_log' in plugin.handler_ids
-        assert 'ecpy.gui_log' in plugin.handler_ids
-        assert plugin.gui_model
-        assert isinstance(sys.stdout, StreamToLogRedirector)
-        assert isinstance(sys.stderr, StreamToLogRedirector)
+        try:
+            assert os.path.isdir(os.path.join(app_dir, 'logs'))
+            assert 'ecpy.file_log' in plugin.handler_ids
+            assert 'ecpy.gui_log' in plugin.handler_ids
+            assert plugin.gui_model
+            assert isinstance(sys.stdout, StreamToLogRedirector)
+            assert isinstance(sys.stderr, StreamToLogRedirector)
+        finally:
+            sys.stdout = old
 
     def test_start_logging2(self, app_dir):
         """Test startup function when redirection of sys.stdout is not required
@@ -259,14 +262,19 @@ class TestLogPlugin(object):
         """
         cmd_args = CMDArgs()
         cmd_args.nocapture = True
+        old = sys.stdout
 
         app = self.workbench.get_plugin('ecpy.app')
         app.run_app_startup(cmd_args)
         plugin = self.workbench.get_plugin(PLUGIN_ID)
 
-        assert os.path.isdir(os.path.join(app_dir, 'logs'))
-        assert 'ecpy.file_log' in plugin.handler_ids
-        assert 'ecpy.gui_log' in plugin.handler_ids
-        assert plugin.gui_model
-        assert not isinstance(sys.stdout, StreamToLogRedirector)
-        assert not isinstance(sys.stderr, StreamToLogRedirector)
+        try:
+            assert os.path.isdir(os.path.join(app_dir, 'logs'))
+            assert 'ecpy.file_log' in plugin.handler_ids
+            assert 'ecpy.gui_log' in plugin.handler_ids
+            assert plugin.gui_model
+            # Fail in no capture mode (unknown reason).
+            assert not isinstance(sys.stdout, StreamToLogRedirector)
+            assert not isinstance(sys.stderr, StreamToLogRedirector)
+        finally:
+            sys.stdout = old

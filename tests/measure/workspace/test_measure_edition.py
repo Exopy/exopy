@@ -48,7 +48,7 @@ def edition_view(measure, workspace, windows):
     return DockItemTestingWindow(widget=item)
 
 
-def test_save_action(workspace, measure, monkeypatch, windows):
+def test_save_action(workspace, measure, windows):
     """Test that save action calls the proper commands.
 
     """
@@ -68,12 +68,16 @@ def test_save_action(workspace, measure, monkeypatch, windows):
         raise CmdException(cmd, opts)
 
     from enaml.workbench.core.core_plugin import CorePlugin
-    monkeypatch.setattr(CorePlugin, 'invoke_command', invoke)
+    old = CorePlugin.invoke_command
+    CorePlugin.invoke_command = invoke
 
-    with pytest.raises(CmdException) as ex:
-        act.triggered = True
-        process_app_events()
-    assert ex.value.cmd == 'ecpy.app.errors.signal'
+    try:
+        with pytest.raises(CmdException) as ex:
+            act.triggered = True
+            process_app_events()
+        assert ex.value.cmd == 'ecpy.app.errors.signal'
+    finally:
+        CorePlugin.invoke_command = old
 
 
 def test_build_task(workspace, windows):

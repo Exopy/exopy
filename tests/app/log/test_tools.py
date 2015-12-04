@@ -130,7 +130,7 @@ def test_queue_handler(logger, monkeypatch):
     logger.addHandler(handler)
     logger.info('test')
 
-    record = queue.get(timeout=0.2)
+    record = queue.get(timeout=1.0)
     assert record.message == 'test'
 
     def err(record):

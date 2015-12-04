@@ -80,9 +80,11 @@ def close_all_windows():
     """
     process_app_events()
     sleep(0.1)
-    for window in Window.windows:
-        window.close()
-    process_app_events()
+    while Window.windows:
+        for window in list(Window.windows):
+            window.close()
+        process_app_events()
+        sleep(0.02)
 
 
 @contextmanager

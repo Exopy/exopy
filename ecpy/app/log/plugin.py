@@ -71,10 +71,10 @@ class LogPlugin(Plugin):
                 handler = GuiHandler(model=model)
                 refs.append(model)
             else:
-                logger = logging.getLogger(__name__)
-                logger.info('Missing handler or recognised mode when adding '
-                            ' log handler under id %s to logger %s',
-                            (id, logger))
+                l = logging.getLogger(__name__)
+                l.info('Missing handler or recognised mode when adding '
+                       'log handler under id %s to logger %s',
+                       id, logger)
                 return []
 
         name = logger
