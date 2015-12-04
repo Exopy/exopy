@@ -36,8 +36,6 @@ enamldef ChecksDisplay(Dialog): dial:
         constraints = [vbox(hier, hbox(spacer, cls, *enq.items))]
 
         HierarchicalErrorsDisplay: hier:
-            selected = ('internal' if 'internal' in hier.errors else
-                        hier.errors.keys()[0])
             kind = 'Errors' if not is_warning else 'Warnings'
 
         PushButton: cls:

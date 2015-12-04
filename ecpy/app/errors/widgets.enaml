@@ -155,8 +155,6 @@ enamldef HierarchicalErrorsDisplay(Container): main:
     Label: lis_lab:
         pass
     DictTreeView: tr:
-        mapping = errors
-        selected_item = mapping.keys()[0]
         hug_height = 'ignore'
 
     MultilineField: txt:
