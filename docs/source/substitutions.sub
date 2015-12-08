@@ -60,8 +60,18 @@
 
 .. |State| replace:: :py:class:`~ecpy.app.states.state.State`
 
+.. |ErrorHandler| replace:: :py:class:`~ecpy.app.errors.errors.ErrorHandler`
+
+.. |LogManifest| replace:: :py:class:`~ecpy.app.log.manifest.LogManifest`
+
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
+
+.. |BaseTask| replace:: :py:class:`~ecpy.tasks.base_tasks.BaseTask`
+
+.. |parallel| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.parallel`
+
+.. |wait| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.wait`
 
 .. |SimpleTask| replace:: :py:class:`~ecpy.tasks.base_tasks.SimpleTask`
 
@@ -80,6 +90,8 @@
 .. |database_entries| replace:: :py:attr:`~ecpy.tasks.base_tasks.BaseTask.database_entries`
 
 .. |resources| replace:: :py:attr:`~ecpy.tasks.base_tasks.RootTask.resources`
+
+.. |ResourceHolder| replace:: :py:class:`~ecpy.tasks.tools.shared_resources.ResourceHolder`
 
 .. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
 
