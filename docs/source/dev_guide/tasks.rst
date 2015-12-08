@@ -58,13 +58,13 @@ used to identify the part to replace with the value stored in the database).
         #: my_text description
         my_text = Unicode().tag(pref=True)
 
-Tasks use a common database (which is nothing else that a kind of smart 
-dictionary) to exchange data. If a task needs to write a value in the database 
-(typically all computed or measured values should be stored), the entries 
-should be declared by changing the default value of the |database_entries| 
-member. The provided value should be a dictionary whose values specify the 
+Tasks use a common database (which is nothing else that a kind of smart
+dictionary) to exchange data. If a task needs to write a value in the database
+(typically all computed or measured values should be stored), the entries
+should be declared by changing the default value of the |database_entries|
+member. The provided value should be a dictionary whose values specify the
 default value to write in the database. Those values can also be altered during
-the edition of the task parameters through its view by **assigning** a new 
+the edition of the task parameters through its view by **assigning** a new
 dictionary to |database_entries|.
 
 .. code-block:: python
@@ -103,7 +103,9 @@ automatically in the base class check method. To take advantage of it, you
 simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
 (formatting and evaluation) (value should be True).
 
-**You must always call the base class check method (using super).**
+If your task needs to run code once before the whole hierarchy execution
+starts, you can over-write the **prepare** method which is called by the
+|RootTask| before it starts to call its children perform method.
 
 
 When to use interfaces
@@ -219,35 +221,39 @@ We declare a single child for the extension a |Tasks| object. |Tasks| does
 nothing by themselves they are simply container for grouping tasks
 declarations. They have two attributes:
 
-- group: this is simply to specify that the task is part of that group. Group
+- 'group': this is simply to specify that the task is part of that group. Group
   are only used to filter tasks. (see :ref:`dev_tasks_new_filter`)
-- path: when declaring a task you must specify in which module it is defined
+- 'path': when declaring a task you must specify in which module it is defined
   as a '.' sperated path. When declaring a path in a |Tasks| it will be
   prepended to any path-like declaration in all children.
 
 We then declare our task using a |Task| object. A |Task| has four attributes
 but only two of them must be given non-default values :
 
-- task: this is the path ('.' separated) to the module defining the task. The
+- 'task': this is the path ('.' separated) to the module defining the task. The
   actual name of the task is specified after a colon (':'). As mentioned above
   the path of all parent |Tasks| is preprended to this path.
-- view: this identic to the task attribute but used for the view definition.
+- 'view': this identic to the task attribute but used for the view definition.
   Once again the path of all parent |Tasks| is preprended to this path.
-- metadata: Any additional informations about the task. Those should be
+- 'metadata': Any additional informations about the task. Those should be
   specified as a dictionary.
-- instruments: This only apply to tasks using an instrument. In this attribute,
-  the supported driver should be listed. Note that if a driver is supported
-  through the use of an interface the driver should be listed in the interface
-  and not in the task.
+- 'instruments': This only apply to tasks using an instrument. In this
+  attribute, the supported driver should be listed. Note that if a driver is
+  supported through the use of an interface the driver should be listed in the
+  interface and not in the task.
 
 This is it. Now when starting Ecpy your new task should be listed.
 
 .. note::
 
-    You can also alter the metadata of a task by redeclaring it and only
-    specify the name of the task (not the full path) and omit the view. This
-    can be used for example to declare that the task support a new instrument
-    (added by your extension).
+    You can also alter the metadata/instruments of a task by redeclaring it and
+    only specify the **id** of the task (not the full path) and omit the view.
+    This can be used for example to declare that the task support a new
+    instrument (added by your extension). The id of the task is formed by the
+    top level package declaring it followed by the name of the task. This
+    allows to declare tasks with the same name in different extension packages.
+
+    ex : ecpy.LoopTask
 
 
 .. _dev_tasks_new_interface:
@@ -276,6 +282,7 @@ interface is similar to the one of a task. The same method needs to be
 implemented and the handling of the database use the same members.
 
 .. code-block:: python
+
     from atom.api import Unicode, Int
 
     class MyInterface(TaskInterface):
@@ -554,26 +561,26 @@ For any task one can specify a number of parameters concerning how the
   the execution. This is controlled by the value of the |parallel| attribute.
   Threads are grouped by pool to simplify the synchronization issues.
 - should the task wait on any other task before running. This is controlled by
-  the |wait| attribute. One can specify whether to wait for all threads to 
-  proceed or only on some pools (or to wait for all threads save the ones in 
-  some pools). 
+  the |wait| attribute. One can specify whether to wait for all threads to
+  proceed or only on some pools (or to wait for all threads save the ones in
+  some pools).
 - should one be able to stop the execution of the whole hierarchy or set it on
   pause when calling this task.
-  
-To give that flexibility, the actual *perform* method of the task is wrapped 
+
+To give that flexibility, the actual *perform* method of the task is wrapped
 when running the *check* method and it is partly why it is vital to always call
-the |BaseTask| *check* method. 
+the |BaseTask| *check* method.
 
 .. note::
 
     First the condition for stopping/pausing is checked, then the task wait for
-    other to terminate and finally the task is executed in parallel if 
+    other to terminate and finally the task is executed in parallel if
     parametrized to do so.
-    
+
 .. note::
-    
-    Please note that if waiting from a thread one must be careful not to wait 
-    on the pool from which it is part. For example, if a ComplexTask is 
+
+    Please note that if waiting from a thread one must be careful not to wait
+    on the pool from which it is part. For example, if a ComplexTask is
     performed in parallel all child task must be careful not to wait upon the
     pool to which the ComplexTask belong.
 
@@ -582,17 +589,17 @@ Database access and exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As stated above, tasks use a common database to exchange data. This database is
-organized hierarchically like the tasks themselves. To each |ComplexTask|, will 
+organized hierarchically like the tasks themselves. To each |ComplexTask|, will
 be associated a node in the database. Each task can write in the database in
-the node of their parent (ie a |ComplexTask| does not write into its own node, 
-only the |RootTask| does this). 
+the node of their parent (ie a |ComplexTask| does not write into its own node,
+only the |RootTask| does this).
 
-By default a task can only access to the entries written in the same node, it 
-can write or in nodes higher in the hierarchy. However, it is sometimes 
-desirable to relax this constraint. One such case is when a |ComplexTask| is 
+By default a task can only access to the entries written in the same node, it
+can write or in nodes higher in the hierarchy. However, it is sometimes
+desirable to relax this constraint. One such case is when a |ComplexTask| is
 used to isolate a complex operation, but following tasks need to access results
 of some inner tasks of the previously cited |ComplexTask|. To do so, the
-database has a notion of *access exceptions*, which basically make an entry 
+database has a notion of *access exceptions*, which basically make an entry
 appears on the node its original node (and exceptions can be chained to go up
 as many times as necessary).
 
@@ -602,20 +609,20 @@ need to do anything in the task to allow this.
 Shared resources
 ^^^^^^^^^^^^^^^^
 
-The database is the right way to exchange data such as numbers and arrays 
+The database is the right way to exchange data such as numbers and arrays
 between tasks. However some tasks can also access to other kind of resources
-such as instruments or file descriptors. Generally such resources need to be 
-properly initialized and more importantly finalized. Furthermore they can be 
+such as instruments or file descriptors. Generally such resources need to be
+properly initialized and more importantly finalized. Furthermore they can be
 shared by multiple tasks, suggesting a thread-safe way to store and manipulate
-them. As a task is not aware of whether or not it will be called again in the 
-future, it cannot properly close its resource (as closing and re-opening a 
-resource repeatedly is most likely time costly). That's why such resources 
-should be stored in special containers in the |resources| attributes of the 
+them. As a task is not aware of whether or not it will be called again in the
+future, it cannot properly close its resource (as closing and re-opening a
+resource repeatedly is most likely time costly). That's why such resources
+should be stored in special containers in the |resources| attributes of the
 |RootTask|. The |resources| attributes is a dictionary, the keys allowing
 to easily retrieve the wanted container.
 
-For each kind of object to store, one should create a subclass of 
-|ResourceHolder| implementing the *release* and *reset* methods (look at the 
+For each kind of object to store, one should create a subclass of
+|ResourceHolder| implementing the *release* and *reset* methods (look at the
 API docs for more details). When first creating a resource, check whether
 or not the right container already exists in the |resources| attribute or not,
 and store the newly created resource.
