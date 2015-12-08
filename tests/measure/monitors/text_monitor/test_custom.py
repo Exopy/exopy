@@ -97,6 +97,9 @@ def test_creating_new_custom_entry(monitor, dialog_sleep):
     assert (sorted(e.depend_on) ==
             sorted(('root/test', 'root/simp/test', 'root/comp/test')))
 
+    d.close()
+    process_app_events()
+
 
 def test_editing_cusom_entry(monitor, dialog_sleep):
     """Test that we can edit an existing monitored entry.
