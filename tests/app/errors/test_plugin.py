@@ -22,6 +22,7 @@ from ecpy.testing.util import handle_dialog, get_window
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.errors.manifest import ErrorsManifest
+    from ecpy.app.packages.manifest import PackagesManifest
 
 
 APP_ID = 'ecpy.app'
@@ -36,6 +37,7 @@ def workbench():
     workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(ErrorsManifest())
+    workbench.register(PackagesManifest())
     return workbench
 
 
@@ -62,7 +64,7 @@ def test_life_cycle(workbench):
     """
     plugin = workbench.get_plugin(ERRORS_ID)
 
-    assert len(plugin.errors) == 3
+    assert len(plugin.errors) == 4
 
     plugin._errors_handlers.contributions = {}
 
