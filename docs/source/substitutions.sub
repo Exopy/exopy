@@ -64,6 +64,10 @@
 
 .. |LogManifest| replace:: :py:class:`~ecpy.app.log.manifest.LogManifest`
 
+.. Measure substitutions
+.. ----------------------------------------------------------------------------
+
+
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
 

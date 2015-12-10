@@ -1,4 +1,149 @@
 .. _dev_testing:
 
-Writing tests
-=============
+Writing and running tests
+=========================
+
+Unit tests are one of the few ways to discover bugs beforehand and to prevent
+regressions when updating the code base. Ecpy aims at being covered at 100%
+(meaning that tests must run every single line of code at least once). Coverage
+is not always a perfect metric as it is not because a line does not crash that
+the code does what it is meant to but it is a good indicator. Actually GUI
+elements written in Enaml are not tracked by the coverage, BUT they should be
+tested nonetheless.
+
+.. note::
+
+    The test suite is not distributed with pip packages or conda packages as it
+    is solely a developing tool. However some tools used in testing and that
+    may be useful to other packages can be found under the 'testing' package.
+
+.. contents::
+
+
+Writing test using pytest
+-------------------------
+
+The library used for writing the tests for Ecpy is pytest. Writing a test is as
+easy as creating a module whose name starts by 'test_' and inside write
+functions themselves prefixed by 'test_'. Inside a test function the correct
+behaviour of the program should be tested (using assertions as described in the
+next section). Test should focus on testing elementary operation at the highest
+level possible (avoiding direct access to private methods is likely to make the
+test easier to maintain if the code changes, note that this however not always
+possible).
+
+Assertions
+^^^^^^^^^^
+
+Python provides the 'assert' statement to check that a boolean is True. Usually
+one should provide also an error message describing why the assertion failed.
+One very interesting feature of pytest is that it can analyse assertions and
+provide automatically detailed error reporting in case of failure.
+
+So testing a function which should return one is as easy as :
+
+.. code-block:: python
+
+    def test_my_function():
+
+        assert my_function() == 100%
+
+Sometimes a function should raise an exception in a given situation and it
+might desirable to check that it indeed do so. Pytest provides a context
+handler to handle this case.
+
+.. code-block:: python
+
+    def test_my_other_function():
+
+        with pytest.raises(ValueError):
+            my_other_funtion(-1)
+
+Another case which often arises in Ecpy if the need to handle a dialog opened
+by the function. To handle this case one can use the |handle_dialog| context
+manager found in 'ecpy.testing.util' (note a bunch of other useful function
+are defined in this module):
+
+.. code-block:: python
+
+    def my_function_dialog():
+
+        def handler(dialog):
+            # Do something with the dialog
+            pass
+
+        with handle_dialog('accept', handler):
+            my_function_dialog()
+
+The first argument indicates whether to accept or reject the dialog, and the
+second allows to modify the attributes of the dialog. Both arguments are
+optional.
+
+
+Fixtures
+^^^^^^^^
+
+Usually when testing the methods of an object, all tests have in common some
+initialisation steps and sometimes also some finalisation steps to clean up
+after the tests.
+
+To avoid duplicating a lot of code Pytest provides fixture functions. A fixture
+function is imply a function decorated with '@pytest.fixture' (or
+'@pytest.yield_fixture') which, when passed as argument of a test function,
+will be called automatically by pytest. Standard fixture simply gives access to
+a value, yield_fixture allow to cleanup after the test execution. Note that a
+fixture can rely on another fixture.
+
+.. code-block:: python
+
+    @pytest.fixture
+    def tool():
+        return 1
+
+    @pytest.yield_fixture
+    def clean_tool(tool):
+        yield tool  # This will pass 1 to the test function
+        del tool  # This is executed after the test function (no matter the errors)
+
+    def test_my_function(clean_tool):
+        assert clean_tool == 1
+
+Pytest provides some useful fixtures :
+
+- monkeypatch : an object with a setattr method to modify some code and be sure
+  theat the modification will be removed before running the next text.
+- tmpdir : a temporary directory (should be converted to unicode before passing
+  it to 'os' module functions)
+
+Ecpy add some other :
+- app : fixture ensuring that the Application is running (mandatory for testing
+  widgets).
+- windows : fixtures closing all opened windows after a test.
+- app_dir : return the automatically set path for the application
+- dialog_sleep : return the time to sleep as specified by the --ecpy-sleep
+  option
+
+If a fixture need to be available in multiple test module it can be defined in
+a conftest.py module inside the package. If the fixture can be of use to other
+packages it should be defined in a fixtures.py module inside the testing
+package.
+
+.. note::
+
+    If a fixture is defined in a fixtures.py module, one should add a
+    'pytest_plugin' variable at the top of the test module with a list of all
+    the module containing fixtures to load (modules should be specified using
+    their full path).
+	
+.. note::
+
+	More details about fixtures can be found in the pytest `documentation_`
+	
+	.. _documentation: http://pytest.org/latest/contents.html#
+
+Running the test suite
+----------------------
+
+
+Checking coverage
+^^^^^^^^^^^^^^^^^

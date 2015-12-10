@@ -67,6 +67,11 @@ Docstrings
 All functions, classes and methods should have a docstring (even private 
 methods). Ecpy use the `Numpy-style`_ docstrings which are human readable.
 
+As most classes inherits from Atom and must therefore declare explicitly their
+members, those should be documented using a comment above them starting by 
+'#:'. This makes the code easier to read than using the 'Attributes' section in 
+the docstring and is picked up by the API documentation generator. 
+
 
 .. _Numpy-style: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 
