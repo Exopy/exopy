@@ -1,0 +1,133 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifest of the plugin handling the storing of rules for the TextMonitor.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import logging
+
+from atom.api import List, Subclass, Dict
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+
+from ....app.preferences.api import Preferences
+from ..base_monitor import Monitor
+from .rules.base import Rules, RuleType, RuleConfig
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def plugin_factory():
+    """ Plugin factory for the TextMonitoprPlugin.
+
+    """
+    from .plugin import TextMonitorPlugin
+    return TextMonitorPlugin()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+RULES_TYPE_DESCRIPTION =\
+'''Plugins can contribute RuleType to this point to add new kind of rules to
+the TextMonitor.'''
+
+
+RULES_CONFIG_DESCRIPTION =\
+'''Plugins can contribute RuleConfig to this point to add defaults
+parametrisation of rules to the TextMonitor. NB : if a user customize such a
+rule it will always be preferred to a default implementation.'''
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef TextMonitorManifest(PluginManifest): man:
+    """Plugin handling the storing of rules for the TextMonitor.
+
+    """
+    id = 'ecpy.measure.monitors.text_monitor'
+    factory = plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = man.id + '.rules.type'
+        description = RULES_TYPE_DESCRIPTION
+    ExtensionPoint:
+        id = man.id + '.rules.config'
+        description = RULES_CONFIG_DESCRIPTION
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'monitors'
+        point = 'ecpy.measure.monitors'
+        Monitor:
+            id = 'ecpy.text_monitor'
+            description = 'Monitor displaying infos as text.'
+            has_view = True
+
+            new => (workbench, default=True):
+                plugin_id = 'ecpy.measure.monitors.text_monitor'
+                plugin = workbench.get_plugin(plugin_id)
+                return plugin.create_monitor(default)
+
+            make_view => (workbench, monitor):
+                from .monitor_views import TextMonitorEdit
+                return TextMonitorEdit(monitor=monitor)
+
+            create_item => (workbench, area):
+                from .monitor_views import TextMonitorItem
+                return TextMonitorItem(area, name=self.id)
+
+    Extension:
+        id = 'prefs'
+        point = 'ecpy.app.preferences.plugin'
+        Preferences:
+            pass  # TODO add rules edition panel to the preference edition.
+
+    Extension:
+        id = 'rule_types'
+        point = man.id + '.rules.type'
+        Rules:
+            path = 'ecpy.measure.monitors.text_monitor.rules'
+            RuleType:
+                rule = 'std_rules:RejectRule'
+                view = 'std_views:RejectRuleView'
+
+            RuleType:
+                rule = 'std_rules:FormatRule'
+                view = 'std_views:FormatRuleView'
+
+    Extension:
+        id = 'rule_configs'
+        point = man.id + '.rules.config'
+        RuleConfig:
+            id = 'Measure entries'
+            description = 'Reject all the entries provided by the measure'
+            rule_type = 'ecpy.RejectRule'
+            config = {'suffixes': ['meas_name', 'meas_id', 'meas_date']}
+
+        RuleConfig:
+            id = 'Loop progress'
+            description = ('Format the index and number of point of LoopTask '
+                           'in a progression {index}/{number}')
+            rule_type = 'ecpy.FormatRule'
+            config = {'suffixes': ['index', 'point_number'],
+                      'new_entry_formatting': '{index}/{point_number}',
+                      'new_entry_suffix': 'progress'}

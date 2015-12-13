@@ -12,9 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from future.utils import python_2_unicode_compatible
 import re
+from importlib import import_module
+from traceback import format_exc
 
+from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, Bool
 from enaml.core.api import Declarative,  d_
 
@@ -160,3 +162,26 @@ class GroupDeclarator(Declarator):
         st = '{} whose path is "{}" and group is "{}" declaring :\n{}'
         return st.format(type(self).__name__, self.path, self.group,
                          '\n'.join(' - {}'.format(c) for c in self.children))
+
+
+def import_and_get(path, name, traceback, id):
+    """Function importing a module and retrieving an object from it.
+
+    This function provides a common pattern for declarator.
+
+    """
+    import enaml
+    try:
+        with enaml.imports():
+            mod = import_module(path)
+    except Exception:
+        msg = 'Failed to import {} :\n{}'
+        traceback[id] = msg.format(path, format_exc())
+        return
+
+    try:
+        return getattr(mod, name)
+    except AttributeError:
+        msg = '{} has no attribute {}:\n{}'
+        traceback[id] = msg.format(path, name, format_exc())
+        return

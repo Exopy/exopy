@@ -52,7 +52,7 @@ class TaskFilter(Declarator):
 
 
 class SubclassTaskFilter(TaskFilter):
-    """Filter keeping only the python tasks which are subclass of task_class.
+    """Filter keeping only the python tasks which are subclass of subclass.
 
     """
     #: Class from which the task must inherit.

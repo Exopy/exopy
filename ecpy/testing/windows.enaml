@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Window used to test widget.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.core.api import Include
+from enaml.widgets.api import Window, Container, Notebook, DockArea
+from enaml.layout.api import InsertItem
+
+
+enamldef ContainerTestingWindow(Window):
+    """Window used to test a container.
+
+    """
+    attr widget
+
+    Container:
+        Include:
+            objects << [widget]
+
+
+enamldef PageTestingWindow(Window):
+    """Window used to test a page.
+
+    """
+    attr widget
+
+    Container:
+        Notebook:
+            Include:
+                objects << [widget]
+
+
+enamldef DockItemTestingWindow(Window):
+    """Window used to test a dock item.
+
+    """
+    attr widget
+    widget ::
+        set_layout()
+
+    alias area : area_
+
+    activated ::
+        set_layout()
+
+    func set_layout():
+        op = InsertItem(item=widget.name)
+        area_.update_layout(op)
+
+    Container:
+        DockArea: area_:
+            style = 'metro'
+            Include:
+                objects << [widget]

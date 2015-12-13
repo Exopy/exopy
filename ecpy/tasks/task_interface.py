@@ -120,7 +120,7 @@ class InterfaceableMixin(Atom):
                                                                dependencies)
 
         if 'interface' in config:
-            iclass = config['interface'].pop('interface_class')
+            iclass = config['interface'].pop('interface_id')
             inter_class = dependencies[DEP_TYPE][literal_eval(iclass)]
             new.interface = inter_class.build_from_config(config['interface'],
                                                           dependencies)
@@ -187,7 +187,7 @@ class InterfaceableTaskMixin(InterfaceableMixin):
         and that the interface database entries are added to the task one.
 
         """
-        # XXXX Workaround Atom _DictProxy issue.
+        # HINT Workaround Atom _DictProxy issue.
         new_entries = dict(self.database_entries)
         if old:
             inter = old
@@ -245,7 +245,7 @@ class InterfaceableInterfaceMixin(InterfaceableMixin):
         the task one.
 
         """
-        # XXXX Workaround Atom _DictProxy issue.
+        # HINT Workaround Atom _DictProxy issue.
         task = self.task
         if task:
             new_entries = dict(task.database_entries)
@@ -258,8 +258,7 @@ class InterfaceableInterfaceMixin(InterfaceableMixin):
             if new:
                 inter = new
                 inter.parent = self
-                for entry, value in inter.database_entries.iteritems():
-                    new_entries[entry] = value
+                new_entries.update(inter.database_entries)
 
             task.database_entries = new_entries
 
@@ -281,7 +280,7 @@ class BaseInterface(HasPrefAtom):
 
     #: Name of the class of the interface and anchor (ie task or interface with
     #: this interface is used with). Used for persistence purposes.
-    interface_class = Tuple().tag(pref=True)
+    interface_id = Tuple().tag(pref=True)
 
     #: Dict of database entries added by the interface.
     database_entries = Dict()
@@ -363,8 +362,8 @@ class TaskInterface(BaseInterface):
         """Update the interface anchor when the task is set.
 
         """
-        self.interface_class = ((type(self).__name__, (new.task_class,)) if new
-                                else ())
+        self.interface_id = ((type(self).__name__, (new.task_id,)) if new
+                             else ())
 
 
 class IInterface(BaseInterface):
@@ -389,10 +388,10 @@ class IInterface(BaseInterface):
 
         """
         if new:
-            self.interface_class = (type(self).__name__,
-                                    self.parent.interface_class[1] +
-                                    (self.parent.interface_class[0],))
+            self.interface_id = (type(self).__name__,
+                                 self.parent.interface_id[1] +
+                                 (self.parent.interface_id[0],))
         else:
-            self.interface_class = (type(self).__name__,)
+            self.interface_id = (type(self).__name__,)
         task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
         task_member.reset(self)

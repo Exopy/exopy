@@ -1,5 +1,6 @@
 [run]
 omit =
+    */ecpy/testing/*
     *ecpy/version.py
     */ecpy/utils/widgets/*
     */__init__.py

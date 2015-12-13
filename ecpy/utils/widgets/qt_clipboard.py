@@ -96,7 +96,7 @@ class PyMimeData(QtCore.QMimeData):
             # See if the data is a list, if so check for any items which are
             # themselves of the right type.  If so, extract the instance and
             # track whether we should pickle.
-            # XXX lists should suffice for now, but may want other containers
+            # HINT lists should suffice for now, but may want other containers
             if isinstance(md, list):
                 md = [item.instance() if isinstance(item, PyMimeData) else item
                       for item in md]

@@ -175,7 +175,7 @@ class PrefPlugin(Plugin):
     #: Mapping between plugin_id and the declared preferences.
     _pref_decls = Dict()
 
-    # XXXX refcator using Declarator pattern
+    # TODO : low priority : refcator using Declarator pattern
     def _refresh_pref_decls(self):
         """Refresh the list of states contributed by extensions.
 

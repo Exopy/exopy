@@ -18,7 +18,7 @@ from configobj import ConfigObj
 
 from ecpy.tasks.manager.utils.building import build_task_from_config
 
-from ....util import handle_dialog, process_app_events
+from ecpy.testing.util import handle_dialog, process_app_events
 
 
 def test_create_task1(app, task_workbench):
@@ -30,7 +30,7 @@ def test_create_task1(app, task_workbench):
     def answer_dialog(dial):
         selector = dial.selector
         selector.selected_filter = 'Logic'
-        selector.selected_task = 'WhileTask'
+        selector.selected_task = 'ecpy.WhileTask'
         dial.config.task_name = 'Test'
         process_app_events()
         assert dial.config.ready
@@ -54,7 +54,7 @@ def test_create_task2(app, task_workbench):
 
 @pytest.fixture
 def task_config():
-    return ConfigObj({'task_class': 'ComplexTask',
+    return ConfigObj({'task_id': 'ecpy.ComplexTask',
                       'dep_type': 'ecpy.task',
                       'name': 'Test'})
 
@@ -65,20 +65,38 @@ def test_build_from_config(task_workbench, task_config):
     """
     from ecpy.tasks.api import ComplexTask
     task = build_task_from_config(task_config,
-                                  {'ecpy.task': {'ComplexTask': ComplexTask}})
+                                  {'ecpy.task':
+                                      {'ecpy.ComplexTask': ComplexTask}})
 
     assert task.name == 'Test'
     assert isinstance(task, ComplexTask)
 
 
-def test_build_from_config_dependencies_failure(task_workbench, task_config):
+def test_build_from_config_analyse_dep_failure(task_workbench, task_config):
     """Test creating a task from a config object.
 
     """
-    task_config['task_class'] = '__dummy__'
-    task = build_task_from_config(task_config, task_workbench)
+    task_config['task_id'] = '__dummy__'
+    with pytest.raises(RuntimeError):
+        build_task_from_config(task_config, task_workbench)
 
-    assert task is None
+
+def test_build_from_config_collecting_dep_failure(task_workbench, task_config,
+                                                  monkeypatch):
+    """Test creating a task from a config object.
+
+    """
+    plugin = task_workbench.get_plugin('ecpy.app.dependencies')
+    cls = type(plugin.build_deps.contributions['ecpy.task'])
+
+    class FalseCollector(cls):
+        def collect(self, kind, dependencies, owner=None):
+            raise RuntimeError()
+
+    monkeypatch.setitem(plugin.build_deps.contributions, 'ecpy.task',
+                        FalseCollector())
+    with pytest.raises(RuntimeError):
+        build_task_from_config(task_config, task_workbench)
 
 
 def test_build_from_config_as_root(task_workbench, task_config):
@@ -116,7 +134,6 @@ def test_build_root_from_template(tmpdir, task_workbench, task_config):
 
     def answer_dialog(dial):
         selector = dial.selector
-        print(selector.selected_task)
         selector.selected_task = 'temp.task.ini'
         assert dial.path == path
 

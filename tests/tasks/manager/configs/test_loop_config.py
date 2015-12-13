@@ -21,7 +21,8 @@ from ecpy.tasks.manager.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
     from ecpy.tasks.manager.configs.loop_config_view import LoopConfigView
 
-from ....util import show_and_close_widget, show_widget, process_app_events
+from ecpy.testing.util import (show_and_close_widget, show_widget,
+                               process_app_events)
 
 
 @pytest.mark.ui
@@ -32,7 +33,7 @@ def test_loop_config(app, task_workbench):
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'))
+                            task_class=plugin.get_task('ecpy.LoopTask'))
 
     assert config.task_name
     assert config.ready
@@ -47,7 +48,7 @@ def test_loop_config(app, task_workbench):
 
     plugin.auto_task_names = []
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'))
+                            task_class=plugin.get_task('ecpy.LoopTask'))
 
     assert not config.task_name
     assert not config.ready
@@ -56,43 +57,42 @@ def test_loop_config(app, task_workbench):
 
 
 @pytest.mark.ui
-def test_loop_config_with_subtask(task_workbench, windows):
+def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep):
     """Test the loop config.
 
     """
-    from ....conftest import DIALOG_SLEEP
     plugin = task_workbench.get_plugin('ecpy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('LoopTask'),
+                            task_class=plugin.get_task('ecpy.LoopTask'),
                             task_name='Test')
 
     show_widget(LoopConfigView(config=config))
     assert config.ready
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     config.use_subtask = True
     assert not config.ready
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
-    config.subtask = 'BreakTask'
+    config.subtask = 'ecpy.BreakTask'
     assert config.ready
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     config.subconfig.task_name = ''
     assert not config.ready
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     config.use_subtask = False
     assert config.ready
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     config.use_subtask = True
-    config.subtask = 'ContinueTask'
+    config.subtask = 'ecpy.ContinueTask'
     task = config.build_task()
     assert task.name == 'Test'
     assert type(task.task).__name__ == 'ContinueTask'

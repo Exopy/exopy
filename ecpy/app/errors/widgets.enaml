@@ -12,12 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from future.builtins import str
 from enaml.core.api import Looper, Include, Conditional
 from enaml.layout.api import vbox, hbox, align
+from enaml.stdlib.mapped_view import MappedView
 from enaml.widgets.api import (Container, MultilineField, Notebook, Dialog,
                                Page, Label)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.widgets.dict_tree_view import DictTreeView, Leaf, Node
 
 
 enamldef ErrorsDialog(Dialog):
@@ -92,7 +95,7 @@ enamldef BasicErrorsDisplay(Container):
 
     #: Currently selected error.
     alias selected : lis.selected_item
-    selected = errors.keys()[0] if errors else selected
+    selected = errors.keys()[0] if errors else None
 
     #: Kind of the errors.
     alias kind : lis_lab.text
@@ -111,32 +114,48 @@ enamldef BasicErrorsDisplay(Container):
     Label: che_lab:
         text << selected if selected else ''
     MultilineField: che:
-        text << errors[selected] if errors and selected else ''
+        text << errors[selected] if (errors and selected) else ''
         read_only = True
 
 
-# XXXX refactor later
-enamldef HierarchicalErrorsDisplay(Container): main:
+def format_error(node):
+    """Build a nice string representation of a node.
+
     """
+    if isinstance(node, Leaf):
+        return str(Leaf.value)
+    else:
+        msg = 'Node %s contains the following entries :\n' % node.name
+        for n in node.nodes:
+            if isinstance(n, Leaf):
+                msg += '- %s : %s\n' % (n.name, str(n.value).split('\n', 1)[0])
+            else:
+                msg += '- %s : node\n' % n.name
+
+        return msg
+
+
+enamldef HierarchicalErrorsDisplay(Container): main:
+    """Widget used to display a nested dictionary.
+
+    Keys must always be unicode and values should unicode or dict.
+
     """
     #: Dict listing the errors as point: errors.
-    attr errors
+    alias errors : tr.mapping
 
-    #: Currently selected point.
-    alias selected : lis.selected_item
-    selected = errors.keys()[0] if errors else selected
+    #: Currently selected error.
+    alias selected : tr.selected_item
 
     #: Kind of the errors.
     alias kind : lis_lab.text
 
-    constraints = [hbox(vbox(lis_lab, lis), err)]
+    constraints = [hbox(vbox(lis_lab, tr), txt)]
 
     Label: lis_lab:
         pass
-    QtListStrWidget: lis:
-        items = sorted(errors.keys())
+    DictTreeView: tr:
         hug_height = 'ignore'
 
-    BasicErrorsDisplay: err:
-        errors << main.errors.get(selected, {})
-        kind << selected
+    MultilineField: txt:
+        text << format_error(tr.selected_item)

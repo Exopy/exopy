@@ -1,0 +1,186 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Editor allowing to extend the accessibility of database entries.
+
+By default database entries are only uvailable to task on the same level or
+to children task. By using access exceptions one can go round those
+limitations.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, GroupBox, ScrollArea, Menu, Action,
+                               Label, FlowArea, FlowItem)
+from enaml.core.api import Looper, Conditional
+
+from ....tasks.tools.task_editor import FoldableTaskEditor
+from ..base_editor import BaseEditor
+from .editor_model import EditorModel
+
+
+enamldef NodeEditor(GroupBox):
+    """Access editor for a NodeModel.
+
+    """
+    #: Reference to the NodeModel driving this view.
+    attr node
+
+    #: Reference to the root view holding the cache.
+    alias root : ed.root
+
+    title << node.task.name if node else ''
+
+    tool_tip = ('Right click an entry to add an access exception, allowing \n'
+                'to access an entry from a node higer in the hierarchy.\n'
+                'Entries for which an exception exists are colored in blue\n'
+                'and exceptions are colored in green.')
+
+    func refresh():
+        """Function making sure that the editor is displayed correctly.
+
+        """
+        ed.refresh()
+        self.show()
+
+    FlowArea:
+        hug_height = 'medium'
+        hug_width = 'ignore'
+
+        Looper:
+            iterable << sorted(node.entries)
+            FlowItem:
+                Container:
+                    padding = 0
+                    Label:
+                        text << loop_item
+                        background << ('lightblue'
+                                       if loop_item in node.has_exceptions
+                                       else None)
+                        Conditional:
+                            condition << (node.task.depth != 0 and
+                                          loop_item not in node.has_exceptions)
+                            Menu:
+                                context_menu = True
+                                Action:
+                                    text = 'Add access exception'
+                                    triggered ::
+                                        node.add_exception(loop_item)
+
+        Looper:
+            iterable << sorted(node.exceptions)
+            FlowItem:
+                Container:
+                    padding = 0
+                    Label:
+                        text << loop_item
+                        background = 'lightgreen'
+                        Menu:
+                            context_menu = True
+                            Conditional:
+                                condition << node.task.depth != 0
+                                Action:
+                                    text = 'Move up'
+                                    triggered ::
+                                        e = node.editor
+                                        t = node.task
+                                        p = t.path + '/' + t.name
+                                        e.increase_exc_level(p, loop_item)
+                            Action:
+                                text = 'Move down'
+                                tool_tip = ('Move the exception to a lower '
+                                            'node, if necessary removing it '
+                                            'completetly')
+                                triggered ::
+                                    e = node.editor
+                                    t = node.task
+                                    p = (t.path + '/' + t.name if t.depth
+                                         else t.path)
+                                    e.decrease_exc_level(p, loop_item)
+
+    FoldableTaskEditor: ed:
+        # This abuses the task editor but it is really nice.
+        task = node
+        operations = {}
+
+
+enamldef DatabaseAccessEditor(BaseEditor): main:
+    """Editor allowing to extend the accessibility of database entries.
+
+    """
+    #: Model keeping track of the declared execution pools.
+    attr database_model
+
+    title = 'Database access editor'
+
+    func view_for(node):
+        """Create a widget for the specified node.
+
+        The view is initialized but given no parent.
+
+        """
+        if node not in _cache:
+            _cache[node] = NodeEditor(node=node, root=self)
+
+        return _cache[node]
+
+    func discard_view(node):
+        """Take care of destroying the view associated with a given node.
+
+        """
+        try:
+            view = _cache.pop(task)
+            view.destroy()
+        except KeyError:
+            pass
+
+    func set_view_for(task):
+        """Set the currently displayed widget to match the selected view.
+
+        """
+        if not database_model:
+            main.database_model = EditorModel(root=task.root)
+            main.database_model.observe('node_deleted', discard_view)
+
+        if task:
+            if task.name == 'Root':
+                node = database_model.nodes['root']
+            else:
+                node = database_model.nodes[task.path + '/' + task.name]
+            view = view_for(node)
+            view.set_parent(scroll)
+            view.refresh()
+
+    selected_task ::
+        set_view_for(change['value'])
+
+    initialized ::
+        if selected_task:
+            set_view_for(selected_task)
+
+    ended ::
+        # When this view is destroyed it must destroy all the view in the cache
+        # Do it by depth order to always destroy the parent first, should allow
+        # to speed up a bit the process.
+        nodes = sorted(_cache)
+        for n in nodes:
+            view = _cache[n]
+            if not view.is_destroyed:
+                view.destroy()
+
+    Container:
+        ScrollArea: scroll:
+            pass
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Dictionary used to store the view associated with each task.
+    attr _cache : dict = {}

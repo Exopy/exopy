@@ -101,7 +101,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
             self.write_in_database('value', value)
             try:
                 for child in self.children:
-                    child.perform_(child)
+                    child.perform_()
             except BreakException:
                 break
             except ContinueException:
@@ -120,10 +120,10 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
                 return
 
             self.write_in_database('index', i+1)
-            self.task.perform_(self.task, value)
+            self.task.perform_(value)
             try:
                 for child in self.children:
-                    child.perform_(child)
+                    child.perform_()
             except BreakException:
                 break
             except ContinueException:
@@ -146,7 +146,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
             tic = default_timer()
             try:
                 for child in self.children:
-                    child.perform_(child)
+                    child.perform_()
             except BreakException:
                 self.write_in_database('elapsed_time', default_timer()-tic)
                 break
@@ -169,10 +169,10 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
             self.write_in_database('index', i+1)
             tic = default_timer()
-            self.task.perform_(self.task, value)
+            self.task.perform_(value)
             try:
                 for child in self.children:
-                    child.perform_(child)
+                    child.perform_()
             except BreakException:
                 self.write_in_database('elapsed_time', default_timer()-tic)
                 break

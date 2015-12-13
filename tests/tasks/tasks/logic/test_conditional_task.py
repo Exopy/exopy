@@ -21,8 +21,8 @@ from ecpy.tasks.tasks.logic.conditional_task import ConditionalTask
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
 
-from ...execution_testing import CheckTask
-from ....util import show_and_close_widget
+from ecpy.testing.tasks.util import CheckTask
+from ecpy.testing.util import show_and_close_widget
 
 
 class TestConditionTask(object):
@@ -64,8 +64,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = 'True'
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.check.perform_called
@@ -75,8 +74,7 @@ class TestConditionTask(object):
 
         """
         self.task.condition = '1 < 0'
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.check.perform_called

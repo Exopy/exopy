@@ -58,6 +58,7 @@ class ContainerChange(Atom):
 
         op_desc : tuple
             Tuple describing the operation it should be of the form:
+
             - 'added' : (index, obj)
             - 'moved' : (old_index, new_index, obj)
             - 'removed' : (index, obj)

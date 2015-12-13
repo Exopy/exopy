@@ -163,7 +163,8 @@ template ListEditor(Content):
 
         initialized ::
             model.observe(iterable_name, _update_internal)
-            model.observe(signal_name, _update_internal)
+            if signal_name:
+                model.observe(signal_name, _update_internal)
 
         padding = 0
         Conditional:

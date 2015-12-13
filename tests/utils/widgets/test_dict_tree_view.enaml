@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Run this file with enaml-run command to manually check widget behavior.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import sys
+import os
+from atom.api import Atom, Unicode, Signal, List
+from enaml.widgets.api import (Window, Container, Label, MultilineField)
+from enaml.layout.api import vbox, hbox, spacer
+from enaml.stdlib.mapped_view import MappedView
+
+# Assume that the test is run against an installed version of ecpy and if not
+# prepend path to sys.path.
+try:
+    from ecpy.utils.widgets.dict_tree_view import DictTreeView, Leaf
+except ImportError:
+    sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
+    from ecpy.utils.widgets.dict_tree_view import DictTreeView, Leaf
+
+
+def repr_tree_element(element):
+    """Make a nice representation of a Node/Leaf.
+
+    """
+    if isinstance(element, Leaf):
+        return repr(element.value)
+    else:
+        return repr([repr_tree_element(n) for n in element.nodes])
+
+
+enamldef Main(Window): main:
+    """Window with side by side a tree and a mapping displaying the selected
+    node.
+
+    """
+    title = 'Test DictTreeView widget'
+    tool_tip = '\n'.join(__doc__.split('\n')[2:]).strip()
+
+    Container:
+
+        constraints = [hbox(tr, vbox(lb, s_repr))]
+
+        DictTreeView: tr:
+            mapping = dict(val=1, m=dict(val=5))
+
+        Label: lb:
+            text = 'Selected item'
+
+        MultilineField: s_repr:
+            text << repr_tree_element(tr.selected_item)

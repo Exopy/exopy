@@ -18,6 +18,8 @@ fields situated below the list display the selected indexes (in the unordered
 list) and values. Check that those make sense at all times.
 All selections should work on the first time, and after any operation the first
 displayed item should always be selected.
+The clear button should simply clear the display (grayed rectangle) but not the
+values in the fields.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -25,9 +27,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 import sys
 import os
+
 from enaml.widgets.api import (Window, Container, PushButton, Field,
                                CheckBox)
 from enaml.layout.api import vbox, hbox, spacer
+from future.builtins import str
 
 # Assume that the test is run against an installed version of ecpy and if not
 # prepend path to sys.path.
@@ -52,7 +56,7 @@ enamldef Main(Window): main:
     Container:
         constraints = [vbox(hbox(m, spacer),
                             hbox(vbox(l1, si1, so1),
-                                 vbox(ll, l, r, rr, spacer),
+                                 vbox(ll, l, r, rr, cl, spacer),
                                  vbox(l2, si2, so2)))]
 
         QtListStrWidget: l1:
@@ -114,9 +118,15 @@ enamldef Main(Window): main:
 
         PushButton: rr:
             text = '>>'
-            clicked::
+            clicked ::
                 l2.items = l1.items[:] + l2.items[:]
                 l1.items = []
+
+        PushButton: cl:
+            text = 'Clear'
+            clicked ::
+                l1.clear_selection()
+                l2.clear_selection()
 
         CheckBox: m:
             text = 'Multi-select'

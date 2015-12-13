@@ -29,8 +29,11 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.loop_view import LoopView
     from ecpy.tasks.base_views import RootTaskView
 
-from ...execution_testing import CheckTask
-from ....util import show_and_close_widget
+from ecpy.testing.tasks.util import CheckTask
+from ecpy.testing.util import show_and_close_widget
+
+
+pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
 
 
 @pytest.fixture
@@ -112,7 +115,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, CheckTask(name='check'))
         assert len(list(self.task.traverse())) == 3
 
-    def test_saving_building_from_config(self):
+    def test_saving_building_from_config(self, iterable_interface):
         """Done here as the LoopTask is a viable case of a member tagged with
         child.
 
@@ -122,22 +125,26 @@ class TestLoopTask(object):
 
         self.root.update_preferences_from_members()
 
-        new = RootTask.build_from_config(self.root.preferences,
-                                         {'ecpy.task': {'RootTask': RootTask,
-                                                        'LoopTask': LoopTask,
-                                                        'CheckTask': CheckTask}
-                                          })
+        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
+                              'ecpy.LoopTask': LoopTask,
+                              'ecpy.CheckTask': CheckTask}
+                }
+        new = RootTask.build_from_config(self.root.preferences, deps)
 
         assert new.children[0].task.name == 'check'
 
+        self.task.interface = iterable_interface
         self.root.update_preferences_from_members()
         prefs = self.root.preferences
         del prefs['children_0']['task']
-        new = RootTask.build_from_config(prefs,
-                                         {'ecpy.task': {'RootTask': RootTask,
-                                                        'LoopTask': LoopTask,
-                                                        'CheckTask': CheckTask}
-                                          })
+        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
+                              'ecpy.LoopTask': LoopTask,
+                              'ecpy.CheckTask': CheckTask},
+                'ecpy.tasks.interface':
+                    {('IterableLoopInterface', ('ecpy.LoopTask',)):
+                        IterableLoopInterface}
+                }
+        new = RootTask.build_from_config(prefs, deps)
 
         assert not new.children[0].task
 
@@ -298,8 +305,7 @@ class TestLoopTask(object):
 
         """
         self.task.interface = iterable_interface
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 10
@@ -309,8 +315,7 @@ class TestLoopTask(object):
 
         """
         self.task.interface = linspace_interface
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 2.0
@@ -323,8 +328,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, BreakTask(name='break',
                                               condition='{Test_value} == 5')
                                  )
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 5
@@ -338,8 +342,7 @@ class TestLoopTask(object):
                                CheckTask(name='check')]):
             self.task.add_child_task(i, t)
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.task.children[1].perform_called
@@ -350,8 +353,7 @@ class TestLoopTask(object):
         """
         self.task.interface = iterable_interface
         self.task.task = CheckTask(name='check')
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -369,8 +371,7 @@ class TestLoopTask(object):
         self.task.add_child_task(0, BreakTask(name='Break',
                                               condition='{Test_index} == 6')
                                  )
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 6
@@ -387,8 +388,7 @@ class TestLoopTask(object):
                                                  condition='True')
                                  )
         self.task.children.append(CheckTask(name='check'))
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -402,8 +402,7 @@ class TestLoopTask(object):
         """
         self.task.interface = iterable_interface
         self.task.timing = True
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 10
@@ -419,8 +418,7 @@ class TestLoopTask(object):
                                               condition='{Test_value} == 0')
                                  )
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_value') == 0
@@ -436,8 +434,8 @@ class TestLoopTask(object):
                                                  condition='True')
                                  )
         self.task.add_child_task(1, CheckTask(name='check'))
-        self.root.database.prepare_for_running()
-        self.root.check()
+
+        self.root.prepare()
 
         self.task.perform()
         assert not self.task.children[1].perform_called
@@ -451,8 +449,7 @@ class TestLoopTask(object):
         self.task.timing = True
         self.task.task = CheckTask(name='check')
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -471,8 +468,7 @@ class TestLoopTask(object):
                                               condition='{Test_index} == 1')
                                  )
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 1
@@ -492,8 +488,7 @@ class TestLoopTask(object):
                                  )
         self.task.add_child_task(1, CheckTask(name='check'))
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.root.get_from_database('Test_index') == 11
@@ -512,7 +507,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -529,7 +524,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -546,7 +541,7 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
@@ -564,14 +559,12 @@ class TestLoopTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.task.prepare()
 
         self.task.perform()
 
         assert self.task.children[0].perform_called == 1
 
-
-from ...manager.conftest import task_workbench
 
 @pytest.mark.ui
 def test_view(windows, task_workbench):

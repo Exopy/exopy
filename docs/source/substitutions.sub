@@ -37,6 +37,10 @@
 
 .. |ActionItem| replace:: :py:class:`~enaml.workbench.ui.action_item.ActionItem`
 
+.. |Container| replace:: :py:class:`~enaml.widgets.container.Container`
+
+.. |DockItem| replace:: :py:class:`~enaml.widgets.dock_item.DockItem`
+
 .. ============================================================================
 .. Ecpy substitutions
 .. ============================================================================
@@ -60,8 +64,47 @@
 
 .. |State| replace:: :py:class:`~ecpy.app.states.state.State`
 
+.. |ErrorHandler| replace:: :py:class:`~ecpy.app.errors.errors.ErrorHandler`
+
+.. |LogManifest| replace:: :py:class:`~ecpy.app.log.manifest.LogManifest`
+
+
+.. Measure substitutions
+.. ----------------------------------------------------------------------------
+
+.. |BaseMeasureTool| replace:: :py:class:`~ecpy.measure.base_tool.BaseMeasureTool`
+
+.. |BaseToolDeclaration| replace:: :py:class:`~ecpy.measure.base_tool.BaseToolDeclaration`
+
+.. |BasePreHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePreHook`
+
+.. |PreExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PreExecutionHook`
+
+.. |BaseMonitor| replace:: :py:class:`~ecpy.measure.monitors.base_monitor.BaseMonitor`
+
+.. |Monitor| replace:: :py:class:`~ecpy.measure.monitors.base_monitor.BaseMonitor`
+
+.. |BasePostHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePostHook`
+
+.. |PostExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PostExecutionHook`
+
+.. |BaseEditor| replace:: :py:class:`~ecpy.measure.editors.base_editor.BaseEditor`
+
+.. |Editor| replace:: :py:class:`~ecpy.measure.editors.base_editor.Editor`
+
+.. |BaseEngine| replace:: :py:class:`~ecpy.measure.engines.base_engine.BaseEngine`
+
+.. |Engine| replace:: :py:class:`~ecpy.measure.engines.base_engine.Engine`
+
+
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
+
+.. |BaseTask| replace:: :py:class:`~ecpy.tasks.base_tasks.BaseTask`
+
+.. |parallel| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.parallel`
+
+.. |wait| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.wait`
 
 .. |SimpleTask| replace:: :py:class:`~ecpy.tasks.base_tasks.SimpleTask`
 
@@ -80,6 +123,8 @@
 .. |database_entries| replace:: :py:attr:`~ecpy.tasks.base_tasks.BaseTask.database_entries`
 
 .. |resources| replace:: :py:attr:`~ecpy.tasks.base_tasks.RootTask.resources`
+
+.. |ResourceHolder| replace:: :py:class:`~ecpy.tasks.tools.shared_resources.ResourceHolder`
 
 .. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
 
@@ -119,9 +164,16 @@
 
 .. |TaskConfig| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfig`
 
+
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 
 .. |QtLineCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtLineCompleter`
 
 .. |QtTextCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtTextCompleter`
+
+
+.. Testing substitutions 
+.. ----------------------------------------------------------------------------
+
+.. |handle_dialog| replace:: :py:func:`~ecpy.testing.util.handle_dialog`

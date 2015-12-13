@@ -26,8 +26,8 @@ with enaml.imports():
     from ecpy.tasks.tasks.logic.views.while_view\
         import WhileView
 
-from ....util import show_and_close_widget
-from ...execution_testing import CheckTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.testing.tasks.util import CheckTask
 
 
 class TestWhileTask(object):
@@ -70,8 +70,7 @@ class TestWhileTask(object):
         """
         self.task.condition = '{Test_index} < 5'
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert self.check.perform_called == 4
@@ -82,8 +81,7 @@ class TestWhileTask(object):
         """
         self.task.condition = '1 < 0'
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.check.perform_called
@@ -98,8 +96,7 @@ class TestWhileTask(object):
         self.task.add_child_task(0, ContinueTask(name='Continue',
                                                  condition='{Test_index} < 5'))
 
-        self.root.database.prepare_for_running()
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
         assert not self.check.perform_called
@@ -114,7 +111,7 @@ class TestWhileTask(object):
         stop = lambda t, v: t.root.should_stop.set()
         self.task.add_child_task(0, CheckTask(name='Stop', custom=stop,
                                               stoppable=False))
-        self.root.check()
+        self.root.prepare()
 
         self.task.perform()
 

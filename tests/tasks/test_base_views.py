@@ -24,32 +24,35 @@ from enaml.widgets.api import Container
 from ecpy.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
     from ecpy.tasks.base_views import RootTaskView
+    from ecpy.tasks.manager.widgets.building import BuilderView
 
-from .manager.conftest import task_workbench
-from ..util import show_widget, process_app_events, handle_dialog, get_window
+from ecpy.testing.util import (show_widget, process_app_events, handle_dialog,
+                               get_window)
+
+
+pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
 
 
 @pytest.mark.ui
-def test_root_view(windows, task_workbench):
+def test_root_view(windows, task_workbench, dialog_sleep):
     """Test the behavior of the root task view.
 
     """
-    from ..conftest import DIALOG_SLEEP
     task = RootTask()
     view = RootTaskView(task=task,
                         core=task_workbench.get_plugin('enaml.workbench.core'))
     editor = view.children[0]
 
     show_widget(view)
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
     assert editor.task is task
     assert editor.root is view
 
     TASK_NAME = 'Foo'
 
-    def answer_dialog(dial):
+    def answer_dialog(dial, cls=BuilderView):
         selector = dial.selector
-        selector.selected_task = 'ComplexTask'
+        selector.selected_task = 'ecpy.ComplexTask'
         dial.config.task_name = TASK_NAME
         process_app_events()
 
@@ -59,34 +62,33 @@ def test_root_view(windows, task_workbench):
     assert task.children
     assert type(task.children[0]) is ComplexTask
     assert len(editor._children_buttons) == 1
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     TASK_NAME = 'Bar'
-    with handle_dialog('accept', answer_dialog):
+    with handle_dialog('accept', answer_dialog, cls=BuilderView):
         editor.operations['add'](0, 'after')
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     task.children[0].add_child_task(0, ComplexTask(name='Test'))
     get_window().maximize()
     process_app_events()
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     editor.operations['move'](0, 1)
 
     task.children[1].remove_child_task(0)
-    assert len(view._cache) == 2
+    assert len(view._cache) == 3
 
     editor.operations['remove'](0)
-    assert len(view._cache) == 1
+    assert len(view._cache) == 2
 
 
 @pytest.mark.ui
-def test_swapping(windows, task_workbench):
+def test_swapping(windows, task_workbench, dialog_sleep):
     """Test moving a view between containers.
 
     """
-    from ..conftest import DIALOG_SLEEP
     task = RootTask()
     view = RootTaskView(task=task,
                         core=task_workbench.get_plugin('enaml.workbench.core'))
@@ -103,14 +105,14 @@ def test_swapping(windows, task_workbench):
     view.refresh()
     process_app_events()
     assert cont.children == [view]
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     view.set_parent(None)
     subview.set_parent(cont)
     subview.refresh()
     process_app_events()
     assert cont.children == [subview]
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)
 
     subview.set_parent(None)
     view.set_parent(cont)
@@ -118,4 +120,4 @@ def test_swapping(windows, task_workbench):
     process_app_events()
     assert cont.children == [view]
     assert subview.visible
-    sleep(DIALOG_SLEEP)
+    sleep(dialog_sleep)

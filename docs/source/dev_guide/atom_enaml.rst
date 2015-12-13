@@ -18,7 +18,7 @@ extensively used in Ecpy.
 .. note::
 
     For clarity sake and Python2/3 compatibility, Unicode should be used
-    instead of strings.
+    instead of Str.
 
 Enaml
 -----

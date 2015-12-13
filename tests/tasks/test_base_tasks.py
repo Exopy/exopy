@@ -41,9 +41,6 @@ def test_root_registering():
     """
     root = RootTask()
     assert root.get_from_database('default_path') == ''
-    assert root.get_from_database('meas_name') == ''
-    assert root.get_from_database('meas_id') == ''
-    assert root.get_from_database('meas_date') == ''
     root.children = [SimpleTask(name='task2',
                                 database_entries={'val2': 1},
                                 root=root, parent=root,
@@ -70,13 +67,13 @@ def test_database_update():
     """
     root = RootTask()
     entries = root.database_entries.copy()
-    del entries['meas_name']
+    del entries['default_path']
     entries['name'] = 'Test'
     root.database_entries = entries
 
     assert root.get_from_database('name') == 'Test'
     with pytest.raises(KeyError):
-        root.get_from_database('meas_name')
+        root.get_from_database('default_path')
 
 
 def test_database_update_with_exception():
@@ -300,7 +297,7 @@ def test_access_exceptions():
                         database_entries={'val1': 2.0})
     task2 = ComplexTask(name='task2')
     task3 = SimpleTask(name='task3',
-                       database_entries={'val2': 1},
+                       database_entries={'val2': 1, 'val3': 2},
                        )
 
     task2.add_child_task(0, task3)
@@ -311,13 +308,18 @@ def test_access_exceptions():
         task2.get_from_database('task3_val2')
 
     task3.add_access_exception('val2', 1)
+    task3.add_access_exception('val3', 1)
 
+    assert task2.get_from_database('task3_val2') == 1
     assert task2.get_from_database('task3_val2') == 1
     with pytest.raises(KeyError):
         task1.get_from_database('task3_val2')
 
     task3.modify_access_exception('val2', 2)
+    task3.modify_access_exception('val3', -1)
     assert task1.get_from_database('task3_val2') == 1
+    with pytest.raises(KeyError):
+        task2.get_from_database('task3_val3')
 
     task3.remove_access_exception('val2')
     with pytest.raises(KeyError):
@@ -338,7 +340,7 @@ def test_build_complex_from_config():
     """
     config = {'name': 'test',
               'children_0': {'name': 'test_child',
-                             'task_class': 'SimpleTask'}}
+                             'task_id': 'SimpleTask'}}
     task = ComplexTask.build_from_config(config,
                                          {'ecpy.task':
                                              {'SimpleTask': SimpleTask}})
@@ -354,13 +356,14 @@ def test_build_root_from_config():
     """
     config = {'name': 'test',
               'children_0': {'name': 'test_child',
-                             'task_class': 'SimpleTask'}}
+                             'task_id': 'SimpleTask'}}
     task = RootTask.build_from_config(config,
                                       {'ecpy.task':
                                           {'SimpleTask': SimpleTask}})
     assert task.name == 'Root'
     assert len(task.children) == 1
     assert task.children[0].name == 'test_child'
+    assert task.children[0].root
     assert isinstance(task.children[0], SimpleTask)
 
 

@@ -32,15 +32,40 @@ enamldef BuildDep(PluginManifest):
     Extension:
         id = 'build_deps'
         point = BUILD_DEP_POINT
+
         BuildDependency:
             id = 'test'
             attr err : bool = False
             attr run = ('test_run',)
-            collect => (workbench, obj, getter, dependencies, errors):
+            attr exc : bool = False
+
+            analyse => (workbench, obj, getter, dependencies, errors):
+                if exc:
+                    raise RuntimeError()
+
                 if err:
-                    errors['test'][str(obj)] = 'Failed to get val'
-                dependencies['test']['val'] = getter(obj, 'val')
+                    errors[str(obj)] = 'Failed to get val'
+
+                dependencies.add(getter(obj, 'val'))
                 return run
+
+            validate => (workbench, dependencies, errors):
+                if exc:
+                    raise RuntimeError()
+
+                for x in dependencies:
+                    if x != 'r':
+                        errors[x] = 'Unknown val dependency value.'
+
+            collect => (workbench, dependencies, errors):
+                if exc:
+                    raise RuntimeError()
+
+                for x in dependencies:
+                    if x != 'r':
+                        errors[x] = 'Unknown val dependency value.'
+                    else:
+                        dependencies['r'] = object
 
 enamldef RuntimeDep(PluginManifest):
     """Runtime dependency contributor.
@@ -51,10 +76,36 @@ enamldef RuntimeDep(PluginManifest):
     Extension:
         id = 'runtime_deps'
         point = RUNTIME_DEP_POINT
+
         RuntimeDependency:
             id = 'test_run'
+            attr exc : bool = False
             attr err : bool = False
-            collect =>  (workbench, owner, obj, getter, dependencies, errors):
+            attr una : bool = False
+
+            analyse =>  (workbench, obj, getter, dependencies, errors):
+                if exc:
+                    raise RuntimeError()
                 if err:
-                    errors['test_run'][str(obj)] = 'Failed to get run'
-                dependencies['test_run']['run'] = getter(obj, 'run')
+                    errors[str(obj)] = 'Failed to get run'
+                    return
+                dependencies.add(getter(obj, 'run'))
+
+            validate => (workbench, dependencies, errros):
+                for x in dependencies:
+                    if x != 2:
+                        errors[self.id] = 'Unknown run dependency value.'
+
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                if exc:
+                    raise RuntimeError()
+                if err:
+                    errors['run'] = 'Failed to get run'
+                    return
+                if una:
+                    unavailable.add('run')
+                    return
+                dependencies['run'] = 1
+
+            release => (workbench, owner, dependencies):
+                del dependencies['run']

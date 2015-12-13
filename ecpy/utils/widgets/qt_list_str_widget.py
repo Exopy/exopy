@@ -52,15 +52,6 @@ class QtListStrWidget(RawWidget):
     hug_width = set_default(str('strong'))
     hug_height = set_default(str('ignore'))
 
-    #: Guard bit field.
-    _guard = Int(0)
-
-    #: Mapping between user list index and widget list index
-    _map = Dict()
-
-    #: Mapping between the widget list index and the user list index
-    _rmap = Dict()
-
     def refresh_items(self):
         """Refresh the items displayed in the list.
 
@@ -69,6 +60,15 @@ class QtListStrWidget(RawWidget):
 
         """
         self.set_items(self.items)
+
+    def clear_selection(self):
+        """Make no item be selected.
+
+        """
+        # HINT : this only gives a visual hint to the user the selected value
+        # is not updated.
+        widget = self.get_widget()
+        widget.clearSelection()
 
     def create_widget(self, parent):
         """ Create the QListView widget.
@@ -121,11 +121,24 @@ class QtListStrWidget(RawWidget):
 
         """
         widget = self.get_widget()
+        widget.clearSelection()
         widget.clear()
         self._set_items(items, widget)
-        item = widget.item(0)
-        widget.setCurrentItem(item,
-                              QtGui.QItemSelectionModel.ClearAndSelect)
+        if not self.multiselect:
+            if self.selected_item not in items:
+                item = widget.item(0)
+                widget.setCurrentItem(item,
+                                      QtGui.QItemSelectionModel.ClearAndSelect)
+            else:
+                self._post_setattr_selected_item(None, self.selected_item)
+        else:
+            if not any(i in items for i in self.selected_items):
+                item = widget.item(0)
+                widget.setCurrentItem(item,
+                                      QtGui.QItemSelectionModel.ClearAndSelect)
+            else:
+                new = [i for i in self.selected_items if i in items]
+                self._post_setattr_selected_items(None, new)
 
     def set_multiselect(self, multiselect):
         """Set the multiselect mode.
@@ -142,6 +155,15 @@ class QtListStrWidget(RawWidget):
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
+
+    #: Guard bit field.
+    _guard = Int(0)
+
+    #: Mapping between user list index and widget list index
+    _map = Dict()
+
+    #: Mapping between the widget list index and the user list index
+    _rmap = Dict()
 
     def _post_setattr_items(self, old, new):
         """Update the widget content when the items changes.
@@ -188,6 +210,7 @@ class QtListStrWidget(RawWidget):
         """Update the widget when the selected item is changed externally.
 
         """
+        pass
         if not self._guard & INDEX_GUARD and self.items:
             self._guard ^= INDEX_GUARD
             index = self.items.index(new)
@@ -219,7 +242,10 @@ class QtListStrWidget(RawWidget):
 
         """
         items = [self.to_string(o) for o in items]
-        s_index = sorted(range(len(items)), key=items.__getitem__)
+        s_index = range(len(items))
+        if self.sort:
+            s_index.sort(key=items.__getitem__)
+
         self._rmap = {i: j for i, j in enumerate(s_index)}
         self._map = {j: i for i, j in enumerate(s_index)}
         for i in s_index:

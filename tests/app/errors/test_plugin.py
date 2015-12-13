@@ -17,14 +17,12 @@ import enaml
 from enaml.workbench.api import Workbench
 from future.utils import python_2_unicode_compatible
 
-from ecpy.app.errors.plugin import check_handler
-from ecpy.app.errors.errors import ErrorHandler
-
-from ...util import handle_dialog, get_window
+from ecpy.testing.util import handle_dialog, get_window
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.errors.manifest import ErrorsManifest
+    from ecpy.app.packages.manifest import PackagesManifest
 
 
 APP_ID = 'ecpy.app'
@@ -39,16 +37,8 @@ def workbench():
     workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(ErrorsManifest())
+    workbench.register(PackagesManifest())
     return workbench
-
-
-def test_check_handler():
-    """Test check handler function.
-
-    """
-    assert not check_handler(ErrorHandler())[0]
-
-    assert not check_handler(ErrorHandler(description='rr'))[0]
 
 
 @python_2_unicode_compatible
@@ -74,7 +64,11 @@ def test_life_cycle(workbench):
     """
     plugin = workbench.get_plugin(ERRORS_ID)
 
-    assert len(plugin.errors) == 3
+    assert len(plugin.errors) == 4
+
+    plugin._errors_handlers.contributions = {}
+
+    assert len(plugin.errors) == 0
 
     plugin.stop()
 
@@ -101,7 +95,7 @@ def test_signal_command_with_unknown(workbench, windows):
 
 
 @pytest.mark.ui
-def test_handling_error_in_handlers(workbench):
+def test_handling_error_in_handlers(workbench, windows):
     """Test handling an error occuring in a specilaized handler.
 
     """
@@ -119,24 +113,23 @@ def test_handling_error_in_handlers(workbench):
 
 
 @pytest.mark.ui
-def test_gathering_mode(workbench):
+def test_gathering_mode(workbench, windows):
     """Test gathering multiple errors.
 
     """
     core = workbench.get_plugin('enaml.workbench.core')
     core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
-    with pytest.raises(UnboundLocalError):
-        core.invoke_command('ecpy.app.errors.signal',
-                            {'kind': 'stupid', 'msg': None})
-        get_window()
+    core.invoke_command('ecpy.app.errors.signal',
+                        {'kind': 'stupid', 'msg': None})
+    assert get_window() is None
 
     with handle_dialog():
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
 
 @pytest.mark.ui
-def test_report_command(workbench):
+def test_report_command(workbench, windows):
     """Test generating an application errors report.
 
     """
@@ -237,3 +230,15 @@ def test_reporting_multiple_extension_errors(workbench):
 
     with pytest.raises(Exception):
         handler.handle(workbench, {})
+
+
+# =============================================================================
+# --- API import --------------------------------------------------------------
+# =============================================================================
+
+def test_api_import():
+    """Test importing the api module.
+
+    """
+    from ecpy.app.errors import api
+    assert api.__all__

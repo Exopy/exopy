@@ -68,15 +68,29 @@ def build_task_from_config(config, build_dep, as_root=False):
     task :
         Newly built task.
 
+    Raises
+    ------
+    RuntimeError :
+        Raised if a dependency cannot be collected.
+
     """
     if not isinstance(build_dep, dict):
         core = build_dep.get_plugin('enaml.workbench.core')
-        cmd = 'ecpy.app.dependencies.collect'
-        res, build_dep = core.invoke_command(cmd, {'obj': config})
-        if not res:
-            return None
+        cmd = 'ecpy.app.dependencies.analyse'
+        cont = core.invoke_command(cmd, {'obj': config})
+        if cont.errors:
+            raise RuntimeError('Failed to analyse dependencies :\n%s' %
+                               cont.errors)
 
-    cls = config.pop('task_class')
+        cmd = 'ecpy.app.dependencies.collect'
+        cont = core.invoke_command(cmd, {'kind': 'build',
+                                         'dependencies': cont.dependencies})
+        if cont.errors:
+            raise RuntimeError('Failed to collect dependencies :\n%s' %
+                               cont.errors)
+        build_dep = cont.dependencies
+
+    cls = config.pop('task_id')
 
     if as_root:
         return RootTask.build_from_config(config, build_dep)

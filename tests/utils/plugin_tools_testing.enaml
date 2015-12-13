@@ -17,7 +17,7 @@ from future.utils import python_2_unicode_compatible
 from  atom.api import Typed, Unicode, Bool, Enum
 from enaml.workbench.api import (PluginManifest, Plugin, Extension,
                                  ExtensionPoint)
-from  enaml.core.api import Declarative, d_
+from  enaml.core.api import Declarative, d_, d_func
 
 from ecpy.utils.declarator import Declarator
 from ecpy.utils.plugin_tools import ExtensionsCollector, DeclaratorsCollector
@@ -37,7 +37,16 @@ class Contribution(Declarative):
     """
     id = d_(Unicode())
 
-    task = d_(Unicode())
+    description = d_(Unicode())
+
+    @d_func
+    def new(self, workbench):
+        raise NotImplementedError()
+
+enamldef DContribution(Contribution):
+
+    new => (self, workbench):
+        pass
 
 
 @python_2_unicode_compatible
@@ -66,7 +75,8 @@ class TestDeclarator(Declarator):
 
 def validate_contrib(contrib):
 
-     return bool(contrib.task), 'Contribution does not declare a task'
+     return bool(contrib.description),\
+         'Contribution does not have a description'
 
 
 class ExtensionPlugin(Plugin):
@@ -115,7 +125,7 @@ enamldef Contributor1(PluginManifest):
         point = 'test.contrib'
         Contribution:
             id = 'contrib1.contrib'
-            task = 'Do'
+            description = 'Do something'
 
 
 enamldef Contributor2(PluginManifest):
@@ -128,7 +138,7 @@ enamldef Contributor2(PluginManifest):
         id = 'contrib'
         point = u'test.contrib'
         factory = lambda w: [Contribution(id='contrib2.contrib',
-                                          task='While')]
+                                          description='While')]
 
 
 enamldef Contributor3(PluginManifest):
@@ -173,7 +183,7 @@ class TestDeclarator(Declarator):
 
     def register(self, collector, traceback):
         if self.fail_register:
-            traceback[self.id]= ''
+            traceback[self.id]= 'Failed to register.'
         elif self.delay:
             collector._delayed.append(self)
             if self.delay != 'Always':
@@ -274,6 +284,7 @@ enamldef DContributor4(PluginManifest):
         id = 'contrib'
         point = 'test.contrib'
         TestDeclarator:
+            id = 'test_registration'
             fail_register = True
 
 

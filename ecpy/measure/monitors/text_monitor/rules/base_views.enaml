@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Base classes for rules editing widgets.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Coerced, set_default
+from enaml.validator import Validator
+from enaml.layout.api import hbox, spacer, align
+from enaml.widgets.api import (Container, Label, Field, PushButton,
+                               PopupView, MultilineField)
+
+
+class RuleIdValidator(Validator):
+    """Validator checking that the name provided by the user does not
+    already exist.
+
+    """
+    #: Already existing rule ids.
+    ids = Coerced(set)
+
+    #: Message displayed when the input is invalid.
+    message = set_default('The entered rule id already exists')
+
+    def validate(self, text):
+        """Check that the proposed id does not already exist.
+
+        """
+        return text not in self.ids
+
+
+enamldef DescriptionEditionPopup(PopupView): view:
+    """Popup view used to edit the description of a rule.
+
+    """
+    #: Reference to the rule whose description is being edited.
+    attr rule
+
+    close_on_click = False
+
+    Container:
+
+        MultilineField:
+            text = rule.description
+
+        PushButton:
+            text = 'Close'
+            clicked ::
+                view.close()
+
+
+enamldef BaseRuleView(Container):
+    """Base class for defining custom widgets to edit a rule.
+
+    """
+    #: Reference to teh TextMonitor plugin.
+    attr plugin
+
+    #: Reference to the rule driving this view.
+    attr rule
+
+    #: Alias allowing to include the standard group used to edit common rule
+    #: attributes.
+    alias name_and_desc : cont
+
+    func validate():
+        """Validate that the current state of the rule allow to stop edition.
+
+        Returns
+        -------
+        res : bool
+            Boolean indicating whether or not the state of the rule makes
+            sense to stop editing.
+
+        msg : unicode
+            Message explaning what it is wrong if anything.
+
+        """
+        raise NotImplementedError()
+
+    Container: cont:
+
+        constraints = [hbox(n_lab, n_val, spacer, desc),
+                       align('v_center', n_lab, n_val),
+                       align('v_center', desc, n_val)]
+
+        Label: n_lab:
+            text = 'Id'
+
+        Field: n_val:
+            text := rule.id
+            validator << RuleIdValidator(ids=plugin.rules)
+
+        PushButton: desc:
+            text = 'Description'
+            clicked ::
+                DescriptionEditionPopup(rule=rule).show()

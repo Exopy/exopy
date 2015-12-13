@@ -18,7 +18,7 @@ from ecpy.app.log.tools import (StreamToLogRedirector, QueueHandler,
                                 LogModel, DayRotatingTimeHandler,
                                 GuiHandler, QueueLoggerThread)
 
-from ...util import process_app_events
+from ecpy.testing.util import process_app_events
 
 
 def test_log_model():
@@ -130,7 +130,7 @@ def test_queue_handler(logger, monkeypatch):
     logger.addHandler(handler)
     logger.info('test')
 
-    record = queue.get(timeout=0.2)
+    record = queue.get(timeout=1.0)
     assert record.message == 'test'
 
     def err(record):

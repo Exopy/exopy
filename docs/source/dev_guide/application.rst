@@ -192,6 +192,47 @@ Editing preferences object
 .. todo:: write once implemented
 
 
+Declaring error handlers
+------------------------
+
+During the application lifetime errors can occurs and the user needs to be
+informed about them. Ecpy provides a command to do so 'ecpy.app.errors.signal'.
+This command expects a 'kind' keyword specifying which handler to use to for
+reporting this error. The selected handler determine the expected keywords.
+
+By default Ecpy provides the following handlers, which displays the error and
+log it:
+
+- 'error' : To report an error which does not deserve a more complex handler.
+  It expects a single 'message' keyword.
+- 'extensions' : To report an error related to the loading of an extension.
+  It expects a 'point' keyword referring to the extension point where the error
+  occurred, and an 'infos' dictionary describing the issues that occurred.
+
+In some situations, it is desirable to wait before reporting errors that the
+execution of some code completed. To this effect the error plugin provides
+the 'ecpy.app.errors.enter_error_gathering' which will hold the processing
+of the errors till 'ecpy.app.errors.exit_error_gathering' is called.
+
+Plugins can contribute new error handler to the 'ecpy.app.error.handler'
+extension point. The contribution should be an |ErrorHandler| object.
+
+An |ErrorHandler| needs to declare :
+
+- 'id ': a unique id which will be used as 'kind' when calling
+  'ecpy.app.errors.signal'
+- 'handler' : a method handling the error. Note that to deal with error
+  gathering it must be able to handle list of dictionary and not only
+  dictionary. The handler shoudl log that an error occurred and return a widget
+  to be displayed if it makes sense.
+- 'report' : a method which should provide a summary of the errors that
+  occurred it is meaningful.
+
+.. note::
+    As using this mechanism will cause a window to be displayed for the user
+    sakes these commands should be called only from function/methods directly
+    invoked at the level of the GUI.
+
 Declaring dependencies
 ----------------------
 
@@ -219,13 +260,28 @@ A |BuildDependency| needs:
 
 - an 'id' which must be unique and must match the name used for dep_type
   attribute value of the object this dependency collector is meant to act on.
-- 'collect': a method getting the build dependency of an object and
-  identifying its runtime dependencies.
+- 'analyse': a method used to determine the dependencies of the object under
+  scrutiny. Build dependencies should be added to the dependencies dictionary
+  and runtime dependencies collector ids should be returned (they will be
+  called by the framework at a later time).
+- 'validate': a method checking that all dependencies corresponding to this
+  collector can be collected (they exist).
+- 'collect': a method collecting the build dependencies previously identified
+  by the analyse method.
 
 A |RuntimeDependecy| needs:
 
 - an 'id' which must be unique.
-- 'collect': a method getting the runtime dependency of an object.
+- 'analyse': a method used to determine the runtime dependencies of the object
+  under scrutiny. The dependencies should not be collected.
+- 'validate': a method checking that all dependencies corresponding to this
+  collector can be collected (they exist).
+- 'collect': a method getting the runtime dependencies previously identified by
+  the analyse method. This method should request the privilege to use the
+  dependencies if it makes sense.
+
+Please refer to the API documentation for more details about those objects and
+the signature of the methods that need to be implemented.
 
 
 Customizing logging
@@ -241,7 +297,7 @@ By default Ecpy use two logs:
 
 If you need to add handlers, formatters or filters, you should do so in the
 |Plugin.start| method of your plugin by calling the corresponding commands
-:ref: XXXX .
+(found in |LogManifest|).
 
 
 Contributing to the application interface

@@ -47,8 +47,10 @@ def errors_plugin_factory():
 # =============================================================================
 
 HANDLER_EXT_DESCRIPTION = \
-'''Plugins can contribute ErrorHandler to this point to add a new way of
-signaling errors.'''
+"""Plugins can contribute ErrorHandler to this point to add a new way of
+signaling errors.
+
+"""
 
 
 SIGNAL_HANDLER_DESCRIPTION = \
@@ -92,18 +94,11 @@ and reported.
 
 
 ERROR_DESCRIPTION =\
-'''Generic error handler, log and warn user (popup window).
+"""Generic error handler, log and warn user (popup window).
 
 The handler expect to find a 'message' key in the passed infos.
-'''
 
-
-REGISTERING_ERR_DESCRIPTION =\
-'''Specific handler for plugin registering errors.
-
-The handler expect to find the 'id' of the manifest whose registering failed,
-and a 'message' key.
-'''
+"""
 
 
 EXTENSION_ERR_DESCRIPTION =\
@@ -111,6 +106,7 @@ EXTENSION_ERR_DESCRIPTION =\
 
 The handler expects the 'point' to which the extension was contributing and
 an 'errors' dictionary describing the errors that occured.
+
 """
 
 # =============================================================================
@@ -174,7 +170,7 @@ enamldef ErrorsManifest(PluginManifest):
                     msg = '\n\n'.join([self._format(i) for i in infos])
                     msg = 'Errors occured :\n' + msg
                 else:
-                    msg = 'An erorr occurred :\n' + self._format(infos)
+                    msg = self._format(infos)
 
                 logger.debug(msg)
                 return MultilineField(read_only=True, text=msg)
@@ -183,36 +179,7 @@ enamldef ErrorsManifest(PluginManifest):
                 def_msg =  'No message found, infos are {}'
                 return infos.get('message', def_msg.format(pformat(infos)))
 
-        ErrorHandler:
-            attr errors = {}
-            id = 'registering'
-            description = REGISTERING_ERR_DESCRIPTION
-            handle => (workbench, infos):
-                err = {}
-                if not isinstance(infos, Mapping):
-                    # Explicit loop to avoid weird scoping issues.
-                    for i in infos:
-                        err[i['id']] = self._format(i)
-                    errors.update(err)
-                    return BasicErrorsDisplay(errors=err,
-                                              kind='Manifests')
-                else:
-                    msg = self._format(infos)
-                    errors[infos['id']] = msg
-                    return MultilineField(text=msg, read_only=True)
-
-            report => (workbench):
-                if errors:
-                    return BasicErrorsDisplay(errors=errors,
-                                              kind='Manifests')
-                else:
-                    msg = 'No manifest registering error occured.'
-                    return MultilineField(text=msg)
-
-            func _format(infos):
-                return ('Failed to register manifest {}'.format(infos['id']) +
-                        infos['message'])
-
+        # Standard error handlers for plugin tools.
         ErrorHandler:
             attr errors = defaultdict(dict)
             id = 'extensions'

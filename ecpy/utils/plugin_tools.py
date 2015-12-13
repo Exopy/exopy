@@ -62,6 +62,51 @@ def make_handler(id, method_name):
     return handler
 
 
+def make_extension_validator(base_cls, fn_names=(),
+                             attributes=('description',)):
+    """Create an extension validation function checking that key methods were
+    overridden and attributes values provided.
+
+    Parameters
+    ----------
+    base_cls : type
+        Base class from which the contribution should inherit.
+
+    fn_names : iterable[unicode], optional
+        Names of the function the extensions must override.
+
+    attributes : iterable[unicode], optional
+        Names of the attributes the extension should provide values for.
+
+    Returns
+    -------
+    validator : function
+        Function that can be used to validate an extension contribution.
+
+    """
+    def validator(contrib):
+
+        for name in fn_names:
+            member = getattr(contrib, name)
+            func = getattr(member, 'im_func',
+                           getattr(member, '__func__', None))
+            if not func or func is getattr(base_cls, name).__func__:
+                msg = "%s '%s' does not declare a %s function"
+                return False, msg % (base_cls, contrib.id, name)
+
+        for attr in attributes:
+            if not getattr(contrib, attr):
+                msg = '%s %s does not provide a %s'
+                return False, msg % (base_cls, contrib.id, attr)
+
+        return True, ''
+
+    doc = 'Ensure that %s subclasses does override %s' % (base_cls, fn_names)
+    validator.__doc__ = doc
+
+    return validator
+
+
 @python_2_unicode_compatible
 class ClassTuple(tuple):
     """Special tuple meant to hold classes.
@@ -83,7 +128,7 @@ class BaseCollector(Atom):
     """Base class for automating extension collection.
 
     """
-    #: Refrence to the application workbench.
+    #: Reference to the application workbench.
     workbench = Typed(Workbench)
 
     #: Id of the extension point to observe.
@@ -115,6 +160,7 @@ class BaseCollector(Atom):
 
         """
         self._unbind_observers()
+        self.unobserve('contributions')  # Dicsonnect all observers
         self.contributions.clear()
         self._extensions.clear()
 
@@ -203,14 +249,15 @@ class ExtensionsCollector(BaseCollector):
         tb = {}
         workbench = self.workbench
         point = workbench.get_extension_point(self.point)
-        extensions = point.extensions
 
         # If no extension remain clear everything
-        if not extensions:
+        if not point or not point.extensions:
             # Force a notification to be emitted.
             self.contributions = {}
             self._extensions.clear()
             return
+
+        extensions = point.extensions
 
         # Get the contributions declarations for all extensions.
         new_extensions = defaultdict(list)
@@ -311,13 +358,14 @@ class DeclaratorsCollector(BaseCollector):
         self._register_decls(extensions)
 
     def _register_decls(self, extensions):
-        """Register the task declaration linked to some extensions.
+        """Register the declaration linked to some extensions.
 
-        Handle multiple registerin attempts.
+        Handle multiple registering attempts.
 
         """
         # Get the declarators for all extensions.
         tb = {}
+        contributions = self.contributions.copy()
         new_extensions = defaultdict(list)
         old_extensions = self._extensions
         for extension in extensions:
@@ -351,10 +399,17 @@ class DeclaratorsCollector(BaseCollector):
             tb['Missing declarations'] = msg.format(self._delayed)
 
         self._extensions.update(new_extensions)
+
+        if self.contributions != contributions:
+            c = self.contributions
+            with self.suppress_notifications():
+                self.contributions = contributions
+            self.contributions = c
+
         if tb:
             core = self.workbench.get_plugin('enaml.workbench.core')
             core.invoke_command('ecpy.app.errors.signal',
-                                {'kind': 'extension', 'point': self.point,
+                                {'kind': 'extensions', 'point': self.point,
                                  'errors': tb})
 
     def _get_decls(self, extension):
@@ -378,10 +433,17 @@ class DeclaratorsCollector(BaseCollector):
         """Unregister the declarations linked to some extensions.
 
         """
+        contributions = self.contributions.copy()
         for extension in extensions:
             for declarator in extensions[extension]:
                 declarator.unregister(self)
             del self._extensions[extension]
+
+        if self.contributions != contributions:
+            c = self.contributions
+            with self.suppress_notifications():
+                self.contributions = contributions
+            self.contributions = c
 
     def _on_contribs_updated(self, change):
         """Update the registered declarations when an extension is

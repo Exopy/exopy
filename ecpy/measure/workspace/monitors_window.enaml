@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""A window used to display monitors during a measure execution.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import Window, DockArea, Label, Container, Field
+from enaml.layout.api import hbox, vbox
+
+
+enamldef MonitorsWindow(Window):
+    """Window displaying monitors attached to a measure in a dock area.
+
+    This window will close only if it is hidden first, otherwise it will
+    simply hide. This allow to use a single window per session and hence
+    preserve its position and layout.
+
+    """
+    #: Reference to the running measure.
+    attr measure
+
+    #: Alias to get access to the dock area.
+    alias dock_area : area
+
+    title = 'Measure monitors'
+
+    closing ::
+        if self.visible:
+            self.hide()
+            change['value'].ignore()  # Ignore close event.
+
+    Container:
+
+        constraints = [vbox(hbox(meas_lab, meas_val,
+                                 id_lab, id_val,
+                                 stat_lab, stat_val),
+                            area)
+                       ]
+
+        Label: meas_lab:
+            text = 'Measure :'
+        Field: meas_val:
+            text << measure.name
+            read_only = True
+
+        Label: id_lab:
+            text = 'Id :'
+        Field: id_val:
+            text << measure.id
+            read_only = True
+
+        Label: stat_lab:
+            text = 'Status'
+        Field: stat_val:
+            text << measure.status
+            read_only = True
+
+        DockArea: area:
+            pass

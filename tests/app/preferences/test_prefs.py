@@ -19,8 +19,8 @@ from configobj import ConfigObj
 from future.builtins import str
 from enaml.workbench.api import Workbench
 
-from ...util import (handle_dialog, ecpy_path)
-from ...conftest import APP_DIR_CONFIG, APP_PREFERENCES
+from ecpy.testing.util import (handle_dialog, ecpy_path, APP_DIR_CONFIG,
+                               APP_PREFERENCES)
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -371,3 +371,15 @@ class TestPreferencesPlugin(object):
         assert contrib.string == 'test'
         assert self.workbench.get_plugin(PLUGIN_ID).last_directory == \
             prefs_path
+
+
+# =============================================================================
+# --- API import --------------------------------------------------------------
+# =============================================================================
+
+def test_api_import():
+    """Test importing the api module.
+
+    """
+    from ecpy.app.preferences import api
+    assert api.__all__

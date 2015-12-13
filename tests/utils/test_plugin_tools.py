@@ -13,12 +13,15 @@ import pytest
 import enaml
 from enaml.workbench.api import Workbench
 
-from ..util import handle_dialog
+from ecpy.utils.plugin_tools import make_extension_validator
+
+from ecpy.testing.util import handle_dialog
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from .plugin_tools_testing import (ExtensionManifest,
+                                       Contribution, DContribution,
                                        Contributor1, Contributor2,
                                        Contributor3, Contributor4,
                                        DeclaratorManifest,
@@ -26,6 +29,24 @@ with enaml.imports():
                                        DContributor3, DContributor4,
                                        DContributor5,
                                        PLUGIN_ID)
+
+
+def test_make_extension_validator():
+    """Test the building of generic extension validators.
+
+    """
+    c_validator = make_extension_validator(Contribution, ('new',))
+    assert c_validator(Contribution())[0] is False
+    assert c_validator(DContribution())[0] is False
+    assert c_validator(DContribution(description='test'))[0] is True
+
+    class CContribution(Contribution):
+
+        def new(self, workbench):
+            return 1
+
+    assert c_validator(CContribution())[0] is False
+    assert c_validator(CContribution(description='test'))[0] is True
 
 
 class TestExtensionsCollector(object):
@@ -159,20 +180,35 @@ class TestDeclaratorCollector(object):
         """Test contribs update when a new plugin is registered.
 
         """
+        class Witness(object):
+
+            called = 0
+
+            def see(self, change):
+                print('r')
+                self.called += 1
+
+        w = Witness()
+
         self.workbench.register(DContributor2())
         plugin = self.workbench.get_plugin(PLUGIN_ID)
+        plugin.contribs.observe('contributions', w.see)
+
         d = DContributor1()
         self.workbench.register(d)
 
         assert 'contrib1' in plugin.contribs.contributions
+        assert w.called == 1
 
         self.workbench.unregister(d.id)
 
         assert 'contrib1' not in plugin.contribs.contributions
+        assert w.called == 2
 
         plugin.contribs.stop()
 
         assert not plugin.contribs.contributions
+        assert w.called == 2
         assert not plugin.contribs._extensions
 
     def test_factory(self, windows):
@@ -208,7 +244,7 @@ class TestDeclaratorCollector(object):
             self.workbench.get_plugin(PLUGIN_ID)
 
     @pytest.mark.ui
-    def test_unsatifiable_requirement(self):
+    def test_unsatifiable_requirement(self, windows):
         """Test the case of a declarator always adding itself to _deflayed.
 
         """

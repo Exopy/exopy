@@ -45,7 +45,8 @@ def application_factory():
     from enaml.qt import QtGui
     import sys
     app = QtApplication()
-    app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
+    # TODO handle icons
+    #app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
     if sys.platform == 'win32':
         import ctypes
         myappid = 'ecpy.main_app' # arbitrary string
@@ -59,13 +60,13 @@ enamldef AppWindow(WorkbenchWindow):
 
     """
     closing ::
-        plugin = window.workbench.get_plugin('ecpy.app')
-        plugin.validate_closing(window, event)
+        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin.validate_closing(self, change['value'])
     closed ::
         core = workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('enaml.workbench.ui.close_workspace',
                             {}, workbench)
-        plugin = window.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('ecpy.app')
         plugin.run_app_cleanup()
 
 # =============================================================================
@@ -124,7 +125,7 @@ enamldef AppManifest(PluginManifest):
         id = 'branding'
         point = 'enaml.workbench.ui.branding'
         Branding:
-            title = 'Ecpy App'
+            title = 'Ecpy'
 #            icon = Icon(images=[IconImage(image=ICON)])
 
     Extension:

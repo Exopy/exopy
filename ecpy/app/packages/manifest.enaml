@@ -52,9 +52,20 @@ def packages_plugin_factory():
 # =============================================================================
 
 PACKAGE_ERROR_DESCRIPTION =\
-"""
+"""Specific handler for package loading errors.
+
+The handler expects the 'id' of the package for which loading failed and a
+'message' explaining what happened.
 """
 
+
+REGISTERING_ERR_DESCRIPTION =\
+"""Specific handler for plugin registering errors.
+
+The handler expect to find the 'id' of the manifest whose registering failed,
+and a 'message' key.
+
+"""
 
 # =============================================================================
 # --- Manifest ----------------------------------------------------------------
@@ -104,4 +115,35 @@ enamldef PackagesManifest(PluginManifest):
                                           read_only=True)
 
             report => (workbench):
-                return BaseErrorDisplay(kind='Packages', errors=errors)
+                return BasicErrorsDisplay(kind='Packages', errors=errors)
+
+        ErrorHandler:
+            attr errors = {}
+            id = 'registering'
+            description = REGISTERING_ERR_DESCRIPTION
+            handle => (workbench, infos):
+                err = {}
+                if not isinstance(infos, Mapping):
+                    # Explicit loop to avoid weird scoping issues.
+                    for i in infos:
+                        err[i['id']] = self._format(i)
+                    errors.update(err)
+                    return BasicErrorsDisplay(errors=err,
+                                              kind='Manifests')
+                else:
+                    msg = self._format(infos)
+                    errors[infos['id']] = msg
+                    return MultilineField(text=msg, read_only=True)
+
+            report => (workbench):
+                if errors:
+                    return BasicErrorsDisplay(errors=errors,
+                                              kind='Manifests')
+                else:
+                    msg = 'No manifest registering error occured.'
+                    return MultilineField(text=msg)
+
+            func _format(infos):
+                return ('Failed to register manifest {}'.format(infos['id']) +
+                        infos['message'])
+

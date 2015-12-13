@@ -1,0 +1,277 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets dedicated to edit the tools attached to a measure.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from traceback import format_exc
+
+from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
+                               Container, MultilineField, Label)
+from enaml.layout.api import hbox, vbox, spacer
+from enaml.core.api import Declarative
+
+from ...utils.enaml_destroy_hook import add_destroy_hook
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
+
+
+enamldef ToolSelector(Dialog): dial:
+    """ Simple dialog to select a tool.
+
+    """
+    #: Kind of tool to select ({'pre-hook', 'monitor', 'post-hook'})
+    attr kind
+
+    #: Measure for which a new tool is being chosen.
+    attr measure
+
+    #: Declaration for the currently selected tool.
+    attr selected_decl
+
+    #: Private version of kind, reflecting the real name of the members
+    attr _kind = kind.replace('-', '_')+'s'
+
+    #: Private mapping between tools ids and names.
+    attr _names = ids_to_unique_names(set(getattr(measure.plugin, _kind)) -
+                                      set(getattr(measure, _kind)))
+
+    title = 'Select a %s' % kind
+
+    Container:
+        constraints << [vbox(hbox(list_ed, desc), hbox(spacer, cancel, ok))]
+
+        QtListStrWidget: list_ed:
+            items << list(_names)
+            selected_item ::
+                new = change['value']
+                if new:
+                    pl = measure.plugin
+                    id_ = _names[new]
+                    dial.selected_decl = pl.get_declarations(kind, [id_])[id_]
+
+        MultilineField: desc:
+            text << selected_decl.description if selected_decl else ''
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(dial.selected_decl)
+            clicked ::
+                dial.accept()
+
+        PushButton: cancel:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+
+enamldef NonEditableTool(Container):
+    """Widget used when the make_view method of the tool declaration return
+    None
+
+    """
+    #: Reference to the tool to which this view is linked.
+    attr tool
+
+    #: Message to display to explain why this widget is used.
+    alias msg : lb.text
+    msg = 'Tool %s is not editable' % tool.declaration.id
+
+    Label: lb:
+        pass
+
+    MultilineField:
+        read_only = True
+        text = tool.declaration.description
+
+
+DestroyableContainer = add_destroy_hook(Container)
+
+
+enamldef ToolsEditor(DestroyableContainer): main:
+    """Widget used to edit the tools parameters of a measure.
+
+    """
+    #: Kind of tool to edit ({'pre-hook', 'monitor', 'post-hook'})
+    attr kind
+
+    #: Measure whose tools are being edited.
+    attr measure
+
+    #: Currently selected tool (id)
+    alias selected_id : tools.selected_item
+
+    #: Cache of the already created views.
+    attr _cache = {}
+
+    #: Private version of kind, reflecting the real name of the members
+    attr _kind = kind.replace('-', '_')+'s'
+
+    #: Private mapping between tools ids and names.
+    attr _names = ids_to_unique_names(getattr(measure, _kind))
+
+    constraints << [hbox(tools, cont, vbox(add, remove, up, down, spacer))]
+
+    func update_items(change):
+        """Update the list of tools.
+
+        """
+        main._names = ids_to_unique_names(getattr(measure, _kind))
+        tools.items = list(_names)
+
+    func make_view(selected):
+        """Create (or retrieve from the cache) a view for the selected tool.
+
+        """
+        if selected in _cache:
+            return _cache[selected]
+
+        tool = getattr(measure, _kind)[selected]
+        decl = tool.declaration
+        try:
+            view = decl.make_view(measure.plugin.workbench, tool)
+        except Exception:
+            w = measure.plugin.workbench
+            core = w.get_plugin('enaml.workbench.core')
+            cmd = 'ecpy.app.errors.signal'
+            msg = 'Failed to create widget for %s %s :\n%s'
+            err = format_exc()
+            core.invoke_command(cmd,
+                                dict(kind='error',
+                                     message=msg % (kind, tool_id, err))
+                                )
+            view = NonEditableTool(tool=tool,
+                                   msg='Tool failed to generate a widget')
+        if not view:
+            view = NonEditableTool(tool=tool)
+        _cache[selected] = view
+        return view
+
+    initialized ::
+        measure.observe(_kind, update_items)
+
+    activated ::
+        update_items(None)
+
+    ended ::
+        for w in _cache.values():
+            w.set_parent(None)
+            w.destroy()
+
+    QtListStrWidget: tools:
+        sort = False
+        selected_item ::
+            if change.get('oldvalue'):
+                id_ = _names.get(change['oldvalue'])
+                if id_ in _cache:
+                    _cache[id_].set_parent(None)
+            view = make_view(_names[change['value']])
+            view.set_parent(cont)
+            view.show()
+
+    Container: cont:
+        pass
+
+    PushButton: add:
+        text = 'Add'
+        enabled << not all([id in tools.items
+                            for id in  getattr(measure.plugin, _kind)])
+        clicked ::
+            selector = ToolSelector(measure=measure, kind=kind)
+            if selector.exec_():
+                workbench = measure.plugin.workbench
+                tool_id = selector.selected_decl.id
+                try:
+                    measure.add_tool(kind, tool_id)
+                except Exception:
+                    w = measure.plugin.workbench
+                    core = w.get_plugin('enaml.workbench.core')
+                    cmd = 'ecpy.app.errors.signal'
+                    msg = 'Failed to create/add %s %s :\n%s'
+                    err = format_exc()
+                    core.invoke_command(cmd,
+                                        dict(kind='error',
+                                             message=msg % (kind, tool_id, err)
+                                             )
+                                        )
+
+    PushButton: remove:
+        text = 'Remove'
+        enabled << bool(selected_id)
+        clicked ::
+            id_ = _names[selected_id]
+            try:
+                measure.remove_tool(kind, id_)
+            except KeyError:
+                pass
+
+            if id_ in _cache:
+                view = _cache[id_]
+                view.set_parent(None)
+                view.destroy()
+                del _cache[id_]
+
+    PushButton: up:
+        text = 'Move up'
+        enabled << bool(selected_id) and selected_id != tools.items[0]
+        clicked ::
+            ind = tools.items.index(selected_id)
+            measure.move_tool(kind, ind, ind-1)
+
+    PushButton: down:
+        text = 'Move down'
+        enabled << bool(selected_id) and selected_id != tools.items[-1]
+        clicked ::
+            ind = tools.items.index(selected_id)
+            measure.move_tool(kind, ind, ind+1)
+
+
+enamldef ToolsEditorDockItem(DockItem): main:
+    """DockItem for editing the tools attached to a measure.
+
+    """
+    # Measure whose tools are being edited.
+    attr measure
+
+    title = 'Measure tools'
+    name = 'ecpy.measure.workspace.tools.monitors'
+
+    Container:
+        Notebook:
+            tabs_closable = False
+            tabs_movable = False
+
+            Page:
+                title = 'Pre-execution'
+                name = 'ecpy.measure.workspace.tools.pre_hooks'
+                Container:
+                    constraints << [hbox(pre_ed, spacer)]
+                    ToolsEditor: pre_ed:
+                        kind = 'pre-hook'
+                        measure << main.measure
+
+            Page:
+                title = 'Monitors'
+                name = 'ecpy.measure.workspace.tools.monitors'
+                Container:
+                    constraints << [hbox(mon_ed, spacer)]
+                    ToolsEditor: mon_ed:
+                        kind = 'monitor'
+                        measure << main.measure
+
+            Page:
+                title = 'Post-execution'
+                name = 'ecpy.measure.workspace.tools.post_hooks'
+                Container:
+                    constraints << [hbox(post_ed, spacer)]
+                    ToolsEditor: post_ed:
+                        kind = 'post-hook'
+                        measure << main.measure

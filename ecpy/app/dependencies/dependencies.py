@@ -37,8 +37,11 @@ class BuildDependency(Declarative):
     id = d_(Unicode())
 
     @d_func
-    def collect(self, workbench, obj, getter, dependencies, errors):
-        """Collect the identified build dependencies and list runtime ones.
+    def analyse(self, workbench, obj, getter, dependencies, errors):
+        """Analyse the identified build dependencies and list runtime ones.
+
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
 
         Parameters
         ----------
@@ -46,7 +49,7 @@ class BuildDependency(Declarative):
             Reference to the application workbench.
 
         obj :
-            Object whose build dependencies should be collected and runtime
+            Object whose build dependencies should be analysed and runtime
             ones identified.
 
         getter : callable(obj, name)
@@ -54,12 +57,10 @@ class BuildDependency(Declarative):
             using this function rather than the usual '.' syntax as the passed
             object might be a dictionary like object.
 
-        dependencies : defaultdict(dict)
-            Dictionary in which to write the build dependencies. Dependencies
-            should be groupped by collector.
-            ex : dependencies[self.id][key] = value
+        dependencies : set
+            Set in which to list the dependencies.
 
-        errors : defaultdict(dict)
+        errors : dict
             Dictionary in which to write the errors that occured during
             collection.
 
@@ -69,7 +70,55 @@ class BuildDependency(Declarative):
             List of runtime dependencies that this object have.
 
         """
-        pass
+        raise NotImplementedError()
+
+    @d_func
+    def validate(self, workbench, dependencies, errors):
+        """Validate that all the dependencies exists.
+
+        This method is not intended to query the actual dependencies but
+        simply to assert that they are theoretically available from the manager
+        plugin.
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        dependencies : set
+            Set of depedencies to validate.
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
+    def collect(self, workbench, dependencies, errors):
+        """Collect build dependencies.
+
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        dependencies : dict
+            Dictionary whose values are initialised to None listing the
+            dependencies to collect.
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        raise NotImplementedError()
 
 
 class RuntimeDependency(Declarative):
@@ -82,20 +131,19 @@ class RuntimeDependency(Declarative):
     id = d_(Unicode())
 
     @d_func
-    def collect(self, workbench, owner, obj, getter, dependencies, errors):
-        """Collect the identified runtime dependencies.
+    def analyse(self, workbench, obj, getter, dependencies, errors):
+        """Analyse the identified runtime dependencies.
+
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
 
         Parameters
         ----------
         workbench : enaml.workbench.api.Workbench
             Reference to the application workbench.
 
-        owner :
-            Calling plugin. Used for some runtime dependencies needing to know
-            the ressource owner.
-
         obj :
-            Object whose build dependencies should be collected and runtime
+            Object whose build dependencies should be analysed and runtime
             ones identified.
 
         getter : callable(obj, name)
@@ -103,14 +151,91 @@ class RuntimeDependency(Declarative):
             using this function rather than the usual '.' syntax as the passed
             object might be a dictionary like object.
 
-        dependencies : defaultdict(dict)
-            Dictionary in which to write the build dependencies. Dependencies
-            should be groupped by collector.
-            ex : dependencies[self.id][key] = value
+        dependencies : set
+            Set in which to list the dependencies.
 
-        errors : defaultdict(dict)
+        errors : dict
             Dictionary in which to write the errors that occured during
             collection.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
+    def validate(self, workbench, dependencies, errors):
+        """Validate that all the dependencies exists.
+
+        This method should try to access the dependencies but simply assert
+        that they exist.
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        dependencies : set
+            Set of depedencies to validate.
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
+    def collect(self, workbench, owner, dependencies, unavailable, errors):
+        """Collect the identified runtime dependencies.
+
+        This method should never raise an error but rather use the errors
+        dictionary to signal any issue.
+
+        If some of them requires some kind of permission, this permission
+        should be required.
+
+        Parameters
+        ----------
+        workbench : enaml.workbench.api.Workbench
+            Reference to the application workbench.
+
+        owner : unicode
+            Calling plugin id . Used for some runtime dependencies needing to
+            know the ressource owner.
+
+        dependencies : dict
+            Dictionary whose values are initialised to None listing the
+            dependencies to collect.
+
+        unavaible : set
+            Set of resources that could not be provided because they are
+            currently unavailable.
+
+        errors : dict
+            Dictionary in which to write the errors that occured during
+            collection.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
+    def release(self, workbench, owner, dependencies):
+        """Release resources previously collected.
+
+        This makes sense only if the ressource requires some kind of
+        permissions.
+
+        Parameters
+        ----------
+        workbench :
+            Reference to the application workbench.
+
+        owner : unicode
+            Id of the plugin releasing the ressources.
+
+        dependencies : iterable
+            Iterable of dependencies that are no longer needed.
 
         """
         pass

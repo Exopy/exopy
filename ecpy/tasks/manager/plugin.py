@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Plugin centralizing the collect and managment of tasks and interfaces.
+"""Plugin centralizing the collection and managment of tasks and interfaces.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -111,7 +111,6 @@ class TaskManagerPlugin(HasPrefPlugin):
             self.load_auto_task_names()
         self._bind_observers()
 
-        core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
     def stop(self):
@@ -129,13 +128,14 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         Parameters
         ----------
-        filter_name : unicode, optional
+        filter : unicode, optional
             Name of the filter to use
 
         Returns
         -------
-        tasks : list(str) or None
-            Tasks selected by the filter, or None if the filter does not exist.
+        tasks : list(unicode) or None
+            Task ids selected by the filter, or None if the filter does not
+            exist.
 
         """
         t_filter = self._filters.contributions.get(filter)
@@ -149,7 +149,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         task : unicode
-            Name of the task class for which to return the actual class.
+            Id of the task class for which to return the actual class.
 
         Returns
         -------
@@ -169,7 +169,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         task : unicode
-            Name of the task class for which to return the actual class.
+            Id of the task class for which to return the actual class.
 
         view : bool, optional
             Whether or not to return the view assoicated with the task.
@@ -197,7 +197,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         tasks : list(unicode)
-            Names of the task classes for which to return the actual classes.
+            Ids of the task classes for which to return the actual classes.
 
         Returns
         -------
@@ -319,13 +319,13 @@ class TaskManagerPlugin(HasPrefPlugin):
 
         return interfaces_cls, missing
 
-    def get_config(self, task):
+    def get_config(self, task_id):
         """Access the proper config for a task.
 
         Parameters
         ----------
-        task : unicode or type
-            Name or class of the task for which a config is required
+        task : unicode
+           Id of the task for which a config is required
 
         Returns
         -------
@@ -334,21 +334,18 @@ class TaskManagerPlugin(HasPrefPlugin):
             visualisation.
 
         """
-        if isinstance(task, type):
-            task = task.__name__
-
         templates = self.templates
-        if task in templates:
+        if task_id in templates:
             infos = configs = self._configs.contributions['__template__']
             config = infos.cls(manager=self,
-                               template_path=templates[task])
+                               template_path=templates[task_id])
             return config, infos.view(config=config)
 
-        elif task in self._tasks.contributions:
+        elif task_id in self._tasks.contributions:
             configs = self._configs.contributions
             # Look up the hierarchy of the selected task to get the appropriate
             # TaskConfig
-            task_class = self._tasks.contributions[task].cls
+            task_class = self._tasks.contributions[task_id].cls
             for t_class in (t.__name__ for t in type.mro(task_class)):
                 if t_class in configs:
                     infos = configs[t_class]
@@ -398,7 +395,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         """Refresh the list of template tasks.
 
         """
-        # XXXX rework to handle in an nicer fashion same template in multiple
+        # TODO rework to handle in an nicer fashion same template in multiple
         # folders
         templates = {}
         for path in self.templates_folders:

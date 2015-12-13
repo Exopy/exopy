@@ -21,21 +21,15 @@ from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
+from ..utils.enaml_destroy_hook import add_destroy_hook
 from .tools.task_editor import TaskEditor, FoldableTaskEditor
 from .base_tasks import BaseTask
 
 
-class _GroupBox(GroupBox):
-    """Overridden just to make destroyed a declarative member.
-
-    """
-    #: An event fired when an object has been destroyed. It is triggered
-    #: once during the object lifetime, just before the object is
-    #: removed from the tree structure.
-    destroyed = d_(Event())
+DestroyableGroupBox = add_destroy_hook(GroupBox)
 
 
-enamldef BaseTaskView(_GroupBox):
+enamldef BaseTaskView(DestroyableGroupBox):
     """Base class for all task views.
 
     """
@@ -53,7 +47,7 @@ enamldef BaseTaskView(_GroupBox):
         """
         self.show()
 
-    title << task.name
+    title << task.name + ' (' + task.task_id + ')'
 
 
 enamldef ComplexTaskView(BaseTaskView): main:
@@ -94,8 +88,10 @@ enamldef RootTaskView(BaseTaskView): main:
         self.show()
         editor.refresh()
 
+    # TODO pass the future parent task so that config can do name inspections
+    # and avoid duplicate names.
     func create_new_task():
-        """Create a new task to answer into the hierarchy.
+        """Create a new task to insert into the hierarchy.
 
         """
         return core.invoke_command('ecpy.tasks.create_task', dict(widget=self))
@@ -116,17 +112,17 @@ enamldef RootTaskView(BaseTaskView): main:
         """
         if isinstance(obj, BaseTask):
             cmd = 'ecpy.tasks.get_task_infos'
-            infos = core.invoke_command(cmd, {'task': obj.task_class})
+            infos = core.invoke_command(cmd, {'task': obj.task_id})
 
         else:
             cmd = 'ecpy.tasks.get_interface_infos'
             infos = core.invoke_command(cmd,
-                                        {'interface': obj.interface_class})
+                                        {'interface': obj.interface_id})
 
         return [i.cls for i in infos.interfaces.values()]
 
     func view_for(obj):
-        """Create a widget for the specified view.
+        """Create a widget for the specified task.
 
         The view is initialized but given no parent.
 
@@ -136,7 +132,7 @@ enamldef RootTaskView(BaseTaskView): main:
             if task not in _cache:
                 cmd = 'ecpy.tasks.get_task'
                 _, view_cls = core.invoke_command(cmd,
-                                                  {'task': type(task).__name__,
+                                                  {'task': task.task_id,
                                                    'view': True})
                 _cache[task] = view_cls(task=task, root=self)
 
@@ -144,9 +140,9 @@ enamldef RootTaskView(BaseTaskView): main:
 
         else:
             cmd = 'ecpy.tasks.get_interface'
-            i_class = obj.interface_class
+            i_id = obj.interface_id
             _, views_cls = core.invoke_command(cmd,
-                                              {'interface': i_class,
+                                              {'interface': i_id,
                                                'views': True})
             return [v(interface=obj, root=self) for v in views_cls]
 
@@ -160,11 +156,11 @@ enamldef RootTaskView(BaseTaskView): main:
         except KeyError:
             pass
 
-    destroyed ::
+    ended ::
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
-        tasks = sorted(_cache, attrgetter('depth'))
+        tasks = sorted(_cache, key=attrgetter('depth'))
         for t in tasks:
             view = _cache[task]
             if not view.is_destroyed:
@@ -179,4 +175,4 @@ enamldef RootTaskView(BaseTaskView): main:
     # =========================================================================
 
     #: Dictionary used to store the view associated with each task.
-    attr _cache : dict = {}
+    attr _cache : dict = {task: self}

@@ -16,7 +16,8 @@ import os
 from time import sleep
 from contextlib import contextmanager
 
-from enaml.application import deferred_call
+from configobj import ConfigObj
+from enaml.application import timed_call
 from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window, Dialog
 
@@ -29,7 +30,7 @@ def ecpy_path():
     """Get the ecpy path as determined by the sys_path fixture.
 
     """
-    from .conftest import ECPY
+    from .fixtures import ECPY
     assert ECPY
     return ECPY
 
@@ -60,8 +61,9 @@ def get_window(cls=Window):
     UnboundLocalError : if no window exists.
 
     """
-    process_app_events()
     sleep(0.1)
+    process_app_events()
+    w_ = None
     for w in Window.windows:
         if isinstance(w, cls):
             w_ = w
@@ -78,13 +80,15 @@ def close_all_windows():
     """
     process_app_events()
     sleep(0.1)
-    for window in Window.windows:
-        window.close()
-    process_app_events()
+    while Window.windows:
+        for window in list(Window.windows):
+            window.close()
+        process_app_events()
+        sleep(0.02)
 
 
 @contextmanager
-def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog):
+def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
     """Automatically close a dialog opened during the context.
 
     Parameters
@@ -97,19 +101,32 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog):
         or rejecting the dialog.
 
     cls : type, optional
+        Dialog class to identify.
 
+    time : float, optional
+        Time to wait before handling the dialog in ms.
 
     """
     def close_dialog():
-        dial = get_window(cls)
+        i = 0
+        while True:
+            dial = get_window(cls)
+            if dial is not None:
+                break
+            elif i > 10:
+                raise Exception('Dialog timeout')
+            sleep(0.1)
+            process_app_events()
+            i += 1
+
         try:
             custom(dial)
         finally:
             process_app_events()
-            from .conftest import DIALOG_SLEEP
+            from .fixtures import DIALOG_SLEEP
             sleep(DIALOG_SLEEP)
             getattr(dial, op)()
-    deferred_call(close_dialog)
+    timed_call(time, close_dialog)
     yield
     process_app_events()
 
@@ -129,7 +146,7 @@ def show_and_close_widget(widget):
     """Show a widget in a window and then close it.
 
     """
-    from .conftest import DIALOG_SLEEP
+    from .fixtures import DIALOG_SLEEP
     try:
         win = show_widget(widget)
         sleep(DIALOG_SLEEP)
@@ -138,3 +155,62 @@ def show_and_close_widget(widget):
     except Exception:
         close_all_windows()
         raise
+
+
+def set_preferences(workbench, preferences):
+    """Set the preferences stored in the preference plugin.
+
+    This function must be called before accessing any plugin relying on those
+    values.
+
+    Parameters
+    ----------
+    workbench :
+        Application workbench.
+
+    preferences : dict
+        Dictionary describing the preferences.
+
+    """
+    plugin = workbench.get_plugin('ecpy.app.preferences')
+    plugin._prefs = ConfigObj(preferences)
+
+
+class ErrorDialogException(Exception):
+    """Error raised when patching the error plugin to raise rather than show a
+    dialog when exiting error gathering.
+
+    """
+    pass
+
+
+@contextmanager
+def signal_error_raise():
+    """Make the error plugin raise an exception when signaling.
+
+    """
+    from ecpy.app.errors.plugin import ErrorsPlugin
+    func = ErrorsPlugin.signal
+
+    def raise_for_signal(self, kind, **kwargs):
+        raise ErrorDialogException()
+
+    ErrorsPlugin.signal = raise_for_signal
+
+    try:
+        yield
+    finally:
+        ErrorsPlugin.signal = func
+
+
+class CallSpy(object):
+
+    __slots__ = ('called', 'args', 'kwargs')
+
+    def __init__(self):
+        self.called = 0
+
+    def __call__(self, *args, **kwargs):
+        self.called += 1
+        self.args = args
+        self.kwargs = kwargs

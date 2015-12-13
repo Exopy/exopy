@@ -25,7 +25,7 @@ class LoopTaskConfig(PyTaskConfig):
     #: Whether or not to embed a subtask.
     use_subtask = Bool()
 
-    #: Embedded task
+    #: Embedded task id.
     subtask = Unicode()
 
     #: Configurer for the subtask.

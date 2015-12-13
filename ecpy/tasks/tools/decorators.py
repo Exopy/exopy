@@ -19,6 +19,7 @@ import logging
 from functools import update_wrapper
 from time import sleep
 from threading import Thread, current_thread
+from traceback import format_exc
 
 
 def handle_stop_pause(root):
@@ -45,7 +46,7 @@ def handle_stop_pause(root):
 
     pause_flag = root.should_pause
     if pause_flag.is_set():
-        root.resume.clear()
+        root.resumed.clear()
         root.paused_threads_counter.increment()
         while True:
             sleep(0.05)
@@ -57,13 +58,13 @@ def handle_stop_pause(root):
                     # Prevent issues if a user alter a resource while in pause.
                     for _, resource in root.resources.items():
                         resource.reset()
-                    root.resume.set()
+                    root.resumed.set()
                     root.paused_threads_counter.decrement()
                     break
                 else:
                     # Safety here ensuring the main thread finished
-                    # re-initializing the instr.
-                    root.resume.wait()
+                    # re-initializing the resources.
+                    root.resumed.wait()
                     root.paused_threads_counter.decrement()
                     break
 
@@ -99,9 +100,10 @@ def smooth_crash(function_to_decorate):
             return function_to_decorate(*args, **kwargs)
         except Exception:
             log = logging.getLogger(function_to_decorate.__module__)
-            mes = 'The following unhandled exception occured in {} :'
-            log.exception(mes.format(obj.name))
+            msg = 'The following unhandled exception occured in %s :'
+            log.exception(msg % obj.name)
             obj.root.should_stop.set()
+            obj.root.errors['unhandled'] = msg % obj.name + '\n' + format_exc()
 
     update_wrapper(decorator, function_to_decorate)
     return decorator

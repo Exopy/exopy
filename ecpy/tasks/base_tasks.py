@@ -18,19 +18,20 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 import threading
-from atom.api import (Atom, Int, Bool, Value, Unicode, List,
-                      ForwardTyped, Typed, Callable, Dict, Signal,
-                      Tuple, Coerced, Constant, set_default)
-from configobj import Section, ConfigObj
+from multiprocessing.synchronize import Event
+from collections import Iterable
 from inspect import cleandoc
 from textwrap import fill
 from copy import deepcopy
 from traceback import format_exc
+from types import MethodType
+
+from atom.api import (Atom, Int, Bool, Value, Unicode, List,
+                      ForwardTyped, Typed, Callable, Dict, Signal,
+                      Tuple, Coerced, Constant, set_default)
+from configobj import Section, ConfigObj
 from future.utils import istext
-from future.builtins import str as text
-from multiprocessing.synchronize import Event
-from datetime import date
-from collections import Iterable
+
 
 from ..utils.atom_util import (tagged_members, update_members_from_preferences)
 from ..utils.container_change import ContainerChange
@@ -61,7 +62,7 @@ class BaseTask(Atom):
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 
     #: Name of the class, used for persistence.
-    task_class = Unicode().tag(pref=True)
+    task_id = Unicode().tag(pref=True)
 
     #: Name of the task this should be unique in hierarchy.
     name = Unicode().tag(pref=True)
@@ -77,7 +78,8 @@ class BaseTask(Atom):
     database = Typed(TaskDatabase)
 
     #: Entries the task declares in the database and the associated default
-    #: values.
+    #: values. This should be copied and re-assign when modified not modfied
+    #: in place.
     database_entries = Dict(Unicode(), Value())
 
     #: Path of the task in the hierarchy. This refers to the parent task and
@@ -109,7 +111,7 @@ class BaseTask(Atom):
     #: - 'no_wait' : the list should specify which pool not to wait on.
     wait = Dict(Unicode()).tag(pref=True)
 
-    #: List of access exception in the database. This should not be manipulated
+    #: Dict of access exception in the database. This should not be manipulated
     #: by user code.
     access_exs = Dict().tag(pref=True)
 
@@ -127,7 +129,7 @@ class BaseTask(Atom):
 
         By default tries to format all members tagged with 'fmt' and try to
         eval all members tagged with 'feval'. If the tag value is 'Warn', the
-        will considered passed but a traceback entry will be filled.
+        test will considered passed but a traceback entry will be filled.
         The perform_ member is also computed at this time.
 
         """
@@ -156,8 +158,34 @@ class BaseTask(Atom):
                 msg = 'Failed to eval %s : %s' % (n, format_exc())
                 traceback[err_path + '-' + n] = msg
 
-        self._build_perform_()
         return res, traceback
+
+    def prepare(self):
+        """Prepare the task to be performed.
+
+        This method is called once by the root task before starting the
+        execution of its children tasks. By default it simply build the
+        perform_ method by wrapping perform with the appropriate decorators.
+        This method can be overridden to execute other task, however keep in
+        my mind that those task must not depende on the state of the system
+        (no link to database).
+
+        """
+        perform_func = self.perform.__func__
+        parallel = self.parallel
+        if parallel.get('activated') and parallel.get('pool'):
+            perform_func = make_parallel(perform_func, parallel['pool'])
+
+        wait = self.wait
+        if wait.get('activated'):
+            perform_func = make_wait(perform_func,
+                                     wait.get('wait'),
+                                     wait.get('no_wait'))
+
+        if self.stoppable:
+            perform_func = make_stoppable(perform_func)
+
+        self.perform_ = MethodType(perform_func, self)
 
     def register_preferences(self):
         """Create the task entries in the preferences object.
@@ -254,12 +282,16 @@ class BaseTask(Atom):
             Name of the task database entry for which to modify an exception.
 
         new : int
-            New level for the access exception.
+            New level for the access exception. If this is not strictly
+            positive the access exception is simply removed.
 
         """
         access_exs = self.access_exs.copy()
         old = access_exs[entry]
-        access_exs[entry] = new
+        if new > 0:
+            access_exs[entry] = new
+        else:
+            del access_exs[entry]
         full_name = self._task_entry(entry)
 
         parent = self
@@ -269,11 +301,13 @@ class BaseTask(Atom):
         self.database.remove_access_exception(parent.path,
                                               full_name)
 
-        parent = self
-        while new:
-            parent = parent.parent
-            new -= 1
-        self.database.add_access_exception(parent.path, self.path, full_name)
+        if new > 0:
+            parent = self
+            while new:
+                parent = parent.parent
+                new -= 1
+            self.database.add_access_exception(parent.path, self.path,
+                                               full_name)
 
         self.access_exs = access_exs
 
@@ -292,7 +326,7 @@ class BaseTask(Atom):
         self._remove_access_exception(entry, level)
 
     def write_in_database(self, name, value):
-        """ Write a value to the right database entry.
+        """Write a value to the right database entry.
 
         This method build a task specific database entry from the name
         and the name argument and set the database entry to the specified
@@ -312,7 +346,7 @@ class BaseTask(Atom):
         return self.database.set_value(self.path, value_name, value)
 
     def get_from_database(self, full_name):
-        """ Access to a database value using full name.
+        """Access to a database value using full name.
 
         Parameters
         ----------
@@ -325,7 +359,7 @@ class BaseTask(Atom):
         return self.database.get_value(self.path, full_name)
 
     def remove_from_database(self, full_name):
-        """ Delete a database entry using its full name.
+        """Delete a database entry using its full name.
 
         Parameters
         ----------
@@ -496,31 +530,12 @@ class BaseTask(Atom):
     #: Only used in running mode.
     _eval_cache = Dict()
 
-    def _build_perform_(self):
-        """Make perform_ refects the parallel/wait settings.
+    def _default_task_id(self):
+        """Default value for the task_id member.
 
         """
-        perform_func = self.perform.__func__
-        parallel = self.parallel
-        if parallel.get('activated') and parallel.get('pool'):
-            perform_func = make_parallel(perform_func, parallel['pool'])
-
-        wait = self.wait
-        if wait.get('activated'):
-            perform_func = make_wait(perform_func,
-                                     wait.get('wait'),
-                                     wait.get('no_wait'))
-
-        if self.stoppable:
-            self.perform_ = make_stoppable(perform_func)
-        else:
-            self.perform_ = perform_func
-
-    def _default_task_class(self):
-        """Default value for the task_class member.
-
-        """
-        return self.__class__.__name__
+        pack, _ = self.__module__.split('.', 1)
+        return pack + '.' + type(self).__name__
 
     def _post_setattr_database_entries(self, old, new):
         """Update the database content each time the database entries change.
@@ -637,9 +652,12 @@ class ComplexTask(BaseTask):
     #: them.
     children = List().tag(child=100)
 
-    #: Signal emitted when the list of children change the payload will be a
+    #: Signal emitted when the list of children change, the payload will be a
     # ContainerChange instance.
-    children_changed = Signal()
+    #: The tag 'child_notifier' is used to mark that a member emmit
+    #: notifications about modification of another 'child' member. This allow
+    #: editors to correctly track all of those.
+    children_changed = Signal().tag(child_notifier='children')
 
     #: Flag indicating whether or not the task has a root task.
     has_root = Bool(False)
@@ -649,7 +667,7 @@ class ComplexTask(BaseTask):
 
         """
         for child in self.children:
-            child.perform_(child)
+            child.perform_()
 
     def check(self, *args, **kwargs):
         """Run test of all child tasks.
@@ -657,11 +675,24 @@ class ComplexTask(BaseTask):
         """
         test, traceback = super(ComplexTask, self).check(*args, **kwargs)
         for child in self.gather_children():
-            check = child.check(*args, **kwargs)
-            test = test and check[0]
-            traceback.update(check[1])
+            try:
+                check = child.check(*args, **kwargs)
+                test = test and check[0]
+                traceback.update(check[1])
+            except Exception:
+                test = False
+                msg = 'An exception occured while running check :\n%s'
+                traceback[child.path + '/' + child.name] = msg % format_exc()
 
         return test, traceback
+
+    def prepare(self):
+        """Overridden to prepare also children tasks.
+
+        """
+        super(ComplexTask, self).prepare()
+        for child in self.gather_children():
+            child.prepare()
 
     def add_child_task(self, index, child):
         """Add a child task at the given index.
@@ -751,6 +782,11 @@ class ComplexTask(BaseTask):
         """Build a flat list of all children task.
 
         Children tasks are ordered according to their 'child' tag value.
+
+        Returns
+        -------
+        children : list
+            List of all the task children.
 
         """
         children = []
@@ -901,7 +937,7 @@ class ComplexTask(BaseTask):
                     if child_name not in config:
                         break
                     child_config = config[child_name]
-                    child_class_name = child_config.pop('task_class')
+                    child_class_name = child_config.pop('task_id')
                     child_cls = dependencies[DEP_TYPE][child_class_name]
                     child = child_cls.build_from_config(child_config,
                                                         dependencies)
@@ -912,7 +948,7 @@ class ComplexTask(BaseTask):
                 if name not in config:
                     continue
                 child_config = config[name]
-                child_class_name = child_config.pop('task_class')
+                child_class_name = child_config.pop('task_id')
                 child_class = dependencies[DEP_TYPE][child_class_name]
                 validated = child_class.build_from_config(child_config,
                                                           dependencies)
@@ -994,18 +1030,8 @@ class RootTask(ComplexTask):
     directly.
 
     """
-
     #: Path to which log infos, preferences, etc should be written by default.
     default_path = Unicode('').tag(pref=True)
-
-    #: Header assembled just before the measure is run.
-    default_header = Unicode('')
-
-    #: Name of the measurement.
-    meas_name = Unicode('').tag(pref=True)
-
-    #: ID of the measurement which can be used in the same of the saved files.
-    meas_id = Unicode('').tag(pref=True)
 
     #: Dict storing data needed at execution time (ex: drivers classes)
     run_time = Dict()
@@ -1019,9 +1045,12 @@ class RootTask(ComplexTask):
     #: Inter-process event signaling the task is paused.
     paused = Typed(Event)
 
-    #: Inter-Thread event signaling the main thread is done, handling the
-    #: measure resuming.
-    resume = Value()
+    #: Inter-process event signaling the main thread is done, handling the
+    #: measure resuming, and hence notifying the task execution has resumed.
+    resumed = Typed(Event)
+
+    #: Dictionary used to store errors occuring during performing.
+    errors = Dict()
 
     #: Dictionary used to store references to resources that may need to be
     #: shared between task and which must be released when all tasks have been
@@ -1051,8 +1080,7 @@ class RootTask(ComplexTask):
     name = Constant('Root')
     depth = Constant(0)
     path = Constant('root')
-    database_entries = set_default({'default_path': '', 'meas_id': '',
-                                    'meas_name': '', 'meas_date': ''})
+    database_entries = set_default({'default_path': ''})
 
     def __init__(self, *args, **kwargs):
         self.preferences = ConfigObj(indent_type='    ')
@@ -1075,9 +1103,6 @@ class RootTask(ComplexTask):
             traceback[self.path + '/' + self.name] =\
                 'The provided default path is not a valid directory'
         self.write_in_database('default_path', self.default_path)
-        self.write_in_database('meas_name', self.meas_name)
-        self.write_in_database('meas_id', self.meas_id)
-        self.write_in_database('meas_date', text(date.today()))
         check = super(RootTask, self).check(*args, **kwargs)
         test = test and check[0]
         traceback.update(check[1])
@@ -1088,18 +1113,35 @@ class RootTask(ComplexTask):
         """ Run sequentially all child tasks, and close ressources.
 
         """
+        result = True
         self.thread_id = threading.current_thread().ident
+
+        self.prepare()
+
         try:
             for child in self.children:
-                child.perform_(child)
-            print('Finished processing child')
+                child.perform_()
         except Exception:
             log = logging.getLogger(__name__)
-            mes = 'The following unhandled exception occured:'
-            log.exception(mes)
+            msg = 'The following unhandled exception occured :\n'
+            log.exception(msg)
             self.should_stop.set()
+            result = False
+            self.errors['unhandled'] = msg + format_exc()
         finally:
             self.release_resources()
+
+        if self.should_stop.is_set():
+            result = False
+
+        return result
+
+    def prepare(self):
+        """Optimise the database for running state and prepare children.
+
+        """
+        self.database.prepare_to_run()
+        super(RootTask, self).prepare()
 
     def release_resources(self):
         """Release all the resources used by tasks.
@@ -1118,15 +1160,42 @@ class RootTask(ComplexTask):
         for child in self.gather_children():
             child.register_in_database()
 
+    @classmethod
+    def build_from_config(cls, config, dependencies):
+        """Create a new instance using the provided infos for initialisation.
+
+        Parameters
+        ----------
+        config : dict(str)
+            Dictionary holding the new values to give to the members in string
+            format, or dictionnary like for instance with prefs.
+
+        dependencies : dict
+            Dictionary holding the necessary classes needed when rebuilding.
+            This is assembled by the TaskManager.
+
+        Returns
+        -------
+        task :
+            Newly created and initiliazed task.
+
+        Notes
+        -----
+        This method is fairly powerful and can handle a lot of cases so
+        don't override it without checking that it works.
+
+        """
+        task = super(RootTask, cls).build_from_config(config, dependencies)
+        task._post_setattr_root(None, task)
+        return task
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
-    def _default_task_class(self):
-        return ComplexTask.__name__
-
-    def _default_resume(self):
-        return threading.Event()
+    def _default_task_id(self):
+        pack, _ = self.__module__.split('.', 1)
+        return pack + '.' + ComplexTask.__name__
 
     def _child_path(self):
         """Overriden here to not add the task name.
