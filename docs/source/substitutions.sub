@@ -37,6 +37,9 @@
 
 .. |ActionItem| replace:: :py:class:`~enaml.workbench.ui.action_item.ActionItem`
 
+.. |Container| replace:: :py:class:`~enaml.widgets.container.Container`
+
+.. |DockItem| replace:: :py:class:`~enaml.widgets.dock_item.DockItem`
 
 .. ============================================================================
 .. Ecpy substitutions
@@ -68,6 +71,30 @@
 
 .. Measure substitutions
 .. ----------------------------------------------------------------------------
+
+.. |BaseMeasureTool| replace:: :py:class:`~ecpy.measure.base_tool.BaseMeasureTool`
+
+.. |BaseToolDeclaration| replace:: :py:class:`~ecpy.measure.base_tool.BaseToolDeclaration`
+
+.. |BasePreHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePreHook`
+
+.. |PreExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PreExecutionHook`
+
+.. |BaseMonitor| replace:: :py:class:`~ecpy.measure.monitors.base_monitor.BaseMonitor`
+
+.. |Monitor| replace:: :py:class:`~ecpy.measure.monitors.base_monitor.BaseMonitor`
+
+.. |BasePostHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePostHook`
+
+.. |PostExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PostExecutionHook`
+
+.. |BaseEditor| replace:: :py:class:`~ecpy.measure.editors.base_editor.BaseEditor`
+
+.. |Editor| replace:: :py:class:`~ecpy.measure.editors.base_editor.Editor`
+
+.. |BaseEngine| replace:: :py:class:`~ecpy.measure.engines.base_engine.BaseEngine`
+
+.. |Engine| replace:: :py:class:`~ecpy.measure.engines.base_engine.Engine`
 
 
 .. Tasks substitutions

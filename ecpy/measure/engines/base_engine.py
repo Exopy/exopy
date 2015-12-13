@@ -66,7 +66,7 @@ class BaseEngine(Atom):
     progress = Signal()
 
     def perform(self, task_infos):
-        """Execute a given task.
+        """Execute a given task and catch any error.
 
         Parameters
         ----------

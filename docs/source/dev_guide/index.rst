@@ -18,6 +18,7 @@ please refer to its documentation for the specifics of the procedure.
     glossary
     application
     tasks
+    measure
     testing
     style_guide
     atom_enaml

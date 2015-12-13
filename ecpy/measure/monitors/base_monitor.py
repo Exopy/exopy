@@ -23,7 +23,7 @@ class BaseMonitor(BaseMeasureTool):
     """ Base class for all monitors.
 
     """
-    #: List of database which should be observed
+    #: List of database entries which should be observed
     monitored_entries = List()
 
     def start(self):
@@ -46,8 +46,6 @@ class BaseMonitor(BaseMeasureTool):
 
     def refresh_monitored_entries(self, entries=None):
         """Refresh all the entries of the monitor.
-
-        This is typically needed after an update of the rules.
 
         Parameters
         ----------
