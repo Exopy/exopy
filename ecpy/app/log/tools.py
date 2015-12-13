@@ -287,7 +287,7 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
     Found on StackOverflow ...
 
     """
-    def __init__(self, filename, mode = 'w', **kwargs):
+    def __init__(self, filename, mode='w', **kwargs):
         self.mode = mode
         super(DayRotatingTimeHandler, self).__init__(filename, when='MIDNIGHT',
                                                      **kwargs)
@@ -337,8 +337,8 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
         while new_rollover_at <= current_time:
             new_rollover_at = new_rollover_at + self.interval
         # If DST changes and midnight or weekly rollover, adjust for this.
-        if ((self.when == 'MIDNIGHT' or self.when.startswith('W'))
-                and not self.utc):
+        if ((self.when == 'MIDNIGHT' or self.when.startswith('W')) and
+                not self.utc):
             dst_at_rollover = time.localtime(new_rollover_at)[-1]
             if dst_now != dst_at_rollover:
                 # DST kicks in before next rollover, so we need to deduct an
