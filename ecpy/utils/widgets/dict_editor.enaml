@@ -62,7 +62,8 @@ class _DictEditorModel(Atom):
         """
         if not self._no_notif:
             self._no_notif = True
-            self.editor.mapping = {p.key: p.value for p in self.pairs}
+            t = type(self.editor.mapping) if self.editor.mapping else dict
+            self.editor.mapping = t((p.key, p.value) for p in self.pairs)
             self._no_notif = False
 
     def add_pair(self, index, pos='before'):
