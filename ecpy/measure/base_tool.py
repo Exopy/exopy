@@ -128,3 +128,9 @@ class BaseToolDeclaration(Declarative):
 
         """
         pass
+
+    def _default_has_view(self):
+        member = self.make_view
+        func = getattr(member, 'im_func',
+                       getattr(member, '__func__', None))
+        return func is not BaseToolDeclaration.make_view.__func__

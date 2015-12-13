@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import Int
 
-from ecpy.measure.base_tool import BaseMeasureTool
+from ecpy.measure.base_tool import BaseMeasureTool, BaseToolDeclaration
 
 
 class ToolTester(BaseMeasureTool):
@@ -53,3 +53,19 @@ def test_default_linking(measure):
     assert tool.measure
     tool.unlink_from_measure()
     assert not tool.measure
+
+
+def test_has_view():
+    """Test that the has_view member of a BaseToolDeclaration is correctly set.
+
+    """
+    class D(BaseToolDeclaration):
+        pass
+
+    assert not D().has_view
+
+    class D2(BaseToolDeclaration):
+        def make_view(self, tool):
+            pass
+
+    assert D2().has_view
