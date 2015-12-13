@@ -1,5 +1,7 @@
 .. _dev_testing:
 
+.. include:: ../substitutions.sub
+
 Writing and running tests
 =========================
 
@@ -17,6 +19,15 @@ tested nonetheless.
     is solely a developing tool. However some tools used in testing and that
     may be useful to other packages can be found under the 'testing' package.
 
+.. note::
+
+    Running the test suite requires :
+
+    - pytest
+    - pytest-capturelog
+    - pytest-cov
+    - pytest-timeout
+
 .. contents::
 
 
@@ -24,8 +35,8 @@ Writing test using pytest
 -------------------------
 
 The library used for writing the tests for Ecpy is pytest. Writing a test is as
-easy as creating a module whose name starts by 'test_' and inside write
-functions themselves prefixed by 'test_'. Inside a test function the correct
+easy as creating a module whose name starts by 'test\_' and inside write
+functions themselves prefixed by 'test\_'. Inside a test function the correct
 behaviour of the program should be tested (using assertions as described in the
 next section). Test should focus on testing elementary operation at the highest
 level possible (avoiding direct access to private methods is likely to make the
@@ -116,6 +127,7 @@ Pytest provides some useful fixtures :
   it to 'os' module functions)
 
 Ecpy add some other :
+
 - app : fixture ensuring that the Application is running (mandatory for testing
   widgets).
 - windows : fixtures closing all opened windows after a test.
@@ -134,16 +146,53 @@ package.
     'pytest_plugin' variable at the top of the test module with a list of all
     the module containing fixtures to load (modules should be specified using
     their full path).
-	
+
 .. note::
 
-	More details about fixtures can be found in the pytest `documentation_`
-	
-	.. _documentation: http://pytest.org/latest/contents.html#
+    More details about fixtures can be found in the pytest `documentation_`
+
+    .. _documentation: http://pytest.org/latest/contents.html#
+
 
 Running the test suite
 ----------------------
 
+To run the test suite, one should invoke pytest from the command line. First
+the command line should be made to point at the root of the 'ecpy' folder
+(containing both the 'ecpy' and the 'tests' packages). Then one can invoke
+pytest using the 'py.test tests' command.
+
+To run only tests linked to a limited part of the application one can specify
+the path of the packages containing the tests or even the module.
+
+>>> py.test tests/measure/monitors
+
+To run only a single function one should specify specify its name after the
+name of the module and separate them using '::'.
+
+>>> py.test tests/measure/test_measure.py::test_tool_handling
+
+Of course pytest can take command line arguments, please refer to the pytest
+`documentation_` for more details.
+
+Currently, Ecpy add a single argument '--ecpy-sleep' which fix the time return
+by the dialog_sleep feature and can hence allow to visually test GUI elements.
+
+    .. _documentation: http://pytest.org/latest/contents.html#
 
 Checking coverage
 ^^^^^^^^^^^^^^^^^
+
+Checking coverage is just a matter of invoking pytest with the right arguments.
+First one should specify the packages/modules whose coverage should be
+monitored. This is done using the '--cov' argument as follow :
+
+>>> py.test tests --cov ecpy
+
+By default the format under which coverage is reported is not extremely useful,
+so one should specify '--cov-report' to be either 'term-missing' (that will
+list the line not covered by the tests in the console) or 'html' which will
+produce a report in html which can be access by opening the created index.html
+file.
+
+>>> py.test tests --cov ecpy --cov-report term-missing

@@ -1,5 +1,7 @@
 .. _dev_measure:
 
+.. include:: ../substitutions.sub
+
 Measure and tools
 =================
 

@@ -37,6 +37,7 @@
 
 .. |ActionItem| replace:: :py:class:`~enaml.workbench.ui.action_item.ActionItem`
 
+
 .. ============================================================================
 .. Ecpy substitutions
 .. ============================================================================
@@ -63,6 +64,7 @@
 .. |ErrorHandler| replace:: :py:class:`~ecpy.app.errors.errors.ErrorHandler`
 
 .. |LogManifest| replace:: :py:class:`~ecpy.app.log.manifest.LogManifest`
+
 
 .. Measure substitutions
 .. ----------------------------------------------------------------------------
@@ -135,9 +137,16 @@
 
 .. |TaskConfig| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfig`
 
+
 .. Utils substitutions
 .. ----------------------------------------------------------------------------
 
 .. |QtLineCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtLineCompleter`
 
 .. |QtTextCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtTextCompleter`
+
+
+.. Testing substitutions 
+.. ----------------------------------------------------------------------------
+
+.. |handle_dialog| replace:: :py:func:`~ecpy.testing.util.handle_dialog`
