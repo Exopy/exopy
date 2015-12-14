@@ -81,7 +81,7 @@ iterable of manifests which will be registered.
 
 This means that whatever you want to contribute to Ecpy you must make it an
 installable python package. The Ecpy organisation on `Github`_ has a dummy
-repository that you can use as a template when creating your own package. It
+`repository`_ that you can use as a template when creating your own package. It
 has the basic structure you need, you simply need to change the name of the
 package (in setup.py and the folder) and make the bootstrap function
 found in the __init__.py file of the package return the manifests you want to
@@ -96,3 +96,4 @@ but python directly looks into the original folder when it needs them, so you
 can modify them and directly see the result without re-installing anything.
 
 .. _Github: https://github.com/Ecpy
+.._repository: https://github.com/Ecpy/ecpy_ext_demo
