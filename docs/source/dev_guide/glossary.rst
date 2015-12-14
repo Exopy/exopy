@@ -95,4 +95,8 @@ In development mode, files are not copied to the python site-packages folder
 but python directly looks into the original folder when it needs them, so you
 can modify them and directly see the result without re-installing anything.
 
+.. todo::
+
+    Add note about adding command line options
+
 .. _Github: https://github.com/Ecpy
