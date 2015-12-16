@@ -12,12 +12,19 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import sys
+from pkg_resources import iter_entry_points
+from operator import itemgetter
+from traceback import format_exc
+from argparse import ArgumentParser
+
 import enaml
-from atom.api import Atom, Dict, Value
+from enaml.application import Application
+from atom.api import Atom, Dict, Value, List
 from enaml.workbench.api import Workbench
-from past import basestring
 
 with enaml.imports():
+    from enaml.stdlib.message_box import MessageBox, DialogButton
     from enaml.workbench.core.core_manifest import CoreManifest
     from enaml.workbench.ui.ui_manifest import UIManifest
     from ecpy.app.manifest import AppManifest
@@ -32,84 +39,163 @@ with enaml.imports():
 
 
 class ArgParser(Atom):
-    """
+    """Wrapper class around argparse.ArgumentParser.
+
+    This class allow to defer the actual creation of the parser and can hence
+    be used to modify some arguments (choices) before creating the real parser.
 
     """
-    #:
+    #: Subparsers registered through add subparser.
+    #: Allow to customize subparsers.
     subparsers = Dict()
 
-    #:
+    #: Mappping between a name passed to the 'choices' arguments of add
+    #: add_argument to allow to modify the choices after adding the argument.
     choices = Dict()
 
-    #:
-    argument_rules = Dict()
+    def parse_args(self, args=None):
+        """Parse the arguments.
 
-    def __init__(self):
-        super(ArgParser, self).__init__()
-        self.add_argument("-s", "--nocapture",
-                          help="Don't capture stdout/stderr",
-                          action='store_false')
-        self.add_argument("-w", "--workspace",
-                          help='Select start-up workspace',
-                          default='measure', choices='workspaces')
-        # Add defaults arguments.
+        By default the arguments passed on the command line are parsed.
+
+        """
+        if not self._parser:
+            self._init_parser()
+        self._parser.parse_args(args)
 
     def add_argument(self, *args, **kwargs):
-        """
-        """
-        pass
-        # If choices in the kwargs and is basestring insert a ref to a list
-        # that will be modified in place.
+        """Add an argument to the parser.
 
-    def add_choice(self, kind, name, value):
+        See argparse documentation for the accepted arguments and their
+        meaning.
+
         """
+        if 'choices' in kwargs and kwargs['choices'] in self.choices:
+            kwargs['choices'] = self.choices[kwargs['choices']]
+            # TODO make help explain to what each value is mapped
+        self._arguments.append((args, kwargs))
+
+    def add_choice(self, kind, value, alias=None):
+        """Add a possible value for a choice.
+
+        Parameters
+        ----------
+        kind : unicode
+            Choice id to which to add the proposed value.
+
+        value : unicode
+            New possible value to add to the list of possible value.
+
+        alias : unicode | None
+            Short name to give to the choice. If the chosen one is in conflic
+            with an existing name it is ignored.
+
         """
-        pass
+        if kind not in self.choices:
+            self.choices[kind] = {}
+
+        ch = self.choices[kind]
+        if not alias or alias in ch:
+            ch[value] = value
+        else:
+            ch[alias] = value
 
     def add_subparser(self, name):
-        """
-        """
-        pass
+        """Add a new subparser to this parser.
 
-    def add_argument_rule(self, kwarg, action):
+        The subparser will be stored in subparsers and so that arguments can
+        be added.
+
         """
-        """
-        # Need to validate kwarg
-        pass
+        self.subparsers[name] = type(self)()
 
     # --- Private API ---------------------------------------------------------
 
+    # Cached value of the argparser.ArgumentParser instance created by
+    # _init_parser, or parser provided by the parent parser.
     _parser = Value()
 
-    def _default_parser(self):
-        """Create a default argument parser.
+    # List of tuple to use to create arguments.
+    _arguments = List()
+
+    def _init_parser(self):
+        """Initialize the underlying argparse.ArgumentParser.
 
         """
-        import argparse
-        parser = argparse.ArgumentParser(description='Start Ecpy')
-        return parser
+        if not self._parser:
+            self._parser = ArgumentParser()
+
+        for args, kwargs in self._arguments:
+            self._parser.add_argument(*args, **kwargs)
+
+        if self.subparsers:
+            subparsers = self._parser.add_subparsers()
+            for name, p in self.subparsers.items():
+                subparser = subparsers.add_parser(name)
+                p._parser = subparser
+                p._init_parser
+
+
+def display_startup_error_dialog(text, content, details=''):
+    """Show a nice dialog showing to the user what went wrong during
+    start up.
+
+    """
+    app = Application()
+    dial = MessageBox(title='Ecpy failed to start',
+                      text=text, content=content, details=details,
+                      buttons=[DialogButton('Close', 'reject')])
+    dial.exec_()
+    app.start()
+    sys.exit(1)
 
 
 def main():
-    """
-    """
-    # TODO implement argument adding to parser through extension points
-    # Need to do that with try except and should anything bad happen store it
-    # and display a warning dialog
+    """Main entry point of the Ecpy application.
 
+    """
     # Build parser from ArgParser and parse arguemnts
-#    import argparse
-#    parser = argparse.ArgumentParser(description='Start the Hqc app')
-#    parser.add_argument("-w", "--workspace", help='select start-up workspace',
-#                        default='measure', choices=WORKSPACES)
-#    parser.add_argument("-s", "--nocapture",
-#                        help="Don't capture stdout/stderr",
-#                        action='store_false')
+    parser = ArgParser()
+    parser.add_choice('workspaces', 'ecpy.measure.workspace', 'measure')
+    parser.add_argument("-s", "--nocapture",
+                        help="Don't capture stdout/stderr",
+                        action='store_false')
+    parser.add_argument("-w", "--workspace",
+                        help='Select start-up workspace',
+                        default='measure', choices='workspaces')
+
+    modifiers = []
+    for i, ep in enumerate(iter_entry_points('ecpy_cmdline_args')):
+
+        try:
+            modifier, priority = ep.load(require=False)()
+            modifiers.append((ep, modifier, priority, i))
+        except Exception as e:
+            text = 'Error loading extension %s' % ep.name
+            content = ('The following error occurred when trying to load the '
+                       'entry point %s : %s' % (ep, e))
+            details = format_exc()
+            display_startup_error_dialog(text, content, details)
+
+    modifiers.sort(key=itemgetter(1, 2))
+    try:
+        for m in modifiers:
+            m[1](parser)
+    except Exception as e:
+        text = 'Error modifying cmd line arguments'
+        content = ('The following error occurred when the entry point %s '
+                   'tried to add cmd line options : %s' % (ep, e))
+        details = format_exc()
+        display_startup_error_dialog(text, content, details)
 
     try:
         args = parser.parse_args()
-    except Exception:
-        pass # Display message
+    except Exception as e:
+        text = 'Failed to parse cmd line arguments'
+        content = ('The following error occurred when trying to parse the '
+                   'command line arguments : %s' % e)
+        details = format_exc()
+        display_startup_error_dialog(text, content, details)
 
     workbench = Workbench()
     workbench.register(CoreManifest())
@@ -127,8 +213,12 @@ def main():
     try:
         app = workbench.get_plugin('ecpy.app')
         app.run_app_startup(args)
-    except Exception:
-        pass # Display error message
+    except Exception as e:
+        text = 'Error starting plugins'
+        content = ('The following error occurred when executing plugins '
+                   'apllication start code : %s' % e)
+        details = format_exc()
+        display_startup_error_dialog(text, content, details)
 
     core = workbench.get_plugin('enaml.workbench.core')
     workspace = parser.choices['workspace'][args.workspace]
