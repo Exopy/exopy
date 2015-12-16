@@ -19,23 +19,23 @@ from traceback import format_exc
 from argparse import ArgumentParser
 
 import enaml
-from enaml.application import Application
 from atom.api import Atom, Dict, Value, List
+from enaml.application import Application
 from enaml.workbench.api import Workbench
 
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox, DialogButton
     from enaml.workbench.core.core_manifest import CoreManifest
     from enaml.workbench.ui.ui_manifest import UIManifest
-    from ecpy.app.manifest import AppManifest
+    from ecpy.app.app_manifest import AppManifest
     from ecpy.app.preferences.manifest import PreferencesManifest
-    from ecpy.app.state.manifest import StateManifest
+    from ecpy.app.states.manifest import StateManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
     from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.packages import PackagesManifest
+    from ecpy.app.packages.manifest import PackagesManifest
     from ecpy.app.log.manifest import LogManifest
     from ecpy.measure.manifest import MeasureManifest
-    from ecpy.tasks.manager.manifest import TaskManagerManifest
+    from ecpy.tasks.manager.manifest import TasksManagerManifest
 
 
 class ArgParser(Atom):
@@ -45,10 +45,6 @@ class ArgParser(Atom):
     be used to modify some arguments (choices) before creating the real parser.
 
     """
-    #: Subparsers registered through add subparser.
-    #: Allow to customize subparsers.
-    subparsers = Dict()
-
     #: Mappping between a name passed to the 'choices' arguments of add
     #: add_argument to allow to modify the choices after adding the argument.
     choices = Dict()
@@ -61,7 +57,7 @@ class ArgParser(Atom):
         """
         if not self._parser:
             self._init_parser()
-        self._parser.parse_args(args)
+        return self._parser.parse_args(args)
 
     def add_argument(self, *args, **kwargs):
         """Add an argument to the parser.
@@ -100,15 +96,6 @@ class ArgParser(Atom):
         else:
             ch[alias] = value
 
-    def add_subparser(self, name):
-        """Add a new subparser to this parser.
-
-        The subparser will be stored in subparsers and so that arguments can
-        be added.
-
-        """
-        self.subparsers[name] = type(self)()
-
     # --- Private API ---------------------------------------------------------
 
     # Cached value of the argparser.ArgumentParser instance created by
@@ -127,13 +114,6 @@ class ArgParser(Atom):
 
         for args, kwargs in self._arguments:
             self._parser.add_argument(*args, **kwargs)
-
-        if self.subparsers:
-            subparsers = self._parser.add_subparsers()
-            for name, p in self.subparsers.items():
-                subparser = subparsers.add_parser(name)
-                p._parser = subparser
-                p._init_parser
 
 
 def display_startup_error_dialog(text, content, details=''):
@@ -207,7 +187,7 @@ def main():
     workbench.register(LogManifest())
     workbench.register(PackagesManifest())
     workbench.register(DependenciesManifest())
-    workbench.register(TaskManagerManifest())
+    workbench.register(TasksManagerManifest())
     workbench.register(MeasureManifest())
 
     try:
