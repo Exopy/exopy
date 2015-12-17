@@ -56,6 +56,9 @@ enamldef AppDirSelectionDialog(Dialog): dial:
     attr path
     attr user_path = path
     attr _valid
+
+    title = 'Choose the directory in which to store application settings'
+
     Container:
         constraints = [vbox(fd, hbox(rs, ch, spacer), hbox(spacer, qu, ok))]
 

@@ -146,7 +146,7 @@ def display_startup_error_dialog(text, content, details=''):
         QtApplication()  # pragma: no cover
     dial = MessageBox(title='Ecpy failed to start',
                       text=text, content=content, details=details,
-                      buttons=[DialogButton('Close', 'reject')])
+                      buttons=[DialogButton(str('Close'), str('reject'))])
     dial.exec_()
     sys.exit(1)
 
@@ -210,6 +210,8 @@ def main(cmd_line_args=None):
     workbench.register(DependenciesManifest())
     workbench.register(TasksManagerManifest())
     workbench.register(MeasureManifest())
+
+    ui = workbench.get_plugin(u'enaml.workbench.ui')  # Create the application
 
     try:
         app = workbench.get_plugin('ecpy.app')

@@ -35,7 +35,7 @@ def ecpy_path():
     return ECPY
 
 
-def process_app_events(N=None):
+def process_app_events():
     """Manually run the Qt event loop so that windows are shown and event
     propagated.
 
@@ -43,7 +43,7 @@ def process_app_events(N=None):
     qapp = QtApplication.instance()._qapp
     qapp.flush()
     i = 0
-    while qapp.hasPendingEvents() and (N is None or i < N):
+    while qapp.hasPendingEvents():
         qapp.processEvents()
         qapp.flush()
         i += 1
