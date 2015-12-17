@@ -15,8 +15,10 @@ from __future__ import (division, unicode_literals, print_function,
 import time
 
 import pytest
+from pkg_resources import EntryPoint
 
-from ecpy.ecpy import ArgParser, main
+from ecpy.__main__ import ArgParser, main
+from ecpy.testing.util import handle_dialog, process_app_events
 
 
 pytest_plugins = str('ecpy.testing.fixtures'),
@@ -27,11 +29,14 @@ def test_parser_add_argument():
 
     """
     parser = ArgParser()
-    parser.add_argument("-s", "--nocapture",
+    parser.add_argument("--nocapture",
                         help="Don't capture stdout/stderr",
                         action='store_false')
-    vals = parser.parse_args('-s'.split(' '))
+    vals = parser.parse_args('--nocapture'.split(' '))
     assert not vals.nocapture
+
+    with pytest.raises(ValueError):
+        parser.add_argument('dummy')
 
 
 def test_parser_adding_choice_and_arg_with_choice():
@@ -46,41 +51,110 @@ def test_parser_adding_choice_and_arg_with_choice():
     parser.add_choice('workspaces', 'ecpy.measure.dummy', 'measure')
 
     vals = parser.parse_args('-w measure'.split(' '))
-    assert vals.workspace == 'measure'
-    assert parser.choices['workspaces']['measure'] == 'ecpy.measure.workspace'
+    assert vals.workspace == 'ecpy.measure.workspace'
 
     vals = parser.parse_args('-w ecpy.measure.dummy'.split(' '))
     assert vals.workspace == 'ecpy.measure.dummy'
 
 
-def test_running_main_error_in_loading(windows, dialog_sleep, monkeypatch):
+def test_running_main_error_in_loading(windows, monkeypatch):
     """Test starting the main app but encountering an error while loading
     modifier.
 
     """
-    pass
+    import ecpy.__main__ as em
+
+    def false_iter(arg):
+
+        class FalseEntryPoint(EntryPoint):
+            def load(self, *args, **kwargs):
+                raise Exception("Can't load entry point")
+
+        return [FalseEntryPoint('dummy', 'dummy')]
+
+    monkeypatch.setattr(em, 'iter_entry_points', false_iter)
+
+    def check_dialog(dial):
+        assert 'extension' in dial.text
+
+    with pytest.raises(SystemExit):
+        with handle_dialog('reject', check_dialog):
+            main([])
 
 
-def test_running_main_error_in_parser_modifying(windows, dialog_sleep,
-                                                monkeypatch):
+def test_running_main_error_in_parser_modifying(windows, monkeypatch):
     """Test starting the main app but encountering an issue while adding
     arguments.
 
     """
-    pass
+    import ecpy.__main__ as em
+
+    def false_iter(arg):
+
+        class FalseEntryPoint(EntryPoint):
+            def load(self, *args, **kwargs):
+
+                def false_modifier(parser):
+                    raise Exception('Failed to add stupid argument to parser')
+
+                return (false_modifier, 1)
+
+        return [FalseEntryPoint('dummy', 'dummy')]
+
+    monkeypatch.setattr(em, 'iter_entry_points', false_iter)
+
+    def check_dialog(dial):
+        assert 'modifying' in dial.text
+
+    with pytest.raises(SystemExit):
+        with handle_dialog('reject', check_dialog):
+            main([])
 
 
-def test_running_main_error_in_app_startup(windows, dialog_sleep,
-                                           monkeypatch):
+def test_running_main_error_in_parsing(windows):
+    """Test starting the main app but encountering an issue while adding
+    arguments.
+
+    """
+    def check_dialog(dial):
+        assert 'cmd' in dial.text
+
+    with pytest.raises(SystemExit):
+        with handle_dialog('reject', check_dialog):
+            main(['dummy'])
+
+
+def test_running_main_error_in_app_startup(windows, monkeypatch):
     """Test starting the main app but encountering an issue when running
     startups.
 
     """
-    pass
+    from ecpy.app.app_plugin import AppPlugin
+
+    def false_run_startup(self, args):
+        raise Exception('Fail to run start up')
+
+    monkeypatch.setattr(AppPlugin, 'run_app_startup', false_run_startup)
+
+    def check_dialog(dial):
+        assert 'starting' in dial.text
+
+    with pytest.raises(SystemExit):
+        with handle_dialog('reject', check_dialog):
+            main([])
 
 
-def test_running_main(windows, dialog_sleep):
+def test_running_main(app, app_dir, windows, dialog_sleep, monkeypatch):
     """Test starting the main app and closing it.
 
     """
-    pass
+    from enaml.workbench.ui.ui_plugin import UIPlugin
+
+    def wait_for_window(self):
+
+        process_app_events(2)
+        time.sleep(dialog_sleep)
+        self.window.close()
+
+    monkeypatch.setattr(UIPlugin, 'start_application', wait_for_window)
+    main([])

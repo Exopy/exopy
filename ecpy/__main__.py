@@ -20,7 +20,7 @@ from argparse import ArgumentParser
 
 import enaml
 from atom.api import Atom, Dict, Value, List
-from enaml.application import Application
+from enaml.qt.qt_application import QtApplication
 from enaml.workbench.api import Workbench
 
 with enaml.imports():
@@ -57,7 +57,15 @@ class ArgParser(Atom):
         """
         if not self._parser:
             self._init_parser()
-        return self._parser.parse_args(args)
+        args = self._parser.parse_args(args)
+
+        # Resolve choices.
+        mapping = self._arg_to_choices
+        for k, v in vars(args).items():
+            if k in mapping:
+                setattr(args, k, mapping[k][v])
+
+        return args
 
     def add_argument(self, *args, **kwargs):
         """Add an argument to the parser.
@@ -66,8 +74,17 @@ class ArgParser(Atom):
         meaning.
 
         """
+        if not args[0].startswith('-'):
+            raise ValueError('Only optional arguments can be added to Ecpy')
+
+        if len(args) == 1:
+            arg_name = args[0].strip('--')
+        else:
+            arg_name = args[1].strip('--')
+
         if 'choices' in kwargs and kwargs['choices'] in self.choices:
             kwargs['choices'] = self.choices[kwargs['choices']]
+            self._arg_to_choices[arg_name] = kwargs['choices']
             # TODO make help explain to what each value is mapped
         self._arguments.append((args, kwargs))
 
@@ -105,6 +122,10 @@ class ArgParser(Atom):
     # List of tuple to use to create arguments.
     _arguments = List()
 
+    #: Mapping between argument and associated choices.
+    #: Used to resolve choices.
+    _arg_to_choices = Dict()
+
     def _init_parser(self):
         """Initialize the underlying argparse.ArgumentParser.
 
@@ -121,16 +142,16 @@ def display_startup_error_dialog(text, content, details=''):
     start up.
 
     """
-    app = Application()
+    if not QtApplication.instance():
+        QtApplication()  # pragma: no cover
     dial = MessageBox(title='Ecpy failed to start',
                       text=text, content=content, details=details,
                       buttons=[DialogButton('Close', 'reject')])
     dial.exec_()
-    app.start()
     sys.exit(1)
 
 
-def main():
+def main(cmd_line_args=None):
     """Main entry point of the Ecpy application.
 
     """
@@ -148,12 +169,12 @@ def main():
     for i, ep in enumerate(iter_entry_points('ecpy_cmdline_args')):
 
         try:
-            modifier, priority = ep.load(require=False)()
+            modifier, priority = ep.load(require=False)
             modifiers.append((ep, modifier, priority, i))
         except Exception as e:
             text = 'Error loading extension %s' % ep.name
             content = ('The following error occurred when trying to load the '
-                       'entry point %s : %s' % (ep, e))
+                       'entry point {} :\n {}'.format(ep.name, e))
             details = format_exc()
             display_startup_error_dialog(text, content, details)
 
@@ -163,17 +184,17 @@ def main():
             m[1](parser)
     except Exception as e:
         text = 'Error modifying cmd line arguments'
-        content = ('The following error occurred when the entry point %s '
-                   'tried to add cmd line options : %s' % (ep, e))
+        content = ('The following error occurred when the entry point {} '
+                   'tried to add cmd line options :\n {}'.format(ep.name, e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
 
     try:
-        args = parser.parse_args()
-    except Exception as e:
+        args = parser.parse_args(cmd_line_args)
+    except BaseException as e:
         text = 'Failed to parse cmd line arguments'
         content = ('The following error occurred when trying to parse the '
-                   'command line arguments : %s' % e)
+                   'command line arguments :\n {}'.format(e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
 
@@ -196,30 +217,32 @@ def main():
     except Exception as e:
         text = 'Error starting plugins'
         content = ('The following error occurred when executing plugins '
-                   'apllication start code : %s' % e)
+                   'apllication start code :\n {}'.format(e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
 
     core = workbench.get_plugin('enaml.workbench.core')
-    workspace = parser.choices['workspace'][args.workspace]
     core.invoke_command('enaml.workbench.ui.select_workspace',
-                        {'workspace': workspace}, workbench)
+                        {'workspace': args.workspace}, workbench)
 
     ui = workbench.get_plugin(u'enaml.workbench.ui')
     ui.show_window()
     ui.window.maximize()
     ui.start_application()
 
+    core.invoke_command('enaml.workbench.ui.close_workspace',
+                        {}, workbench)
+
     # Unregister all contributed packages
     workbench.unregister('ecpy.app.packages')
 
     workbench.unregister('ecpy.measure')
     workbench.unregister('ecpy.tasks')
-    workbench.unregister('ecpy.app.logging')
     workbench.unregister('ecpy.app.preferences')
-    workbench.unregister('ecpy.app.state')
+    workbench.unregister('ecpy.app.states')
     workbench.unregister('ecpy.app.dependencies')
     workbench.unregister('ecpy.app.errors')
+    workbench.unregister('ecpy.app.logging')
     workbench.unregister('ecpy.app')
     workbench.unregister(u'enaml.workbench.ui')
     workbench.unregister(u'enaml.workbench.core')
@@ -227,4 +250,4 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    main()  # pragma: no cover

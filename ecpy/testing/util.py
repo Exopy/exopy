@@ -35,16 +35,18 @@ def ecpy_path():
     return ECPY
 
 
-def process_app_events():
+def process_app_events(N=None):
     """Manually run the Qt event loop so that windows are shown and event
     propagated.
 
     """
     qapp = QtApplication.instance()._qapp
     qapp.flush()
-    while qapp.hasPendingEvents():
+    i = 0
+    while qapp.hasPendingEvents() and (N is None or i < N):
         qapp.processEvents()
         qapp.flush()
+        i += 1
 
 
 def get_window(cls=Window):
@@ -55,10 +57,6 @@ def get_window(cls=Window):
     ----------
     cls : type, optional
         Type of the window which should be returned.
-
-    Raises
-    ------
-    UnboundLocalError : if no window exists.
 
     """
     sleep(0.1)
