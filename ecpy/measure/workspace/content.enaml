@@ -34,14 +34,14 @@ enamldef MeasureContent(Container): main:
         style = 'metro'
 
         ExecutionDockItem:
-            stretch = 2
+            stretch = 1
             workspace = main.workspace
 
         DockItem:
             name = 'main_log'
             title = 'Main logger'
             closable = False
-            stretch = 1
+            stretch = 0
 
             Container:
                 hug_height = 'strong'
