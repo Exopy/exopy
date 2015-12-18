@@ -68,6 +68,7 @@
 
 .. |LogManifest| replace:: :py:class:`~ecpy.app.log.manifest.LogManifest`
 
+.. |ArgParser| replace:: :py:class:`~ecpy.__main__.ArgParser`
 
 .. Measure substitutions
 .. ----------------------------------------------------------------------------

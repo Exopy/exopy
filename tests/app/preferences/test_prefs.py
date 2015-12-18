@@ -116,6 +116,37 @@ class TestPreferencesPlugin(object):
 
         assert os.path.isdir(app_dir)
 
+    def test_app_startup4(self, tmpdir, windows):
+        """Test app start-up when user request to reset app folder.
+
+        """
+        manifest = PreferencesManifest()
+        self.workbench.register(manifest)
+
+        app_dir = str(tmpdir.join('ecpy'))
+
+        # Add a app_directory.ini file.
+        app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+        if not os.path.isfile(app_pref):
+            conf = ConfigObj()
+            conf.filename = app_pref
+            conf['app_path'] = app_dir
+            conf.write()
+
+        # Start the app and fake a user answer.
+        app = self.workbench.get_plugin('ecpy.app')
+
+        class DummyArgs(object):
+
+            reset_app_folder = True
+
+        with handle_dialog(custom=lambda x: setattr(x, 'path', app_dir)):
+            app.run_app_startup(DummyArgs)
+
+        assert os.path.isfile(app_pref)
+        assert ConfigObj(app_pref)['app_path'] == app_dir
+        assert os.path.isdir(app_dir)
+
     def test_lifecycle(self, app_dir):
         """Test the plugin lifecycle when no default.ini exist in app folder.
 

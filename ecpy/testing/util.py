@@ -42,9 +42,11 @@ def process_app_events():
     """
     qapp = QtApplication.instance()._qapp
     qapp.flush()
+    i = 0
     while qapp.hasPendingEvents():
         qapp.processEvents()
         qapp.flush()
+        i += 1
 
 
 def get_window(cls=Window):
@@ -55,10 +57,6 @@ def get_window(cls=Window):
     ----------
     cls : type, optional
         Type of the window which should be returned.
-
-    Raises
-    ------
-    UnboundLocalError : if no window exists.
 
     """
     sleep(0.1)

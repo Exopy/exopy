@@ -427,7 +427,7 @@ enamldef MeasureEditorDockItem(_MeasDockItem): main:
     closed ::
         workspace.plugin.edited_measures.remove(measure)
 
-    stretch = 10
+    stretch = 20
 
     title << measure.name + ' ' + measure.id
 

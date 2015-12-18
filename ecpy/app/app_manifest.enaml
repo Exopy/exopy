@@ -44,7 +44,9 @@ def application_factory():
     from enaml.qt.qt_application import QtApplication
     from enaml.qt import QtGui
     import sys
-    app = QtApplication()
+    if not QtApplication.instance():
+        QtApplication()  # pragma: no cover
+    app = QtApplication.instance()
     # TODO handle icons
     #app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
     if sys.platform == 'win32':

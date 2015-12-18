@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
+from os import remove  # Avoid issue when monkeypatching it
 import logging
 from inspect import getabsfile
 
@@ -120,7 +121,7 @@ def windows(app):
     close_all_windows()
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def app_dir(tmpdir):
     """Fixture setting the app_directory.ini file for each test.
 
@@ -133,7 +134,8 @@ def app_dir(tmpdir):
     conf.filename = app_pref
     conf['app_path'] = app_dir
     conf.write()
-    return app_dir
+    yield app_dir
+    remove(app_pref)
 
 
 @pytest.yield_fixture
