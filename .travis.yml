@@ -26,7 +26,7 @@ before_install:
   - PIP_INSTALL="pip install -q"
 
   # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt future kiwisolver atom
+  - $CONDA_INSTALL pyqt future kiwisolver atom numpy
   - $PIP_INSTALL configobj watchdog
 
   # Install enaml from sources as we need the latest bug

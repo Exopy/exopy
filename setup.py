@@ -32,7 +32,7 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={'': ['*.enaml']},
     requires=['future', 'pyqt4', 'atom', 'enaml', 'kiwisolver', 'configobj',
-              'watchdog', 'setuptools'],
+              'watchdog', 'setuptools', 'numpy'],
     install_requires=['setuptools', 'future', 'atom', 'enaml', 'kiwisolver',
                       'configobj', 'watchdog'],
     entry_points={'gui_scripts': 'ecpy = ecpy.__main__:main'}
