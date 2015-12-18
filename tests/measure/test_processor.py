@@ -63,7 +63,7 @@ def wait_and_process(waiting_function):
 
     """
     i = 0
-    while not waiting_function(timeout=0.001):
+    while not waiting_function(timeout=0.01):
         process_app_events()
         i += 1
         if i > 2000:
@@ -527,7 +527,7 @@ def test_stopping_processing_while_in_pause(processor, measure_with_tools):
     assert measure2.status == 'READY'
 
 
-@pytest.mark.timeout(15)
+@pytest.mark.timeout(60)
 def test_pausing_measure(processor, measure_with_tools):
     """Test running a complete measure with pre/post-hooks and monitor.
 
