@@ -58,9 +58,9 @@ def test_template_folder_creation_issue(task_workbench, monkeypatch):
 
     """
     from ecpy.tasks.manager import plugin
-    monkeypatch.setattr(plugin, 'TEMPLATE_PATH', '*')
+    monkeypatch.setattr(plugin, 'TEMPLATE_PATH', '*/')
 
-    monkeypatch.setattr(plugin.TaskManagerPlugin, 'templates_folders', ['*'])
+    monkeypatch.setattr(plugin.TaskManagerPlugin, 'templates_folders', ['/*'])
 
     with pytest.raises(Exception):
         task_workbench.get_plugin('ecpy.tasks')
