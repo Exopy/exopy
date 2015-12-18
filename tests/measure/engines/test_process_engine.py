@@ -378,7 +378,7 @@ def test_handling_unexpected_exception_in_sub_process(process_engine,
     assert process_engine.status == 'Stopped'
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_pause_resume(process_engine, exec_infos, sync_server):
     """Test pausing a measure.
 
@@ -398,8 +398,14 @@ def test_pause_resume(process_engine, exec_infos, sync_server):
             raise RuntimeError()
 
     process_engine.resume()
+    assert process_engine.status == 'Resuming'
     sync_server.wait('test2')
-    assert process_engine.status == 'Running'
+    i = 0
+    while not process_engine.status == 'Running':
+        i += 1
+        sleep(0.01)
+        if i > 2000:
+            raise RuntimeError()
 
     sync_server.signal('test2')
     t.join()
