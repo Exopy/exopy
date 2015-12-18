@@ -121,7 +121,7 @@ class MeasurePlugin(HasPrefPlugin):
                                             validate_ext=checker)
         self._editors.start()
 
-        checker = make_extension_validator(PreExecutionHook,  ('new',))
+        checker = make_extension_validator(PreExecutionHook, ('new',))
         self._pre_hooks = ExtensionsCollector(workbench=self.workbench,
                                               point=PRE_HOOK_POINT,
                                               ext_class=PreExecutionHook,

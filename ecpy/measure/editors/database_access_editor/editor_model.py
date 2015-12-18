@@ -59,8 +59,8 @@ class NodeModel(Atom):
         """Sort the nodes according to the task order.
 
         """
-        tasks = filter(lambda t: isinstance(t, ComplexTask),
-                       self.task.gather_children())
+        tasks = [t for t in self.task.gather_children()
+                 if isinstance(t, ComplexTask)]
         self.children = sorted(self.children,
                                key=lambda n: tasks.index(n.task))
 

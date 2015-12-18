@@ -390,7 +390,7 @@ class Measure(HasPrefAtom):
             measure.root_task = core.invoke_command(cmd, kwarg, measure)
         except Exception:
             msg = 'Building %s, failed to restore task : %s'
-            errors['main task'] = msg % (config.get('name'),  format_exc())
+            errors['main task'] = msg % (config.get('name'), format_exc())
 
         for kind in ('monitor', 'pre-hook', 'post-hook'):
             saved = config.get(kind.replace('-', '_')+'s', {})

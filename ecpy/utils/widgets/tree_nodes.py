@@ -216,13 +216,13 @@ class TreeNode(Declarative):
         """Returns whether this object can have children.
 
         """
-        return (self.children_member != '')
+        return self.children_member != ''
 
     def has_children(self, obj):
         """Returns whether the object has children.
 
         """
-        return (len(self.get_children(obj)) > 0)
+        return len(self.get_children(obj)) > 0
 
     def get_children(self, obj):
         """Gets the object's children.
@@ -365,7 +365,7 @@ class TreeNode(Declarative):
         """Returns whether this is the node that handles a specified object.
 
         """
-        return (isinstance(obj, self.node_for_class))
+        return isinstance(obj, self.node_for_class)
 
     def can_add(self, obj, add_object):
         """Returns whether a given object is droppable on the node.

@@ -94,7 +94,7 @@ class ContainerChange(Atom):
             raise ValueError(msg.format(typ))
 
         if typ == 'moved':
-            if (not len(op_desc) == 3):
+            if not len(op_desc) == 3:
                 raise ValueError('Moved operation should be described by :'
                                  '(old, new, obj) not {}'.format(op_desc))
         elif typ in ('added', 'removed'):

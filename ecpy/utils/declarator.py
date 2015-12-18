@@ -18,7 +18,7 @@ from traceback import format_exc
 
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, Bool
-from enaml.core.api import Declarative,  d_
+from enaml.core.api import Declarative, d_
 
 
 @python_2_unicode_compatible

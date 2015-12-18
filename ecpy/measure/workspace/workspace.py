@@ -454,7 +454,7 @@ class MeasureSpace(Workspace):
         template = 'meas_%d'
         items = self.dock_area.dock_items()
         test = re.compile('meas\_([0-9]+)$')
-        measure_items = filter(lambda i: test.match(i.name), items)
+        measure_items = [i for i in items if test.match(i.name)]
 
         if not measure_items:
             name = template % 0

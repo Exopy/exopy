@@ -414,7 +414,7 @@ class QtTreeWidget(RawWidget):
         """ Returns whether a specified object has any children.
 
         """
-        return (node.allows_children(obj) and node.has_children(obj))
+        return bool(node.allows_children(obj) and node.has_children(obj))
 
     def _get_icon(self, node, obj, is_expanded=False):
         """ Returns the index of the specified object icon.
@@ -697,13 +697,13 @@ class QtTreeWidget(RawWidget):
     # =========================================================================
 
     def _is_copyable(self, obj, node, parent_node):
-        return ((parent_node is not None) and parent_node.can_copy(obj))
+        return bool((parent_node is not None) and parent_node.can_copy(obj))
 
     def _is_cutable(self, obj, node, parent_node):
         can_cut = ((parent_node is not None) and
                    parent_node.can_copy(obj) and
                    parent_node.can_delete(obj))
-        return (can_cut and node.can_delete_me(obj))
+        return bool(can_cut and node.can_delete_me(obj))
 
     def _is_pasteable(self, obj, node, parent_node):
         return node.can_add(obj, CLIPBOARD.instance_type)
@@ -711,7 +711,7 @@ class QtTreeWidget(RawWidget):
     def _is_deletable(self, obj, node, parent_node):
         can_delete = ((parent_node is not None) and
                       parent_node.can_delete(obj))
-        return (can_delete and node.can_delete_me(obj))
+        return bool(can_delete and node.can_delete_me(obj))
 
     def _is_renameable(self, obj, node, parent_node):
         can_rename = ((parent_node is not None) and
