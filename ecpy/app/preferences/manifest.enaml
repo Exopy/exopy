@@ -60,7 +60,8 @@ enamldef AppDirSelectionDialog(Dialog): dial:
     title = 'Choose the directory in which to store application settings'
 
     Container:
-        constraints = [vbox(fd, hbox(rs, ch, spacer), hbox(spacer, qu, ok))]
+        constraints = [vbox(fd, hbox(rs, ch, spacer), hbox(spacer, qu, ok)),
+                       ch.right + 1.1*ch.width <= qu.left]
 
         Field: fd:
             text := path
@@ -92,7 +93,8 @@ def check_app_folder(workbench, cmd_args):
 
     """
     app_dir = os.path.join(MODULE_PATH, 'app_directory.ini')
-    if not os.path.isfile(app_dir) or 'app_path' not in ConfigObj(app_dir):
+    if (not os.path.isfile(app_dir) or 'app_path' not in ConfigObj(app_dir) or
+            getattr(cmd_args, 'reset_app_folder', None)):
         path = ''
         try:
             # Explicit casting to detect encoding issues.

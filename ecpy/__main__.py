@@ -164,6 +164,9 @@ def main(cmd_line_args=None):
     parser.add_argument("-w", "--workspace",
                         help='Select start-up workspace',
                         default='measure', choices='workspaces')
+    parser.add_argument("-r", "--reset-app-folder",
+                        help='Reset the application startup folder.',
+                        action='store_true')
 
     modifiers = []
     for i, ep in enumerate(iter_entry_points('ecpy_cmdline_args')):
