@@ -1,0 +1,60 @@
+# References https://gist.github.com/dan-blanchard/7045057
+# and https://docs.travis-ci.com/user/trusty-ci-environment/
+
+sudo: false
+dist: trusty
+
+matrix:
+  include:
+    - env: PYTHON=2.7
+
+before_install:
+
+  # Install Miniconda
+  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b -p ~/miniconda
+  - export PATH=$~/miniconda/bin:$PATH
+
+  - SRC_DIR=$(pwd)
+
+  # Setup environment
+  - conda update --yes conda
+  - conda create -n travisci --yes python=$PYTHON pip
+  - source activate travisci
+  - CONDA_INSTALL="conda install --yes -q"
+  - PIP_INSTALL="pip install -q"
+
+  # Install ecpy dependencies
+  - $CONDA_INSTALL pyqt future kiwisolver atom
+  - $PIP_INSTALL configobj watchdog
+
+  # Install enaml from sources as we need the latest bug
+  - $PIP_INSTALL https://github.com/nucleic/enaml/tarball/master
+
+  # Intall test tools
+  - $CONDA_INSTALL pytest
+  - $PIP_INSTALL pytest-cov pytest-capturelog pytest-timeout
+
+  # Install codacy report tools
+  - $PIP_INSTALL codacy-coverage
+
+install:
+
+    # Install ecpy (check that build script is not broken
+    - cd ${SRC_DIR}
+    - python setup.py install
+    - cd ~
+
+before_script:
+# I need a (fake) display on Travis so I need to start a X server.
+- export DISPLAY=:99.0
+- /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1400x900x24 -ac +extension GLX +render
+
+script:
+    # Run the Ecpy test suite
+    - cd ${SRC_DIR}
+    - py.test tests -v -m "not no_travis" --cov ecpy --cov-report xml
+
+after_success:
+    - python-codacy-coverage
