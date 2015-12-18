@@ -141,35 +141,20 @@ def test_running_main_error_in_app_startup(windows, monkeypatch):
         with handle_dialog('reject', check_dialog):
             main([])
 
-# TODO this test breaks the test suite for reasons I do not understand so
-# For the time being we keep it deactivated.
-#def test_running_main(app, app_dir, windows, monkeypatch):
-#    """Test starting the main app and closing it.
-#
-#    """
-#    import enaml
-#    from enaml.workbench.ui.ui_plugin import UIPlugin
-#    with enaml.imports():
-#        from enaml.workbench.ui.workbench_window import WorkbenchWindow
-#
-#    from ecpy.app.app_plugin import AppPlugin
-#
-#    def false_run_startup(self, args):
-#        pass
-#
-#    monkeypatch.setattr(AppPlugin, 'run_app_startup', false_run_startup)
-#
-#    class FalseWindow(WorkbenchWindow):
-#
-#        def maximize(self):
-#            pass
-#
-#    def false_show(self):
-#        self._window = FalseWindow()
-#
-#    def wait_for_window(self):
-#        pass
-#
-#    monkeypatch.setattr(UIPlugin, 'show_window', false_show)
-#    monkeypatch.setattr(UIPlugin, 'start_application', wait_for_window)
-#    main([])
+
+def test_running_main(app, app_dir, windows, monkeypatch):
+    """Test starting the main app and closing it.
+
+    """
+    from enaml.workbench.ui.ui_plugin import UIPlugin
+
+    def wait_for_window(self):
+        pass
+
+    # Do not release the application
+    def no_release(self):
+        pass
+
+    monkeypatch.setattr(UIPlugin, '_release_application', no_release)
+    monkeypatch.setattr(UIPlugin, 'start_application', wait_for_window)
+    main([])
