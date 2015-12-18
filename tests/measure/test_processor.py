@@ -485,7 +485,7 @@ def test_stopping_processing_in_hook(processor, measure_with_tools):
     assert measure2.status == 'READY'
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(30)
 def test_stopping_processing_while_in_pause(processor, measure_with_tools):
     """Test stopping processing while in pause before starting main.
 

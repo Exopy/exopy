@@ -247,22 +247,16 @@ def test_measure_edition_dialog(workspace, measure, windows, monkeypatch,
     process_app_events()
     sleep(dialog_sleep)
 
-    btn = dialog.central_widget().widgets()[-1]
-    with handle_dialog('reject'):
-        btn.clicked = True
+    from ecpy.measure.workspace.workspace import MeasureSpace
 
-    # TODO this fails perhaps because this relies on aliases in enaml ...
-#    from ecpy.measure.measure import MeasureDependencies
-#
-#    class MDep(MeasureDependencies):
-#
-#        called = Value()
-#
-#        def reset(self):
-#            self.called = True
-#
-#    measure.dependencies = MDep()
+    def false_save(self, meas, *args, **kwargs):
+        false_save.called = 1
+
+    monkeypatch.setattr(MeasureSpace, 'save_measure', false_save)
+
+    btn = dialog.central_widget().widgets()[-1]
+    btn.clicked = True
+    process_app_events()
+    assert false_save.called
 
     dialog.close()
-#    process_app_events()
-#    assert measure.dependencies.called
