@@ -86,7 +86,7 @@ class TextMonitorPlugin(HasPrefPlugin):
         self.rule_types = []
         self.rules = []
         self._rule_types.stop()
-        self._rule_configs.stop
+        self._rule_configs.stop()
 
     def build_rule(self, name_or_config):
         """ Build rule from a dict.

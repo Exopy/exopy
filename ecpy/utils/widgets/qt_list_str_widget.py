@@ -210,7 +210,6 @@ class QtListStrWidget(RawWidget):
         """Update the widget when the selected item is changed externally.
 
         """
-        pass
         if not self._guard & INDEX_GUARD and self.items:
             self._guard ^= INDEX_GUARD
             index = self.items.index(new)

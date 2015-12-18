@@ -86,7 +86,6 @@ def member_from_str(member, str_value):
             # Silently ignore failed evaluation as we can have a string
             # assigned to a value.
             value = str_value
-            pass
 
     return value
 

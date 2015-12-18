@@ -406,9 +406,9 @@ class QtTreeWidget(RawWidget):
             if pnid.child(i) is nid:
                 _, pnode, pobject = self._get_node_data(pnid)
                 return (pnode, pobject, i)
-        else:
-            # doesn't match any node, so return None
-            return (None, None, None)
+
+        # doesn't match any node, so return None
+        return (None, None, None)
 
     def _has_children(self, node, obj):
         """ Returns whether a specified object has any children.
@@ -546,8 +546,8 @@ class QtTreeWidget(RawWidget):
         for name2, nid in info:
             if name == name2:
                 return nid
-        else:
-            return info[0][1]
+
+        return info[0][1]
 
     @staticmethod
     def _get_node_data(nid):
