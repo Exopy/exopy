@@ -195,6 +195,8 @@ def main(cmd_line_args=None):
     try:
         args = parser.parse_args(cmd_line_args)
     except BaseException as e:
+        if e.args == (0,):
+            sys.exit(0)
         text = 'Failed to parse cmd line arguments'
         content = ('The following error occurred when trying to parse the '
                    'command line arguments :\n {}'.format(e))

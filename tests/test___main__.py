@@ -158,3 +158,14 @@ def test_running_main(app, app_dir, windows, monkeypatch):
     monkeypatch.setattr(UIPlugin, '_release_application', no_release)
     monkeypatch.setattr(UIPlugin, 'start_application', wait_for_window)
     main([])
+
+
+def test_running_main_asking_for_help(app):
+    """Test starting the main app and closing it.
+
+    """
+    try:
+        main(['-h'])
+        # TODO make sure no window was opened ?
+    except SystemExit as e:
+        assert e.args == (0,)
