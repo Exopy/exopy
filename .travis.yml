@@ -36,8 +36,8 @@ before_install:
   - $CONDA_INSTALL pytest
   - $PIP_INSTALL pytest-cov pytest-capturelog pytest-timeout
 
-  # Install codacy report tools
-  - $PIP_INSTALL codacy-coverage
+  # Install codecov report tools
+  - $PIP_INSTALL codecov
 
 install:
 
@@ -58,4 +58,4 @@ script:
 
 after_success:
     - cd ${SRC_DIR}
-    - python-codacy-coverage -r coverage.xml
+    - codecov
