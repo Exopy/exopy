@@ -6,7 +6,9 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""The measure plugin handles the edition and execution of a measure centered
+"""ecpy.measure : Measure edition and execution
+
+The measure plugin handles the edition and execution of a measure centered
 on a task. A measure execution can be customized using hooks adding operations
 before and after the main task, can be monitored also. The edition of the main
 task is customizable.

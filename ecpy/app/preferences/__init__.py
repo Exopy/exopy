@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-#==============================================================================
-# module : utils/preferences
-# author : Matthieu Dartiailh
-# license : MIT license
-#==============================================================================
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""ecpy.app.preferences : Plugin preferences saving/loading.
+
+"""
