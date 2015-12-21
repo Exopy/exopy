@@ -66,7 +66,7 @@ def wait_and_process(waiting_function):
     while not waiting_function(timeout=0.01):
         process_app_events()
         i += 1
-        if i > 2000:
+        if i > 5000:
             assert False
     process_app_events()
 
