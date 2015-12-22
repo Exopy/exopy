@@ -81,7 +81,8 @@ class Editor(Declarative):
     extension point of the 'ecpy.measure' plugin.
 
     """
-    #: Unique name used to identify the editor. Should be user understandable.
+    #: Unique name used to identify the editor.
+    #: The usual format is top_level_package_name.tool_name
     id = d_(Unicode())
 
     #: Editor description.

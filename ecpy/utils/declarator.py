@@ -104,7 +104,7 @@ class GroupDeclarator(Declarator):
     path = d_(Unicode())
 
     #: Id of the group common to all children Declarator. It is the
-    #: responsability of the children to mention they are part of a path.
+    #: responsability of the children to mention they are part of a group.
     group = d_(Unicode())
 
     def get_path(self):
