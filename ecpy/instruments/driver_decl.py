@@ -12,7 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Unicode, Enum, Dict, Value
+from traceback import format_exc
+from collection import defaultdict
+
+from atom.api import Atom, Unicode, Enum, Dict, Callable, Property
 from enaml.core.api import d_
 from future.utils import python_2_unicode_compatible
 
@@ -33,6 +36,11 @@ class Driver(Declarator):
     #: XXXX complete : ex: ecpy_hqc_legacy.instruments.
     #: The path of any parent Drivers object will be prepended to it.
     driver = d_(Unicode())
+
+    #: Name identifying the system the driver is built on top of (lantz, hqc,
+    #: slave, etc ...). Allow to handle properly multiple drivers declared in
+    #: a single extension package for the same instrument.
+    architecture = d_(Unicode())
 
     #: Name of the instrument manufacturer. Can be inferred from parent
     #: Drivers.
@@ -72,22 +80,87 @@ class Driver(Declarator):
     #: Can be inferred from parent Drivers.
     settings = d_(Dict())
 
-    def register(self):
-        """
-        """
-        pass
+    #: Id of the driver computed from the top-level package and the driver name
+    id = Property(cached=True)
 
-    def unregister(self):
+    def register(self, collector, traceback):
+        """Collect driver and add infos to the DeclaratorCollector
+        contributions member.
+
         """
+        # Build the driver id by assembling the package name, the architecture
+        # and the class name
+        driver_id = self.id
+
+        # Determine the path to the task and view.
+        path = self.get_path()
+        try:
+            d_path, driver = (path + '.' + self.driver
+                              if path else self.driver).split(':')
+        except ValueError:
+            msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
+            traceback[driver_id] = msg
+            return
+
+        # Check that the task does not already exist.
+        if driver_id in collector.contributions or driver_id in traceback:
+            i = 1
+            while True:
+                err_id = '%s_duplicate%d' % (driver_id, i)
+                if err_id not in traceback:
+                    break
+
+            msg = 'Duplicate definition of {}, found in {}'
+            traceback[err_id] = msg.format(self.architecture + '.' + driver,
+                                           d_path)
+            return
+
+        meta_infos = {k: getattr(self, k)
+                      for k in ('architecture', 'manufacturer', 'serie',
+                                'model', 'kind')
+                      }
+        infos = DriverInfos(infos=meta_infos,
+                            starter=self.starter,
+                            connections=self.connections,
+                            settings=self.settings)
+
+        # Get the driver class.
+        d_cls = import_and_get(d_path, driver, traceback, driver_id)
+        if d_cls is None:
+            return
+
+        try:
+            infos.cls = d_cls
+        except TypeError:
+            msg = '{} should a callable.\n{}'
+            traceback[driver_id] = msg.format(d_cls, format_exc())
+            return
+
+        collector.contributions[driver_id] = infos
+
+        self.is_registered = True
+
+    def unregister(self, collector):
+        """Remove contributed infos from the collector.
+
         """
-        pass
+        if self.is_registered:
+
+            # Remove infos.
+            driver_id = self.id
+            try:
+                del collector.contributions[driver_id]
+            except KeyError:
+                pass
+
+            self.is_registered = False
 
     def __str__(self):
         """Identify the decl by its members.
 
         """
-        members = ('path', 'manufacturer', 'serie', 'model', 'kind', 'starter',
-                   'connections', 'settings')
+        members = ('driver', 'architecture', 'manufacturer', 'serie', 'model',
+                   'kind', 'starter', 'connections', 'settings')
         st = '{} whose known members are :\n{}'
         st_m = '\n'.join(' - {} : {}'.format(m, v)
                          for m, v in [(m, getattr(self, m)) for m in members]
@@ -146,6 +219,23 @@ class Driver(Declarator):
             else:
                 return self._get_inherited_members(member, parent.parent)
 
+    def _get_id(self):
+        """Create the unique identifier of the driver using the top level
+        package the architecture and the class name.
+
+        """
+        if ':' in self.driver:
+            path = self.get_path()
+            d_path, d = (path + '.' + self.driver
+                         if path else self.driver).split(':')
+
+            # Build the driver id by assembling the package name and the class
+            # name
+            return '.'.join((d_path.split('.', 1)[0], self.architecture, d))
+
+        else:
+            return self.driver
+
 
 @python_2_unicode_compatible
 class Drivers(GroupDeclarator):
@@ -154,6 +244,10 @@ class Drivers(GroupDeclarator):
     For the full documentation of the members values please the Driver class.
 
     """
+    #: Name identifying the system the driver is built on top of for the
+    #: declared children.
+    architecture = d_(Unicode())
+
     #: Instrument manufacturer of the declared children.
     manufacturer = d_(Unicode())
 
@@ -176,8 +270,8 @@ class Drivers(GroupDeclarator):
         """Identify the group by its mmebers and declared children.
 
         """
-        members = ('path', 'manufacturer', 'serie', 'kind', 'starter',
-                   'connections', 'settings')
+        members = ('path', 'architecture', 'manufacturer', 'serie', 'kind',
+                   'starter', 'connections', 'settings')
         st = '{} whose known members are :\n{}\n and declaring :\n{}'
         st_m = '\n'.join(' - {} : {}'.format(m, v)
                          for m, v in [(m, getattr(self, m)) for m in members
@@ -192,10 +286,13 @@ class DriverInfos(Atom):
 
     """
     #: Actual class to use as driver.
-    driver = Value()
+    cls = Callable()
 
-    #: INfos allowing to identify the instrument this driver is targetting.
+    #: Infos allowing to identify the instrument this driver is targetting.
     infos = Dict()
+
+    #: Starter id
+    starter = Unicode()
 
     #: Connection information.
     connections = Dict()
@@ -203,10 +300,40 @@ class DriverInfos(Atom):
     #: Settings information.
     settings = Dict()
 
-    def validate(self, plugin, kind):
+    def validate(self, plugin):
+        """Validate that starter, connections, settings ids are all known.
+
+        Parameters
+        ----------
+        plugin :
+            Instrument plugin instance holding the starters (connections,
+            settings) definitions.
+
+        Returns
+        -------
+        result : bool
+            Boolean indicating if allids are indeed known.
+
+        unknown : dict
+            Mapping listing by categories (starter, connections, settings) the
+            unkown ids.
+
         """
-        """
-        # validate that the connections, settings, starter make sense
-        # better to delay to first use of infos so that we know that we should
-        # have access to everything by that time.
-        pass
+        result = True
+        unknown = defaultdict(set)
+
+        if self.starter not in plugin.starters:
+            result = False
+            unknown['starter'].add(self.starter)
+
+        for k in self.connections.keys():
+            if k not in plugin.connections:
+                result = False
+                unknown['connections'].add(k)
+
+        for k in self.settings.keys():
+            if k not in plugin.settings:
+                result = False
+                unknown['settings'].add(k)
+
+        return result, unknown
