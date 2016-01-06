@@ -31,3 +31,16 @@ def test_ids_to_unique_names():
     assert (sorted(list(ids_to_unique_names(ids))) ==
             sorted(('test.Dummy 1', 'dummy.Dummy 1', 'ecpy.test.Tester',
                     'user.test.Tester')))
+
+
+def test_ids_to_unique_names2():
+    """Test the ids to names conversion with preformatting.
+
+    """
+    ids = ('ecpy.test.tester', 'ecpy.test.dummy_1', 'ecpy.dummy.dummy_1',
+           'user.test.tester')
+    names = ids_to_unique_names(ids, preformatter=lambda x: x.capitalize())
+    assert (sorted(names) ==
+            sorted(('test.Dummy 1', 'dummy.Dummy 1', 'Ecpy.test.Tester',
+                    'User.test.Tester')))
+    assert names['User.test.Tester'] == ids[-1]

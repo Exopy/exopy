@@ -23,7 +23,7 @@ def basic_name_formatter(name):
 
 
 def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
-                        separator='.'):
+                        separator='.', preformatter=None):
     """Make the easiest to read names from ids without duplicate.
 
     Parameters
@@ -38,12 +38,19 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
     separator : unicode, optional
         Character used as separator between the different parts of an id.
 
+    preformatter : callable, optional
+        Preformat ids before looking for shorter names.
+
     Returns
     -------
     names : dict
         Dictionary mapping the unique names to their original ids.
 
     """
+    if preformatter:
+        ids_mapping = {preformatter(i): i for i in ids}
+        ids = list(ids_mapping)
+
     mapping = {i: i.split(separator) for i in ids}
     valid_names = defaultdict(list)
     for i, parts in mapping.items():
@@ -60,4 +67,8 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
                     valid_names[new_name].append(i)
 
     names = {v[0]: k for k, v in valid_names.items()}
-    return OrderedDict(((names[i], i) for i in ids))
+
+    if preformatter:
+        return OrderedDict(((names[i], ids_mapping[i]) for i in ids))
+    else:
+        return OrderedDict(((names[i], i) for i in ids))
