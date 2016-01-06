@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, Value
+from atom.api import Unicode
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -21,60 +21,71 @@ class Starter(Declarative):
 
     """
     #: Unique id identifying this starter.
-    #: The usual format is top_level_package_name.tool_name
+    #: The usual format is top_level_package_name.starter_name
     id = d_(Unicode())
 
     #: Description of the starter action.
     description = d_(Unicode())
 
-    #:
-    base_type = d_(Value())
-
     @d_func
     def initialize(self, driver_cls, connection, settings):
-        """Fully initialize a driver and prepare the communication.
+        """Fully initialize a driver and open the communication channel.
 
         Parameters
         ----------
         driver_cls : type
+            Class of the driver to initialize.
 
-        connection :
+        connection : dict
+            Connection information provided by the user.
 
-        settings :
+        settings : dict
+            Driver specififc settings provided by the user.
 
         Returns
         -------
         driver :
+            Driver instance fully initilized and ready for communication.
 
         """
         raise NotImplementedError()
 
     @d_func
     def check_infos(self, driver_cls, connection, settings):
-        """
+        """Check that the provided information and settings allow to open
+        the communication.
 
         Parameters
         ----------
         driver_cls : type
+            Class of the driver to initialize.
 
-        connection :
+        connection : dict
+            Connection information provided by the user.
 
-        settings :
+        settings : dict
+            Driver specififc settings provided by the user.
 
         Returns
         -------
-        driver :
+        result : bool
+            Whether the system managed to open the communication.
+
+        msg : unicode
+            Message giving details about any issue which may have occured
+            during the test.
 
         """
         raise NotImplementedError()
 
     @d_func
     def finalize(self, driver):
-        """
+        """Close the communication with the instrument.
 
         Parameters
         ----------
         driver :
+            Driver instance created previously by the starter.
 
         """
         raise NotImplementedError()
