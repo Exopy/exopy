@@ -17,7 +17,7 @@ from inspect import cleandoc
 
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Value, Dict, Property
-from enaml.core.api import d_
+from enaml.core.api import d_, d_func
 
 from .infos import TaskInfos, InterfaceInfos, ConfigInfos
 from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
@@ -476,18 +476,22 @@ class TaskConfig(Declarator):
     #: The path of any parent GroupDeclarator object will be prepended to it.
     view = d_(Unicode())
 
-    #: Id of the task class for which this configurer should be used.
-    task = d_(Unicode())
-
     #: Id of the config computed from the top-level package and the config name
     id = Property(cached=True)
+
+    @d_func
+    def get_task_class(self):
+        """Return the base task class this config is used for.
+
+        """
+        raise NotImplementedError()
 
     def register(self, collector, traceback):
         """Collect config and view and add infos to the DeclaratorCollector
         contributions member under the supported task name.
 
         """
-        # Determine the path to the task and view.
+        # Determine the path to the config and view.
         path = self.get_path()
         try:
             c_path, config = (path + '.' + self.config
@@ -504,8 +508,12 @@ class TaskConfig(Declarator):
             traceback[self.id] = msg
             return
 
-        if not self.task:
-            traceback[self.id] = 'Missing supported task.'
+        try:
+            t_cls = self.get_task_class()
+        except Exception:
+            msg = 'Failed to get supported task : %s'
+            traceback[self.id] = msg % format_exc()
+            return
 
         # Check that the configurer does not already exist.
         if self.id in traceback:
@@ -516,12 +524,12 @@ class TaskConfig(Declarator):
                     break
 
             msg = 'Duplicate definition of {}, found in {}'
-            traceback[err_id] = msg.format(self.task, c_path)
+            traceback[err_id] = msg.format(t_cls, c_path)
             return
 
-        if self.task in collector.contributions:
+        if t_cls in collector.contributions:
             msg = 'Duplicate definition for {}, found in {}'
-            traceback[self.id] = msg.format(self.task, c_path)
+            traceback[self.id] = msg.format(t_cls, c_path)
             return
 
         infos = ConfigInfos()
@@ -550,7 +558,7 @@ class TaskConfig(Declarator):
             traceback[self.id] = msg.format(c_cls, format_exc())
             return
 
-        collector.contributions[self.task] = infos
+        collector.contributions[t_cls] = infos
 
         self.is_registered = True
 
@@ -560,7 +568,7 @@ class TaskConfig(Declarator):
         """
         if self.is_registered:
             try:
-                del collector.contributions[self.task]
+                del collector.contributions[self.get_task_class()]
             except KeyError:
                 pass
 
@@ -571,13 +579,12 @@ class TaskConfig(Declarator):
 
         """
         msg = cleandoc('''{} with:
-                       config: {}, view : {}, task: {}''')
-        return msg.format(type(self).__name__, self.config, self.view,
-                          self.task)
+                       config: {}, view : {}''')
+        return msg.format(type(self).__name__, self.config, self.view)
 
     def _get_id(self):
-        """Create the unique identifier of the task using the top level package
-        and the class name.
+        """Create the unique identifier of the config using the top level
+        package and the class name.
 
         """
         if ':' in self.config:

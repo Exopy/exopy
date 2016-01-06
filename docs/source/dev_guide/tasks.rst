@@ -236,7 +236,8 @@ but only two of them must be given non-default values :
 - 'view': this identic to the task attribute but used for the view definition.
   Once again the path of all parent |Tasks| is preprended to this path.
 - 'metadata': Any additional informations about the task. Those should be
-  specified as a dictionary.
+  specified as a dictionary. For example tasks which can be embedded in a loop
+  should have an entry 'loopable' whose value is True.
 - 'instruments': This only apply to tasks using an instrument. In this
   attribute, the supported driver should be listed. Note that if a driver is
   supported through the use of an interface the driver should be listed in the
@@ -544,8 +545,8 @@ Declaring the configurer
 Finally you must declare the config in a manifest by contributing an
 extension to the 'ecpy.tasks.configs' extension point. This is identical to
 how tasks are declared but relies on the |TaskConfigs| (instead of |Tasks|) and
-|TaskConfig| (instead of |Task|) objects. The task for which the configurer is
-meant is declared through its name (*task* attribute).
+|TaskConfig| (instead of |Task|) objects. The base task class for which the 
+configurer is meant should be returned by the get_task_class method.
 
 
 More on tasks internals

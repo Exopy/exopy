@@ -30,7 +30,8 @@ def test_lifecycle(task_workbench):
 
     assert 'ecpy.ComplexTask' in plugin._tasks.contributions
     assert 'All' in plugin._filters.contributions
-    assert 'BaseTask' in plugin._configs.contributions
+    from ecpy.tasks.base_tasks import BaseTask
+    assert BaseTask in plugin._configs.contributions
     assert 'All' in plugin.filters
 
     assert plugin.auto_task_names

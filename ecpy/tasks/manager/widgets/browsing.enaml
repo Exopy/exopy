@@ -91,11 +91,11 @@ enamldef TaskSelector(Container): sel:
     attr tasks = manager.list_tasks(selected_filter)
 
     #: Currently selected task.
-    attr selected_task
+    attr selected_task = _task_map[sorted(_task_map)[0]]
 
-    #: Mappping between engine user understandable names and ids.
-    attr _task_map << (ids_to_unique_names([normalize_name(t) for t in tasks],
-                                            normalize_name)
+    #: Mappping between user understandable names and ids.
+    attr _task_map << (ids_to_unique_names(tasks, normalize_name,
+                                           preformatter=normalize_name)
                        if tasks else {})
 
     Conditional:

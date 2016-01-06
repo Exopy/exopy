@@ -105,8 +105,7 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
         model.folder = str(tmpdir)
         model.filename = 'test'
         model.doc = 'This is a test'
-        with handle_dialog('accept'):
-            assert model.accept_template_info(dialog)
+        assert model.accept_template_info(dialog)
 
     core = task_workbench.get_plugin('enaml.workbench.core')
 

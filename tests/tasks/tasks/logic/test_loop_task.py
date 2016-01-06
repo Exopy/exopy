@@ -565,23 +565,21 @@ class TestLoopTask(object):
 
         assert self.task.children[0].perform_called == 1
 
+    @pytest.mark.ui
+    def test_view(self, windows, task_workbench):
+        """Test the LoopTask view.
 
-@pytest.mark.ui
-def test_view(windows, task_workbench):
-    """Test the LoopTask view.
+        """
+        core = task_workbench.get_plugin('enaml.workbench.core')
+        root = RootTaskView(core=core)
+        show_and_close_widget(LoopView(task=self.task, root=root))
 
-    """
-    root = RootTaskView(core=task_workbench.get_plugin('enaml.workbench.core'))
-    task = LoopTask(name='Test', interface=IterableLoopInterface())
-    show_and_close_widget(LoopView(task=task, root=root))
+    @pytest.mark.ui
+    def test_view_with_subtask(self, windows, task_workbench):
+        """Test the LoopTask view.
 
-
-@pytest.mark.ui
-def test_view_with_subtask(windows, task_workbench):
-    """Test the ConditionalTask view.
-
-    """
-    root = RootTaskView(core=task_workbench.get_plugin('enaml.workbench.core'))
-    task = LoopTask(name='Test', interface=LinspaceLoopInterface(),
-                    task=BreakTask(name='Aux'))
-    show_and_close_widget(LoopView(task=task, root=root))
+        """
+        core = task_workbench.get_plugin('enaml.workbench.core')
+        root = RootTaskView(core=core)
+        self.task.task = BreakTask(name='Aux')
+        show_and_close_widget(LoopView(task=self.task, root=root))

@@ -43,20 +43,20 @@ def test_root_view(windows, task_workbench, dialog_sleep):
                         core=task_workbench.get_plugin('enaml.workbench.core'))
     editor = view.children[0]
 
-    show_widget(view)
+    win = show_widget(view)
     sleep(dialog_sleep)
     assert editor.task is task
     assert editor.root is view
 
     TASK_NAME = 'Foo'
 
-    def answer_dialog(dial, cls=BuilderView):
+    def answer_dialog(dial):
         selector = dial.selector
         selector.selected_task = 'ecpy.ComplexTask'
         dial.config.task_name = TASK_NAME
         process_app_events()
 
-    with handle_dialog('accept', answer_dialog):
+    with handle_dialog('accept', answer_dialog, cls=BuilderView):
         editor._empty_button.clicked = True
     process_app_events()
     assert task.children
@@ -82,6 +82,8 @@ def test_root_view(windows, task_workbench, dialog_sleep):
 
     editor.operations['remove'](0)
     assert len(view._cache) == 2
+
+    win.close()
 
 
 @pytest.mark.ui

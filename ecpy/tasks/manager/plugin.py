@@ -346,7 +346,7 @@ class TaskManagerPlugin(HasPrefPlugin):
             # Look up the hierarchy of the selected task to get the appropriate
             # TaskConfig
             task_class = self._tasks.contributions[task_id].cls
-            for t_class in (t.__name__ for t in type.mro(task_class)):
+            for t_class in type.mro(task_class):
                 if t_class in configs:
                     infos = configs[t_class]
                     c = infos.cls(manager=self,

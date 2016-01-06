@@ -379,15 +379,20 @@ enamldef TasksManagerManifest(PluginManifest):
             TaskConfig:
                 config = 'base_configs:PyTaskConfig'
                 view = 'base_config_views:PyConfigView'
-                task = 'BaseTask'
+                get_task_class => ():
+                    from ecpy.tasks.base_tasks import BaseTask
+                    return BaseTask
             TaskConfig:
                 config = 'base_configs:TemplateTaskConfig'
                 view = 'base_config_views:TemplateConfigView'
-                task = '__template__'
+                get_task_class => ():
+                    return '__template__'
             TaskConfig:
                 config = 'loop_config:LoopTaskConfig'
                 view = 'loop_config_view:LoopConfigView'
-                task = 'LoopTask'
+                get_task_class => ():
+                    from ecpy.tasks.tasks.logic.loop_task import LoopTask
+                    return LoopTask
 
     Extension:
         id = 'build_deps'

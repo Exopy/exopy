@@ -384,7 +384,6 @@ class TestInterfaceableInterfaceMixin(object):
                                                 feval='2*{Simple_test}*')
 
         res, traceback = self.mixin.check()
-        print(traceback)
         assert not res
         assert self.root.get_from_database('Simple_fmt') == ''
         assert self.root.get_from_database('Simple_feval') == 0

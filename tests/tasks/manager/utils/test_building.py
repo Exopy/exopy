@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import pytest
 from future.builtins import str
 from configobj import ConfigObj
@@ -21,7 +23,7 @@ from ecpy.tasks.manager.utils.building import build_task_from_config
 from ecpy.testing.util import handle_dialog, process_app_events
 
 
-def test_create_task1(app, task_workbench):
+def test_create_task1(windows, task_workbench):
     """Test creating a task.
 
     """
@@ -40,13 +42,26 @@ def test_create_task1(app, task_workbench):
         assert res
 
 
-def test_create_task2(app, task_workbench):
+def test_create_task2(windows, task_workbench, dialog_sleep):
     """Test handling user cancellation.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
 
-    with handle_dialog('reject'):
+    def answer_dialog(dial):
+        selector = dial.selector
+        qlist = selector.widgets()[-1]
+        qlist.selected_item = qlist.items[-1]
+        process_app_events()
+        sleep(dialog_sleep)
+        assert dial.config
+        selector.selected_task = '_dummy_'
+
+        process_app_events()
+        assert not dial.config
+        sleep(dialog_sleep)
+
+    with handle_dialog('reject', answer_dialog):
         res = core.invoke_command('ecpy.tasks.create_task')
 
     assert res is None

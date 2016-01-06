@@ -642,10 +642,14 @@ def test_str_interface(int_decl):
 
 @pytest.fixture
 def config_decl():
-    return TaskConfig(
+    class Config(TaskConfig):
+        def get_task_class(self):
+            from ecpy.tasks.base_tasks import BaseTask
+            return BaseTask
+
+    return Config(
         config='ecpy.tasks.manager.configs.base_configs:PyTaskConfig',
-        view='ecpy.tasks.manager.configs.base_config_views:PyConfigView',
-        task='BaseTask')
+        view='ecpy.tasks.manager.configs.base_config_views:PyConfigView')
 
 
 def test_register_config_decl(collector, config_decl):
@@ -653,7 +657,8 @@ def test_register_config_decl(collector, config_decl):
 
     """
     config_decl.register(collector, {})
-    infos = collector.contributions['BaseTask']
+    from ecpy.tasks.base_tasks import BaseTask
+    infos = collector.contributions[BaseTask]
     from ecpy.tasks.manager.configs.base_configs import PyTaskConfig
     with enaml.imports():
         from ecpy.tasks.manager.configs.base_config_views import PyConfigView
@@ -661,12 +666,15 @@ def test_register_config_decl(collector, config_decl):
     assert infos.view is PyConfigView
 
 
-def test_register_config_decl_task(collector, config_decl):
-    """Test registering a config decl declaraing no supported tasks.
+def test_register_config_fail_to_get_task(collector, config_decl):
+    """Test handling wrong path : missing ':'.
 
     """
     tb = {}
-    config_decl.task = ''
+
+    def dummy(self):
+        raise Exception()
+    type(config_decl).get_task_class = dummy
     config_decl.register(collector, tb)
     assert 'ecpy.PyTaskConfig' in tb
 
@@ -695,7 +703,8 @@ def test_register_config_decl_duplicate1(collector, config_decl):
     """Test handling duplicate config for a task.
 
     """
-    collector.contributions['BaseTask'] = None
+    from ecpy.tasks.base_tasks import BaseTask
+    collector.contributions[BaseTask] = None
     tb = {}
     config_decl.register(collector, tb)
     assert 'ecpy.PyTaskConfig' in tb

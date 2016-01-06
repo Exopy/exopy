@@ -52,19 +52,21 @@ enamldef BuilderView(Dialog): dial:
     func _update():
         if selector.selected_task:
             config, view = manager.get_config(selector.selected_task)
+            if config is None:
+                dial.config = None
+                conf.objects = [Label(text='No config found for this task.')]
+                return
             dial.config = config
             conf.objects = [view]
         else:
             dial.config = None
             conf.objects = []
 
-    activated :: _update()
+    initialized :: _update()
 
     Container:
-        constraints << [hbox(selector,
-                             *tuple(list(conf.objects) + [vbox(ok,
-                                                            cancel,
-                                                            spacer)]))]
+        constraints << [hbox(selector, vbox(*tuple(conf.objects + [spacer])),
+                             vbox(ok, cancel, spacer))]
         TaskSelector: selector:
             hug_width = 'strong'
             selected_task :: _update()
