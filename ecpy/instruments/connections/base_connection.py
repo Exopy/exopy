@@ -12,20 +12,28 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, Enum, Value, Dict
-from enaml.core.api import d_, Declarative
+from atom.api import Unicode
+from enaml.core.api import d_, Declarative, d_func
+from enaml.widgets.api import GroupBox
 
 
-class BaseConnection():
-    pass
+class BaseConnection(GroupBox):
+    """Base widget for creating a connection.
 
+    """
 
+    @d_func
+    def gather_infos(self):
+        """Return the current values as a dictionary.
+
+        """
+        raise NotImplementedError()
 
 
 class Connection(Declarative):
     """A declarative class for contributing a connection.
 
-    Connection object can be contributed as extensions child to the
+    Connection object can be contributed as extension children to the
     'connections' extension point of the 'ecpy.instruments' plugin.
 
     """
@@ -34,3 +42,12 @@ class Connection(Declarative):
 
     #: Connection description.
     description = d_(Unicode())
+
+    @d_func
+    def new(self, workbench, defaults):
+        """Create a new connection and instantiate it properly.
+
+        Defaults should be used to update the created widget.
+
+        """
+        pass  # Simply returns a new connection instance properly initialized
