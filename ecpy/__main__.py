@@ -160,7 +160,7 @@ def main(cmd_line_args=None):
     parser.add_choice('workspaces', 'ecpy.measure.workspace', 'measure')
     parser.add_argument("-s", "--nocapture",
                         help="Don't capture stdout/stderr",
-                        action='store_false')
+                        action='store_true')
     parser.add_argument("-w", "--workspace",
                         help='Select start-up workspace',
                         default='measure', choices='workspaces')

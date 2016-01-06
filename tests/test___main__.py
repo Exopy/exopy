@@ -29,9 +29,9 @@ def test_parser_add_argument():
     parser = ArgParser()
     parser.add_argument("--nocapture",
                         help="Don't capture stdout/stderr",
-                        action='store_false')
+                        action='store_true')
     vals = parser.parse_args('--nocapture'.split(' '))
-    assert not vals.nocapture
+    assert vals.nocapture
 
     with pytest.raises(ValueError):
         parser.add_argument('dummy')
