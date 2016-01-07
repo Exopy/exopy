@@ -15,4 +15,8 @@ from __future__ import (division, unicode_literals, print_function,
 from .driver_decl import Driver
 from .users import InstrUser
 
-__all__ = ['Driver', 'InstrUser']
+from .connections import BaseConnection, Connection
+from .settings import BaseSettings, Settings
+
+__all__ = ['Driver', 'InstrUser', 'BaseConnection', 'Connection', 'Settings',
+           'BaseSettings']

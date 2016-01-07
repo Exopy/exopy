@@ -8,6 +8,11 @@
 # -----------------------------------------------------------------------------
 """Base classes to handle connection information edition.
 
+Connection information are the information a user need to provide to open a
+connection to an instrument. The format of a connection does not depend on the
+architecture backend as any format discrepencies should be smoothed by the
+starter used to instantiate the driver.
+
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
@@ -47,7 +52,7 @@ class Connection(Declarative):
     def new(self, workbench, defaults):
         """Create a new connection and instantiate it properly.
 
-        Defaults should be used to update the created widget.
+        Defaults should be used to update the created connection.
 
         """
-        pass  # Simply returns a new connection instance properly initialized
+        raise NotImplementedError()
