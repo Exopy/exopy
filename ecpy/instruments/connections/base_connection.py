@@ -26,6 +26,13 @@ class BaseConnection(GroupBox):
     """Base widget for creating a connection.
 
     """
+    @d_func
+    def list_defaults(self):
+        """List the fields for which default values can be provided in a driver
+        declaration.
+
+        """
+        raise NotImplementedError()
 
     @d_func
     def gather_infos(self):
@@ -42,7 +49,7 @@ class Connection(Declarative):
     'connections' extension point of the 'ecpy.instruments' plugin.
 
     """
-    #: Unique name used to identify the editor.
+    #: Unique name used to identify the connection.
     id = d_(Unicode())
 
     #: Connection description.
