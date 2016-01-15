@@ -29,6 +29,8 @@ def recursive_update(to_update, data):
     """
     for k, v in data.items():
         if isinstance(v, Mapping):
-            recursive_update(to_update.get(k, {}), v)
+            if k not in to_update:
+                to_update[k] = {}
+            recursive_update(to_update[k], v)
         else:
             to_update[k] = v

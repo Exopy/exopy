@@ -25,3 +25,15 @@ def test_recurvise_update():
 
     recursive_update(a, c)
     assert a == {'a': {'a1': 2, 'c': 1}, 'b': True}
+
+
+def test_recurvise_update2():
+    a = {}
+    b = {'b': True}
+    c = {'a': {'a1': 2, 'c': 1}}
+
+    recursive_update(a, b)
+    assert a == {'b': True}
+
+    recursive_update(a, c)
+    assert a == {'a': {'a1': 2, 'c': 1}, 'b': True}
