@@ -102,7 +102,7 @@ enamldef TaskSelector(Container): sel:
         condition << display_filters
         ObjectCombo:
             items << sorted(manager.filters)
-            selected << selected_filter
+            selected := selected_filter
 
     QtListStrWidget: t_select:
         items << sorted(_task_map)
