@@ -5,7 +5,7 @@ __enamlcache__/
 *$py.class
 
 # Preferences
-app_directory.ini
+*app_directory.ini
 
 # C extensions
 *.so
@@ -49,6 +49,5 @@ docs/build
 #Editors
 *.idea
 *.idea
-
-
-
+.spyderproject
+.spyderworkspace

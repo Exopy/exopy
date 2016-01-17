@@ -702,7 +702,7 @@ class ComplexTask(BaseTask):
         index : int
             Index at which to insert the new child task.
 
-        task : BaseTask
+        child : BaseTask
             Task to insert in the list of children task.
 
         """

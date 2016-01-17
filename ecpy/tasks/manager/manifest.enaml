@@ -31,6 +31,7 @@ from .filters import (TaskFilter, GroupTaskFilter, SubclassTaskFilter,
 from .declarations import Tasks, Task, TaskConfigs, TaskConfig
 
 from ..tasks.logic.declarations import LogicTasks
+from ..tasks.util.declarations import UtilTasks
 
 PLUGIN_ID = 'ecpy.tasks'
 
@@ -349,6 +350,8 @@ enamldef TasksManagerManifest(PluginManifest):
 
         LogicTasks:
             pass
+        UtilTasks:
+            pass
 
     Extension:
         id = 'filters'
@@ -363,6 +366,9 @@ enamldef TasksManagerManifest(PluginManifest):
             id = 'Python'
             filter_tasks => (tasks, templates):
                 return list(tasks)
+        GroupTaskFilter:
+            id = 'Utilities'
+            group = 'util'
         GroupTaskFilter:
             id = 'Logic'
             group = 'logic'
