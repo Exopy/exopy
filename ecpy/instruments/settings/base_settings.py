@@ -15,28 +15,31 @@ if several are available for example.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, Typed
+from atom.api import Unicode, ForwardTyped
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox
-
-from ..connections.base_connection import BaseConnection
 
 
 class BaseSettings(GroupBox):
     """Base widget for creating settings.
 
     """
+    #: Id of this settings (different from the declaration one as multiple
+    #: settings of the same type can exist for a single instrument).
+    name = d_(Unicode())
 
-    #: Connection this settings is matched with (allow to adapt the UI if
-    #: necessary)
-    connection = d_(Typed(BaseConnection))
+    #: Reference to the declaration that created this object.
+    declaration = d_(ForwardTyped(lambda: Settings))
 
     @d_func
     def gather_infos(self):
         """Return the current values as a dictionary.
 
         """
-        raise NotImplementedError()
+        return {'id': self.declaration.id, 'name': self.name}
+
+    def _default_title(self):
+        return self.name
 
 
 class Settings(Declarative):
@@ -53,7 +56,7 @@ class Settings(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def new(self, workbench, connection, defaults):
+    def new(self, workbench, defaults):
         """Create a new setting and instantiate it properly.
 
         Defaults should be used to update the created setting.

@@ -26,7 +26,7 @@ enamldef VisaConnection(BaseConnection):
     Name are expected to match the ones found in PyVISA.
 
     """
-    #: Type of connection (GPIb, USB, ect). This should not be editable
+    #: Type of connection (GPIB, USB, ect). This should not be editable
     attr instrument_type
 
     #: Resource class used in the connection (INSTR, RAW (USB), SOCKET(TCPIP))

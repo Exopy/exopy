@@ -17,7 +17,7 @@ starter used to instantiate the driver.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode
+from atom.api import Unicode, ForwardTyped
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox
 
@@ -26,6 +26,9 @@ class BaseConnection(GroupBox):
     """Base widget for creating a connection.
 
     """
+    #: Reference to the declaration that created this object.
+    declaration = ForwardTyped(lambda: Connection)
+
     @d_func
     def list_defaults(self):
         """List the fields for which default values can be provided in a driver
