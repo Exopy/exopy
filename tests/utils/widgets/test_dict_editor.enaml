@@ -30,6 +30,7 @@ From there on you should test :
 - removing an entry works
 - moving an entry does update only the display (a dict is essentially
   unordered)
+- that checking the attribute check box the title of each box to 'Non default'
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -66,11 +67,13 @@ class Model(Atom):
     alignment = Enum('top', 'v_center', 'bottom')
 
 
-enamldef StrStrEditor(Container):
+enamldef StrStrEditor(GroupBox):
 
     attr model
     constraints = [hbox(k, v)]
     padding = 1
+
+    title = getattr(model, 'title', 'Default')
 
     Field: k:
         text := model.key
@@ -97,7 +100,7 @@ enamldef Main(Window): main:
 
         GroupBox: o:
             title = 'Operations'
-            constraints = [hbox(a, spacer, m, spacer, r)]
+            constraints = [hbox(a, spacer, m, spacer, r, spacer, att)]
 
             CheckBox: a:
                 text = 'Add'
@@ -131,6 +134,15 @@ enamldef Main(Window): main:
                     else:
                         ops.append('remove')
                     model.ops = ops
+
+            CheckBox: att:
+                text = 'Attributes'
+                checked << 'title' in ed.attributes
+                toggled ::
+                    if 'title' in ed.attributes:
+                        ed.attributes = {}
+                    else:
+                        ed.attributes = {'title': 'Non default'}
 
         Label: al_l:
             text = 'Alignment'
