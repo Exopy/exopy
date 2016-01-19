@@ -42,11 +42,8 @@ def process_app_events():
     """
     qapp = QtApplication.instance()._qapp
     qapp.flush()
-    i = 0
-    while qapp.hasPendingEvents():
-        qapp.processEvents()
-        qapp.flush()
-        i += 1
+    qapp.processEvents()
+    qapp.sendPostedEvents()
 
 
 def get_window(cls=Window):

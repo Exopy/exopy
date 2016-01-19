@@ -43,7 +43,8 @@ class QtListStrWidget(RawWidget):
     #: Whether or not the user can select multiple lines
     multiselect = d_(Bool(False))
 
-    #: Callable to use to build a unicode representation of the objects.
+    #: Callable to use to build a unicode representation of the objects
+    #: (one at a time).
     to_string = d_(Callable(ustr))
 
     #: Whether or not to sort the items before inserting them.
