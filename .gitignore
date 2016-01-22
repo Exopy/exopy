@@ -4,6 +4,9 @@ __enamlcache__/
 *.py[cod]
 *$py.class
 
+# Preferences
+*app_directory.ini
+
 # C extensions
 *.so
 
@@ -42,3 +45,9 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 docs/build
+
+#Editors
+*.idea
+*.idea
+.spyderproject
+.spyderworkspace
