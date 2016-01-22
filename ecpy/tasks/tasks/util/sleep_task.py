@@ -29,15 +29,20 @@ class SleepTask(SimpleTask):
 
     wait = set_default({'': True})
 
+    database_entries = set_default({'time': 1})
+
     def perform(self):
         t = self.format_and_eval_string(self.time)
-
+        self.write_in_database('time', t)
         sleep(t)
 
     def check(self, *args, **kwargs):
-        """ In the check() ethod we write all values to the dataase
-        """
-        if self.format_and_eval_string(self.time) < 0:
-            return False, {self.path + '/' + self.name: 'Sleep time must be positive.'}
+        """ Check if time > 0
 
-        return True, {}
+        """
+        test, tb = super(SleepTask, self).check(*args, **kwargs)
+        if test and self.format_and_eval_string(self.time) < 0:
+            tb[self.path + '/' + self.name] = 'Sleep time must be positive.'
+            test = False
+
+        return test, tb

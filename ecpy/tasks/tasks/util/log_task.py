@@ -39,17 +39,3 @@ class LogTask(SimpleTask):
         self.write_in_database('message', mess)
         logging.info(mess)
         return True
-
-    def check(self, *args, **kwargs):
-        """ Check that the message can be correctly formatted.
-
-        """
-        try:
-            mess = self.format_string(self.message)
-            self.write_in_database('message', mess)
-        except Exception as e:
-            mess = 'Failed to evaluate task message : {}'
-            return False, {self.path + '/' + self.name:
-                           mess.format(e)}
-
-        return True, {}

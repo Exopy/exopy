@@ -40,12 +40,12 @@ class TestSleepTask(object):
         """ Test handling a correct string in the 'time' field
 
         """
-        self.task.time = '1.0'
+        self.task.time = '2.0'
 
         test, traceback = self.task.check()
         assert test
         assert not traceback
-        assert self.check.check_called
+        assert self.task.get_from_database('Test_time') == 2
 
     def test_check2(self):
         """Test handling a wrong string in the 'time' field.
@@ -59,19 +59,20 @@ class TestSleepTask(object):
         assert 'root/Test-time' in traceback
 
     def test_perform1(self):
-        """Test performing when 'time' is correctly formatted.
+        """Test performing when 'time' is correctly formatted, and
+        checking that the time value gets written to the database
 
         """
-        self.task.time = '1.0'
+        self.task.time = '1.0+5.0'
         self.root.prepare()
 
         self.task.perform()
-        assert self.check.perform_called
+        assert self.task.get_from_database('Test_time') == 6.0
 
 
 @pytest.mark.ui
 def test_view(windows):
-    """Test the ConditionalTask view.
+    """Test the SleepTask view.
 
     """
     show_and_close_widget(SleepView(task=SleepTask(name='Test')))
