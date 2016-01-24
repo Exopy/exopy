@@ -21,11 +21,10 @@ from ecpy.tasks.tasks.util.log_task import LogTask
 with enaml.imports():
     from ecpy.tasks.tasks.util.views.log_view import LogView
 
-from ecpy.testing.tasks.util import CheckTask
 from ecpy.testing.util import show_and_close_widget
 
 
-class TestSleepTask(object):
+class TestLogTask(object):
     """Test LogTask.
 
     """
@@ -34,17 +33,31 @@ class TestSleepTask(object):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = LogTask(name='Test')
         self.root.add_child_task(0, self.task)
-        self.check = CheckTask(name='check')
+
+    def test_check1(self):
+        """Test checking that a message that cannot be formatted will result in a fail
+
+        """
+        self.task.message = 'TestMessage {aa}'
+
+        test, traceback = self.task.check()
+
+        assert not test
+        assert len(traceback) == 1
+        assert 'root/Test-message' in traceback
+        assert not self.task.get_from_database('Test_message')
 
     def test_perform1(self):
         """Test checking that the message value gets written to the database
 
         """
-        self.task.message = 'TestMessage'
+        self.task.write_in_database('val', 'World')
+        self.task.message = 'Hello {Test_val}'
         self.root.prepare()
 
         self.task.perform()
-        assert self.task.get_from_database('Test_message') == 'TestMessage'
+        assert self.task.get_from_database('Test_message') == 'Hello World'
+
 
 
 @pytest.mark.ui

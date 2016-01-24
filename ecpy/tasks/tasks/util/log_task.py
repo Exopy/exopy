@@ -9,6 +9,9 @@
 """Logging Task.
 
 """
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
 from atom.api import (Unicode, set_default)
 import logging
 

@@ -21,7 +21,6 @@ from ecpy.tasks.tasks.util.sleep_task import SleepTask
 with enaml.imports():
     from ecpy.tasks.tasks.util.views.sleep_view import SleepView
 
-from ecpy.testing.tasks.util import CheckTask
 from ecpy.testing.util import show_and_close_widget
 
 
@@ -34,7 +33,6 @@ class TestSleepTask(object):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = SleepTask(name='Test')
         self.root.add_child_task(0, self.task)
-        self.check = CheckTask(name='check')
 
     def test_check1(self):
         """ Test handling a correct string in the 'time' field
@@ -53,10 +51,21 @@ class TestSleepTask(object):
         """
         self.task.time = 'a1.0'
 
-        test, traceback = self.task.check(test_instr=True)
+        test, traceback = self.task.check()
         assert not test
         assert len(traceback) == 1
         assert 'root/Test-time' in traceback
+
+    def test_check3(self):
+        """Test handling a negative value 'time' field.
+
+        """
+        self.task.time = '-1.0'
+
+        test, traceback = self.task.check()
+        assert not test
+        assert len(traceback) == 1
+        assert 'root/Test' in traceback
 
     def test_perform1(self):
         """Test performing when 'time' is correctly formatted, and
