@@ -1,0 +1,209 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to edit an instrument profile.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from configobj import ConfigObj
+from atom.api import Coerced
+from enaml.validator import Validator
+from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
+                               Dialog)
+
+
+class SetValidator(Validator):
+    """Validator allowing names which does not yet exist.
+
+    """
+    #: Already existing names which are then not allowed.
+    existing = Coerced(set)
+
+    def validate(self, text):
+        """Check thet name does yet exist.
+
+        """
+        return text not in self.existing
+
+
+enamldef ConnectionCreationDialog(Dialog):
+    """Dialog allowing the user to select the connection to add to the profile.
+
+    """
+    #: Reference to the ProfileEditionWidget which opened this dialog.
+    attr editor
+
+    Container:
+        pass
+
+
+enamldef ConnectionValidationDialog(Dialog):
+    """Dialog allowing the user to test that the provided information allow to
+    open the connection.
+
+    """
+    #: Reference to the ProfileEditionWidget which opened this dialog.
+    attr editor
+
+    Container:
+        pass
+
+
+enamldef SettingsCreationDialog(Dialog):
+    """Dialog allowing the user to select the settings to add to the profile.
+
+    """
+    #: Reference to the ProfileEditionWidget which opened this dialog.
+    attr editor
+
+    Container:
+        pass
+
+
+enamldef ProfileEditionWidget(Container): main:
+    """Widget dedicated to editing a profile.
+
+    """
+    #: Reference to the instrument plugin.
+    attr plugin
+
+    #: Info about the currently selected model.
+    attr model_info
+
+    #: Connections editors opened.
+    alias connections : cons.items
+
+    #: Settings editors opened.
+    alias settings : setts.items
+
+    func assemble_profile():
+        """Gather all the profile into a ConfigObj object.
+
+        """
+        profile = ConfigObj()
+        profile['id'] = id_val.text
+        profile['model_id'] = model_info.id
+
+        profile['connections'] = {}
+        cs = profile['connections']
+        for c in connections:
+            cs[c.declaration.id] = c.gather_infos()
+
+        profile['settings'] = {}
+        sts = profile['settings']
+        for s in settings:
+            cs[s.name] = s.gather_infos()
+
+        return profile
+
+    func fill_from_profile(profile):
+        """Use an existing profile to fill the UI.
+
+        """
+        id_val.text = profile['id']
+        main.model_info = plugin.get_model_info(profile['model_id'])
+        for k, v in profile.get('connections', {}).items():
+            plugin.create_connection(k, v)
+
+        for k, v in profile.get('settings', {}).items():
+            plugin.create_settings(k, v)
+
+    Label: id_lab:
+        text = 'Id'
+    Field: id_val:
+        # XXXX depends on plugin
+        validator << SetValidator(existing=plugin.profiles)
+
+    Label: model_lab:
+        text = 'Instrument'
+    Field: model:
+        read_only = True
+    PushButton:
+        text = 'Choose'
+        clicked ::
+            new = plugin.select_instrument_model(model=model.text)
+            if new:
+                main.connections = [c for c in main.connections
+                                    if c.declaration.id in new.connections]
+                main.settings = [s for s in main.settings
+                                 if s in s.declaration.id in new.settings]
+                main.model_info = new
+
+    Notebook:
+        tabs_closable = False
+        tabs_movable = False
+        Page:
+            title = 'Connections'
+
+            Container:
+
+                constraints = [hbox(conns, *(tuple(s_conn.objects) +
+                                             (vbox(add_c, del_c, val_c))))]
+
+                QtListStrEditor: conns:
+                    sort = False
+                    to_string = lambda c: c.title
+                Include: s_conn:
+                    objects << (conns.selected_item if conns.selected_item
+                                else [Container()])
+                PushButton: add_c:
+                    text = 'Add'
+                    enabled << set(connections) != set(model_info.connections)
+                    clicked ::
+                        dial = ConnectionCreationDialog(editor=main)
+                        dial.exec_()
+                        if dial.connection:
+                            main.connections = (main.connections[:] +
+                                                [dial.connection])
+                            conns.selected_item = dial.connection
+                PushButton: del_c:
+                    text = 'Delete'
+                    enabled << bool(connections)
+                    clicked ::
+                        s = main.connections[:]
+                        del s[self.selected_index]
+                        main.connections = s
+                PushButton: val_c:
+                    text = 'Validate'
+                    clicked ::
+                        selected = conns.selected_item
+                        dial = ConnectionValidationDialog(editor=main,
+                                                          connection=selected)
+                        dial.exec_()
+
+        Page:
+            title = 'Settings'
+
+            Container:
+
+                constraints = [hbox(setts, *(tuple(s_sett.objects) +
+                                             (vbox(add_s, del_s))))]
+
+                QtListStrEditor: setts:
+                    sort = False
+                    to_string = lambda s: s.name
+                Include: s_sett:
+                    objects << (setts.selected_item if setts.selected_item
+                                else [Container()])
+                PushButton: add_s:
+                    text = 'Add'
+                    clicked ::
+                        dial = ConnectionCreationDialog(editor=main)
+                        dial.exec_()
+                        if dial.connection:
+                            main.connections = (main.connections[:] +
+                                                [dial.connection])
+                            conns.selected_item = dial.connection
+                PushButton: del_s:
+                    text = 'Delete'
+                    clicked ::
+                        s = main.settings[:]
+                        del s[self.selected_index]
+                        main.settings = s

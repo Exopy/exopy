@@ -20,6 +20,16 @@ from enaml.stdlib.fields import IntField
 from .base_connection import BaseConnection
 
 
+enamldef RawVisaConnection(BaseConnection):
+    """Connection allowing to enter directly the VISA resource name.
+
+    This allows to support VISA aliases.
+
+    """
+    # XXXX
+    pass
+
+
 enamldef VisaConnection(BaseConnection):
     """Base class for all connection relying on the VISA protocol.
 
