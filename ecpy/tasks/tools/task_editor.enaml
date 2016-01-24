@@ -39,6 +39,8 @@ enamldef TaskEditorButton(PushButton):
     #: Reference to the editor.
     attr editor
 
+    visible << bool(editor.operations)
+
     clicked::
         items = editor.task.children
         if editor.operations:
@@ -105,8 +107,10 @@ class TaskEditor(Container):
             rows = [hbox(children[o][0], children[o][1])
                     for o in items]
             return [vbox(*rows)] + [align('top', *children[o]) for o in items]
-        else:
+        elif 'add' in self.operations:
             return [vbox(self._empty_button)]
+        else:
+            return []
 
     def initialize(self):
         """Overridden initializer to setup member observers.
@@ -156,7 +160,7 @@ class TaskEditor(Container):
 
             self.insert_children(None, chain(*self._children_buttons.values()))
 
-        else:
+        elif 'add' in self.operations:
             self._empty_button.set_parent(self)
             self._empty_button.show()
 
@@ -193,7 +197,8 @@ class TaskEditor(Container):
 
                     button.set_parent(self)
                     view.set_parent(self)
-                    button.show()
+                    if self.operations:
+                        button.show()
                     view.show()
 
             elif change.removed:
@@ -208,7 +213,7 @@ class TaskEditor(Container):
             # Make sure the _empty_button is correctly parented.
             if self._children_buttons:
                 self._empty_button.set_parent(None)
-            else:
+            elif 'add' in self.operations:
                 self._empty_button.set_parent(self)
                 self._empty_button.show()
 

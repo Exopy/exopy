@@ -18,7 +18,7 @@ from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
                                PopupView, Field, RadioButton,
                                ObjectCombo, PushButton, Menu, Action)
 from enaml.core.api import Looper, Conditional
-from enaml.layout.api import vbox, hbox
+from enaml.layout.api import vbox, hbox, spacer
 
 from ....tasks.api import ComplexTask, SimpleTask
 from ....tasks.tools.task_editor import FoldableTaskEditor
@@ -125,7 +125,7 @@ enamldef _BaseExecutionEditor(Container):
     padding = 0
     constraints << [hbox(stop,
                          *((parallel,) + tuple(par_cond.items) + (wait,)
-                           + tuple(wai_cond.items)))]
+                           + tuple(wai_cond.items) + (spacer,)))]
 
     CheckBox: stop:
         text = 'Stoppable'
