@@ -117,7 +117,7 @@ def test_starting_measure_thread_not_dying(processor, measure):
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_full_measure(app, processor, measure_with_tools, windows,
                               dialog_sleep, tmpdir):
     """Test running a complete measure with pre/post-hooks and monitor.
@@ -168,7 +168,7 @@ def test_running_full_measure(app, processor, measure_with_tools, windows,
     assert measure2.status == 'READY'
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_measure_whose_runtime_are_unavailable(processor, monkeypatch,
                                                        measure_with_tools):
     """Test running whose runtime dependencies are unavailable.
@@ -182,7 +182,7 @@ def test_running_measure_whose_runtime_are_unavailable(processor, monkeypatch,
     assert measure_with_tools.status == 'SKIPPED'
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_measure_failing_checks(processor, measure_with_tools):
     """Test running a measure failing to pass the tests.
 
@@ -199,7 +199,7 @@ def test_running_measure_failing_checks(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_measure_failing_pre_hooks(processor, measure_with_tools):
     """Test running a measure whose pre-hooks fail to execute.
 
@@ -221,7 +221,7 @@ def test_running_measure_failing_pre_hooks(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_measure_failing_main_task(processor, measure_with_tools):
     """Test running a measure whose pre-hooks fail to execute.
 
@@ -255,7 +255,7 @@ def test_running_measure_failing_main_task(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_measure_failing_post_hooks(processor, measure_with_tools):
     """Test running a measure whose post-hooks fail to execute.
 
@@ -287,7 +287,7 @@ def test_running_measure_failing_post_hooks(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_running_forced_enqueued_measure(processor, measure_with_tools):
     """Test running a measure about which we know that checks are failing.
 
@@ -316,7 +316,7 @@ def test_running_forced_enqueued_measure(processor, measure_with_tools):
 
 
 @pytest.mark.parametrize('mode', ['between hooks', 'after hooks'])
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_stopping_measure_while_preprocessing(mode, processor,
                                               measure_with_tools):
     """Test asking the processor to stop while is is running the pre-hooks.
@@ -346,7 +346,7 @@ def test_stopping_measure_while_preprocessing(mode, processor,
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_stopping_measure_while_running_main(processor, measure_with_tools):
     """Test asking the processor to stop while is is running the main task.
 
@@ -380,7 +380,7 @@ def test_stopping_measure_while_running_main(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_stopping_measure_while_postprocessing(processor, measure_with_tools):
     """Test asking the processor to stop while is is running the post hooks.
 
@@ -415,7 +415,7 @@ def test_stopping_measure_while_postprocessing(processor, measure_with_tools):
     assert not m.find('runtime_dummy2').collected
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_stopping_processing(processor, measure_with_tools):
     """Test stopping processing while running the main task..
 
@@ -452,7 +452,7 @@ def test_stopping_processing(processor, measure_with_tools):
     assert measure2.status == 'READY'
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 def test_stopping_processing_in_hook(processor, measure_with_tools):
     """Test stopping processing while running the main task..
 
@@ -485,7 +485,7 @@ def test_stopping_processing_in_hook(processor, measure_with_tools):
     assert measure2.status == 'READY'
 
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(120)
 def test_stopping_processing_while_in_pause(processor, measure_with_tools):
     """Test stopping processing while in pause before starting main.
 
