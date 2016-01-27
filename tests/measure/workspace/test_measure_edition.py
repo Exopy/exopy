@@ -17,10 +17,9 @@ from collections import namedtuple
 
 import pytest
 import enaml
-from atom.api import Value
 
 from ecpy.testing.measure.fixtures import measure as m_build
-from ecpy.testing.util import process_app_events, handle_dialog, CallSpy
+from ecpy.testing.util import process_app_events, handle_dialog
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
 
 with enaml.imports():

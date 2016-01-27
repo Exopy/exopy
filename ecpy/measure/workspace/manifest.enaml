@@ -84,7 +84,7 @@ def save_measure(event):
         SaveConfirm(window, measure_name=measure.name).show()
 
     else:
-        plugin.workspace.save_measure(measure, 'file')
+        plugin.workspace.save_measure(measure)
 
 
 def save_measure_as(event):
@@ -93,7 +93,7 @@ def save_measure_as(event):
     """
     workbench = event.workbench
     plugin = workbench.get_plugin('ecpy.measure')
-    plugin.workspace.save_measure(event.parameters['measure'], 'file')
+    plugin.workspace.save_measure(event.parameters['measure'], False)
 
 
 def load_measure(event):

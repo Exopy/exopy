@@ -443,7 +443,7 @@ enamldef MeasureEditorDockItem(_MeasDockItem): main:
             hug_width  = 'strong'
             hug_height = 'strong'
             clicked ::
-                workspace.save_measure(measure, mode='file')
+                workspace.save_measure(measure)
 
         PushButton: load:
             text = 'Load'
