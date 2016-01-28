@@ -52,9 +52,6 @@ class MeasureSpace(Workspace):
     #: Reference to the log panel model received from the log plugin.
     log_model = Value()
 
-    #: Reference to the last currently edited measure the user selected.
-    last_selected_measure = Typed(Measure)
-
     window_title = set_default('Measure')
 
     def start(self):

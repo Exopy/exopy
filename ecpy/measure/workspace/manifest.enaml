@@ -70,21 +70,18 @@ def new_measure(event):
 def save_measure(event):
     """Save a measure.
 
-    If no measure is passed in the parameters the last selected measure is
-    automatically saved.
-
     """
     workbench = event.workbench
     workspace = workbench.get_plugin('ecpy.measure').workspace
     measure = event.parameters['measure']
 
-    if measure and measure.path:
+    if measure.path:
         measure.save(measure.path)
         window = workbench.get_plugin('enaml.workbench.ui').window
         SaveConfirm(window, measure_name=measure.name).show()
 
     else:
-        plugin.workspace.save_measure(measure)
+        workspace.save_measure(measure)
 
 
 def save_measure_as(event):
@@ -185,21 +182,6 @@ enamldef MeasureSpaceMenu(PluginManifest):
             path = '/file/new'
             label = 'New measure'
             command = 'ecpy.measure.workspace.new'
-            group = 'user'
-            before = 'save'
-        ActionItem:
-            path = '/file/save'
-            label = 'Save measure'
-            shortcut = 'Ctrl+S'
-            command = 'ecpy.measure.workspace.save'
-            parameters = dict(measure=workspace.last_selected_measure)
-            group = 'user'
-            before = 'save_as'
-        ActionItem:
-            path = '/file/save_as'
-            label = 'Save measure as'
-            command = 'ecpy.measure.workspace.save_as'
-            parameters = dict(measure=workspace.last_selected_measure)
             group = 'user'
             before = 'load'
         ActionItem:

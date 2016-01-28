@@ -442,8 +442,15 @@ enamldef MeasureEditorDockItem(_MeasDockItem): main:
             text = 'Save'
             hug_width  = 'strong'
             hug_height = 'strong'
-            clicked ::
-                workspace.save_measure(measure)
+            Menu:
+                Action:
+                    text = 'Save'
+                    triggered ::
+                        workspace.save_measure(measure)
+                Action:
+                    text = 'Save as'
+                    triggered ::
+                        workspace.save_measure(measure, False)
 
         PushButton: load:
             text = 'Load'
