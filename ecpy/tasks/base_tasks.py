@@ -30,10 +30,9 @@ from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
                       Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
-from future.utils import istext
 
-
-from ..utils.atom_util import (tagged_members, update_members_from_preferences)
+from ..utils.atom_util import (tagged_members, update_members_from_preferences,
+                               member_from_pref, member_to_pref)
 from ..utils.container_change import ContainerChange
 from .tools.database import TaskDatabase
 from .tools.decorators import (make_parallel, make_wait, make_stoppable,
@@ -541,7 +540,7 @@ class BaseTask(Atom):
         """Update the database content each time the database entries change.
 
         """
-        if old and self.database:
+        if self.database:
             added = set(new) - set(old)
             removed = set(old) - set(new)
             for entry in removed:
@@ -612,12 +611,9 @@ class SimpleTask(BaseTask):
 
         """
         self.preferences.clear()
-        for name in tagged_members(self, 'pref'):
+        for name, member in tagged_members(self, 'pref').items():
             val = getattr(self, name)
-            if istext(val):
-                self.preferences[name] = val
-            else:
-                self.preferences[name] = repr(val)
+            self.preferences[name] = member_to_pref(self, member, val)
 
     update_preferences_from_members = register_preferences
 
@@ -854,6 +850,7 @@ class ComplexTask(BaseTask):
         preferences of the tasks tagged as child.
 
         """
+
         self.preferences.clear()
         members = self.members()
         for name in members:
@@ -861,10 +858,8 @@ class ComplexTask(BaseTask):
             meta = members[name].metadata
             if meta and 'pref' in meta:
                 val = getattr(self, name)
-                if isinstance(val, basestring):
-                    self.preferences[name] = val
-                else:
-                    self.preferences[name] = repr(val)
+                self.preferences[name] = member_to_pref(self, members[name],
+                                                        val)
 
             # Find all tagged children.
             elif meta and 'child' in meta:
@@ -889,12 +884,9 @@ class ComplexTask(BaseTask):
         preferences of the tasks tagged as child.
 
         """
-        for name in tagged_members(self, 'pref'):
+        for name, member in tagged_members(self, 'pref').items():
             val = getattr(self, name)
-            if isinstance(val, basestring):
-                self.preferences[name] = val
-            else:
-                self.preferences[name] = repr(val)
+            self.preferences[name] = member_to_pref(self, member, val)
 
         for child in self.gather_children():
             child.update_preferences_from_members()
@@ -1015,7 +1007,7 @@ class ComplexTask(BaseTask):
         for child in self.gather_children():
             child.depth = self.depth + 1
             child.database = self.database
-            child.path = self.path + '/' + self.name
+            child.path = self._child_path()
 
             # Give him its root so that it can proceed to any child
             # registration it needs to.
@@ -1187,6 +1179,8 @@ class RootTask(ComplexTask):
         """
         task = super(RootTask, cls).build_from_config(config, dependencies)
         task._post_setattr_root(None, task)
+        task.register_in_database()
+        task.register_preferences()
         return task
 
     # =========================================================================
