@@ -59,7 +59,6 @@ class TestLogTask(object):
         assert self.task.get_from_database('Test_message') == 'Hello World'
 
 
-
 @pytest.mark.ui
 def test_view(windows):
     """Test the LogTask view.
