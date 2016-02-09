@@ -18,10 +18,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Atom, Value, Callable, List, Typed, Bool, Subclass,
                       Signal, Dict)
-from enaml.widgets.api import Container
+from collections import OrderedDict
+
+from enaml.widgets.api import (Container, Field, GroupBox)
+from enaml.layout.api import hbox
 
 from .list_editor import ListEditor
 from ..container_change import ContainerChange
+from .qt_completers import QtLineCompleter
 
 
 class Pair(Atom):
@@ -44,7 +48,7 @@ class _DictEditorModel(Atom):
     """ Model converting a dict into an editable list of Pair.
 
     """
-    #: Refrence to the widget for which this object acts as model.
+    #: Reference to the widget for which this object acts as model.
     editor = Value()
 
     #: List of pairs.
@@ -59,7 +63,9 @@ class _DictEditorModel(Atom):
         """
         if not self._no_notif:
             self._no_notif = True
-            t = type(self.editor.mapping) if self.editor.mapping else dict
+            t = (type(self.editor.mapping) if self.editor.mapping is not None
+                else dict)
+
             self.editor.mapping = t((p.key, p.value) for p in self.pairs)
             self._no_notif = False
 
@@ -92,7 +98,7 @@ class _DictEditorModel(Atom):
             l += 1
             if name not in self.editor.mapping:
                 break
-        pair = Pair(refresh_method=self.refresh,
+        pair = self._pair_cls(refresh_method=self.refresh,
                     key=name)
         self._no_notif = False
         i = index if pos == 'before' else index + 1
@@ -148,7 +154,7 @@ class _DictEditorModel(Atom):
         self.pairs_changed(None)
         self.refresh()
 
-    def _post_setattr_model(self, old, new):
+    def _post_setattr_editor(self, old, new):
         self.regenerate_pairs()
 
     def _make_pairs(self):
@@ -178,7 +184,7 @@ template DictEditor(Content):
 
     Attributes
     ----------
-    mapping : dict or collections.OrderedDict
+    mapping : dict or OrderedDict
         Dictionary to edit.
 
     operations : tuple, {'add', 'move', 'remove'}
@@ -217,3 +223,43 @@ template DictEditor(Content):
             ed.iterable_name = 'pairs'
             ed.signal_name = 'pairs_changed'
             ed.operations << _make_ops(main.operations)
+
+
+enamldef FieldFieldEditor(Container):
+    """ Possible content for the Dictionary Editor containing a pair of
+    key-value Fields (String-like fields).
+
+    """
+
+    attr model
+    constraints = [hbox(k, v)]
+    padding = 1
+
+    Field: k:
+        text := model.key
+    Field: v:
+        text := model.value
+
+
+enamldef FieldFieldCompleterEditor(Container):
+    """ Possible content for the Dictionary Editor containing a pair of
+    key-value Fields (String-like fields) where the second one has the
+    line-completer that suggests possible entries from the database.
+
+    It expects the model to declare either the entries or entries_updater
+    function
+
+    """
+    attr model
+    constraints = [hbox(k, v)]
+    padding = 1
+
+    Field: k:
+        text := model.key
+    QtLineCompleter: v:
+        text := model.value
+        entries << model.entries if hasattr(model, 'entries') else []
+        entries_updater = (model.entries_updater if hasattr(model,
+            'entries_updater') else None)
+        tool_tip = (model.evaluater_tooltip if hasattr(model,
+            'evaluater_tooltip') else None)

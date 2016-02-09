@@ -354,17 +354,22 @@ def test_build_root_from_config():
     """Test building a RootTask from config.
 
     """
+    class DummyTask(SimpleTask):
+
+        database_entries = {'test': 1}
+
     config = {'name': 'test',
               'children_0': {'name': 'test_child',
-                             'task_id': 'SimpleTask'}}
+                             'task_id': 'DummyTask'}}
     task = RootTask.build_from_config(config,
                                       {'ecpy.task':
-                                          {'SimpleTask': SimpleTask}})
+                                          {'DummyTask': DummyTask}})
     assert task.name == 'Root'
     assert len(task.children) == 1
     assert task.children[0].name == 'test_child'
     assert task.children[0].root
-    assert isinstance(task.children[0], SimpleTask)
+    assert isinstance(task.children[0], DummyTask)
+    assert task.get_from_database('test_child_test')
 
 
 def test_gather_children():

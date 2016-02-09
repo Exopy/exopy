@@ -12,9 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (Unicode, Float, Enum, List, Dict, Typed, Int, Value,
+from ast import literal_eval
+from collections import OrderedDict
+
+import pytest
+from atom.api import (Unicode, Float, Enum, List, Typed, Int, Value,
                       Constant)
-from ecpy.utils.atom_util import (tagged_members, member_from_str, HasPrefAtom)
+from ecpy.utils.atom_util import (tagged_members, member_from_pref,
+                                  member_to_pref, HasPrefAtom,
+                                  ordered_dict_from_pref, ordered_dict_to_pref)
 
 
 class _Aaux(HasPrefAtom):
@@ -22,14 +28,20 @@ class _Aaux(HasPrefAtom):
     int_ = Int().tag(pref=True)
 
 
+class _Faux(HasPrefAtom):
+
+    int_ = Int().tag(pref=False)
+
+
 class _Aux(HasPrefAtom):
 
     string = Unicode().tag(pref=True)
-    float_n = Float().tag(pref=False)
+    float_n = Float().tag(pref=True)
     enum = Enum('a', 'b').tag(pref=True)
     enum_float = Enum(1.0, 2.0).tag(pref=True)
     list_ = List(Float()).tag(pref=True)
-    dict_ = Dict(Unicode(), Float()).tag(pref=True)
+    odict_ = Typed(OrderedDict, ()).tag(pref=[ordered_dict_to_pref,
+                                              ordered_dict_from_pref])
     value = Value().tag(pref=True)
     const = Constant('r').tag(pref=True)
 
@@ -38,64 +50,120 @@ class _Aux(HasPrefAtom):
     no_tag = Int()
 
 
+def test_false_from_pref_softerror():
+    aux = _Faux()
+    with pytest.raises(NotImplementedError):
+        member_from_pref(aux, aux.get_member(str('int_')), 'a')
+
+
+def test_false_to_pref_softerror():
+    aux = _Faux()
+    try:
+        member_to_pref(aux, aux.get_member(str('int_')), 'a')
+    except NotImplementedError:
+        assert True is True
+
+
 def test_tagged_members1():
     aux = _Aux()
     members = sorted(tagged_members(aux, 'pref').keys())
     test = sorted(['string', 'float_n', 'enum', 'enum_float', 'list_',
-                   'dict_', 'atom', 'value', 'const'])
+                   'odict_', 'atom', 'value', 'const'])
     assert members == test
 
 
 def test_tagged_members2():
     aux = _Aux()
-    members = tagged_members(aux, 'pref', False).keys()
-    assert members == ['float_n']
+    members = tagged_members(aux, 'pref', [ordered_dict_to_pref,
+                                           ordered_dict_from_pref]).keys()
+    assert members == ['odict_']
 
 
 def test_tagged_members3():
     aux = _Aux()
     members = sorted(tagged_members(aux).keys())
     test = sorted(['string', 'float_n', 'enum', 'enum_float', 'list_',
-                   'dict_', 'atom', 'no_tag', 'value', 'const'])
+                   'odict_', 'atom', 'no_tag', 'value', 'const'])
     assert members == test
 
 
-def test_member_from_str1():
+def test_member_from_pref1():
     aux = _Aux()
-    assert member_from_str(aux.get_member(str('string')), 'a') == 'a'
+    assert member_from_pref(aux, aux.get_member(str('string')), 'a') == 'a'
 
 
-def test_member_from_str2():
+def test_member_from_pref2():
     aux = _Aux()
-    assert member_from_str(aux.get_member(str('float_n')), '1.0') == 1.0
+    assert member_from_pref(aux, aux.get_member(
+        str('float_n')), '1.0') == 1.0
 
 
-def test_member_from_str3():
+def test_member_from_pref3():
     aux = _Aux()
-    assert member_from_str(aux.get_member(str('enum')), 'a') == 'a'
+    assert member_from_pref(aux, aux.get_member(str('enum')), 'a') == 'a'
 
 
-def test_member_from_str4():
+def test_member_from_pref4():
     aux = _Aux()
-    assert member_from_str(aux.get_member(str('enum_float')), '1.0') == 1.0
+    assert member_from_pref(aux, aux.get_member(
+        str('enum_float')), '1.0') == 1.0
 
 
-def test_member_from_str5():
+def test_member_from_pref5():
     aux = _Aux()
     member = aux.get_member(str('list_'))
-    assert member_from_str(member, '[1.0, 2.0]') == [1.0, 2.0]
+    assert member_from_pref(aux, member, '[1.0, 2.0]') == [1.0, 2.0]
 
 
-def test_member_from_str6():
+def test_member_from_pref6():
     aux = _Aux()
-    member = aux.get_member(str('dict_'))
-    assert member_from_str(member, '{"a": 1.0}') == {'a': 1.0}
+    member = aux.get_member(str('odict_'))
+    assert member_from_pref(aux, member, "[(u'a', 1.0)]") == {"a": 1.0}
 
 
-def test_member_from_str7():
+def test_member_from_pref7():
     aux = _Aux()
     member = aux.get_member(str('value'))
-    assert member_from_str(member, 'test.test') == 'test.test'
+    assert member_from_pref(aux, member, 'test.test') == 'test.test'
+
+
+def test_member_to_pref1():
+    aux = _Aux()
+    assert member_to_pref(aux, aux.get_member(str('string')), 'a') == 'a'
+
+
+def test_member_to_pref2():
+    aux = _Aux()
+    assert member_to_pref(aux, aux.get_member(str('float_n')), 1.0) == '1.0'
+
+
+def test_member_to_pref3():
+    aux = _Aux()
+    assert member_to_pref(aux, aux.get_member(str('enum')), 'a') == 'a'
+
+
+def test_member_to_pref4():
+    aux = _Aux()
+    assert member_to_pref(aux, aux.get_member(
+        str('enum_float')), 1.0) == '1.0'
+
+
+def test_member_to_pref5():
+    aux = _Aux()
+    member = aux.get_member(str('list_'))
+    assert member_to_pref(aux, member, [1.0, 2.0]) == '[1.0, 2.0]'
+
+
+def test_member_to_pref6():
+    aux = _Aux()
+    member = aux.get_member(str('odict_'))
+    assert member_to_pref(aux, member, {"a": 1.0}) == "[(u'a', 1.0)]"
+
+
+def test_member_to_pref7():
+    aux = _Aux()
+    member = aux.get_member(str('value'))
+    assert member_to_pref(aux, member, 'test.test') == 'test.test'
 
 
 def test_update_members_from_pref():
@@ -104,7 +172,7 @@ def test_update_members_from_pref():
             'enum': 'a',
             'enum_float': '1.0',
             'list_': "[2.0, 5.0]",
-            'dict_': "{'a': 1.0}",
+            'odict_': "{'a': 1.0}",
             'atom': {'int_': '2'},
             'const': 'r'}
     aux.update_members_from_preferences(pref)
@@ -112,7 +180,7 @@ def test_update_members_from_pref():
     assert aux.enum == 'a'
     assert aux.enum_float == 1.0
     assert aux.list_ == [2.0, 5.0]
-    assert aux.dict_ == {'a': 1.0}
+    assert aux.odict_ == {'a': 1.0}
     assert aux.atom.int_ == 2
 
     aux.atom = None
@@ -129,5 +197,5 @@ def test_pref_from_members():
     assert pref['enum'] == 'a'
     assert pref['enum_float'] == '1.0'
     assert pref['list_'] == '[]'
-    assert pref['dict_'] == '{}'
+    assert pref['odict_'] == '[]'
     assert pref['atom'] == {'int_': '0'}

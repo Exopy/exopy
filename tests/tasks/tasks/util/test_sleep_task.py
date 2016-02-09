@@ -85,4 +85,3 @@ def test_view(windows):
 
     """
     show_and_close_widget(SleepView(task=SleepTask(name='Test')))
-
