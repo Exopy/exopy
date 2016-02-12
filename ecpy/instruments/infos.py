@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from collection import defaultdict
 
-from atom.api import Atom, Unicode, Dict, Callable
+from atom.api import Atom, Unicode, Dict, Callable, List
 
 
 class DriverInfos(Atom):
@@ -77,6 +77,31 @@ class DriverInfos(Atom):
 
 # XXXX
 class InstrumentModelInfos():
+    """Details about a particular model based on all the available drivers.
+
     """
-    """
-    pass
+    #: Instrument manufacturer (this is the real manufacturer not an alias).
+    manufacturer = Unicode()
+
+    #: Instrument model.
+    model = Unicode()
+
+    #: Instrument serie.
+    serie = Unicode()
+
+    #: Instrument kind.
+    kind = Unicode()
+
+    #: List of supported drivers.
+    drivers = List()
+
+    #: Supported connections (all drivers connections infos are merged).
+    connections = Dict()
+
+    #: Supported settings (all drivers settings infos are merged).
+    settings = Dict()
+
+    def find_matching_driver(self, connection_id, settings_id):
+        """
+        """
+        pass
