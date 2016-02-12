@@ -24,8 +24,8 @@ from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
                                   DeclaratorsCollector,
                                   make_extension_validator)
 from .user import InstrUser
-from .stater import Starter
-from .driver_decl import Driver
+from .starters.base_starter import Starter
+from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 
@@ -69,7 +69,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         """Start the plugin lifecycle by collecting all contributions.
 
         """
-        super(InstrumentPlugin, self).start()
+        super(InstrumentManagerPlugin, self).start()
 
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.enter_error_gathering')

@@ -18,8 +18,8 @@ from atom.api import Unicode, Enum, Dict, Property
 from enaml.core.api import d_
 from future.utils import python_2_unicode_compatible
 
-from ..utils.declarator import Declarator, GroupDeclarator, import_and_get
-from .infos import DriverInfos
+from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
+from ..infos import DriverInfos
 
 INSTRUMENT_KINDS = ('Other', 'DC source', 'AWG', 'RF source', 'Lock-in',
                     'Spectrum analyser', 'Multimeter')

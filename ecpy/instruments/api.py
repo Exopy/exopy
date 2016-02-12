@@ -12,11 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .driver_decl import Driver
 from .users import InstrUser
 
-from .connections import BaseConnection, Connection
-from .settings import BaseSettings, Settings
+from .drivers.driver_decl import Driver
+from .starters.base_starter import Starter
+from .connections.base_connection import BaseConnection, Connection
+from .settings.base_settings import BaseSettings, Settings
 
 __all__ = ['Driver', 'InstrUser', 'BaseConnection', 'Connection', 'Settings',
-           'BaseSettings']
+           'BaseSettings', 'Starter']
