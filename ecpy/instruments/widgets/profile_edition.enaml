@@ -16,8 +16,10 @@ from configobj import ConfigObj
 from atom.api import Coerced
 from enaml.validator import Validator
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
-                               Dialog)
+                               Dialog, MultilineField, ObjectCombo)
 
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
 
 class SetValidator(Validator):
     """Validator allowing names which does not yet exist.
@@ -33,17 +35,45 @@ class SetValidator(Validator):
         return text not in self.existing
 
 
-enamldef ConnectionCreationDialog(Dialog):
+enamldef ConnectionCreationDialog(Dialog): dial:
     """Dialog allowing the user to select the connection to add to the profile.
 
     """
-    #: Reference to the ProfileEditionWidget which opened this dialog.
-    attr editor
+    #: Reference to the instrument plugin.
+    attr plugin
+
+    #: Currently selected connection declaration.
+    attr c_decl
 
     Container:
-        pass
+
+        constraints = [vbox(hbox(conns, vbox(lab, desc, spacer)),
+                            hbox(spacer, can, ok))]
+
+        QtListStrWidget: conns:
+            items = ids_to_unique_names(plugin.connections)
+            selected_item ::
+                c_id = items[selected_item]
+                dial.c_decl = plugin.get_connection(c_id)
+
+        Label: lab:
+            text << c_decl.id if c_decl else ''
+
+        MultilineField: desc:
+            text << c_delc.description if c_decl  else ''
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                dial.accept()
 
 
+# XXXX to complete
 enamldef ConnectionValidationDialog(Dialog):
     """Dialog allowing the user to test that the provided information allow to
     open the connection.
@@ -53,19 +83,66 @@ enamldef ConnectionValidationDialog(Dialog):
     attr editor
 
     Container:
-        pass
+
+        constraints = [vbox(hbox(vbox(conn, sett), test), infos)]
+
+        ObjectCombo: conn:
+            items = []
+            tool_tip = ''
+
+        ObjectCombo: sett:
+            items = []
+            tool_tip = ''
+
+        ObjectCombo: driver_impl:
+            items = []
+            tool_tip = ''
+
+        PushButton: test:
+            text = 'Test connection'
+            clicked ::
+                pass
+
+        MultilineField: infos:
+            pass
 
 
 enamldef SettingsCreationDialog(Dialog):
     """Dialog allowing the user to select the settings to add to the profile.
 
     """
-    #: Reference to the ProfileEditionWidget which opened this dialog.
-    attr editor
+    #: Reference to the instrument plugin.
+    attr plugin
+
+    #: Currently selected connection declaration.
+    attr s_decl
 
     Container:
-        pass
 
+        constraints = [vbox(hbox(conns, vbox(lab, desc, spacer)),
+                            hbox(spacer, can, ok))]
+
+        QtListStrWidget: conns:
+            items = ids_to_unique_names(plugin.connections)
+            selected_item ::
+                s_id = items[selected_item]
+                dial.s_decl = plugin.get_connection(s_id)
+
+        Label: lab:
+            text << s_decl.id if s_decl else ''
+
+        MultilineField: desc:
+            text << c_decl.description if s_decl  else ''
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                dial.accept()
 
 enamldef ProfileEditionWidget(Container): main:
     """Widget dedicated to editing a profile.
@@ -141,7 +218,6 @@ enamldef ProfileEditionWidget(Container): main:
         tabs_movable = False
         Page:
             title = 'Connections'
-
             Container:
 
                 constraints = [hbox(conns, *(tuple(s_conn.objects) +
@@ -157,7 +233,7 @@ enamldef ProfileEditionWidget(Container): main:
                     text = 'Add'
                     enabled << set(connections) != set(model_info.connections)
                     clicked ::
-                        dial = ConnectionCreationDialog(editor=main)
+                        dial = ConnectionCreationDialog(plugin=plugin)
                         dial.exec_()
                         if dial.connection:
                             main.connections = (main.connections[:] +
@@ -180,7 +256,6 @@ enamldef ProfileEditionWidget(Container): main:
 
         Page:
             title = 'Settings'
-
             Container:
 
                 constraints = [hbox(setts, *(tuple(s_sett.objects) +
@@ -195,7 +270,7 @@ enamldef ProfileEditionWidget(Container): main:
                 PushButton: add_s:
                     text = 'Add'
                     clicked ::
-                        dial = ConnectionCreationDialog(editor=main)
+                        dial = SettingsCreationDialog(plugin=plugin)
                         dial.exec_()
                         if dial.connection:
                             main.connections = (main.connections[:] +
