@@ -39,11 +39,15 @@ enamldef ConnectionCreationDialog(Dialog): dial:
     """Dialog allowing the user to select the connection to add to the profile.
 
     """
-    #: Reference to the instrument plugin.
-    attr plugin
+    #: Reference to the editor that opened that dialog.
+    attr editor
 
     #: Currently selected connection declaration.
-    attr c_decl
+    attr connection
+
+    initialized ::
+        # XXXX setup connection
+        pass
 
     Container:
 
@@ -54,13 +58,14 @@ enamldef ConnectionCreationDialog(Dialog): dial:
             items = ids_to_unique_names(plugin.connections)
             selected_item ::
                 c_id = items[selected_item]
-                dial.c_decl = plugin.get_connection(c_id)
+                # XXXX query infos from editor
+                dial.c_decl = plugin.create_connection(c_id, infos)
 
         Label: lab:
-            text << c_decl.id if c_decl else ''
+            text << connection.declaration.id if connection else ''
 
         MultilineField: desc:
-            text << c_delc.description if c_decl  else ''
+            text << connection.declaration.description if connection  else ''
 
         PushButton: can:
             text = 'Cancel'
@@ -111,11 +116,15 @@ enamldef SettingsCreationDialog(Dialog):
     """Dialog allowing the user to select the settings to add to the profile.
 
     """
-    #: Reference to the instrument plugin.
-    attr plugin
+    #: Reference to the editor that opened that dialog.
+    attr editor
 
-    #: Currently selected connection declaration.
-    attr s_decl
+    #: Settings instance to insert.
+    attr settings
+
+    initialized ::
+        # XXXX setup settings
+        pass
 
     Container:
 
@@ -123,16 +132,17 @@ enamldef SettingsCreationDialog(Dialog):
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = ids_to_unique_names(plugin.connections)
+            items = ids_to_unique_names(editor.plugin.connections)
             selected_item ::
                 s_id = items[selected_item]
-                dial.s_decl = plugin.get_connection(s_id)
+                # XXXX query the infos from the editor
+                dial.settings = plugin.create_settings(s_id, infos)
 
         Label: lab:
-            text << s_decl.id if s_decl else ''
+            text << settings.declaration.id if settings else ''
 
         MultilineField: desc:
-            text << c_decl.description if s_decl  else ''
+            text << settings.declaration.description if settings  else ''
 
         PushButton: can:
             text = 'Cancel'
@@ -143,6 +153,7 @@ enamldef SettingsCreationDialog(Dialog):
             text = 'Ok'
             clicked ::
                 dial.accept()
+
 
 enamldef ProfileEditionWidget(Container): main:
     """Widget dedicated to editing a profile.
@@ -195,7 +206,6 @@ enamldef ProfileEditionWidget(Container): main:
     Label: id_lab:
         text = 'Id'
     Field: id_val:
-        # XXXX depends on plugin
         validator << SetValidator(existing=plugin.profiles)
 
     Label: model_lab:
@@ -233,7 +243,7 @@ enamldef ProfileEditionWidget(Container): main:
                     text = 'Add'
                     enabled << set(connections) != set(model_info.connections)
                     clicked ::
-                        dial = ConnectionCreationDialog(plugin=plugin)
+                        dial = ConnectionCreationDialog(editor=main)
                         dial.exec_()
                         if dial.connection:
                             main.connections = (main.connections[:] +
@@ -270,12 +280,12 @@ enamldef ProfileEditionWidget(Container): main:
                 PushButton: add_s:
                     text = 'Add'
                     clicked ::
-                        dial = SettingsCreationDialog(plugin=plugin)
+                        dial = SettingsCreationDialog(editor=main)
                         dial.exec_()
-                        if dial.connection:
-                            main.connections = (main.connections[:] +
-                                                [dial.connection])
-                            conns.selected_item = dial.connection
+                        if dial.settings:
+                            main.settings = (main.settings[:] +
+                                             [dial.settings])
+                            conns.selected_item = dial.settings
                 PushButton: del_s:
                     text = 'Delete'
                     clicked ::

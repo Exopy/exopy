@@ -101,7 +101,7 @@ class Driver(Declarator):
             traceback[driver_id] = msg
             return
 
-        # Check that the task does not already exist.
+        # Check that the driver does not already exist.
         if driver_id in collector.contributions or driver_id in traceback:
             i = 1
             while True:

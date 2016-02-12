@@ -33,7 +33,7 @@ enamldef RawVisaConnection(BaseConnection):
 enamldef VisaConnection(BaseConnection):
     """Base class for all connection relying on the VISA protocol.
 
-    Name are expected to match the ones found in PyVISA.
+    Names are expected to match the ones found in PyVISA.
 
     """
     #: Type of connection (GPIB, USB, ect). This should not be editable

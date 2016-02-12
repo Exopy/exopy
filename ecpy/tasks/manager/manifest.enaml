@@ -40,7 +40,7 @@ PLUGIN_ID = 'ecpy.tasks'
 # =============================================================================
 
 def manager_plugin_factory():
-    """ Factory funcion for the instr manager plugin.
+    """ Factory funcion for the task manager plugin.
 
     """
     from .plugin import TaskManagerPlugin

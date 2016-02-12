@@ -11,3 +11,122 @@
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
+
+from ast import literal_eval
+
+from future.builtins import str
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+from ...app.preferences.api import Preferences
+from ...app.states.api import State
+from ...app.dependencies.api import RuntimeDependency
+from ...utils.plugin_tools import make_handler
+
+from .connections.visa_connections import # XXXX
+
+PLUGIN_ID = 'ecpy.instruments'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def manager_plugin_factory():
+    """ Factory funcion for the instr manager plugin.
+
+    """
+    from .plugin import InstrumentPlugin
+    return InstrumentPlugin()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+# XXXX
+DRIVERS_DES =\
+"""
+"""
+
+CONNECTIONS_DESC =\
+"""
+"""
+
+SETTINGS_DESC =\
+"""
+"""
+
+STARTERS_DESC =\
+"""
+"""
+
+USERS_DESC =\
+"""
+"""
+
+
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef InstrumenManagertManifest(PluginManifest):
+    """Manifest for the task manager.
+
+    """
+    id = PLUGIN_ID
+    factory = manager_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'drivers'
+        description = DECLARATIONS_DESC
+
+    ExtensionPoint:
+        id = 'connections'
+        description = CONNECTIONS_DESC
+
+    ExtensionPoint:
+        id = 'settings'
+        description = SETTINGS_DESC
+
+    ExtensionPoint:
+        id = 'starters'
+        description = STARTERS_DESC
+
+    ExtensionPoint:
+        id = 'users'
+        description = USERS_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    # XXXX add declaration of VISA connections
+
+    Extension:
+        id = 'build_deps'
+        point = 'ecpy.app.dependencies.build'
+        RuntimeDependency:
+            id = 'ecpy.instruments'
+            # XXXX
+
+    Extension:
+        id = 'prefs'
+        point = 'ecpy.app.preferences.plugin'
+        Preferences:
+            pass
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        # XXXX
+        Command:
+            id = 'ecpy.tasks.get_task_infos'
+            description = GET_TASK_INFOS_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_task_infos')
