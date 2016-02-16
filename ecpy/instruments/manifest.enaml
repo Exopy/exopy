@@ -24,6 +24,7 @@ from ...app.states.api import State
 from ...app.dependencies.api import RuntimeDependency
 from ...utils.plugin_tools import make_handler
 
+from .manufacturer_aliases import ManufacturerAlias
 from .connections.visa_connections import # XXXX
 
 PLUGIN_ID = 'ecpy.instruments'
@@ -65,7 +66,9 @@ USERS_DESC =\
 """
 """
 
-
+MANUFACTURER_ALIAS_DESC =\
+"""
+"""
 
 
 # =============================================================================
@@ -103,6 +106,10 @@ enamldef InstrumenManagertManifest(PluginManifest):
         id = 'users'
         description = USERS_DESC
 
+    ExtensionPoint:
+        id = 'manufacturer_aliases'
+        description = MANUFACTURER_ALIAS_DESC
+
     # =========================================================================
     # --- Extensions ----------------------------------------------------------
     # =========================================================================
@@ -110,8 +117,15 @@ enamldef InstrumenManagertManifest(PluginManifest):
     # XXXX add declaration of VISA connections
 
     Extension:
-        id = 'build_deps'
-        point = 'ecpy.app.dependencies.build'
+        id= 'manufacturer_alias'
+        point = 'ecpy.instruments.manufacturer_aliases'
+        ManufacturerAlias:
+            name = 'Keysight'
+            aliases = ['Agilent', 'HP']
+
+    Extension:
+        id = 'runtime_deps'
+        point = 'ecpy.app.dependencies.runtime'
         RuntimeDependency:
             id = 'ecpy.instruments'
             # XXXX

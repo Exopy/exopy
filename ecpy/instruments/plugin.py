@@ -28,6 +28,7 @@ from .starters.base_starter import Starter
 from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
+from .manufacturer_aliases import ManufacturerAlias
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,8 @@ USERS_POINT = 'ecpy.instruments.users'
 CONNECTIONS_POINT = 'ecpy.instruments.connections'
 
 SETTINGS_POINT = 'ecpy.instuments.settings'
+
+ALIASES_POINT = 'ecpy.instrumets.manufaturer_aliases'
 
 
 class InstrumentManagerPlugin(HasPrefPlugin):
@@ -123,6 +126,14 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                                              validate_ext=checker)
         self._settings.start()
 
+        checker = make_extension_validator(ManufacturerAlias, (),
+                                           ('name', 'aliases'))
+        self._aliases = ExtensionsCollector(workbench=self.workbench,
+                                            point=ALIASES_POINT,
+                                            ext_class=ManufacturerAlias,
+                                            validate_ext=checker)
+        self._aliases.start()
+
         self._drivers = DeclaratorsCollector(workbench=self.workbench,
                                              point=DRIVERS_POINT,
                                              ext_class=Driver)
@@ -187,12 +198,25 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         s_decl = self._settings.contributions[settings_id]
         return s_decl.new(self.workbench, infos)
 
+    def get_instrument(self, user_id, profile_id, driver_id):
+        """
+        """
+        pass  # XXXX
+
+    def release_instrument(self, user_id, profile_id):
+        """
+        """
+        pass # XXXX
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
 
     #: Collector of drivers.
     _drivers = Typed(DeclaratorsCollector)
+
+    #: Collector for the manufacturer aliases.
+    _aliases = Typed(ExtensionsCollector)
 
     #: Collector of users.
     _users = Typed(ExtensionsCollector)
@@ -210,7 +234,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     # TODO make that list editable and part of the preferences
     _profiles_folders = List()
 
-    #: Mapping of profile name to full path.
+    #: Mapping of profile name to profile infos.
     _profiles = Dict()
 
     #: Watchdog observer tracking changes to the profiles folders.
@@ -281,8 +305,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         except RuntimeError:
             pass
 
-# Collect aliases
-
+# XXXX
 # Request driver profile starter triplet
 
 # Explore drivers (by manufacturer or kind), connections, settings
