@@ -118,7 +118,8 @@ class Driver(Declarator):
                       for k in ('architecture', 'manufacturer', 'serie',
                                 'model', 'kind')
                       }
-        infos = DriverInfos(infos=meta_infos,
+        infos = DriverInfos(id=driver_id,
+                            infos=meta_infos,
                             starter=self.starter,
                             connections=self.connections,
                             settings=self.settings)
