@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 from functools import partial
+from collections import defaultdict
 
 from atom.api import Typed, List, Dict
 from watchdog.observers import Observer
@@ -29,6 +30,7 @@ from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
+from .infos import ManufacturerHolder
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +144,9 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         for contrib in ('users', 'starters', 'connections', 'settings'):
             self._update_contribs(contrib, None)
 
+        # XXXX handle dynamic addition of drivers by observing contributions
+        # and updating the manufacturers infos accordingly.
+
         self._refresh_profiles()
 
         self._bind_observers()
@@ -217,6 +222,9 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
     #: Collector for the manufacturer aliases.
     _aliases = Typed(ExtensionsCollector)
+
+    #: Declared manufacturers storing the corresponding model infos.
+    _manufacturers = Typed(ManufacturerHolder)
 
     #: Collector of users.
     _users = Typed(ExtensionsCollector)
@@ -304,6 +312,22 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             self._observer.join()
         except RuntimeError:
             pass
+
+    def _default__manufacturers(self):
+        """Delayed till this is first needed.
+
+        """
+        holder = ManufacturerHolder()
+        manufacturers = defaultdict(list)
+        for d in self._drivers.contributions:
+            manufacturers[d.infos['manufacturer']].append(d)
+
+        for m in manufacturers.values():
+            holder.update_manufacturer(m)
+
+        return holder
+
+
 
 # XXXX
 # Request driver profile starter triplet
