@@ -1,0 +1,159 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to select a model.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from configobj import ConfigObj
+from atom.api import Coerced
+from enaml.core.api import Include, Conditional, Looper
+from enaml.widgets.api import (Dialog, CheckBox, ObjectCombo, Label, Container,
+                               PushButton, Form, Field)
+from enaml.layout.api import vbox, hbox
+
+from ...utils.widgets.qt_tree_widget import QtTreeWidget
+from ...utils.widgets.tree_nodes import TreeNode
+from ..infos import (INSTRUMENT_KINDS, ManufacturerHolder, SeriesInfos,
+                     InstrumentModelInfos)
+
+
+enamldef ModelSelectionWidget(Container):
+    """Widget displaying All the known instruments models as a tree.
+
+    Models can be filtered by kind and series diplayed or hidden.
+
+    """
+    #: Reference to the instrument plugin
+    attr plugin
+
+    #: Kind of instrument used to filter.
+    attr kind := plugin._manufacturers.kind
+
+    #: Whether or not to display instruments by series.
+    attr use_series := plugin._manufacturers.kind
+
+    #: Currently selected model.
+    attr model << (tr.selected_item
+                   if isinstance(tr.selected_item, InstrumentModelInfos) else
+                   None)
+    model ::
+        tr.selected_item = change['value']
+
+    constraints = [vbox(hbox(k_lab, k_val, ser), tr)]
+
+    Label: k_lab:
+        text = 'Kind'
+    ObjectCombo: k_val:
+        items = INSTRUMENT_KINDS
+        selected_item := kind
+    CheckBox: ser:
+        text = 'Series'
+        checked := use_series
+    QtTreeWidget: tr:
+        root_node = plugin._manufacturers
+        hide_root = True
+        auto_expand = False
+        drag_drop = False
+        TreeNode:
+            node_for = [ManufacturerHolder]
+            children = 'manufacturers'
+            rename = False
+            rename_me = False
+            delete = False
+            delete_me = False
+        TreeNode:
+            node_for = [SeriesInfos]  # Handle both series and manufacturer
+            label = 'name'
+            children = 'instruments'
+            rename = False
+            rename_me = False
+            delete = False
+            delete_me = False
+        TreeNode:
+            node_for = [InstrumentModelInfos]
+            label = 'model'
+            rename = False
+            rename_me = False
+            delete = False
+            delete_me = False
+
+
+enamldef ModelView(Form):
+    """View summarizing the infos about a specific model.
+
+    """
+    attr model
+
+    Label:
+        text = 'Manufacturer'
+    Field:
+        text = model.manufacturer
+        read_only = True
+    Conditional:
+        condition = bool(model.serie)
+        Label:
+            text = 'Serie'
+        Field:
+            text = model.serie
+            read_only = True
+    Label:
+        text = 'Model'
+    Field:
+        text = model.model
+        read_only = True
+    Label:
+        text = 'Drivers'
+    Container:
+        Looper:
+            iterable = model.drivers
+            Field:
+                text = '%s (%s)' % (loop_item.id,
+                                    loop_item.infos['architecture'])
+    Label:
+        text = 'Connections'
+        Looper:
+            iterable = model.connections
+            Field:
+                text = loop_item
+
+    Label:
+        text = 'Settings'
+        Looper:
+            iterable = model.settings
+            Field:
+                text = loop_item
+
+
+enamldef ModelSelectionDialog(Dialog): dial:
+    """Dialog allowing to choose an instrument model.
+
+    """
+    #: Reference to the instrument plugin
+    alias plugin : sel.plugin
+
+    #: Currently selected instrument model
+    alias model : sel.model
+
+    ModelSelectionWidget:
+        kind = 'All'
+        use_series = True
+    Include:
+        objects << ModelView(model=model) if model else Container()
+    PushButton:
+        text = 'Cancel'
+        clicked ::
+            dial.reject()
+    PushButton:
+        text = 'Ok'
+        enabled << bool(model)
+        clicked::
+            dial.accept()
+
