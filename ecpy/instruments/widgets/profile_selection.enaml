@@ -1,0 +1,119 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to select a profile and the driver/connection/settings to use.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from configobj import ConfigObj
+from atom.api import Coerced
+from enaml.layout.api import hbox, vbox
+from enaml.widgets.api import (Container, Dialog, Form, Label, ObjectCombo,
+                               PushButton)
+
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
+
+
+enamldef ProfileSelectionWidget(Container):
+    """A widget to select a profile and what connection and settings to use.
+
+    """
+    #: Reference to the instrument plugin.
+    attr plugin
+
+    #: Currently selected profile (name)
+    alias profile : pl.selected_item
+
+    #: Infos of the currently selected profile.
+    attr infos << plugin._profiles[profile]
+
+    #: Currently selected driver
+    attr driver << drivers[dc.selected_item] if dc.selected_item else None
+
+    #: Currently selected connection
+    attr connection << (infos.connections[cc.selected_item]
+                        if cc.selected_item else None)
+
+    #: Currently selected settings
+    attr settings << (infos.settings[sc.selected_item]
+                      if infos.settings and sc.selected_item else None)
+
+    constraints = [hbox(pl, pf)]
+
+    QtListStrWidget: pl:
+        items = plugin._profiles
+
+    Form: pf:
+
+        Label:
+            text = 'Manufacturer'
+        Field:
+            text << '%s (%s)' % (infos.model.manufacturer,
+                                 plugin.get_aliases(infos.model.manufacturer))
+            read_only = True
+
+        Label:
+            text = 'Model'
+        Field:
+            text << infos.model.model
+
+        Label:
+            text = 'Driver'
+        ObjectCombo: dc:
+            attr drivers << {d.infos['architecture']: d.id
+                             for d in infos.model.drivers}
+            items << list(drivers)
+            items ::
+                self.selected_item = None
+
+        Label:
+            text = 'Connections'
+        ObjectCombo: cc:
+            items << list(infos.connections)
+            items ::
+                self.selected_item = None
+
+        Conditional:
+            condition = bool(infos.settings)
+            Label:
+                text << 'Settings'
+            ObjectCombo: sc:
+                items << list(infos.settings)
+                items ::
+                    self.selected_item = None
+
+
+
+enamldef ProfileSelectionDialog(Dialog): dial:
+    """A dialog to select a profile and what connection and settings to use.
+
+    """
+    #: Reference to the instrument plugin
+    alias plugin : w.plugin
+
+    Container:
+
+        constraints = []
+
+        ProfileSelectionWidget: w:
+            pass
+
+        PushButton:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton:
+            text = 'Ok'
+            enabled << (w.driver and w.connections and
+                        (w.settings or not w.infos.settings))
+            clicked ::
+                dial.accept()

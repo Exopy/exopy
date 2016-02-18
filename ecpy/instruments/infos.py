@@ -16,7 +16,7 @@ from collection import defaultdict
 from itertools import chain
 
 from atom.api import (Atom, Unicode, Dict, Callable, List, Property, Typed,
-                      Bool, Enum)
+                      Bool, Enum, Value)
 
 from ..utils.mapping_utils import recursive_update
 
@@ -364,7 +364,8 @@ class ManufacturerHolder(Atom):
         the search criterias.
 
         """
-        self.manufacturers = filter(lambda m: m.instruments)
+        self.manufacturers = filter(lambda m: m.instruments,
+                                    self._manufacturers.values())
 
 
 class ProfileInfos(Atom):
@@ -376,5 +377,49 @@ class ProfileInfos(Atom):
     #: Path to the .ini file holding the full infos.
     path = Unicode()
 
+    #: Reference to the instrument plugin.
+    plugin = Value()
+
+    #: Profile id.
+    id = Unicode()
+
     #: Supported model
     model = Typed(InstrumentModelInfos)
+
+    #: Names of the connections
+    connections = List()
+
+    #: names of the settings
+    settings = List()
+
+    def update_profile(self, profile_dict):
+        """
+        """
+        pass
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: ConfigObj object associated to the profile.
+    _config = Value()
+
+    def _default_model(self):
+        """
+        """
+        pass
+
+    def _default_connections(self):
+        """
+        """
+        pass
+
+    def _default_settings(self):
+        """
+        """
+        pass
+
+    def _default__config(self):
+        """
+        """
+        pass

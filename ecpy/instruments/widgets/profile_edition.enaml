@@ -97,6 +97,7 @@ enamldef ConnectionValidationDialog(Dialog):
 
         ObjectCombo: sett:
             items = []
+            selected_item = None
             tool_tip = ''
 
         ObjectCombo: driver_impl:
@@ -172,7 +173,7 @@ enamldef ProfileEditionWidget(Container): main:
     alias settings : setts.items
 
     func assemble_profile():
-        """Gather all the profile into a ConfigObj object.
+        """Gather all the profile infos into a ConfigObj object.
 
         """
         profile = ConfigObj()
@@ -195,6 +196,7 @@ enamldef ProfileEditionWidget(Container): main:
         """Use an existing profile to fill the UI.
 
         """
+        profile = profile._config
         id_val.text = profile['id']
         main.model_info = plugin.get_model_info(profile['model_id'])
         for k, v in profile.get('connections', {}).items():
@@ -215,7 +217,9 @@ enamldef ProfileEditionWidget(Container): main:
     PushButton:
         text = 'Choose'
         clicked ::
-            new = plugin.select_instrument_model(model=model.text)
+            # XXXX here should invoke appropriate dialog no need to go through
+            # the plugin.
+            new = plugin.select_instrument_model(model=model_info)
             if new:
                 main.connections = [c for c in main.connections
                                     if c.declaration.id in new.connections]
