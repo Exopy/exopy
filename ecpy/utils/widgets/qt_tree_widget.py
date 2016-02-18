@@ -96,6 +96,9 @@ class QtTreeWidget(RawWidget):
     #: Flag controlling the automatic expansion of nodes.
     auto_expand = d_(Bool(True))
 
+    #: Is drag and drop allowed on the tree.
+    drag_drop = d_(Bool(True))
+
     #: Whether or not to show the icons for the leaves and nodes.
     show_icons = d_(Bool(True))
 
@@ -120,7 +123,7 @@ class QtTreeWidget(RawWidget):
 
         """
         # Create tree widget and connect signal
-        tree = _TreeWidget(parent)
+        tree = _TreeWidget(parent, self.drag_drop)
         tree._controller = self
 
         # Hide the header as we have a single column.
@@ -903,14 +906,15 @@ class _TreeWidget(QtGui.QTreeWidget):
 
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, drag_drop):
         """ Initialise the tree widget.
         """
         QtGui.QTreeWidget.__init__(self, parent)
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.setDragEnabled(True)
-        self.setAcceptDrops(True)
+        if drag_drop:
+            self.setDragEnabled(True)
+            self.setAcceptDrops(True)
 
         self._dragging = None
         self._controller = None
