@@ -19,10 +19,7 @@ from enaml.core.api import d_
 from future.utils import python_2_unicode_compatible
 
 from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
-from ..infos import DriverInfos
-
-INSTRUMENT_KINDS = ('Other', 'DC source', 'AWG', 'RF source', 'Lock-in',
-                    'Spectrum analyser', 'Multimeter')
+from ..infos import DriverInfos, INSTRUMENT_KINDS
 
 
 @python_2_unicode_compatible
@@ -32,7 +29,7 @@ class Driver(Declarator):
     """
     #: Path to the driver object. Path should be dot separated and the class
     #: name preceded by ':'.
-    #: XXXX complete : ex: ecpy_hqc_legacy.instruments.
+    #: TODO complete : ex: ecpy_hqc_legacy.instruments.
     #: The path of any parent Drivers object will be prepended to it.
     driver = d_(Unicode())
 

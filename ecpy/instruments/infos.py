@@ -16,9 +16,13 @@ from collection import defaultdict
 from itertools import chain
 
 from atom.api import (Atom, Unicode, Dict, Callable, List, Property, Typed,
-                      Bool)
+                      Bool, Enum)
 
 from ..utils.mapping_utils import recursive_update
+
+
+INSTRUMENT_KINDS = ('Other', 'DC source', 'AWG', 'RF source', 'Lock-in',
+                    'Spectrum analyser', 'Multimeter')
 
 
 class DriverInfos(Atom):
@@ -43,6 +47,7 @@ class DriverInfos(Atom):
     #: Settings information.
     settings = Dict()
 
+    # XXXX Need to determine when to call this
     def validate(self, plugin):
         """Validate that starter, connections, settings ids are all known.
 
@@ -55,7 +60,7 @@ class DriverInfos(Atom):
         Returns
         -------
         result : bool
-            Boolean indicating if allids are indeed known.
+            Boolean indicating if all ids are indeed known.
 
         unknown : dict
             Mapping listing by categories (starter, connections, settings) the
@@ -101,7 +106,7 @@ class InstrumentModelInfos(Atom):
     serie = Unicode()
 
     #: Instrument kind.
-    kind = Unicode()
+    kind = Enum(*INSTRUMENT_KINDS)
 
     #: List of supported drivers.
     drivers = List()
