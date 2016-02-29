@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from past.builtins import basestring
 from atom.api import (Unicode, Bool, List, Value, Property, Dict)
 from enaml.core.declarative import Declarative, d_, d_func
 from enaml.widgets.api import Menu

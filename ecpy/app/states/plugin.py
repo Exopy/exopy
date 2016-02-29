@@ -15,7 +15,6 @@ from __future__ import (division, unicode_literals, print_function,
 import contextlib
 from atom.api import (Atom, Bool, Value, Typed, Dict)
 from enaml.workbench.api import Plugin
-from new import classobj
 
 from .state import State
 from ...utils.plugin_tools import ExtensionsCollector
@@ -138,7 +137,7 @@ class StatePlugin(Plugin):
         # members name
         for m in state.sync_members:
             members[str(m)] = Value()
-        state_class = classobj(class_name, (_StateHolder,), members)
+        state_class = type(class_name, (_StateHolder,), members)
 
         # Instantiation , initialisation, and binding of the state object to
         # the plugin declaring it.

@@ -24,6 +24,8 @@ The existing kind of tools are the following :
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import sys
+
 from atom.api import ForwardTyped, Unicode, Bool
 from enaml.core.api import Declarative, d_, d_func
 
@@ -133,4 +135,6 @@ class BaseToolDeclaration(Declarative):
         member = self.make_view
         func = getattr(member, 'im_func',
                        getattr(member, '__func__', None))
-        return func is not BaseToolDeclaration.make_view.__func__
+        o_f = (BaseToolDeclaration.make_view if sys.version_info >= (3,) else
+               BaseToolDeclaration.make_view.__func__)
+        return func is not o_f

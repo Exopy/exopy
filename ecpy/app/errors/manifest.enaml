@@ -198,7 +198,7 @@ enamldef ErrorsManifest(PluginManifest):
 
                 recursive_update(errors, err)
                 if len(err) == 1:
-                    kind = err.keys()[0]
+                    kind = list(err)[0]
                     return BasicErrorsDisplay(errors=err[kind],
                                               kind=kind)
                 else:

@@ -216,7 +216,7 @@ class MeasurePlugin(HasPrefPlugin):
             raise ValueError(msg.format(kinds, kind))
 
         decls = getattr(self, '_'+kind.replace('-', '_')+'s').contributions
-        return {k: v for k, v in decls.iteritems() if k in ids}
+        return {k: v for k, v in decls.items() if k in ids}
 
     def create(self, kind, id, default=True):
         """Create a new instance of an engine/editor/tool.

@@ -144,6 +144,7 @@ def display_startup_error_dialog(text, content, details=''):
     """
     if not QtApplication.instance():
         QtApplication()  # pragma: no cover
+    dial = MessageBox()
     dial = MessageBox(title='Ecpy failed to start',
                       text=text, content=content, details=details,
                       buttons=[DialogButton(str('Close'), str('reject'))])

@@ -84,7 +84,7 @@ class InterfaceableMixin(Atom):
 
         """
         it = super(InterfaceableMixin, self).traverse(depth)
-        yield it.next()
+        yield next(it)
         interface = self.interface
         if interface:
             if depth == 0:
@@ -200,7 +200,7 @@ class InterfaceableTaskMixin(InterfaceableMixin):
             inter.task = self
             if isinstance(inter, InterfaceableInterfaceMixin):
                 inter._post_setattr_interface(None, inter.interface)
-            for entry, value in inter.database_entries.iteritems():
+            for entry, value in inter.database_entries.items():
                 new_entries[entry] = value
 
         self.database_entries = new_entries

@@ -26,6 +26,7 @@ from copy import deepcopy
 from traceback import format_exc
 from types import MethodType
 
+from past.builtins import basestring
 from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
                       Tuple, Coerced, Constant, set_default)
@@ -502,7 +503,7 @@ class BaseTask(Atom):
                             for aux in aux_strings
                             for el in aux.split('}')]
                 replacement_token = [PREFIX + str(i)
-                                     for i in xrange(len(elements[1::2]))]
+                                     for i in range(len(elements[1::2]))]
                 repl = {PREFIX + str(i): database.get_value(self.path,
                                                             key)
                         for i, key in enumerate(elements[1::2])}

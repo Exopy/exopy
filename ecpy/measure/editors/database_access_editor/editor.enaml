@@ -168,7 +168,7 @@ enamldef DatabaseAccessEditor(BaseEditor): main:
         # When this view is destroyed it must destroy all the view in the cache
         # Do it by depth order to always destroy the parent first, should allow
         # to speed up a bit the process.
-        nodes = sorted(_cache)
+        nodes = sorted(_cache, key=lambda n: n.task.depth)
         for n in nodes:
             view = _cache[n]
             if not view.is_destroyed:

@@ -67,7 +67,6 @@ class StreamToLogRedirector(object):
             self.write = self.write_error
         else:
             self.write = self.write_info
-        self.encoding = sys.getdefaultencoding()
 
     def write_info(self, message):
         """Log the received message as info, used for stdout.
@@ -77,7 +76,7 @@ class StreamToLogRedirector(object):
 
         """
         message = message.strip()
-        message = message.decode(self.encoding)
+        message = str(message)
         if message != '':
             self.logger.info(message)
 
@@ -89,7 +88,7 @@ class StreamToLogRedirector(object):
 
         """
         message = message.strip()
-        message = message.decode(self.encoding)
+        message = str(message)
         if message != '':
             self.logger.critical(message)
 
@@ -225,7 +224,7 @@ class LogModel(Atom):
         if self._lines > self.buff_size:
             self.text = self.text.split('\n', self._lines - self.buff_size)[-1]
         message = message.strip()
-        message = message.decode(sys.getdefaultencoding())
+        message = str(message)
         message += '\n'
 
         self._lines += message.count('\n')

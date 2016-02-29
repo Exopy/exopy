@@ -16,7 +16,7 @@ from atom.api import Typed
 from enaml.workbench.api import Plugin
 
 from ..utils.priority_heap import PriorityHeap
-from ..utils.plugin_tools import ExtensionsCollector
+from ..utils.plugin_tools import ExtensionsCollector, make_extension_validator
 from .app_extensions import AppStartup, AppClosing, AppClosed
 
 
@@ -25,45 +25,6 @@ STARTUP_POINT = 'ecpy.app.startup'
 CLOSING_POINT = 'ecpy.app.closing'
 
 CLOSED_POINT = 'ecpy.app.closed'
-
-
-def validate_startup(startup):
-    """Assert that the startup does declare a run method.
-
-    """
-    func = getattr(startup.run, 'im_func',
-                   getattr(startup.run, '__func__', None))
-    if not func or func is AppStartup.run.__func__:
-        msg = "AppStartup '%s' does not declare a run method"
-        return False, msg % startup.id
-
-    return True, ''
-
-
-def validate_closing(closing):
-    """Assert that the closing does declare a validate method.
-
-    """
-    func = getattr(closing.validate, 'im_func',
-                   getattr(closing.validate, '__func__', None))
-    if not func or func is AppClosing.validate.__func__:
-        msg = "AppClosing '%s' does not declare a validate method"
-        return False, msg % closing.id
-
-    return True, ''
-
-
-def validate_closed(closed):
-    """Assert that the closed does declare a clean method.
-
-    """
-    func = getattr(closed.clean, 'im_func',
-                   getattr(closed.clean, '__func__', None))
-    if not func or func is AppClosed.clean.__func__:
-        msg = "AppClosed '%s' does not declare a clean method"
-        return False, msg % closed.id
-
-    return True, ''
 
 
 class AppPlugin(Plugin):
@@ -87,18 +48,23 @@ class AppPlugin(Plugin):
         should never be called by user code.
 
         """
+        validator = make_extension_validator(AppStartup, ('run',), ())
         self.startup = ExtensionsCollector(workbench=self.workbench,
                                            point=STARTUP_POINT,
                                            ext_class=AppStartup,
-                                           validate_ext=validate_startup)
+                                           validate_ext=validator)
+
+        validator = make_extension_validator(AppClosing, ('validate',), ())
         self.closing = ExtensionsCollector(workbench=self.workbench,
                                            point=CLOSING_POINT,
                                            ext_class=AppClosing,
-                                           validate_ext=validate_closing)
+                                           validate_ext=validator)
+
+        validator = make_extension_validator(AppClosed, ('clean',), ())
         self.closed = ExtensionsCollector(workbench=self.workbench,
                                           point=CLOSED_POINT,
                                           ext_class=AppClosed,
-                                          validate_ext=validate_closed)
+                                          validate_ext=validator)
 
         self.startup.observe('contributions', self._update_heap)
         self.closed.observe('contributions', self._update_heap)

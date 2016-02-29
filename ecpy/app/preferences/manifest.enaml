@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
+import sys
 from configobj import ConfigObj
 from future.builtins import str
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
@@ -105,7 +106,7 @@ def check_app_folder(workbench, cmd_args):
             pass
         dial = AppDirSelectionDialog(path=path)
         if not dial.exec_():
-            raise SystemExit()
+            sys.exit(1)
         conf = ConfigObj(app_dir)
         conf['app_path'] = dial.path
         conf.write()

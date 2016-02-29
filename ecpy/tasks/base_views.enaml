@@ -144,7 +144,9 @@ enamldef RootTaskView(BaseTaskView): main:
             _, views_cls = core.invoke_command(cmd,
                                               {'interface': i_id,
                                                'views': True})
-            return [v(interface=obj, root=self) for v in views_cls]
+            # XXXX workaround a bug in scope for comprehension
+            d = self
+            return [v(interface=obj, root=d) for v in views_cls]
 
     func discard_view(task):
         """Take care of destroying the view associated with a given task.

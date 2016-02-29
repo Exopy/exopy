@@ -75,8 +75,8 @@ def test_tagged_members1():
 def test_tagged_members2():
     aux = _Aux()
     members = tagged_members(aux, 'pref', [ordered_dict_to_pref,
-                                           ordered_dict_from_pref]).keys()
-    assert members == ['odict_']
+                                           ordered_dict_from_pref])
+    assert list(members) == ['odict_']
 
 
 def test_tagged_members3():
