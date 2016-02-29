@@ -94,7 +94,7 @@ class TextMonitor(BaseMonitor):
         self._clear_state()
         self.custom_entries = custom
 
-        for entry, value in entries.iteritems():
+        for entry, value in entries.items():
             self.handle_database_change(('added', entry, value))
 
     def handle_database_change(self, news):
@@ -181,7 +181,7 @@ class TextMonitor(BaseMonitor):
 
         """
         # Request all the rules class from the plugin.
-        rules_config = [conf for name, conf in config.iteritems()
+        rules_config = [conf for name, conf in config.items()
                         if name.startswith('rule_')]
 
         # Rebuild all rules.
@@ -193,7 +193,7 @@ class TextMonitor(BaseMonitor):
 
         self.rules = rules
 
-        customs_config = [conf for name, conf in config.iteritems()
+        customs_config = [conf for name, conf in config.items()
                           if name.startswith('custom_')]
         for custom_config in customs_config:
             entry = MonitoredEntry()

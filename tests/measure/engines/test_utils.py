@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from multiprocessing.queues import Queue
+from multiprocessing import Queue
 
 from ecpy.tasks.tools.database import TaskDatabase
 from ecpy.measure.engines.api import BaseEngine

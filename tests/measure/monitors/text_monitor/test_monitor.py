@@ -339,7 +339,7 @@ def test_get_set_state(monitor, monkeypatch):
     assert (rule == {'class_id': 'ecpy.FormatRule', 'id': 'Test',
                      'description': '',
                      'hide_entries': 'True',
-                     'suffixes': "[u'loop', u'index']",
+                     'suffixes': repr([u'loop', u'index']),
                      'new_entry_suffix': 'progress',
                      'new_entry_formatting': '{index}/{loop}'})
 
@@ -347,7 +347,7 @@ def test_get_set_state(monitor, monkeypatch):
     custom = state['custom_0']
     aux = {'name': 'Custom', 'path': 'custom',
            'formatting': 'This test n {root/test_loop}*{root/test2_loop}',
-           'depend_on': "[u'root/test_loop', u'root/test2_loop']"}
+           'depend_on': repr([u'root/test_loop', u'root/test2_loop'])}
     assert custom == aux
 
     assert (state['displayed'] ==

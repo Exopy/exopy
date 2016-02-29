@@ -73,7 +73,7 @@ class _EntryBuilder(Atom):
 
         # Build easy to understand entries names from the full paths of the
         # database.
-        entries = monitor.known_monitored_entries
+        entries = list(monitor.known_monitored_entries)
         short_entries = [entry.rsplit('/', 1)[1] for entry in entries]
         depth = 2
 
@@ -86,8 +86,8 @@ class _EntryBuilder(Atom):
         # If we are editing an already existing entry get additional infos from
         # it.
         if new_entry:
-            reversed_map = {v: k for k, v in self.map_entries.iteritems()}
-            entries = self.map_entries.keys()
+            reversed_map = {v: k for k, v in self.map_entries.items()}
+            entries = list(self.map_entries)
             self.used_entries = [_Entry(entry=reversed_map[d], entries=entries)
                                  for d in new_entry.depend_on]
 
