@@ -46,6 +46,15 @@ enamldef ToolSelector(Dialog): dial:
 
     title = 'Select a %s' % kind
 
+    func find_decl(name):
+        pl = measure.plugin
+        id_ = _names[name]
+        dial.selected_decl = pl.get_declarations(kind, [id_])[id_]
+
+    initialized ::
+        if list_ed.selected_item:
+            find_decl(list_ed.selected_item)
+
     Container:
         constraints << [vbox(hbox(list_ed, desc), hbox(spacer, cancel, ok))]
 
@@ -54,9 +63,7 @@ enamldef ToolSelector(Dialog): dial:
             selected_item ::
                 new = change['value']
                 if new:
-                    pl = measure.plugin
-                    id_ = _names[new]
-                    dial.selected_decl = pl.get_declarations(kind, [id_])[id_]
+                    find_decl(new)
 
         MultilineField: desc:
             text << selected_decl.description if selected_decl else ''
@@ -65,6 +72,7 @@ enamldef ToolSelector(Dialog): dial:
             text = 'Ok'
             enabled << bool(dial.selected_decl)
             clicked ::
+                print('Accepted')
                 dial.accept()
 
         PushButton: cancel:
@@ -186,7 +194,10 @@ enamldef ToolsEditor(DestroyableContainer): main:
                             for id in  getattr(measure.plugin, _kind)])
         clicked ::
             selector = ToolSelector(measure=measure, kind=kind)
-            if selector.exec_():
+            res = selector.exec_()
+            print(res)
+            if res:
+                print('t')
                 workbench = measure.plugin.workbench
                 tool_id = selector.selected_decl.id
                 try:

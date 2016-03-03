@@ -82,6 +82,7 @@ enamldef TextMonitorEdit(Container): main:
         text = '>'
         hug_width = 'strong'
         clicked ::
+            a = undisp
             e = [e for e in monitor.undisplayed_entries
                  if e == undisp.selected_item]
             if e:

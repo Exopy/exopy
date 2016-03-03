@@ -81,7 +81,7 @@ class _EntryBuilder(Atom):
             depth += 1
 
         self.map_entries = {short_entries[i]: entries[i]
-                            for i in xrange(len(entries))}
+                            for i in range(len(entries))}
 
         # If we are editing an already existing entry get additional infos from
         # it.

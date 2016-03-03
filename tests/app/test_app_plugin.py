@@ -75,7 +75,7 @@ class TestAppPlugin(object):
         plugin.validate_closing(window, ev)
 
         assert not ev.is_accepted()
-        assert not manifest2.called
+        assert not manifest2.called or not manifest1.called
 
         manifest1.accept = True
         manifest2.accept = True

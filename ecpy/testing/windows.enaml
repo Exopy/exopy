@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from enaml.core.api import Include
 from enaml.widgets.api import Window, Container, Notebook, DockArea
-from enaml.layout.api import InsertItem
+from enaml.layout.api import HSplitLayout
 
 
 enamldef ContainerTestingWindow(Window):
@@ -50,12 +50,12 @@ enamldef DockItemTestingWindow(Window):
 
     alias area : area_
 
-    activated ::
+    initialized ::
         set_layout()
 
     func set_layout():
-        op = InsertItem(item=widget.name)
-        area_.update_layout(op)
+        # Define explicitely the layout
+        area_.layout = HSplitLayout(widget.name)
 
     Container:
         DockArea: area_:

@@ -507,7 +507,8 @@ def test_text_monitor_item(text_monitor_workbench, monitor, dialog_sleep):
     monitor.handle_database_change(('added', 'root/comp/index', 0))
     monitor.move_entries('displayed', 'undisplayed',
                          [monitor.displayed_entries[0]])
-    w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor))
+    w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor,
+                                                     name='test'))
     w.show()
     process_app_events()
     f = w.widget.dock_widget()

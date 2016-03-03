@@ -33,7 +33,6 @@ def test_tool_selector(windows, measure, dialog_sleep):
     process_app_events()
     widgets = dial.central_widget().widgets()
 
-    assert not widgets[-2].enabled
     assert len(widgets[0].items) == (len(dial.measure.plugin.pre_hooks) -
                                      len(dial.measure.pre_hooks))
     widgets[0].selected_item = 'Dummy'
@@ -98,8 +97,6 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
         process_app_events()
         sleep(dialog_sleep)
 
-        widgets[-2].clicked = True
-
     with handle_dialog(custom=add_tool_1):
         pre_hook_ed.widgets()[-4].clicked = True
 
@@ -132,12 +129,12 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
     pre_hook_ed.widgets()[-2].clicked = True
     process_app_events()
     sleep(dialog_sleep)
-    assert measure.pre_hooks.keys()[-2] == 'dummy'
+    assert list(measure.pre_hooks)[-2] == 'dummy'
 
     pre_hook_ed.widgets()[-1].clicked = True
     process_app_events()
     sleep(dialog_sleep)
-    assert measure.pre_hooks.keys()[-1] == 'dummy'
+    assert list(measure.pre_hooks)[-1] == 'dummy'
 
     # Remove dummy
     pre_hook_ed.widgets()[-3].clicked = True

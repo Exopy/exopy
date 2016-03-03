@@ -109,6 +109,7 @@ enamldef ClosingContributor(PluginManifest): man:
                 if man.accept:
                     event.accept()
                 else:
+                    print(man.id)
                     event.ignore()
 
 

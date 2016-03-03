@@ -26,14 +26,13 @@ from copy import deepcopy
 from traceback import format_exc
 from types import MethodType
 
-from past.builtins import basestring
 from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
                       Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
 
 from ..utils.atom_util import (tagged_members, update_members_from_preferences,
-                               member_from_pref, member_to_pref)
+                               member_to_pref)
 from ..utils.container_change import ContainerChange
 from .tools.database import TaskDatabase
 from .tools.decorators import (make_parallel, make_wait, make_stoppable,
@@ -542,8 +541,10 @@ class BaseTask(Atom):
 
         """
         if self.database:
-            added = set(new) - set(old)
-            removed = set(old) - set(new)
+            new = set(new)
+            old = set(old) if old else set()
+            added = new - old
+            removed = old - new
             for entry in removed:
                 full_name = self._task_entry(entry)
                 self.remove_from_database(full_name)

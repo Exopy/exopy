@@ -485,146 +485,146 @@ def test_stopping_processing_in_hook(processor, measure_with_tools):
     assert measure2.status == 'READY'
 
 
-#@pytest.mark.timeout(240)
-#def test_stopping_processing_while_in_pause(processor, measure_with_tools):
-#    """Test stopping processing while in pause before starting main.
-#
-#    """
-#    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
-#    measure2 = Measure(plugin=plugin, root_task=RootTask(),
-#                       name='Dummy', id='002')
-#    processor.plugin.enqueued_measures.add(measure2)
-#
-#    def wait_on_state_paused(timeout):
-#        return processor._state.wait(timeout, 'paused')
-#
-#    measure = measure_with_tools
-#    processor.start_measure(measure)
-#
-#    pre_hook = measure.pre_hooks['dummy']
-#    assert pre_hook.waiting.wait(5)
-#    process_app_events()
-#
-#    processor.pause_measure()
-#    pre_hook.accept_pause = False
-#    pre_hook.go_on.set()
-#
-#    wait_and_process(wait_on_state_paused)
-#
-#    processor.stop_processing(no_post_exec=True)
-#    sleep(0.2)
-#
-#    def wait(timeout):
-#        processor._thread.join(timeout)
-#        return not processor._thread.is_alive()
-#
-#    wait_and_process(wait)
-#    assert measure.status == 'INTERRUPTED'
-#    m = processor.plugin.workbench.get_manifest('test.measure')
-#    assert not m.find('runtime_dummy1').collected
-#    assert not m.find('runtime_dummy2').collected
-#
-#    assert measure2.status == 'READY'
-#
-#
-#@pytest.mark.timeout(240)
-#def test_pausing_measure(processor, measure_with_tools):
-#    """Test running a complete measure with pre/post-hooks and monitor.
-#
-#    """
-#    measure = measure_with_tools
-#    measure.add_tool('pre-hook', 'dummy2')
-#    measure.move_tool('pre-hook', 2, 0)
-#    measure.add_tool('post-hook', 'dummy2')
-#    processor.start_measure(measure)
-#
-#    def wait_on_state_paused(timeout):
-#        return processor._state.wait(timeout, 'paused')
-#
-#    pre_hook = measure.pre_hooks['dummy2']
-#    assert pre_hook.waiting.wait(5)
-#    process_app_events()
-#
-#    # Pause inside a pre_hook.
-#    processor.pause_measure()
-#    process_app_events()
-#    assert measure.status == 'PAUSING'
-#    pre_hook.go_on.set()
-#    wait_and_process(wait_on_state_paused)
-#    assert measure.status == 'PAUSED'
-#
-#    processor.resume_measure()
-#    wait_and_process(pre_hook.signal_resuming.wait)
-#    assert measure.status == 'RESUMING'
-#    pre_hook.go_on_resuming.set()
-#    wait_and_process(pre_hook.signal_resumed.wait)
-#    assert measure.status == 'RUNNING'
-#
-#    # Pause in between two pre_hooks
-#    processor.pause_measure()
-#    pre_hook.go_on_resumed.set()
-#    wait_and_process(wait_on_state_paused)
-#    assert measure.status == 'PAUSED'
-#    processor.resume_measure()
-#
-#    # Pause just before starting the main measure.
-#    pre_hook2 = measure.pre_hooks['dummy']
-#    pre_hook2.accept_pause = False
-#    wait_and_process(pre_hook2.waiting.wait)
-#    assert measure.status == 'RUNNING'
-#    processor.pause_measure()
-#    pre_hook2.go_on.set()
-#    wait_and_process(wait_on_state_paused)
-#    processor.resume_measure()
-#
-#    # Pause during the main task execution.
-#    wait_and_process(processor.engine.waiting.wait)
-#    processor.pause_measure()
-#    processor.engine.go_on.set()
-#    wait_and_process(wait_on_state_paused)
-#    assert measure.status == 'PAUSED'
-#    processor.resume_measure()
-#    wait_and_process(processor.engine.signal_resuming.wait)
-#    assert measure.status == 'RESUMING'
-#    processor.engine.go_on_resuming.set()
-#    wait_and_process(processor.engine.signal_resumed.wait)
-#    assert measure.status == 'RUNNING'
-#    processor.engine.go_on_resumed.set()
-#
-#    # Pause inside a post_hook.
-#    post_hook = measure.post_hooks['dummy']
-#    wait_and_process(post_hook.waiting.wait)
-#    processor.pause_measure()
-#    process_app_events()
-#    assert measure.status == 'PAUSING'
-#    post_hook.go_on.set()
-#    wait_and_process(wait_on_state_paused)
-#    assert measure.status == 'PAUSED'
-#
-#    processor.resume_measure()
-#    wait_and_process(post_hook.signal_resuming.wait)
-#    assert measure.status == 'RESUMING'
-#    post_hook.go_on_resuming.set()
-#    wait_and_process(post_hook.signal_resumed.wait)
-#    assert measure.status == 'RUNNING'
-#
-#    # Pause in between two post_hooks
-#    processor.pause_measure()
-#    post_hook.go_on_resumed.set()
-#    wait_and_process(wait_on_state_paused)
-#    assert measure.status == 'PAUSED'
-#    processor.resume_measure()
-#
-#    post_hook2 = measure.post_hooks['dummy2']
-#    wait_and_process(post_hook2.waiting.wait)
-#    post_hook2.go_on.set()
-#
-#    processor._thread.join()
-#    process_app_events()
-#    assert measure.status == 'COMPLETED'
-#    m = processor.plugin.workbench.get_manifest('test.measure')
-#    assert not m.find('runtime_dummy1').collected
-#    assert not m.find('runtime_dummy2').collected
+@pytest.mark.timeout(240)
+def test_stopping_processing_while_in_pause(processor, measure_with_tools):
+    """Test stopping processing while in pause before starting main.
+
+    """
+    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
+    measure2 = Measure(plugin=plugin, root_task=RootTask(),
+                       name='Dummy', id='002')
+    processor.plugin.enqueued_measures.add(measure2)
+
+    def wait_on_state_paused(timeout):
+        return processor._state.wait(timeout, 'paused')
+
+    measure = measure_with_tools
+    processor.start_measure(measure)
+
+    pre_hook = measure.pre_hooks['dummy']
+    assert pre_hook.waiting.wait(5)
+    process_app_events()
+
+    processor.pause_measure()
+    pre_hook.accept_pause = False
+    pre_hook.go_on.set()
+
+    wait_and_process(wait_on_state_paused)
+
+    processor.stop_processing(no_post_exec=True)
+    sleep(0.2)
+
+    def wait(timeout):
+        processor._thread.join(timeout)
+        return not processor._thread.is_alive()
+
+    wait_and_process(wait)
+    assert measure.status == 'INTERRUPTED'
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
+
+    assert measure2.status == 'READY'
+
+
+@pytest.mark.timeout(240)
+def test_pausing_measure(processor, measure_with_tools):
+    """Test running a complete measure with pre/post-hooks and monitor.
+
+    """
+    measure = measure_with_tools
+    measure.add_tool('pre-hook', 'dummy2')
+    measure.move_tool('pre-hook', 2, 0)
+    measure.add_tool('post-hook', 'dummy2')
+    processor.start_measure(measure)
+
+    def wait_on_state_paused(timeout):
+        return processor._state.wait(timeout, 'paused')
+
+    pre_hook = measure.pre_hooks['dummy2']
+    assert pre_hook.waiting.wait(5)
+    process_app_events()
+
+    # Pause inside a pre_hook.
+    processor.pause_measure()
+    process_app_events()
+    assert measure.status == 'PAUSING'
+    pre_hook.go_on.set()
+    wait_and_process(wait_on_state_paused)
+    assert measure.status == 'PAUSED'
+
+    processor.resume_measure()
+    wait_and_process(pre_hook.signal_resuming.wait)
+    assert measure.status == 'RESUMING'
+    pre_hook.go_on_resuming.set()
+    wait_and_process(pre_hook.signal_resumed.wait)
+    assert measure.status == 'RUNNING'
+
+    # Pause in between two pre_hooks
+    processor.pause_measure()
+    pre_hook.go_on_resumed.set()
+    wait_and_process(wait_on_state_paused)
+    assert measure.status == 'PAUSED'
+    processor.resume_measure()
+
+    # Pause just before starting the main measure.
+    pre_hook2 = measure.pre_hooks['dummy']
+    pre_hook2.accept_pause = False
+    wait_and_process(pre_hook2.waiting.wait)
+    assert measure.status == 'RUNNING'
+    processor.pause_measure()
+    pre_hook2.go_on.set()
+    wait_and_process(wait_on_state_paused)
+    processor.resume_measure()
+
+    # Pause during the main task execution.
+    wait_and_process(processor.engine.waiting.wait)
+    processor.pause_measure()
+    processor.engine.go_on.set()
+    wait_and_process(wait_on_state_paused)
+    assert measure.status == 'PAUSED'
+    processor.resume_measure()
+    wait_and_process(processor.engine.signal_resuming.wait)
+    assert measure.status == 'RESUMING'
+    processor.engine.go_on_resuming.set()
+    wait_and_process(processor.engine.signal_resumed.wait)
+    assert measure.status == 'RUNNING'
+    processor.engine.go_on_resumed.set()
+
+    # Pause inside a post_hook.
+    post_hook = measure.post_hooks['dummy']
+    wait_and_process(post_hook.waiting.wait)
+    processor.pause_measure()
+    process_app_events()
+    assert measure.status == 'PAUSING'
+    post_hook.go_on.set()
+    wait_and_process(wait_on_state_paused)
+    assert measure.status == 'PAUSED'
+
+    processor.resume_measure()
+    wait_and_process(post_hook.signal_resuming.wait)
+    assert measure.status == 'RESUMING'
+    post_hook.go_on_resuming.set()
+    wait_and_process(post_hook.signal_resumed.wait)
+    assert measure.status == 'RUNNING'
+
+    # Pause in between two post_hooks
+    processor.pause_measure()
+    post_hook.go_on_resumed.set()
+    wait_and_process(wait_on_state_paused)
+    assert measure.status == 'PAUSED'
+    processor.resume_measure()
+
+    post_hook2 = measure.post_hooks['dummy2']
+    wait_and_process(post_hook2.waiting.wait)
+    post_hook2.go_on.set()
+
+    processor._thread.join()
+    process_app_events()
+    assert measure.status == 'COMPLETED'
+    m = processor.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
 
 
 def test_monitor_creation(processor, measure, dialog_sleep):
