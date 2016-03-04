@@ -4,6 +4,10 @@
 sudo: false
 dist: trusty
 
+branches:
+  only:
+    - master
+
 matrix:
   include:
     - env: PYTHON=2.7
@@ -31,7 +35,7 @@ before_install:
   - $PIP_INSTALL configobj watchdog
 
   # Install enaml/atom/kiwisolver from sources as we need the latest bug fixes and Py2/3 compat
-  - $PIP_INSTALL https://github.com/MatthieuDartiailh/kiwi/tarball/master
+  - $PIP_INSTALL https://github.com/MatthieuDartiailh/kiwi/tarball/py3
   - $PIP_INSTALL https://github.com/MatthieuDartiailh/atom/tarball/py23
   - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml/tarball/parser23
 
