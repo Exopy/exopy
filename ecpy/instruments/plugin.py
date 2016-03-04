@@ -30,7 +30,7 @@ from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
-from .infos import ManufacturerHolder
+from .infos import ManufacturerHolder, ProfileInfos
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +211,12 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     def release_instrument(self, user_id, profile_id):
         """
         """
-        pass # XXXX
+        pass  # XXXX
+
+    def get_aliases(self, manufacturer):
+        """
+        """
+        pass  # XXXX
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -270,7 +275,8 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                     profile_path = os.path.join(path, filename)
                     # Beware redundant names are overwrited
                     name = filename[:-len('.instr.ini')]
-                    profiles[name] = profile_path
+                    profiles[name] = ProfileInfos(path=profile_path,
+                                                  plugin=self)
             else:
                 logger = logging.getLogger(__name__)
                 logger.warn('{} is not a valid directory'.format(path))
