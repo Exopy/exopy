@@ -20,6 +20,8 @@ from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
+from .instrument_selection import ModelSelectionDialog
+
 
 class SetValidator(Validator):
     """Validator allowing names which does not yet exist.
@@ -29,7 +31,7 @@ class SetValidator(Validator):
     existing = Coerced(set)
 
     def validate(self, text):
-        """Check thet name does yet exist.
+        """Check that the name does yet exist.
 
         """
         return text not in self.existing
@@ -39,15 +41,14 @@ enamldef ConnectionCreationDialog(Dialog): dial:
     """Dialog allowing the user to select the connection to add to the profile.
 
     """
-    #: Reference to the editor that opened that dialog.
-    attr editor
+    #: Reference to the instrument plugin
+    attr plugin
+
+    #: Instrument model infos for which to create the connection
+    attr model_infos
 
     #: Currently selected connection declaration.
     attr connection
-
-    initialized ::
-        # XXXX setup connection
-        pass
 
     Container:
 
@@ -55,10 +56,10 @@ enamldef ConnectionCreationDialog(Dialog): dial:
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = ids_to_unique_names(plugin.connections)
+            items = ids_to_unique_names(model_infos.connections)
             selected_item ::
                 c_id = items[selected_item]
-                # XXXX query infos from editor
+                infos = model_infos.connections[selected_item]
                 dial.c_decl = plugin.create_connection(c_id, infos)
 
         Label: lab:
@@ -117,15 +118,14 @@ enamldef SettingsCreationDialog(Dialog):
     """Dialog allowing the user to select the settings to add to the profile.
 
     """
-    #: Reference to the editor that opened that dialog.
-    attr editor
+    #: Reference to the instrument plugin
+    attr plugin
+
+    #: Instrument model infos for which to create the settings
+    attr model_infos
 
     #: Settings instance to insert.
     attr settings
-
-    initialized ::
-        # XXXX setup settings
-        pass
 
     Container:
 
@@ -133,11 +133,11 @@ enamldef SettingsCreationDialog(Dialog):
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = ids_to_unique_names(editor.plugin.connections)
+            items = ids_to_unique_names(model_infos.settings)
             selected_item ::
                 s_id = items[selected_item]
-                # XXXX query the infos from the editor
-                dial.settings = plugin.create_settings(s_id, infos)
+                infos = model_infos.settings[selected_item]
+                dial.c_decl = plugin.create_settings(s_id, infos)
 
         Label: lab:
             text << settings.declaration.id if settings else ''
@@ -163,8 +163,10 @@ enamldef ProfileEditionWidget(Container): main:
     #: Reference to the instrument plugin.
     attr plugin
 
-    #: Info about the currently selected model.
-    attr model_info
+    #: ProfileInfos driving this widget. Not that the infos are not kept in
+    #: sync at all time and one should call sync before inspecting the content
+    #: of the member.
+    attr profile_infos
 
     #: Connections editors opened.
     alias connections : cons.items
@@ -172,30 +174,26 @@ enamldef ProfileEditionWidget(Container): main:
     #: Settings editors opened.
     alias settings : setts.items
 
-    func assemble_profile():
-        """Gather all the profile infos into a ConfigObj object.
+    #: Prevent edition while allowing to navigate the notebooks.
+    attr read_only : bool = False
+
+    func sync():
+        """Synchronize the UI with the underlying model.
+
+        This is needed to update the connections and settings.
 
         """
-        profile = ConfigObj()
-        profile['id'] = id_val.text
-        profile['model_id'] = model_info.id
-
-        profile['connections'] = {}
-        cs = profile['connections']
+        cs = profile_infos._config['connections']
+        cs.clear()
         for c in connections:
             cs[c.declaration.id] = c.gather_infos()
 
-        profile['settings'] = {}
-        sts = profile['settings']
+        sts = profile_infos._config['settings']
+        sts.clear()
         for s in settings:
             cs[s.name] = s.gather_infos()
 
-        return profile
-
-    func fill_from_profile(profile):
-        """Use an existing profile to fill the UI.
-
-        """
+    initialized ::
         profile = profile._config
         id_val.text = profile['id']
         main.model_info = plugin.get_model_info(profile['model_id'])
@@ -205,94 +203,124 @@ enamldef ProfileEditionWidget(Container): main:
         for k, v in profile.get('settings', {}).items():
             plugin.create_settings(k, v)
 
+    constraints = [vbox(hbox(id_lab, id_val),
+                        hbox(model_lab, model, m_choose),
+                        *nb.items]
+
     Label: id_lab:
         text = 'Id'
     Field: id_val:
+        text := profile_infos.id
         validator << SetValidator(existing=plugin.profiles)
+        enabled = not read_only
 
     Label: model_lab:
         text = 'Instrument'
     Field: model:
+        text << profile_infos.model.id if profile_infos.model else ''
         read_only = True
-    PushButton:
+    PushButton: m_choose:
         text = 'Choose'
+        visible = not read_only
         clicked ::
-            # XXXX here should invoke appropriate dialog no need to go through
-            # the plugin.
-            new = plugin.select_instrument_model(model=model_info)
-            if new:
+            dial = ModelSelectionDialog(parent=self, plugin=plugin,
+                                        model=profile_infos.model)
+            if dial.exec_():
+                new = dial.model
                 main.connections = [c for c in main.connections
                                     if c.declaration.id in new.connections]
                 main.settings = [s for s in main.settings
                                  if s in s.declaration.id in new.settings]
-                main.model_info = new
+                main.profile_infos.model = new
 
-    Notebook:
-        tabs_closable = False
-        tabs_movable = False
-        Page:
-            title = 'Connections'
-            Container:
+    Conditional: nb:
+        condition << bool(profile_infos.model)
 
-                constraints = [hbox(conns, *(tuple(s_conn.objects) +
-                                             (vbox(add_c, del_c, val_c))))]
+        Notebook:
+            tabs_closable = False
+            tabs_movable = False
+            Page:
+                title = 'Connections'
+                Container:
 
-                QtListStrEditor: conns:
-                    sort = False
-                    to_string = lambda c: c.title
-                Include: s_conn:
-                    objects << (conns.selected_item if conns.selected_item
-                                else [Container()])
-                PushButton: add_c:
-                    text = 'Add'
-                    enabled << set(connections) != set(model_info.connections)
-                    clicked ::
-                        dial = ConnectionCreationDialog(editor=main)
-                        dial.exec_()
-                        if dial.connection:
-                            main.connections = (main.connections[:] +
-                                                [dial.connection])
-                            conns.selected_item = dial.connection
-                PushButton: del_c:
-                    text = 'Delete'
-                    enabled << bool(connections)
-                    clicked ::
-                        s = main.connections[:]
-                        del s[self.selected_index]
-                        main.connections = s
-                PushButton: val_c:
-                    text = 'Validate'
-                    clicked ::
-                        selected = conns.selected_item
-                        dial = ConnectionValidationDialog(editor=main,
-                                                          connection=selected)
-                        dial.exec_()
+                    constraints = ([hbox(conns, *(tuple(s_conn.objects) +
+                                                  (vbox(add_c, del_c, val_c,
+                                                        spacer))))]
+                                   if not read_only else
+                                   [hbox(conns, *(tuple(s_conn.objects) +
+                                                  (vbox(val_c, spacer))))])
 
-        Page:
-            title = 'Settings'
-            Container:
+                    QtListStrEditor: conns:
+                        sort = False
+                        to_string = lambda c: c.title
+                    Include: s_conn:
+                        destroy_old = False
+                        objects << (conns.selected_item if conns.selected_item
+                                    else [Container()])
+                    PushButton: add_c:
+                        text = 'Add'
+                        enabled << (set(connections) !=
+                                    set(profile_infos.model.connections))
+                        visible = not read_only
+                        clicked ::
+                            kw = {'plugin': plugin,
+                                  'model_info': profile_infos.model}
+                            dial = ConnectionCreationDialog(**kw)
+                            dial.exec_()
+                            if dial.connection:
+                                dial.connection.read_only = read_only
+                                main.connections = (main.connections[:] +
+                                                    [dial.connection])
+                                conns.selected_item = dial.connection
+                    PushButton: del_c:
+                        text = 'Delete'
+                        enabled << bool(connections)
+                        visible = not read_only
+                        clicked ::
+                            s = main.connections[:]
+                            del s[self.selected_index]
+                            main.connections = s
+                    PushButton: val_c:
+                        text = 'Validate'
+                        clicked ::
+                            selected = conns.selected_item
+                            d = ConnectionValidationDialog(editor=main,
+                                                           connection=selected)
+                            d.exec_()
 
-                constraints = [hbox(setts, *(tuple(s_sett.objects) +
-                                             (vbox(add_s, del_s))))]
+            Page:
+                title = 'Settings'
+                Container:
 
-                QtListStrEditor: setts:
-                    sort = False
-                    to_string = lambda s: s.name
-                Include: s_sett:
-                    objects << (setts.selected_item if setts.selected_item
-                                else [Container()])
-                PushButton: add_s:
-                    text = 'Add'
-                    clicked ::
-                        dial = SettingsCreationDialog(editor=main)
-                        dial.exec_()
-                        if dial.settings:
-                            main.settings = (main.settings[:] +
-                                             [dial.settings])
-                            conns.selected_item = dial.settings
-                PushButton: del_s:
-                    text = 'Delete'
-                    clicked ::
-                        s = main.settings[:]
-                        del s[self.selected_index]
-                        main.settings = s
+                    constraints = ([hbox(setts, *(tuple(s_sett.objects) +
+                                                  (vbox(add_s, del_s))))]
+                                   if not read_only else
+                                   [hbox(setts, *s_sett.objects)])
+
+                    QtListStrEditor: setts:
+                        sort = False
+                        to_string = lambda s: s.name
+                    Include: s_sett:
+                        destroy_old = False
+                        objects << (setts.selected_item if setts.selected_item
+                                    else [Container()])
+                    PushButton: add_s:
+                        text = 'Add'
+                        visible = not read_only
+                        clicked ::
+                            kw = {'plugin': plugin,
+                                  'model_info': profile_infos.model}
+                            dial = SettingsCreationDialog(**kw)
+                            dial.exec_()
+                            if dial.settings:
+                                dial.settings.read_only = read_only
+                                main.settings = (main.settings[:] +
+                                                 [dial.settings])
+                                conns.selected_item = dial.settings
+                    PushButton: del_s:
+                        text = 'Delete'
+                        visible = not read_only
+                        clicked ::
+                            s = main.settings[:]
+                            del s[self.selected_index]
+                            main.settings = s
