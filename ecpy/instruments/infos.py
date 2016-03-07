@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from collection import defaultdict
 from itertools import chain
 
+from configobj import ConfigObj
 from atom.api import (Atom, Unicode, Dict, Callable, List, Property, Typed,
                       Bool, Enum, Value)
 
@@ -386,16 +387,31 @@ class ProfileInfos(Atom):
     #: Supported model
     model = Typed(InstrumentModelInfos)
 
-    #: Names of the connections
-    connections = List()
+    #: Dict of the connections
+    connections = Dict()
 
-    #: names of the settings
-    settings = List()
+    #: Dict of the settings
+    settings = Dict()
 
-    def update_profile(self, profile_dict):
+    def write_to_file(self):
+        """Save the profile to a file.
+
         """
+        self._config.filename = self.path
+        self._config.update(**dict(id=self.id, model_id=self.model.id,
+                                   connections=self.connections,
+                                   settings=self.settings))
+        self._config.write()
+
+    def clone(self):
+        """Clone this object.
+
         """
-        pass
+        c = self._config.copy()
+        c.update(**dict(id=self.id, model_id=self.model.id,
+                        connections=self.connections,
+                        settings=self.settings))
+        return type(self)(path=self.path, _config=c)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -404,22 +420,39 @@ class ProfileInfos(Atom):
     #: ConfigObj object associated to the profile.
     _config = Value()
 
+    def _default_id(self):
+        """Get the id from the profile.
+
+        """
+        return self._config['id']
+
     def _default_model(self):
+        """Get the model from the profile.
+
         """
-        """
-        pass
+        return self._config['model_id']
 
     def _default_connections(self):
+        """Get the defined connections from the profile.
+
         """
-        """
-        pass
+        return dict(self._config['connections'])
 
     def _default_settings(self):
+        """Get the defined settings from the profile.
+
         """
-        """
-        pass
+        return dict(self._config['settings'])
 
     def _default__config(self):
+        """Load the config from the file.
+
         """
+        return ConfigObj(self.path)
+
+    def _post_setattr__config(self, old, new):
+        """Clean id, model, connections and settings so that default is called
+        again.
+
         """
-        pass
+        del self.id, self.model, self.connections, self.settings
