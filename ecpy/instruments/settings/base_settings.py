@@ -15,7 +15,7 @@ if several are available for example.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, ForwardTyped
+from atom.api import Unicode, ForwardTyped, Bool
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox
 
@@ -30,6 +30,9 @@ class BaseSettings(GroupBox):
 
     #: Reference to the declaration that created this object.
     declaration = d_(ForwardTyped(lambda: Settings))
+
+    #: Whether or not to make the settings editable
+    read_only = d_(Bool())
 
     @d_func
     def gather_infos(self):

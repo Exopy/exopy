@@ -20,6 +20,7 @@ from enaml.stdlib.fields import IntField
 from .base_connection import BaseConnection
 
 
+
 enamldef RawVisaConnection(BaseConnection):
     """Connection allowing to enter directly the VISA resource name.
 
@@ -52,6 +53,7 @@ enamldef VisaConnection(BaseConnection):
         text = 'Resource class'
 
     ObjectCombo: rc_value:
+        enabled = read_only
         items = ['INSTR']
 
     gather_infos => ():
@@ -85,6 +87,7 @@ enamldef VisaRS232(VisaConnection):
     Label: b_lab:
         text = 'Board/Port'
     IntFiedl: b_val:
+        enabled = read_only
         minimum = 0
 
 
@@ -118,6 +121,7 @@ enamldef VisaGPIB(BaseConnection):
     Label: a_lab:
         text = 'Address'
     IntFiedl: a_val:
+        enabled = read_only
         minimum = 0
         maximum = 30
 
@@ -133,12 +137,14 @@ enamldef VisaGPIB(BaseConnection):
             text = 'Board'
             tool_tip = b_tooltip
         IntFiedl: b_val:
+            enabled = read_only
             minimum = 0
             tool_tip = b_tooltip
 
         Label: sa_lab:
             text = 'Secondary address'
         IntFiedl: sa_val:
+            enabled = read_only
             minimum = 0
 
 
@@ -182,16 +188,19 @@ enamldef VisaUSB(BaseConnection):
     Label: m_lab:
         text = 'Manufacturer ID'
     Field: m_val:
+        enabled = read_only
         tool_tip = address_format
 
     Label: a_lab:
         text = 'Model code'
     Field: a_val:
+        enabled = read_only
         tool_tip = address_format
 
     Label: a_lab:
         text = 'Serial number'
     Field: a_val:
+        enabled = read_only
         tool_tip = address_format
 
     CheckBox: adv:
@@ -207,11 +216,13 @@ enamldef VisaUSB(BaseConnection):
             tool_tip = b_tooltip
         IntFiedl: b_val:
             minimum = 0
+            enabled = read_only
             tool_tip = b_tooltip
 
         Label: us_lab:
             text = 'USB interface number'
         IntFiedl: us_val:
+            enabled = read_only
             minimum = 0
 
 
@@ -264,7 +275,7 @@ enamldef VisaTCPIP(BaseConnection):
     Label: a_lab:
         text = 'IP address'
     Field: a_val:
-        pass
+        enabled = read_only
 
     Conditional:
         condition << resource_class == 'SOCKET'
@@ -272,6 +283,7 @@ enamldef VisaTCPIP(BaseConnection):
         Label: p_lab:
             text = 'Port'
         IntField: a_val:
+            enabled = read_only
             minimum = 0
 
     CheckBox: adv:
@@ -289,6 +301,7 @@ enamldef VisaTCPIP(BaseConnection):
         IntFiedl: b_val:
             minimum = 0
             tool_tip = b_tooltip
+            enabled = read_only
 
         Conditional:
             condition << resource_class == 'INSTR'
@@ -296,4 +309,5 @@ enamldef VisaTCPIP(BaseConnection):
             Label: la_lab:
                 text = 'LAN device name'
             Field: la_val:
+                enabled = read_only
                 pass
