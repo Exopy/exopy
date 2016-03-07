@@ -119,6 +119,7 @@ enamldef ModelView(Form):
                                     loop_item.infos['architecture'])
     Label:
         text = 'Connections'
+    Container:
         Looper:
             iterable = model.connections
             Field:
@@ -126,6 +127,7 @@ enamldef ModelView(Form):
 
     Label:
         text = 'Settings'
+    Container:
         Looper:
             iterable = model.settings
             Field:

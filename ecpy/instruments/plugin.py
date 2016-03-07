@@ -70,6 +70,10 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     #: List of registered settings.
     settings = List()
 
+    #: Currently used profiles.
+    #: This dict should be edited by user code.
+    used_profiles = Dict()
+
     def start(self):
         """Start the plugin lifecycle by collecting all contributions.
 
@@ -203,13 +207,48 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         s_decl = self._settings.contributions[settings_id]
         return s_decl.new(self.workbench, infos)
 
-    def get_instrument(self, user_id, profile_id, driver_id):
+    def get_drivers(self, drivers):
+        """Query drivers class.
+
+        Parameters
+        ----------
+        drivers : list
+            List of driver ids for which the matching class should be returned.
+
+        Returns
+        -------
+        drivers : dict
+            Requested drivers per id.
+
         """
+        pass
+
+    def get_profiles(self, user_id, profiles):
+        """Query profiles for use by a declared user.
+
+        Parameters
+        ----------
+        user_id : unicode
+            Id of the user which request the authorization to use the
+            instrument.
+
+        profile_id : list
+            Ids of the instrument profiles which are requested.
+
+        Returns
+        -------
+        profiles : dict
+            Requested profiles as a dictionary.
+
         """
         pass  # XXXX
 
-    def release_instrument(self, user_id, profile_id):
-        """
+    def release_profiles(self, user_id, profiles):
+        """Release some previously acquired profiles.
+
+        The user should not maintain any communication with the instruments
+        whose profiles have been released after calling this method.
+
         """
         pass  # XXXX
 

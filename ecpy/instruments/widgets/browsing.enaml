@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to select a model.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.core.api import Include, Conditional, Looper
+from enaml.widgets.api import (Dialog, Label, Container, ScrollArea, Notebook,
+                               Page, PushButton, Form, Field)
+from enaml.layout.api import vbox, hbox
+
+from .instrument_selection import ModelSelectionWidget, ModelView
+from .profile_edition import ProfileEditionWidget, ProfileEditionDailog
+
+
+enamldef BrowsingDialog(Dialog):
+    """Dialog allowing to explore the resources available to the plugin.
+
+    """
+    #: Reference to the instrument plugin driving this dialog.
+    attr plugin
+
+    Container:
+
+       Notebook:
+           tabs_movable = False
+           tabs_closable = False
+
+           Page:
+               title = 'Instrument models'
+
+           Page:
+               title = 'Profiles'
+
+           Page:
+               title = 'Profiles use'

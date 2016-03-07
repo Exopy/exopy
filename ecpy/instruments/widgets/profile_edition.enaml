@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from configobj import ConfigObj
 from atom.api import Coerced
 from enaml.validator import Validator
+from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
                                Dialog, MultilineField, ObjectCombo)
 
@@ -324,3 +325,32 @@ enamldef ProfileEditionWidget(Container): main:
                             s = main.settings[:]
                             del s[self.selected_index]
                             main.settings = s
+
+
+enamldef ProfileEditionDialog(Dialog): dial:
+    """Dialog allowing to edit a profile infos.
+
+    """
+    #: Reference to the instrument plugin.
+    alias plugin : ed.plugin
+
+    #: ProfileInfos to edit.
+    alias profile_infos : ed.profile_infos
+
+    Container:
+
+        constraints = [vbox(ed, hbox(spacer, can, ok))]
+
+        ProfileEditionWidget: ed:
+            pass
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                ed.sync()
+                dial.accept()
