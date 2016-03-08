@@ -15,13 +15,14 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.core.api import Include, Conditional, Looper
 from enaml.widgets.api import (Dialog, Label, Container, ScrollArea, Notebook,
                                Page, PushButton, Form, Field)
-from enaml.layout.api import vbox, hbox
+from enaml.layout.api import vbox, hbox, spacer
 
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from .instrument_selection import ModelSelectionWidget, ModelView
-from .profile_edition import ProfileEditionWidget, ProfileEditionDailog
+from .profile_edition import ProfileEditionWidget, ProfileEditionDialog
 
 
-enamldef BrowsingDialog(Dialog):
+enamldef BrowsingDialog(Dialog): dial:
     """Dialog allowing to explore the resources available to the plugin.
 
     """
@@ -36,9 +37,58 @@ enamldef BrowsingDialog(Dialog):
 
            Page:
                title = 'Instrument models'
+               Container:
+
+                    constraints << [hbox(m_sel, *m_dis.objects)]
+
+                    ModelSelectionWidget: m_sel:
+                        plugin = dial.plugin
+                        kind = 'All'
+                        use_series = True
+                    Include: m_dis:
+                        objects << (ModelView(model=m_sel.model)
+                                    if m_sel.model else Container())
 
            Page:
                title = 'Profiles'
+               Container:
+
+                   alias p_id : p_sel.selected_item
+
+                    constraints << [vbox(hbox(p_sel, *p_dis.objects),
+                                         hbox(spacer, p_ed)]
+
+                   QtListStrWidget: p_sel:
+                       items << plugin.profiles
+                   Include: p_dis:
+                        objects << (ProfileEditionWidget(
+                                        profile_infos=plugin._profiles[p_id],
+                                        read_only=True)
+                                    if p_id else Container())
+                   PushButton: p_ed:
+                       text = 'Edit'
+                       enabled << p_id and p_id not in plugin.used_profiles
+                       clicked ::
+                           p = plugin._profiles[p_id].clone()
+                           d = ProfileEditionDialog(profile_infos=p)
+                           if d.exec_():
+                               ps = plugin._profiles.copy()
+                               ps[p_id] = p
+                               plugin._profiles = ps
 
            Page:
                title = 'Profiles use'
+               Container:
+                   ScrollArea:
+                       Form:
+                           Label:
+                               text = 'Profile'
+                           Label:
+                               text = 'User'
+                           Looper:
+                               items << plugin.used_profiles.items()
+                               Label:
+                                   text = loop_item[0]
+                               Field:
+                                   text = loop_item[1]
+                                   read_only = True
