@@ -12,32 +12,47 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import logging
+
 from enaml.core.api import Conditional
 from enaml.widgets.api import Field, Label, Form, CheckBox, ObjectCombo
 from enaml.layout.api import hbox, vbox, grid, align
 from enaml.stdlib.fields import IntField
 
-from .base_connection import BaseConnection
+from .base_connection import BaseConnection, Connection
 
+logger = logging.getLogger(__name__)
 
-
-enamldef RawVisaConnection(BaseConnection):
+enamldef VisaRaw(BaseConnection):
     """Connection allowing to enter directly the VISA resource name.
 
     This allows to support VISA aliases.
 
     """
-    # XXXX
-    pass
+    #: Full visa resource name. Can be an alias or an address added manually.
+    alias resource_name : rn_val.text
+
+    constraints = [hbox(rn_lab, rn_val)]
+
+    Label: rn_lab:
+        text = 'Resource name'
+    Field: rn_val:
+        pass
+
+    gather_infos => ():
+        return {'resource_name': self.resource_name}
+
+    list_defaults => ():
+        return ['resource_name']
 
 
-enamldef VisaConnection(BaseConnection):
+enamldef BaseVisaConnection(BaseConnection):
     """Base class for all connection relying on the VISA protocol.
 
     Names are expected to match the ones found in PyVISA.
 
     """
-    #: Type of connection (GPIB, USB, ect). This should not be editable
+    #: Type of connection (GPIB, USB, etc). This should not be editable
     attr instrument_type
 
     #: Resource class used in the connection (INSTR, RAW (USB), SOCKET(TCPIP))
@@ -65,7 +80,7 @@ enamldef VisaConnection(BaseConnection):
         return d
 
 
-enamldef VisaRS232(VisaConnection):
+enamldef VisaRS232(BaseVisaConnection):
     """Connection settings for serial instruments.
 
     """
@@ -91,7 +106,7 @@ enamldef VisaRS232(VisaConnection):
         minimum = 0
 
 
-enamldef VisaGPIB(BaseConnection):
+enamldef VisaGPIB(BaseVisaConnection):
     """Connection settings for GPIB instruments.
 
     """
@@ -148,7 +163,7 @@ enamldef VisaGPIB(BaseConnection):
             minimum = 0
 
 
-enamldef VisaUSB(BaseConnection):
+enamldef VisaUSB(BaseVisaConnection):
     """Connection settings for USB instruments.
 
     """
@@ -226,7 +241,7 @@ enamldef VisaUSB(BaseConnection):
             minimum = 0
 
 
-enamldef VisaTCPIP(BaseConnection):
+enamldef VisaTCPIP(BaseVisaConnection):
     """Connection settings for USB instruments.
 
     """
@@ -265,7 +280,7 @@ enamldef VisaTCPIP(BaseConnection):
         self.infos.extend(['board', 'host_address', 'LAN_device_name', 'port'])
 
     gather_infos => ():
-        infos = VisaConnection.gather_infos(self)
+        infos = BaseVisaConnection.gather_infos(self)
         if resource_class == 'INSTR':
             del infos['port']
         else:
@@ -311,3 +326,20 @@ enamldef VisaTCPIP(BaseConnection):
             Field: la_val:
                 enabled = read_only
                 pass
+
+
+enamldef VisaConnection(Connection):
+    """Convenience class to declare a VISA connection.
+
+    """
+    new => (workbench, defaults):
+        from .connections import visa_connections
+        cls = getattr(visa_connections, self.id)
+        allowed = cls().list_defaults()
+        unknnown = set(defaults) - set(allowed)
+        if unknown:
+            msg = ('When creating %s connection had to remove unknown '
+                   'arguments.')
+            logger.info(msg % self.id)
+            defaults = {k: v for k, v in defaults.items() if k in allowed}
+        return cls(**defaults)
