@@ -25,7 +25,7 @@ from ...app.dependencies.api import RuntimeDependency
 from ...utils.plugin_tools import make_handler
 
 from .manufacturer_aliases import ManufacturerAlias
-from .connections.visa_connections import # XXXX
+from .connections.visa_connection import VisaConnection
 
 PLUGIN_ID = 'ecpy.instruments'
 
@@ -52,7 +52,7 @@ def manager_plugin_factory():
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
 
-# XXXX
+# XXXX write the description
 DRIVERS_DES =\
 """
 """
@@ -74,6 +74,26 @@ USERS_DESC =\
 """
 
 MANUFACTURER_ALIAS_DESC =\
+"""
+"""
+
+VISA_RS232=\
+"""
+"""
+
+VISA_GPIB=\
+"""
+"""
+
+VISA_TCPIP=\
+"""
+"""
+
+VISA_USB=\
+"""
+"""
+
+VISA_RAW=\
 """
 """
 
@@ -121,12 +141,28 @@ enamldef InstrumenManagertManifest(PluginManifest):
     # --- Extensions ----------------------------------------------------------
     # =========================================================================
 
-    # XXXX add declaration of VISA connections
-
-    # XXXX share the used profiles through state
+    # XXXX add an error handler for driver validation
+    Extension:
+        id = 'default_connections'
+        point = 'ecpy.instruments.connections'
+        VisaConnection:
+            id = 'VisaRS232'
+            description = VISA_RS232
+        VisaConnection:
+            id = 'VisaGPIB'
+            description = VISA_GPIB
+        VisaConnection:
+            id = 'VisaUSB'
+            description = VISA_USB
+        VisaConnection:
+            id = 'VisaTCPIP'
+            description = VISA_TCPIP
+        VisaConnection:
+            id = 'VisaRaw'
+            description = VISA_RAW
 
     Extension:
-        id= 'manufacturer_alias'
+        id = 'manufacturer_alias'
         point = 'ecpy.instruments.manufacturer_aliases'
         ManufacturerAlias:
             name = 'Keysight'
@@ -137,7 +173,7 @@ enamldef InstrumenManagertManifest(PluginManifest):
         point = 'ecpy.app.dependencies.runtime'
         RuntimeDependency:
             id = 'ecpy.instruments'
-            # XXXX
+            # XXXX handle dependencies collections
 
     Extension:
         id = 'prefs'
@@ -146,9 +182,17 @@ enamldef InstrumenManagertManifest(PluginManifest):
             pass
 
     Extension:
+        id = 'state'
+        point = 'ecpy.app.states.state'
+        State:
+            id = 'ecpy.instruments'
+            description = 'Globally available state of the instrument plugin.'
+            sync_members = ['used_profiles']
+
+    Extension:
         id = 'commands'
         point = 'enaml.workbench.core.commands'
-        # XXXX
+        # XXXX Add commands for accessing drivers and profiles
         Command:
             id = 'ecpy.tasks.get_task_infos'
             description = GET_TASK_INFOS_DESCRIPTION
