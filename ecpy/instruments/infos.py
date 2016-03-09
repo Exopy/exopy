@@ -48,7 +48,10 @@ class DriverInfos(Atom):
     #: Settings information.
     settings = Dict()
 
-    # XXXX Need to determine when to call this
+    #: Flag indicating whether or not the informations stored are valid
+    #: and safe to use.
+    valid = Bool()
+
     def validate(self, plugin):
         """Validate that starter, connections, settings ids are all known.
 
@@ -84,6 +87,8 @@ class DriverInfos(Atom):
             if k not in plugin.settings:
                 result = False
                 unknown['settings'].add(k)
+
+        self.valid = result
 
         return result, unknown
 
@@ -412,6 +417,18 @@ class ProfileInfos(Atom):
                         connections=self.connections,
                         settings=self.settings))
         return type(self)(path=self.path, _config=c)
+
+    def get_connection(self, connection):
+        """Retrieve the connection infos associated to an id.
+
+        """
+        return self._config['connections'][connection]
+
+    def get_settings(self, settings):
+        """Retrieve the settings infos associated to an id.
+
+        """
+        return self._config['settings'][settings]
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
