@@ -38,7 +38,7 @@ class InstrUser(Declarative):
         to happen in a relatively short time). The
         'ecpy.instruments.notify_profiles_released' command should not be
         called (the manager knows what profiles it requested and will handle
-        the tracking of the current user for each rpofile itself).
+        the tracking of the current user for each profile itself).
 
         Parameters
         ----------
