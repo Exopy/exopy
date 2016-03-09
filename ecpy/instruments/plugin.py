@@ -46,7 +46,7 @@ SETTINGS_POINT = 'ecpy.instuments.settings'
 
 ALIASES_POINT = 'ecpy.instrumets.manufaturer_aliases'
 
-
+# TODO add a way to specify default values fr settings from the preferences
 class InstrumentManagerPlugin(HasPrefPlugin):
     """The instrument plugin manages the instrument drivers and their use.
 
@@ -145,10 +145,25 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                                              ext_class=Driver)
         self._drivers.start()
 
+        err = False
+        details = {}
+        for d_id, d_infos in self._drivers.contributions.items():
+            res, tb = d_infos.validate(self)
+            if res:
+                err = True
+                details[d_id] = tb
+
+        if err:
+            core.invoke_command('ecpy.app.errors.signal',
+                                {'kind': 'ecpy.driver-validation',
+                                 'details': details})
+        # TODO providing in app a way to have a splash screen while starting to
+        # let the user know what is going on would be nice
+
         for contrib in ('users', 'starters', 'connections', 'settings'):
             self._update_contribs(contrib, None)
 
-        # XXXX handle dynamic addition of drivers by observing contributions
+        # TODO handle dynamic addition of drivers by observing contributions
         # and updating the manufacturers infos accordingly.
 
         self._refresh_profiles()
@@ -208,7 +223,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         return s_decl.new(self.workbench, infos)
 
     def get_drivers(self, drivers):
-        """Query drivers class.
+        """Query drivers class and the associated starters.
 
         Parameters
         ----------
@@ -218,12 +233,20 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         Returns
         -------
         drivers : dict
-            Requested drivers per id.
+            Requested drivers and associated starter indexed by id.
+
+        missing : list
+            List of ids which do not correspond to any known valid driver.
 
         """
-        pass
+        ds = self._drivers.contributions
+        knowns = {d_id: ds[d_id] for d_id in drivers if d_id in ds}
+        missing = list(set(drivers) - set(knowns))
 
-    def get_profiles(self, user_id, profiles):
+        return {d_id: (infos.cls, self._starters[infos.starter])
+                for d_id, infos in knowns.items()}, missing
+
+    def get_profiles(self, user_id, profiles, try_release=True, partial=False):
         """Query profiles for use by a declared user.
 
         Parameters
@@ -235,13 +258,61 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         profile_id : list
             Ids of the instrument profiles which are requested.
 
+        try_release : bool, optional
+            Should we attempt to release currently used profiles.
+
+        partial : bool, optional
+            Should only a subset of the requested profiles be returned if some
+            profiles are not available.
+
         Returns
         -------
         profiles : dict
             Requested profiles as a dictionary.
 
+        unavailable : list
+            List of profiles that are not currently available and cannot be
+            released.
+
         """
-        pass  # XXXX
+        if user_id not in self.users:
+            raise ValueError('Unknown instrument user tried to query profiles')
+
+        used = [p for p in profiles if p in self.used_profiles]
+        if used:
+            if not try_release:
+                unavailable = used
+                released = []
+            else:
+                used_by_owner = defaultdict(set)
+                unavailable = []
+                released = []
+                for p in used:
+                    used_by_owner[self.used_profiles[p]].add(p)
+                for o in used_by_owner:
+                    user = self._users.contributions[o]
+                    if user.policy == 'releasable':
+                        to_release = used_by_owner[o]
+                        r = o.release_profiles(to_release)
+                        unavailable.extend(set(to_release) - set(r))
+                        released.extend(r)
+                    else:
+                        unavailable.extend(used_by_owner[0])
+
+        if unavailable and not partial:
+            if released:
+                used = {k: v for k, v in self.used_profiles.items()
+                        if k not in released}
+            return {}, unavailable
+
+        available = ([p for p in profiles if p not in unavailable]
+                     if unavailable else profiles)
+
+        queried = {}
+        for p in available:
+            queried[p] = self._profiles[p]._config.to_dict()
+
+        return queried, unavailable
 
     def release_profiles(self, user_id, profiles):
         """Release some previously acquired profiles.
@@ -250,12 +321,24 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         whose profiles have been released after calling this method.
 
         """
-        pass  # XXXX
+        self.used_profiles = {k: v for k, v in self.used_profiles.items()
+                              if k not in profiles or v != user_id}
 
     def get_aliases(self, manufacturer):
+        """List the known aliases of a manufacturer.
+
+        Parameters
+        ----------
+        manufacturer : id
+            Name of the manufacturer for which to retun the aliases.
+
+        Returns
+        -------
+        aliases : list[unicode]
+            Known aliases of the manufacturer.
+
         """
-        """
-        pass  # XXXX
+        return self._aliases.contributions.get(manufacturer, [])
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -364,17 +447,11 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         """
         holder = ManufacturerHolder()
         manufacturers = defaultdict(list)
-        for d in self._drivers.contributions:
+        valid_drivers = [d for d in self._drivers.contributions.values()]
+        for d in valid_drivers:
             manufacturers[d.infos['manufacturer']].append(d)
 
         for m in manufacturers.values():
             holder.update_manufacturer(m)
 
         return holder
-
-
-
-# XXXX
-# Request driver profile starter triplet
-
-# Explore drivers (by manufacturer or kind), connections, settings
