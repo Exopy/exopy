@@ -17,10 +17,11 @@ from atom.api import Coerced
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
-                               Dialog, MultilineField, ObjectCombo)
+                               Dialog, MultilineField, ObjectCombo, Form)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
+from ...utils.enaml_destroy_hook import add_destroy_hook
 from .instrument_selection import ModelSelectionDialog
 
 
@@ -80,39 +81,85 @@ enamldef ConnectionCreationDialog(Dialog): dial:
                 dial.accept()
 
 
-# XXXX to complete
-enamldef ConnectionValidationDialog(Dialog):
+enamldef ConnectionValidationWindow(Window): dial:
     """Dialog allowing the user to test that the provided information allow to
     open the connection.
 
     """
-    #: Reference to the ProfileEditionWidget which opened this dialog.
+    #: Reference to the instrument plugin.
+    attr plugin = editor.plugin
+
+    #: Reference to the editor that opened this window.
     attr editor
+
+    #: Profile infos that should be tested.
+    attr profile_infos = editor.profile_infos
+
+    #: Currently selected driver id.
+    attr driver = profile_infos.model.drivers[0]
+
+    #: Currently selected connection.
+    attr connection = profiles_infos.connections[0]
+
+    #: Currently selected settings.
+    attr settings = (profile_infos.settings[0] if profile_infos.settings
+                     else None)
 
     Container:
 
-        constraints = [vbox(hbox(vbox(conn, sett), test), infos)]
+        constraints = []
 
-        ObjectCombo: conn:
-            items = []
-            tool_tip = ''
+        Form:
+            Conditional:
+                condition = len(profile_infos.model.drivers) > 1
+                attr d_map = {'%s <%s>' % (d.infos['architecture'], d.id): d
+                              for d in profile_infos.model.drivers}
+                Label: dri_lab:
+                    text = 'Driver'
+                ObjectCombo: driver_impl:
+                    items = list(d_map)
+                    tool_tip = 'What driver should be used for testing.'
+                    selected_item ::
+                        dial.driver = d_map[selected_item]
 
-        ObjectCombo: sett:
-            items = []
-            selected_item = None
-            tool_tip = ''
+            Label: conn_lab:
+                text='Connection'
+            ObjectCombo: conn:
+                items = profile_infos.connection
+                tool_tip = 'Connection informations to use for the test.'
+                selected_item >> dial.connection
 
-        ObjectCombo: driver_impl:
-            items = []
-            tool_tip = ''
+            Conditional:
+                condition = bool(profile_infos.settings)
+                Label: sett_lab:
+                    text = 'Settings'
+                ObjectCombo: sett:
+                    items = profile_infos.settings
+                    tool_tip = 'Select the settings to use during the test.'
 
         PushButton: test:
             text = 'Test connection'
             clicked ::
-                pass
+                editor.sync()
+                driver, starter = plugin.get_drivers([driver])[driver.id]
+                c = profile_infos.get_connection(connection)
+                s = profille_infos.get_settings(settings) if settings else {}
+                res, msg = starter.check_infos(driver, c, d)
+                m = ('The connection was successfully established' if res else
+                     'An error occured:\n' + msg)
+                infos.text += '\n' + m
 
         MultilineField: infos:
-            pass
+            Menu:
+                context = True
+                Action:
+                    text = 'Clear'
+                    triggered :: infos.text = ''
+
+        PushButton:
+            text = 'Close'
+            clicked ::
+                dial.accept()
 
 
 enamldef SettingsCreationDialog(Dialog):
@@ -157,7 +204,7 @@ enamldef SettingsCreationDialog(Dialog):
                 dial.accept()
 
 
-enamldef ProfileEditionWidget(Container): main:
+enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
     """Widget dedicated to editing a profile.
 
     """
@@ -177,6 +224,10 @@ enamldef ProfileEditionWidget(Container): main:
 
     #: Prevent edition while allowing to navigate the notebooks.
     attr read_only : bool = False
+
+    #: Private reference to the connection validator window which is closed
+    #: when this widget is destroyed.
+    attr _validator
 
     func sync():
         """Synchronize the UI with the underlying model.
@@ -203,6 +254,10 @@ enamldef ProfileEditionWidget(Container): main:
 
         for k, v in profile.get('settings', {}).items():
             plugin.create_settings(k, v)
+
+    ended ::
+        if self._validator and self._validator.visible:
+            self._validator.close()
 
     constraints = [vbox(hbox(id_lab, id_val),
                         hbox(model_lab, model, m_choose),
@@ -283,11 +338,14 @@ enamldef ProfileEditionWidget(Container): main:
                             main.connections = s
                     PushButton: val_c:
                         text = 'Validate'
+                        enabled << (not self._validator or
+                                    not self._validator.visible)
                         clicked ::
                             selected = conns.selected_item
-                            d = ConnectionValidationDialog(editor=main,
+                            d = ConnectionValidationWindow(editor=main,
                                                            connection=selected)
-                            d.exec_()
+                            d.show()
+                            self._validator = d
 
             Page:
                 title = 'Settings'
