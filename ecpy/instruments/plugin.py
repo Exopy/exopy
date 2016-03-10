@@ -320,6 +320,14 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         The user should not maintain any communication with the instruments
         whose profiles have been released after calling this method.
 
+        Parameters
+        ----------
+        user_id : unicode
+            Id of the user releasing the profiles.
+
+        profiles : iterable
+            Profiles (ids) which are no longer needed by the user.
+
         """
         self.used_profiles = {k: v for k, v in self.used_profiles.items()
                               if k not in profiles or v != user_id}

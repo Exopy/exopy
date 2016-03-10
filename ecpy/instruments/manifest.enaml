@@ -19,10 +19,12 @@ from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
-from ...app.preferences.api import Preferences
-from ...app.states.api import State
-from ...app.dependencies.api import RuntimeDependency
-from ...utils.plugin_tools import make_handler
+from ..app.preferences.api import Preferences
+from ..app.states.api import State
+from ..app.dependencies.api import RuntimeDependency
+from ..app.errors.api import ErrorHandler
+from ..app.errors.api import BasicErrorDisplay
+from ..utils.plugin_tools import make_handler
 
 from .manufacturer_aliases import ManufacturerAlias
 from .connections.visa_connection import VisaConnection
@@ -52,49 +54,146 @@ def manager_plugin_factory():
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
 
-# XXXX write the description
 DRIVERS_DES =\
-"""
+"""Plugins can contributes Drivers or Driver to this point to add new driver
+implementations.
+
 """
 
 CONNECTIONS_DESC =\
-"""
+"""Plugin can contribute Connection to this point to add new type of connection
+informations. Connections information are used to open a connection to an
+instrument.
+
 """
 
 SETTINGS_DESC =\
-"""
+"""Plugin can contribute Settings to this point to add new type of settings
+for a driver architecture. Settings are used to pass additional informations
+to a driver when opening a connection.
+
 """
 
 STARTERS_DESC =\
-"""
+"""Plugin can contribute Starter to this point to add new instrument starters.
+Starters are used to abstract the initialisation/finalisation of a driver. They
+allow to present a single API for instrument users needing to establish a
+connection to an instrument.
+
 """
 
 USERS_DESC =\
-"""
+"""Plugins can contribute InstrUser to this point to declare that a plugin is
+susceptible to require the privilege to use an instrument.
+
 """
 
 MANUFACTURER_ALIAS_DESC =\
-"""
+"""Plugins can contribute ManufacturerAlias to this point to declare that an
+instrument manufacturer is known under different names. When registering a
+driver the "master" name should be used.
+
 """
 
 VISA_RS232=\
-"""
+"""Visa connection informations necessary to open a serial connection to an
+instrument.
+
 """
 
 VISA_GPIB=\
-"""
+"""Visa connection informations necessary to open a GPIB connection to an
+instrument.
+
 """
 
 VISA_TCPIP=\
-"""
+"""Visa connection informations necessary to open a TCPIP connection to an
+instrument. The connection can use the INSTR or SOCKET protocol.
+
 """
 
 VISA_USB=\
-"""
+"""Visa connection informations necessary to open a USB connection to an
+instrument. The connection can use the INSTR or RAW protocol.
+
 """
 
 VISA_RAW=\
+"""Visa connection informations necessary to open a conection without making
+any assumption on the kind of connection. This is in particular useful for
+handling visa aliases.
+
 """
+
+DRIVER_VALIDATION=\
+"""Error handler formatting and displaying the unknown starters, connections,
+settings for each driver.
+
+"""
+
+GET_DRIVERS_DESCRIPTION=\
+"""Query drivers class and the associated starters.
+
+Parameters
+----------
+drivers : list
+    List of driver ids for which the matching class should be returned.
+
+Returns
+-------
+drivers : dict
+    Requested drivers and associated starter indexed by id.
+
+missing : list
+    List of ids which do not correspond to any known valid driver.
+
+"""
+
+GET_PROFILES_DESCRIPTION=\
+"""Query profiles for use by a declared user.
+
+Parameters
+----------
+user_id : unicode
+    Id of the user which request the authorization to use the
+    instrument.
+
+profile_id : list
+    Ids of the instrument profiles which are requested.
+
+try_release : bool, optional
+    Should we attempt to release currently used profiles.
+
+partial : bool, optional
+    Should only a subset of the requested profiles be returned if some
+    profiles are not available.
+
+Returns
+-------
+profiles : dict
+    Requested profiles as a dictionary.
+
+unavailable : list
+    List of profiles that are not currently available and cannot be
+    released.
+
+"""
+
+RELEASE_PROFILES_DESCRIPTION=\
+"""Release some previously acquired profiles.
+
+The user should not maintain any communication with the instruments
+whose profiles have been released after calling this method.
+
+Parameters
+----------
+user_id : unicode
+    Id of the user releasing the profiles.
+
+profiles : iterable
+    Profiles (ids) which are no longer needed by the user.
+
 """
 
 
@@ -141,7 +240,6 @@ enamldef InstrumenManagertManifest(PluginManifest):
     # --- Extensions ----------------------------------------------------------
     # =========================================================================
 
-    # XXXX add an error handler for driver validation
     Extension:
         id = 'default_connections'
         point = 'ecpy.instruments.connections'
@@ -187,13 +285,67 @@ enamldef InstrumenManagertManifest(PluginManifest):
         State:
             id = 'ecpy.instruments'
             description = 'Globally available state of the instrument plugin.'
-            sync_members = ['used_profiles']
+            sync_members = ['profiles', 'instruments', 'users', 'starters',
+                            'connections', 'settings', 'used_profiles']
+
+    Extension:
+        id = 'errors'
+        point = 'ecpy.app.errors.handler'
+        ErrorHandler:
+            attr errors
+            id = 'ecpy.driver-validation'
+            description = DRIVER_VALIDATION
+            handle => (workbench, infos):
+                msg = 'The following errors occurred while validating drivers:'
+                if isinstance(infos, Mapping):
+                    infos = (infos,)
+
+                new_errors = {}
+                for i in infos:
+                    formatted = self._format(i)
+                    msg += '\n'.join(('\nValidating %s:\n' % d + v
+                                      for d, v in formatted.items()))
+                    new_errors.update(formatted)
+
+                logger.debug(msg)
+                errors.update(new_errors)
+                return BasicErrorDisplay(kind='Driver information validation',
+                                         errors=new_errors)
+
+            report => (workbench):
+                return BasicErrorDisplay(kind='Driver information validation',
+                                         errors=errors)
+
+            func _format(infos):
+                """Format the validation infos for the logger.
+
+                """
+                formatted = {}
+                for d, details in infos.items():
+                    msg = ''
+                    if 'starter' in details:
+                        msg += '- Unknown starter : %s' % details['starter']
+                    if 'connections' in details:
+                        msg += ('\n- Unknown connections : %s' %
+                                details['connections'])
+                    if 'settings' in details:
+                        msg += ('\n- Unknown settings : %s' %
+                                details['settings'])
+                    formatted[d] = msg.strip()
+                return formatted
 
     Extension:
         id = 'commands'
         point = 'enaml.workbench.core.commands'
-        # XXXX Add commands for accessing drivers and profiles
         Command:
-            id = 'ecpy.tasks.get_task_infos'
-            description = GET_TASK_INFOS_DESCRIPTION
-            handler = make_handler(PLUGIN_ID, 'get_task_infos')
+            id = 'ecpy.instruments.get_drivers'
+            description = GET_DRIVERS_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_drivers')
+        Command:
+            id = 'ecpy.instruments.get_profiles'
+            description = GET_PROFILES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_profiles')
+        Command:
+            id = 'ecpy.instruments.release_profiles'
+            description = RELEASE_PROFILE_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'release_profiles')
