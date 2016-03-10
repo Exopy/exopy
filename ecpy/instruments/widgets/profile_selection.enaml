@@ -29,27 +29,48 @@ enamldef ProfileSelectionWidget(Container):
     #: Reference to the instrument plugin.
     attr plugin
 
-    #: Currently selected profile (name)
+    #: Currently selected profile (id)
     alias profile : pl.selected_item
 
     #: Infos of the currently selected profile.
     attr infos << plugin._profiles[profile]
 
-    #: Currently selected driver
-    attr driver << drivers[dc.selected_item] if dc.selected_item else None
+    #: Currently selected driver (id)
+    attr driver = infos.model.drivers[0].id
 
-    #: Currently selected connection
-    attr connection << (infos.connections[cc.selected_item]
-                        if cc.selected_item else None)
+    #: Currently selected connection (id)
+    attr connection
 
     #: Currently selected settings
-    attr settings << (infos.settings[sc.selected_item]
-                      if infos.settings and sc.selected_item else None)
+    attr settings
+
+    func matching_connections(p_infos, d_id):
+        """Determine the allowed connections based on the selected driver.
+
+        """
+        if not p_infos or not d_id:
+            return []
+
+        driver_connections = infos.model.drivers[driver].connections
+        return [c for c in infos.connections if c in driver_connections]
+
+    func matching_settings(p_infos, d_id):
+        """Determine the allowed settings based on the selected driver.
+
+        """
+        if not p_infos or not d_id:
+            return []
+
+        driver_settings = infos.model.drivers[driver].settings
+        return [s for s in infos.settings
+                if infos.get_settings[s]['id'] in driver_settings]
 
     constraints = [hbox(pl, pf)]
 
     QtListStrWidget: pl:
         items = plugin._profiles
+        selected_item ::
+            driver = infos.model.drivers[0].id
 
     Form: pf:
 
@@ -65,30 +86,41 @@ enamldef ProfileSelectionWidget(Container):
         Field:
             text << infos.model.model
 
-        Label:
-            text = 'Driver'
-        ObjectCombo: dc:
-            attr drivers << {d.infos['architecture']: d.id
-                             for d in infos.model.drivers}
-            items << list(drivers)
-            items ::
-                self.selected_item = None
+        Conditional:
+            condition = len(infos.model.drivers) > 1
+            Label:
+                text = 'Driver'
+            ObjectCombo: dc:
+                # TODO handle same architecture for different drivers
+                attr drivers << {d.id: d.infos['architecture']
+                                 for d in infos.model.drivers}
+                items << list(drivers)
+                items ::
+                    self.selected = None
+                to_string = lambda i: drivers[i]
+                selected := driver
 
         Label:
             text = 'Connections'
         ObjectCombo: cc:
-            items << list(infos.connections)
+            enabled << bool(driver)
+            items << matching_connections(infos, driver)
             items ::
-                self.selected_item = None
+                if self.selected not in change['value']:
+                    self.selected = None
+            selected := connection
 
         Conditional:
             condition = bool(infos.settings)
             Label:
                 text << 'Settings'
             ObjectCombo: sc:
-                items << list(infos.settings)
+                enabled << bool(driver)
+                items << matching_settings(infos, driver)
                 items ::
-                    self.selected_item = None
+                    if self.selected not in change['value']:
+                        self.selected = None
+                selected := settings
 
 
 
@@ -98,6 +130,18 @@ enamldef ProfileSelectionDialog(Dialog): dial:
     """
     #: Reference to the instrument plugin
     alias plugin : w.plugin
+
+    #: Currently selected profile (id)
+    alias profile : w.profile
+
+    #: Currently selected driver (id)
+    alias driver : w.driver
+
+    #: Currently selected connection (id)
+    alias connection : w.connection
+
+    #: Currently selected settings (id)
+    alias settings : w.settings
 
     Container:
 
@@ -113,7 +157,6 @@ enamldef ProfileSelectionDialog(Dialog): dial:
 
         PushButton:
             text = 'Ok'
-            enabled << (w.driver and w.connections and
-                        (w.settings or not w.infos.settings))
+            enabled << (w.driver and w.connection)
             clicked ::
                 dial.accept()
