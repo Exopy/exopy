@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Base view for task needing to access an instrument.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import Label, Field, ToolButton
+
+from .base_views import BaseTaskView
+
+
+enamldef InstrTaskView(BaseTaskView):
+    """Base view for task needing to connect to an instrument.
+
+    This provides the facilities to select the appropriate instrument profile.
+
+    """
+    #: Reference to the label of the instrument selection.
+    alias instr_lab : i_lab
+
+    #: Reference to the field indicating the selected instrument.
+    alias instr_field : i_val
+
+    #: Reference to the button allowing to select a different instrument.
+    alias instr_sel : i_sel
+
+    func make_selected_instrument_tooltip(selected):
+        """Build the tooltip summarizing the infos about the selected
+        instrument.
+
+        """
+        t = ('Selected profile : {}\nSelected driver : {}\n'
+             'Selected connection : {}')
+        if selected[3]:
+            t + = '\nSelected settings : {}'
+        else:
+            selected = selected[:3]
+        return t.format(*selected)
+
+    Label: i_lab:
+        text = 'Instrument'
+    Field: i_val:
+        text << task.selected_instrument[0]
+        tooltip << make_selected_instrument_tooltip(task.selected_instrument)
+    ToolButton: i_sel:
+        # TODO move to a search icon
+        text_only = 'Select'
+        clicked ::
+            cmd = 'ecpy.instruments.select_profile'
+            p, d, c, s = task.selected_instruments
+            selected = root.core.invoke_command(cmd,
+                                                {'profile': p, 'driver': d,
+                                                 'connection': c,
+                                                 'settings': s})
+            if selected is not None:
+                task.selected_instrument = selected
