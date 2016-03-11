@@ -47,8 +47,34 @@ def manager_plugin_factory():
 # --- Handlers ----------------------------------------------------------------
 # =============================================================================
 
-# XXXX add command opening exploration dialog (instr, profiles, ...)
+def select_instrument_handler(event):
+    """Handler for the ecpy.instruments.select_instrument command.
 
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    dial_kw = {}
+    profile = event.parameters.get('profile')
+    if profile in plugin._profiles:
+        dial_kw['profile'] = profile
+        infos = plugin._profiles[profile]
+
+        d = event.parameters.get('driver')
+        if d in infos.model.drivers:
+            dial_kw['driver'] = d
+
+        c = event.parameters.get('connection')
+        if c in infos.connections:
+            dial_kw['connection'] = c
+
+        s = event.parameters.get('settings')
+        if d in infos.settings:
+            dial_kw['settings'] = d
+
+    dial = ProfileSelectionDialog(plugin=plugin)
+    if dial.exec_():
+        return (dial.profile, dial.driver, dial.connection, dial.settings)
+    else:
+        return None
 
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
@@ -95,13 +121,13 @@ driver the "master" name should be used.
 
 """
 
-VISA_RS232=\
+VISA_RS232 =\
 """Visa connection informations necessary to open a serial connection to an
 instrument.
 
 """
 
-VISA_GPIB=\
+VISA_GPIB =\
 """Visa connection informations necessary to open a GPIB connection to an
 instrument.
 
@@ -113,26 +139,26 @@ instrument. The connection can use the INSTR or SOCKET protocol.
 
 """
 
-VISA_USB=\
+VISA_USB =\
 """Visa connection informations necessary to open a USB connection to an
 instrument. The connection can use the INSTR or RAW protocol.
 
 """
 
-VISA_RAW=\
+VISA_RAW =\
 """Visa connection informations necessary to open a conection without making
 any assumption on the kind of connection. This is in particular useful for
 handling visa aliases.
 
 """
 
-DRIVER_VALIDATION=\
+DRIVER_VALIDATION =\
 """Error handler formatting and displaying the unknown starters, connections,
 settings for each driver.
 
 """
 
-GET_DRIVERS_DESCRIPTION=\
+GET_DRIVERS_DESCRIPTION =\
 """Query drivers class and the associated starters.
 
 Parameters
@@ -150,7 +176,7 @@ missing : list
 
 """
 
-GET_PROFILES_DESCRIPTION=\
+GET_PROFILES_DESCRIPTION =\
 """Query profiles for use by a declared user.
 
 Parameters
@@ -180,7 +206,7 @@ unavailable : list
 
 """
 
-RELEASE_PROFILES_DESCRIPTION=\
+RELEASE_PROFILES_DESCRIPTION =\
 """Release some previously acquired profiles.
 
 The user should not maintain any communication with the instruments
@@ -196,6 +222,30 @@ profiles : iterable
 
 """
 
+SELECT_INSTRUMENT_DESCRIPTION =\
+"""Select an instrument (profile, driver, connection, settings).
+
+Parameters
+----------
+profile : unicode, optional
+    Id of the previously selected profile
+
+driver : unicode, optional
+    Id of the previously selected driver.
+
+connection : unicode, optional
+    Id of the prviously selected connection.
+
+settings : unicode, optional
+    Id of the previously selected settings.
+
+Returns
+-------
+result : tuple(4) or None
+    Tuple containing the four afor mentionned ids or None if the selection
+    was cancelled.
+
+"""
 
 # =============================================================================
 # --- Manifest ----------------------------------------------------------------
@@ -349,3 +399,7 @@ enamldef InstrumenManagertManifest(PluginManifest):
             id = 'ecpy.instruments.release_profiles'
             description = RELEASE_PROFILE_DESCRIPTION
             handler = make_handler(PLUGIN_ID, 'release_profiles')
+        Command:
+            id = 'ecpy.instruments.select_instrument'
+            description = SELECT_INSTRUMENT_DESCRIPTION
+            handler = select_instrument_handler
