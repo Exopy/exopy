@@ -47,6 +47,11 @@ class Starter(Declarative):
         driver :
             Driver instance fully initilized and ready for communication.
 
+        Raises
+        ------
+        InstrIOError :
+            If the connection to the instrument could not be opened.
+
         """
         raise NotImplementedError()
 

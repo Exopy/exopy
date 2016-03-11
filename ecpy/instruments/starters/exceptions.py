@@ -6,19 +6,15 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Extension API for the instrument plugin.
+"""Tool handling initializind/finalizing a driver.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .users import InstrUser
 
-from .drivers.driver_decl import Driver
-from .starters.base_starter import Starter
-from .starters.exceptions import InstrIOError
-from .connections.base_connection import BaseConnection, Connection
-from .settings.base_settings import BaseSettings, Settings
+class InstrIOError(Exception):
+    """Exception used by starters to report an IO error.
 
-__all__ = ['Driver', 'InstrUser', 'BaseConnection', 'Connection', 'Settings',
-           'BaseSettings', 'Starter', 'InstrIOError']
+    """
+    pass
