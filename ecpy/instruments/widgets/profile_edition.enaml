@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from configobj import ConfigObj
-from atom.api import Coerced
+from atom.api import Coerced, Bool
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
@@ -32,11 +32,16 @@ class SetValidator(Validator):
     #: Already existing names which are then not allowed.
     existing = Coerced(set)
 
+    #: Flag indicating whether or not the last validation went right
+    valid = Bool()
+
     def validate(self, text):
         """Check that the name does yet exist.
 
         """
-        return text not in self.existing
+        res = text not in self.existing
+        self.valid = res
+        return res
 
 
 enamldef ConnectionCreationDialog(Dialog): dial:
@@ -49,8 +54,22 @@ enamldef ConnectionCreationDialog(Dialog): dial:
     #: Instrument model infos for which to create the connection
     attr model_infos
 
+    #: Already existing connections (ids) for the profile.
+    attr existing
+
     #: Currently selected connection declaration.
     attr connection
+
+    func create_connection():
+        """Create the connection editor corresponding to selected connection.
+
+        """
+        c_id = items[selected_item]
+        infos = model_infos.connections[selected_item]
+        self.connection = plugin.create_connection(c_id, infos)
+
+    initialized ::
+        create_connection()
 
     Container:
 
@@ -58,11 +77,10 @@ enamldef ConnectionCreationDialog(Dialog): dial:
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = ids_to_unique_names(model_infos.connections)
+            items = ids_to_unique_names([c for c in model_infos.connections
+                                         if c not in existing])
             selected_item ::
-                c_id = items[selected_item]
-                infos = model_infos.connections[selected_item]
-                dial.c_decl = plugin.create_connection(c_id, infos)
+                create_connection()
 
         Label: lab:
             text << connection.declaration.id if connection else ''
@@ -172,26 +190,42 @@ enamldef SettingsCreationDialog(Dialog):
     #: Instrument model infos for which to create the settings
     attr model_infos
 
+    #: Already existing settings (name) for the profile.
+    attr existing
+
     #: Settings instance to insert.
     attr settings
 
+    func create_settings():
+        s_id = items[selected_item]
+        infos = model_infos.settings[selected_item]
+        dial.settings = plugin.create_settings(s_id, infos)
+
+    initialized ::
+        create_settings()
+
     Container:
 
-        constraints = [vbox(hbox(conns, vbox(lab, desc, spacer)),
+        constraints = [vbox(hbox(conns, vbox(lab, desc,
+                                             hbox(n_lab, n_val), spacer)),
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
             items = ids_to_unique_names(model_infos.settings)
             selected_item ::
-                s_id = items[selected_item]
-                infos = model_infos.settings[selected_item]
-                dial.c_decl = plugin.create_settings(s_id, infos)
+                create_settings()
 
         Label: lab:
             text << settings.declaration.id if settings else ''
 
         MultilineField: desc:
             text << settings.declaration.description if settings  else ''
+
+        Label: n_lab:
+            text = 'Name'
+        Field: n_val:
+            submit_triggers = ['auto_sync']
+            validator = SetValidator(existing=existing)
 
         PushButton: can:
             text = 'Cancel'
@@ -200,7 +234,9 @@ enamldef SettingsCreationDialog(Dialog):
 
         PushButton: ok:
             text = 'Ok'
+            enabled << n_val.text and n_val.validator.valid
             clicked ::
+                settings.name = n_val.name
                 dial.accept()
 
 
@@ -320,7 +356,9 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
-                                  'model_info': profile_infos.model}
+                                  'model_info': profile_infos.model,
+                                  'existing': [c.declaration.id
+                                               for c in connections]}
                             dial = ConnectionCreationDialog(**kw)
                             dial.exec_()
                             if dial.connection:
@@ -352,7 +390,7 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                 Container:
 
                     constraints = ([hbox(setts, *(tuple(s_sett.objects) +
-                                                  (vbox(add_s, del_s))))]
+                                                  (vbox(add_s, re_s, del_s))))]
                                    if not read_only else
                                    [hbox(setts, *s_sett.objects)])
 
@@ -368,7 +406,8 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
-                                  'model_info': profile_infos.model}
+                                  'model_info': profile_infos.model,
+                                  'existing': [s.name for s in settings]}
                             dial = SettingsCreationDialog(**kw)
                             dial.exec_()
                             if dial.settings:
@@ -376,6 +415,11 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                                 main.settings = (main.settings[:] +
                                                  [dial.settings])
                                 conns.selected_item = dial.settings
+                    PushButton: re_s:
+                        text = 'Rename'
+                        visible = not read_only
+                        clicked ::
+                            pass # XXX implement
                     PushButton: del_s:
                         text = 'Delete'
                         visible = not read_only
