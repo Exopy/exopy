@@ -17,7 +17,8 @@ from atom.api import Coerced, Bool
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
-                               Dialog, MultilineField, ObjectCombo, Form)
+                               Dialog, MultilineField, ObjectCombo, Form,
+                               PopupView)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
@@ -33,7 +34,7 @@ class SetValidator(Validator):
     existing = Coerced(set)
 
     #: Flag indicating whether or not the last validation went right
-    valid = Bool()
+    valid = Bool(True)
 
     def validate(self, text):
         """Check that the name does yet exist.
@@ -240,6 +241,42 @@ enamldef SettingsCreationDialog(Dialog):
                 dial.accept()
 
 
+enamldef RenameSettingsPopup(PopupView): pop:
+    """PopupView to rename a settings.
+
+    """
+    #: Settings editor whose name should be modified.
+    attr settings
+
+    #: Names of the other existing settings editor.
+    attr existing
+
+    window_type = 'popup'
+
+    close_on_click = False
+
+    Container:
+
+        constraints = [vbox(hbox(n_lab, n_val), hbox(spacer, can, ok))]
+
+        Label: n_lab:
+            text = 'Name'
+        Field: n_val:
+            hug_width = 'ignore'
+            text = settings.name
+            validator = SetValidator(existing=existing)
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                pop.close()
+        PushButton: ok:
+            enabled << n_val.text and n_val.validator.valid
+            text = 'Ok'
+            clicked ::
+                settings.name = n_val.text
+                pop.close()
+
+
 enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
     """Widget dedicated to editing a profile.
 
@@ -417,9 +454,16 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                                 conns.selected_item = dial.settings
                     PushButton: re_s:
                         text = 'Rename'
+                        enabled << bool(setts.selected_item)
                         visible = not read_only
                         clicked ::
-                            pass # XXX implement
+                            s = setts.selected_item
+                            others = set(s.name for s in settings)
+                            others.remove(s.name)
+                            popup = RenameSettingsPopup(parent=self,
+                                                        settings=s,
+                                                        existing=others)
+                            popup.show()
                     PushButton: del_s:
                         text = 'Delete'
                         visible = not read_only
