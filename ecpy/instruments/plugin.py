@@ -46,7 +46,8 @@ SETTINGS_POINT = 'ecpy.instuments.settings'
 
 ALIASES_POINT = 'ecpy.instrumets.manufaturer_aliases'
 
-# TODO add a way to specify default values fr settings from the preferences
+
+# TODO add a way to specify default values for settings from the preferences
 class InstrumentManagerPlugin(HasPrefPlugin):
     """The instrument plugin manages the instrument drivers and their use.
 
@@ -108,7 +109,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
         checker = make_extension_validator(Starter,
                                            ('initialize', 'check_infos',
-                                            'finalize'),
+                                            'finalize', 'reset'),
                                            ('id', 'description'))
         self._starters = ExtensionsCollector(workbench=self.workbench,
                                              point=STARTERS_POINT,

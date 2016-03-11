@@ -84,6 +84,16 @@ class Starter(Declarative):
         raise NotImplementedError()
 
     @d_func
+    def reset(self, driver):
+        """Reset the instrument state after a possible alteration by the user.
+
+        Typically this shold clear the cache of the driver and reset any notion
+        of ownership.
+
+        """
+        raise NotImplementedError()
+
+    @d_func
     def finalize(self, driver):
         """Close the communication with the instrument.
 
