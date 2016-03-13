@@ -139,8 +139,8 @@ def test_analysing_runtime(dep_workbench, dependent_object):
                                         'dependencies': ['runtime']}
                               )
     assert not dep.errors
-    assert 'test_run' in dep.dependencies
-    assert 2 in dep.dependencies['test_run']
+    assert 'test_run_collect' in dep.dependencies
+    assert 2 in dep.dependencies['test_run_collect']
 
 
 def test_analysing_all(dep_workbench, dependent_object):
@@ -155,7 +155,7 @@ def test_analysing_all(dep_workbench, dependent_object):
 
     assert not b_dep.errors and not r_dep.errors
     assert 'test' in b_dep.dependencies
-    assert 'test_run' in r_dep.dependencies
+    assert 'test_run_collect' in r_dep.dependencies
 
 
 def test_handling_analysing_errors(dep_workbench, dependent_object):
@@ -167,7 +167,7 @@ def test_handling_analysing_errors(dep_workbench, dependent_object):
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'err', True)
 
-    for r in plugin.run_deps.contributions.values():
+    for r in plugin.run_deps_analysers.contributions.values():
         setattr(r, 'err', True)
 
     core = dep_workbench.get_plugin('enaml.workbench.core')
@@ -176,9 +176,9 @@ def test_handling_analysing_errors(dep_workbench, dependent_object):
                                         'dependencies': ['build',
                                                          'runtime']})
 
-    assert 'test' in b_dep.errors and 'test_run' in r_dep.errors
+    assert 'test' in b_dep.errors and 'test_run_collect' in r_dep.errors
     assert b_dep.errors['test'].get('Test_object')
-    assert r_dep.errors['test_run'].get('Test_object')
+    assert r_dep.errors['test_run_collect'].get('Test_object')
 
 
 def test_handling_analysing_exception_in_build(dep_workbench,
@@ -208,7 +208,7 @@ def test_handling_analysing_exception_in_runtime(dep_workbench,
     """
     plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
 
-    for r in plugin.run_deps.contributions.values():
+    for r in plugin.run_deps_analysers.contributions.values():
         setattr(r, 'exc', True)
 
     core = dep_workbench.get_plugin('enaml.workbench.core')
@@ -246,6 +246,23 @@ def test_handling_missing_runtime_analyser(dep_workbench, dependent_object):
                                         'dependencies': ['runtime']})
 
     assert 'runtime' in dep.errors and 'dummy' in dep.errors['runtime']
+
+
+def test_handling_runtime_analyser_not_matching_a_collector(dep_workbench,
+                                                            dependent_object):
+    """Test analysing the dependencies of an object for which a runtime
+    collector is missing.
+
+    """
+    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    for b in plugin.build_deps.contributions.values():
+        setattr(b, 'run', ['run_test2'])
+
+    core = dep_workbench.get_plugin('enaml.workbench.core')
+    dep = core.invoke_command(ANALYSE, {'obj': dependent_object,
+                                        'dependencies': ['runtime']})
+
+    assert 'runtime' in dep.errors and 'collector' in dep.errors['runtime']
 
 
 # =============================================================================
@@ -351,7 +368,7 @@ def test_collecting_runtime(dep_workbench, runtime_deps):
                                         'dependencies': runtime_deps,
                                         'owner': plugin.manifest.id})
 
-    assert dep.dependencies['test_run']['run'] == 1
+    assert dep.dependencies['test_run_collect']['run'] == 1
     assert not dep.errors
 
 
@@ -362,7 +379,7 @@ def test_collecting_unavailable_runtime(dep_workbench, runtime_deps):
     plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
     core = dep_workbench.get_plugin('enaml.workbench.core')
 
-    for r in plugin.run_deps.contributions.values():
+    for r in plugin.run_deps_collectors.contributions.values():
         setattr(r, 'una', True)
 
     dep = core.invoke_command(COLLECT, {'kind': 'runtime',
@@ -370,7 +387,7 @@ def test_collecting_unavailable_runtime(dep_workbench, runtime_deps):
                                         'owner': plugin.manifest.id},
                               )
     assert not dep.errors
-    assert dep.unavailable['test_run'] == {'run'}
+    assert dep.unavailable['test_run_collect'] == {'run'}
 
 
 def test_handling_collection_errors(dep_workbench, build_deps):
@@ -412,7 +429,7 @@ def test_handling_collection_exceptions_in_runtime(dep_workbench,
     """
     plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
 
-    for r in plugin.run_deps.contributions.values():
+    for r in plugin.run_deps_collectors.contributions.values():
         setattr(r, 'exc', True)
 
     core = dep_workbench.get_plugin('enaml.workbench.core')
@@ -421,7 +438,7 @@ def test_handling_collection_exceptions_in_runtime(dep_workbench,
                                  'dependencies': runtime_deps,
                                  'owner': 'ecpy.test'})
 
-    assert 'test_run' in r_dep.errors
+    assert 'test_run_collect' in r_dep.errors
 
 
 def test_handling_missing_caller(dep_workbench, runtime_deps):
@@ -477,7 +494,7 @@ def test_releasing_runtimes(dep_workbench, runtime_deps):
                          'owner': plugin.manifest.id},
                         )
 
-    assert 'run' not in dep.dependencies['test_run']
+    assert 'run' not in dep.dependencies['test_run_collect']
 
 
 # =============================================================================

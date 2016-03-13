@@ -56,7 +56,9 @@
 
 .. |BuildDependency| replace:: :py:class:`~ecpy.app.dependencies.dependencies.BuildDependency`
 
-.. |RuntimeDependecy| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecy`
+.. |RuntimeDependecyCollector| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyCollector`
+
+.. |RuntimeDependecyAnalyser| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyAnalyser`
 
 .. |Preferences| replace:: :py:class:`~ecpy.app.preferences.preferences.Preferences`
 
@@ -174,7 +176,7 @@
 .. |QtTextCompleter| replace:: :py:class:`~ecpy.utils.widgets.qt_completers.QtTextCompleter`
 
 
-.. Testing substitutions 
+.. Testing substitutions
 .. ----------------------------------------------------------------------------
 
 .. |handle_dialog| replace:: :py:func:`~ecpy.testing.util.handle_dialog`

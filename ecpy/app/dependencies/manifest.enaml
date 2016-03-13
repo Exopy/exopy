@@ -40,9 +40,15 @@ BUILD_DEPENDENCIES_PLUGINS_DESCRIPTION = \
 of the application should declare a BuildDependency to this point."""
 
 
-RUNTIME_DEPENDENCIES_PLUGINS_DESCRIPTION = \
+RUNTIME_COLLECTOR_DEPENDENCIES_PLUGINS_DESCRIPTION = \
 """Plugins which expose objects suceptibles to be necessary to run part
-of the application should declare a RuntimeDependency to this point."""
+of the application should declare a RuntimeDependencyCollector to this
+point."""
+
+
+RUNTIME_ANALYSER_DEPENDENCIES_PLUGINS_DESCRIPTION = \
+"""Plugins which expose objects having runtime dependencies should declare a
+RuntimeDependencyAnalyser for each kind of dependency to this point."""
 
 
 ANALYSE_DEPENDENCIES_DESCRIPTION=\
@@ -159,9 +165,12 @@ enamldef DependenciesManifest(PluginManifest):
         description = BUILD_DEPENDENCIES_PLUGINS_DESCRIPTION
 
     ExtensionPoint:
-        id = 'runtime'
-        description = RUNTIME_DEPENDENCIES_PLUGINS_DESCRIPTION
+        id = 'runtime_collect'
+        description = RUNTIME_COLLECTOR_DEPENDENCIES_PLUGINS_DESCRIPTION
 
+    ExtensionPoint:
+        id = 'runtime_analyse'
+        description = RUNTIME_ANALYSER_DEPENDENCIES_PLUGINS_DESCRIPTION
 
     # =========================================================================
     # --- Extensions ----------------------------------------------------------

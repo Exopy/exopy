@@ -15,12 +15,15 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.workbench.api import PluginManifest, Extension
 
 from ecpy.app.dependencies.dependencies import (BuildDependency,
-                                                RuntimeDependency)
+                                                RuntimeDependencyCollector,
+                                                RuntimeDependencyAnalyser)
 
 
 BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
 
-RUNTIME_DEP_POINT = 'ecpy.app.dependencies.runtime'
+RUNTIME_DEP_COLLECT_POINT = 'ecpy.app.dependencies.runtime_collect'
+
+RUNTIME_DEP_ANALYSE_POINT = 'ecpy.app.dependencies.runtime_analyse'
 
 
 enamldef BuildDep(PluginManifest):
@@ -74,22 +77,14 @@ enamldef RuntimeDep(PluginManifest):
     id = 'test.runtime_dep'
 
     Extension:
-        id = 'runtime_deps'
-        point = RUNTIME_DEP_POINT
+        id = 'runtime_deps_collect'
+        point = RUNTIME_DEP_COLLECT_POINT
 
-        RuntimeDependency:
-            id = 'test_run'
+        RuntimeDependencyCollector:
+            id = 'test_run_collect'
             attr exc : bool = False
             attr err : bool = False
             attr una : bool = False
-
-            analyse =>  (workbench, obj, getter, dependencies, errors):
-                if exc:
-                    raise RuntimeError()
-                if err:
-                    errors[str(obj)] = 'Failed to get run'
-                    return
-                dependencies.add(getter(obj, 'run'))
 
             validate => (workbench, dependencies, errros):
                 for x in dependencies:
@@ -109,3 +104,32 @@ enamldef RuntimeDep(PluginManifest):
 
             release => (workbench, owner, dependencies):
                 del dependencies['run']
+
+    Extension:
+        id = 'runtime_deps_analyse'
+        point = RUNTIME_DEP_ANALYSE_POINT
+
+        RuntimeDependencyAnalyser:
+
+            id = 'test_run'
+            collector_id = 'test_run_collect'
+            attr exc : bool = False
+            attr err : bool = False
+
+            analyse =>  (workbench, obj, dependencies, errors):
+                if exc:
+                    raise RuntimeError()
+                if err:
+                    errors[str(obj)] = 'Failed to get run'
+                    return
+                dependencies.add(obj.run)
+
+        RuntimeDependencyAnalyser:
+
+            id = 'test_run2'
+            collector_id = 'test_run2'
+            attr exc : bool = False
+            attr err : bool = False
+
+            analyse =>  (workbench, obj, dependencies, errors):
+                pass

@@ -23,12 +23,15 @@ from enaml.workbench.api import Plugin
 from ...utils.configobj_ops import traverse_config
 from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
 
-from .dependencies import BuildDependency, RuntimeDependency
+from .dependencies import (BuildDependency, RuntimeDependencyAnalyser,
+                           RuntimeDependencyCollector)
 
 
 BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
 
-RUNTIME_DEP_POINT = 'ecpy.app.dependencies.runtime'
+RUNTIME_DEP_ANALYSE_POINT = 'ecpy.app.dependencies.runtime_analyse'
+
+RUNTIME_DEP_COLLECT_POINT = 'ecpy.app.dependencies.runtime_collect'
 
 
 def clean_dict(mapping):
@@ -88,33 +91,51 @@ class DependenciesPlugin(Plugin):
     #: Contributed build dependencies.
     build_deps = Typed(ExtensionsCollector)
 
-    #: Contributed runtime dependencies.
-    run_deps = Typed(ExtensionsCollector)
+    #: Contributed runtime dependencies analysers.
+    run_deps_analysers = Typed(ExtensionsCollector)
+
+    #: Contributed runtime dependencies collectors.
+    run_deps_collectors = Typed(ExtensionsCollector)
 
     def start(self):
         """Start the manager and load all contributions.
 
         """
-        checker = make_extension_validator(BuildDependency, ('collect',), ())
+        checker = make_extension_validator(BuildDependency,
+                                           ('analyse', 'validate', 'collect'),
+                                           ())
         self.build_deps = ExtensionsCollector(workbench=self.workbench,
                                               point=BUILD_DEP_POINT,
                                               ext_class=BuildDependency,
                                               validate_ext=checker)
         self.build_deps.start()
 
-        checker = make_extension_validator(RuntimeDependency, ('collect',), ())
-        self.run_deps = ExtensionsCollector(workbench=self.workbench,
-                                            point=RUNTIME_DEP_POINT,
-                                            ext_class=RuntimeDependency,
-                                            validate_ext=checker)
-        self.run_deps.start()
+        checker = make_extension_validator(RuntimeDependencyAnalyser,
+                                           ('analyse',), ('collector_id',))
+        self.run_deps_analysers =\
+            ExtensionsCollector(workbench=self.workbench,
+                                point=RUNTIME_DEP_ANALYSE_POINT,
+                                ext_class=RuntimeDependencyAnalyser,
+                                validate_ext=checker)
+
+        self.run_deps_analysers.start()
+
+        checker = make_extension_validator(RuntimeDependencyCollector,
+                                           ('validate', 'collect'), ())
+        self.run_deps_collectors =\
+            ExtensionsCollector(workbench=self.workbench,
+                                point=RUNTIME_DEP_COLLECT_POINT,
+                                ext_class=RuntimeDependencyCollector,
+                                validate_ext=checker)
+        self.run_deps_collectors.start()
 
     def stop(self):
         """Stop the manager.
 
         """
         self.build_deps.stop()
-        self.run_deps.stop()
+        self.run_deps_analysers.stop()
+        self.run_deps_collectors.stop()
 
     def analyse_dependencies(self, obj, dependencies=['build']):
         """Analyse the dependencies of a given object.
@@ -151,7 +172,10 @@ class DependenciesPlugin(Plugin):
 
         # Get the declared build and runtime dependencies analysers.
         builds = self.build_deps.contributions
-        runtimes = self.run_deps.contributions
+        runtimes_a = self.run_deps_analysers.contributions
+        runtimes_c = self.run_deps_collectors.contributions
+        runtimes_a = {k: v for k, v in runtimes_a.items()
+                      if v.collector_id in runtimes_c}
 
         build_deps = BuildContainer(dependencies=defaultdict(set))
         runtime_deps = RuntimeContainer(dependencies=defaultdict(set))
@@ -177,16 +201,25 @@ class DependenciesPlugin(Plugin):
                 break
 
             if need_runtime and run_ids:
-                if any(r not in runtimes for r in run_ids):
-                    msg = 'No collector matching the ids : %s'
-                    missings = [r for r in run_ids if r not in runtimes]
+                if any(r not in runtimes_a for r in run_ids):
+                    msg = 'No analyser matching the ids : %s'
+                    missings = [r for r in run_ids if r not in runtimes_a]
+                    if runtimes_a != self.run_deps_analysers.contributions:
+                        add = ('\nThe following registered analysers do not '
+                               'match a known collector : %s')
+                        all_analysers = self.run_deps_analysers.contributions
+                        add = add % [k for k in all_analysers
+                                     if k not in runtimes_a]
+                        msg += add
                     runtime_deps.errors['runtime'] = msg % missings
                     break
                 for r in run_ids:
+                    analyser = runtimes_a[r]
+                    c_id = analyser.collector_id
                     try:
-                        runtimes[r].analyse(self.workbench, component, getter,
-                                            runtime_deps.dependencies[r],
-                                            runtime_deps.errors[r])
+                        analyser.analyse(self.workbench, component,
+                                         runtime_deps.dependencies[c_id],
+                                         runtime_deps.errors[c_id])
                     except Exception:
                         runtime_deps.errors[r] =\
                             ('An unhandled exception occured : \n%s' %
@@ -230,7 +263,7 @@ class DependenciesPlugin(Plugin):
             validators = self.build_deps.contributions
             container = BuildContainer()  # Used simply for its clean method
         elif kind == 'runtime':
-            validators = self.run_deps.contributions
+            validators = self.run_deps_collectors.contributions
             container = RuntimeContainer()  # Used simply for its clean method
         else:
             raise ValueError("kind argument must be 'build' or 'runtime' not :"
@@ -297,7 +330,7 @@ class DependenciesPlugin(Plugin):
                         'An unhandled exception occured :\n%s' % format_exc()
 
         elif kind == 'runtime':
-            collectors = self.run_deps.contributions
+            collectors = self.run_deps_collectors.contributions
             container = RuntimeContainer()
             if not owner:
                 dependencies = ()
@@ -347,7 +380,7 @@ class DependenciesPlugin(Plugin):
             by id.
 
         """
-        runtimes = self.run_deps.contributions
+        runtimes = self.run_deps_collectors.contributions
         for dep_id in dependencies:
             if dep_id not in runtimes:
                 continue

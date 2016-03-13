@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .dependencies import BuildDependency, RuntimeDependency
+from .dependencies import (BuildDependency, RuntimeDependencyCollector,
+                           RuntimeDependencyAnalyser)
 
-__all__ = ['BuildDependency', 'RuntimeDependency']
+__all__ = ['BuildDependency', 'RuntimeDependencyCollector',
+           'RuntimeDependencyAnalyser']
