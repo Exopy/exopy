@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, List, Subclass, Dict, Coerced
+from atom.api import Atom, List, Subclass, Dict, Coerced, Typed
 import enaml
 
 from ..base_tasks import BaseTask
@@ -24,7 +24,7 @@ with enaml.imports():
     from .configs.base_config_views import BaseConfigView
 
 
-INSTR_RUNTIME_ID = 'ecpy.instruments'
+INSTR_RUNTIME_ID = 'ecpy.tasks.instruments'
 
 
 class ObjectDependentInfos(Atom):
@@ -39,6 +39,21 @@ class ObjectDependentInfos(Atom):
 
     #: List of interfaces supported by this object.
     interfaces = Dict()
+
+    def walk_interfaces(self, depth=None):
+        """Yield all the interfaces of a task/interfaces.
+
+        Parameters
+        ----------
+        depth : int | None
+            Interface depth at which to stop.
+
+        """
+        for i in self.interfaces.values():
+            yield i
+            if depth is None or depth > 0:
+                for ii in i.walk_interfaces(depth - 1 if depth else None):
+                    yield ii
 
     def _post_setattr_instruments(self, old, new):
         if new:
@@ -72,6 +87,9 @@ class InterfaceInfos(ObjectDependentInfos):
 
     #: Widgets associated with this interface.
     views = List()
+
+    #: Parent task or interface infos.
+    parent = Typed(ObjectDependentInfos)
 
 
 class ConfigInfos(Atom):

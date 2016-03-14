@@ -73,7 +73,7 @@ class Task(Declarator):
     #: Metadata associated to the task. ex : loopable = True
     metadata = d_(Dict())
 
-    #: List of supported driver names.
+    #: List of supported driver ids.
     instruments = d_(List())
 
     #: Id of the task computed from the top-level package and the task name
@@ -358,7 +358,8 @@ class Interface(Declarator):
             traceback[err_id] = msg.format(interface, i_path)
             return
 
-        infos = InterfaceInfos(instruments=self.instruments)
+        infos = InterfaceInfos(instruments=self.instruments,
+                               parent=parent_infos)
 
         # Get the interface class.
         i_cls = import_and_get(i_path, interface, traceback, self.id)
