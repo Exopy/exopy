@@ -472,6 +472,23 @@ enamldef TasksManagerManifest(PluginManifest):
 
                     dependencies[i_id] = i_infos.cls
 
+
+    Extension:
+        id = 'runtime_deps'
+        point = 'ecpy.app.dependencies.runtime_analyse'
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.profiles'
+            collector_id = 'ecpy.instruments.profiles'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[0])
+
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.drivers'
+            collector_id = 'ecpy.instruments.drivers'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[1])
+
+
     Extension:
         id = 'prefs'
         point = 'ecpy.app.preferences.plugin'
