@@ -29,20 +29,37 @@ enamldef ProfileSelectionWidget(Container):
     #: Reference to the instrument plugin.
     attr plugin
 
+    #: Callable used to filter the list of profiles displayed.
+    #: The callable should take as single argument the profiles (id, infos)
+    #: and return a filtered iterable of the valid profiles ids.
+    attr filter_profiles
+
+    #: Callable used to filter the list of drivers displayed for a profile.
+    #: The callable should take as single argument the drivers infos
+    #: and return a filtered list.
+    attr filter_drivers
+
     #: Currently selected profile (id)
     alias profile : pl.selected_item
 
     #: Infos of the currently selected profile.
-    attr infos << plugin._profiles[profile]
+    attr infos << plugin._profiles[profile] if profile else None
 
     #: Currently selected driver (id)
-    attr driver = infos.model.drivers[0].id
+    attr driver = _drivers[0].id if _drivers else None
 
     #: Currently selected connection (id)
     attr connection
 
     #: Currently selected settings
     attr settings
+
+    #: Private list of valid profiles.
+    attr _profiles << (list(filter_func(plugin._profiles.copy()))
+                       if filter_func else list(plugin._profiles))
+
+    #: Private list of valid drivers.
+    attr _drivers << filter_drivers(infos.model.drivers) if infos else []
 
     func matching_connections(p_infos, d_id):
         """Determine the allowed connections based on the selected driver.
@@ -68,9 +85,9 @@ enamldef ProfileSelectionWidget(Container):
     constraints = [hbox(pl, pf)]
 
     QtListStrWidget: pl:
-        items = plugin._profiles
+        items = _profiles
         selected_item ::
-            driver = infos.model.drivers[0].id
+            driver = _drivers[0].id if _drivers else None
 
     Form: pf:
 
@@ -87,13 +104,13 @@ enamldef ProfileSelectionWidget(Container):
             text << infos.model.model
 
         Conditional:
-            condition = len(infos.model.drivers) > 1
+            condition = len(_drivers) > 1
             Label:
                 text = 'Driver'
             ObjectCombo: dc:
                 # TODO handle same architecture for different drivers
                 attr drivers << {d.id: d.infos['architecture']
-                                 for d in infos.model.drivers}
+                                 for d in _drivers}
                 items << list(drivers)
                 items ::
                     self.selected = None
@@ -130,6 +147,11 @@ enamldef ProfileSelectionDialog(Dialog): dial:
     """
     #: Reference to the instrument plugin
     alias plugin : w.plugin
+
+    #: Callable used to filter the list of profiles displayed.
+    #: The callable should take as ingle argument the profile infos and return
+    #: a boolean.
+    alias filter_func : w.filter_func
 
     #: Currently selected profile (id)
     alias profile : w.profile

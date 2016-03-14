@@ -47,7 +47,6 @@ def manager_plugin_factory():
 # --- Handlers ----------------------------------------------------------------
 # =============================================================================
 
-# XXX add support for specifying subset of drivers
 def select_instrument_handler(event):
     """Handler for the ecpy.instruments.select_instrument command.
 
@@ -71,7 +70,10 @@ def select_instrument_handler(event):
         if d in infos.settings:
             dial_kw['settings'] = d
 
-    dial = ProfileSelectionDialog(plugin=plugin)
+    dial_kw['filter_profiles'] = event.parameters.get('filter_profiles')
+    dial_kw['filter_drivers'] = event.parameters.get('filter_drivers')
+
+    dial = ProfileSelectionDialog(plugin=plugin, **dial_kw)
     if dial.exec_():
         return (dial.profile, dial.driver, dial.connection, dial.settings)
     else:
