@@ -49,13 +49,14 @@ class DefinitionTask(SimpleTask):
         """
         traceback = {}
         test = True
+        err_path = self.get_error_path()
         for k, v in self.definitions.items():
             try:
                 value = safe_eval(v, {})
                 self.write_in_database(k, value)
             except Exception:
                 test = False
-                name = self.path + '/' + self.name + '-' + k
+                name = err_path + '-' + k
                 traceback[name] =\
                     "Failed to eval the definition {}: {}".format(k,
                                                                   format_exc())
