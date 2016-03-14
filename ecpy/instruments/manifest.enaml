@@ -21,7 +21,7 @@ from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
 from ..app.preferences.api import Preferences
 from ..app.states.api import State
-from ..app.dependencies.api import RuntimeDependency
+from ..app.dependencies.api import RuntimeDependencyCollector
 from ..app.errors.api import ErrorHandler
 from ..app.errors.api import BasicErrorDisplay
 from ..utils.plugin_tools import make_handler
@@ -47,6 +47,7 @@ def manager_plugin_factory():
 # --- Handlers ----------------------------------------------------------------
 # =============================================================================
 
+# XXX add support for specifying subset of drivers
 def select_instrument_handler(event):
     """Handler for the ecpy.instruments.select_instrument command.
 
@@ -318,10 +319,61 @@ enamldef InstrumenManagertManifest(PluginManifest):
 
     Extension:
         id = 'runtime_deps'
-        point = 'ecpy.app.dependencies.runtime'
-        RuntimeDependency:
-            id = 'ecpy.instruments'
-            # XXXX handle dependencies collections
+        point = 'ecpy.app.dependencies.runtime_collect'
+        RuntimeDependencyCollector:
+            id = 'ecpy.instruments.profiles'
+            validate => (workbench, dependencies, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                unknown = [d for d in dependencies
+                           if d not in plugin.profiles]
+                if unknown:
+                    ms = 'The following profile ids do not match any known id:'
+                    m += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-profiles'] = w
+
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                known = [d for d in dependencies
+                         if d not in plugin.profiles]
+                if owner not in plugin.users:
+                    errors['unknown-user'] =\
+                        '%s is not a registered user.' % owner
+                    return
+                p, u = plugin.get_profiles(owner, known, try_release=True,
+                                           partial=False)
+                if known != list(dependencies):
+                    unknown = [d for d in dependencies
+                           if d not in plugin.profiles]
+                    ms = 'The following profile ids do not match any known id:'
+                    m += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-profiles'] = w
+                unavailable += u
+                dependencies.update(p)
+
+            release => (workbench, owner, dependencies):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                plugin.release_profiles(owner, dependencies)
+
+        RuntimeDependencyCollector:
+            id = 'ecpy.instruments.drivers'
+            validate => (workbench, dependencies, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                unknown = [d for d in dependencies
+                           if d not in plugin._drivers.contributions]
+                if unknown:
+                    msg = 'The following driver ids do not match any known id:'
+                    msg += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-drivers'] = msg
+
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                drivers, unknown = plugin.get_drivers(dependencies)
+                if unknown:
+                    msg = 'The following driver ids do not match any known id:'
+                    msg += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-drivers'] = msg
+
+                dependencies.update(drivers)
 
     Extension:
         id = 'prefs'
