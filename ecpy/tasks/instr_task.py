@@ -32,7 +32,7 @@ class InstrumentTask(SimpleTask):
         connection to the instrument.
 
         """
-        err_path = self.path + '/' + self.name
+        err_path = self.get_error_path()
         run_time = self.root_task.run_time
         traceback = {}
         profile = None
@@ -87,8 +87,8 @@ class InstrumentTask(SimpleTask):
         if p_id in instrs:
             self.driver = instrs[p_id][0]
         else:
-            profile = run_time['profiles'][p_id]
-            d_cls, starter = run_time['drivers'][d_id]
+            profile = run_time['ecpy.instruments.profiles'][p_id]
+            d_cls, starter = run_time['ecpy.instruments.drivers'][d_id]
             self.driver = starter.initialize(d_cls,
                                              profile['connections'][c_id],
                                              profile['settings'][s_id])
