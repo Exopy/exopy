@@ -67,8 +67,11 @@ def test_register_task_decl_extend1(collector, task_decl):
     collector.contributions['ecpy.Task'] = TaskInfos()
     task_decl.task = 'ecpy.Task'
     task_decl.instruments = ['test']
+    task_decl.dependencies = ['dep']
     task_decl.register(collector, {})
-    assert collector.contributions['ecpy.Task'].instruments == set(['test'])
+    infos = collector.contributions['ecpy.Task']
+    assert infos.instruments == set(['test'])
+    assert infos.dependencies == set(['dep'])
 
 
 def test_register_task_decl_extend2(collector, task_decl):
@@ -252,9 +255,24 @@ def test_unregister_task_decl3(collector, task_decl):
     collector.contributions['ecpy.Task'] = TaskInfos()
     task_decl.task = 'Task'
     task_decl.instruments = ['test']
+    task_decl.dependencies = ['dep']
     task_decl.register(collector, {})
     task_decl.unregister(collector)
     assert not collector.contributions['ecpy.Task'].instruments
+    assert not collector.contributions['ecpy.Task'].dependencies
+
+
+def test_unregister_task_decl4(collector, task_decl):
+    """Test unregistering a task which still have declared interfaces.
+
+    """
+    task_decl.register(collector, {})
+    infos = collector.contributions['ecpy.RootTask']
+    i = InterfaceInfos(parent=infos)
+    infos.interfaces['i'] = i
+    task_decl.unregister(collector)
+    assert not collector.contributions
+    assert not i.parent
 
 
 def test_str_task(task_decl):
@@ -285,7 +303,10 @@ def test_interface_decl1(int_decl, collector):
     """
     task, interface = int_decl
     task.register(collector, {})
-    assert len(list(collector.contributions.values())[0].interfaces) == 1
+
+    task_infos = list(collector.contributions.values())[0]
+    assert len(task_infos.interfaces) == 1
+    assert list(task_infos.interfaces.values())[0].parent is task_infos
 
 
 def test_interface_decl2(int_decl, collector):
@@ -324,10 +345,12 @@ def test_register_interface_extend_interface1(collector, int_decl):
     task.task = 'ecpy.Task'
     interface.interface = 'Test'
     interface.instruments = ['test']
+    interface.dependencies = ['dep']
 
     task.register(collector, {})
     interface = collector.contributions['ecpy.Task'].interfaces['Test']
     assert interface.instruments == {'test'}
+    assert 'dep' in interface.dependencies
 
 
 def test_register_interface_extend_interface2(collector, int_decl):
@@ -581,12 +604,29 @@ def test_unregister_interface_decl4(collector, int_decl):
     task.task = 'ecpy.Task'
     interface.interface = 'Test'
     interface.instruments = ['test']
+    interface.dependencies = ['dep']
 
     task.register(collector, {})
     interface = collector.contributions['ecpy.Task'].interfaces['Test']
     assert interface.instruments == {'test'}
     task.unregister(collector)
     assert not interface.instruments
+    assert not interface.dependencies
+
+
+def test_unregister_interface_decl5(collector, int_decl):
+    """Test unregistering an interface which still have declared interfaces.
+
+    """
+    task, i = int_decl
+    task.register(collector, {})
+    t_infos = collector.contributions['ecpy.LoopTask']
+    infos = list(t_infos.interfaces.values())[0]
+    i = InterfaceInfos(parent=infos)
+    infos.interfaces['i'] = i
+    task.unregister(collector)
+    assert not collector.contributions
+    assert not i.parent
 
 
 @pytest.fixture

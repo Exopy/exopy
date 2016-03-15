@@ -76,6 +76,11 @@ class Task(Declarator):
     #: List of supported driver ids.
     instruments = d_(List())
 
+    #: Runtime dependencies analyser ids corresponding to the runtime
+    #: dependencies of the task (there is no need to list the instruments
+    #: related dependencies as those are handled in a different fashion).
+    dependencies = d_(List())
+
     #: Id of the task computed from the top-level package and the task name
     id = Property(cached=True)
 
@@ -98,6 +103,7 @@ class Task(Declarator):
 
             infos = collector.contributions[task_id]
             infos.instruments.update(self.instruments)
+            infos.dependencies.update(self.dependencies)
 
             check = check_children(self)
             if check:
@@ -136,7 +142,8 @@ class Task(Declarator):
             traceback[err_id] = msg.format(task, t_path)
             return
 
-        infos = TaskInfos(metadata=self.metadata, instruments=self.instruments)
+        infos = TaskInfos(metadata=self.metadata, instruments=self.instruments,
+                          dependencies=self.dependencies)
 
         # Get the task class.
         t_cls = import_and_get(t_path, task, traceback, task_id)
@@ -191,14 +198,19 @@ class Task(Declarator):
             if ':' not in self.task:
                 if self.task in collector.contributions:
                     infos = collector.contributions[self.task]
-                    infos.instruments = [i for i in infos.instruments
-                                         if i not in self.instruments]
+                    infos.instruments -= set(self.instruments)
+                    infos.dependencies -= set(self.dependencies)
+
                 return
 
             # Remove infos.
-            task_id = self.id
             try:
-                del collector.contributions[task_id]
+                # Unparent remaining interfaces
+                infos = collector.contributions[self.id]
+                for i in infos.interfaces.values():
+                    i.parent = None
+
+                del collector.contributions[self.id]
             except KeyError:
                 pass
 
@@ -273,6 +285,11 @@ class Interface(Declarator):
     #: List of supported driver names.
     instruments = d_(List())
 
+    #: Runtime dependencies analyser ids corresponding to the runtime
+    #: dependencies of the interface (there is no need to list the instruments
+    #: related dependencies as those are handled in a different fashion).
+    dependencies = d_(List())
+
     #: Id of the interface computed from the parents ids and the task name.
     id = Property(cached=True)
 
@@ -311,6 +328,7 @@ class Interface(Declarator):
                 return
             infos = parent_infos.interfaces[self.interface]
             infos.instruments.update(self.instruments)
+            infos.dependencies.update(self.dependencies)
 
             check = check_children(self)
             if check:
@@ -359,7 +377,8 @@ class Interface(Declarator):
             return
 
         infos = InterfaceInfos(instruments=self.instruments,
-                               parent=parent_infos)
+                               parent=parent_infos,
+                               dependencies=self.dependencies)
 
         # Get the interface class.
         i_cls = import_and_get(i_path, interface, traceback, self.id)
@@ -422,11 +441,16 @@ class Interface(Declarator):
             if ':' not in self.interface:
                 if interface in parent_infos.interfaces:
                     infos = parent_infos.interfaces[interface]
-                    infos.instruments = [i for i in infos.instruments
-                                         if i not in self.instruments]
+                    infos.instruments -= set(self.instruments)
+                    infos.dependencies -= set(self.dependencies)
                 return
 
             try:
+                # Unparent remaining interfaces
+                infos = parent_infos.interfaces[interface]
+                for i in infos.interfaces.values():
+                    i.parent = None
+
                 del parent_infos.interfaces[interface]
             except KeyError:
                 pass

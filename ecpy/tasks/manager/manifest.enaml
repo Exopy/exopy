@@ -21,7 +21,7 @@ from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
 from ...app.preferences.api import Preferences
 from ...app.states.api import State
-from ...app.dependencies.api import BuildDependency
+from ...app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
 from ...utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root

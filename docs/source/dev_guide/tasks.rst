@@ -242,6 +242,8 @@ but only two of them must be given non-default values :
   attribute, the supported driver should be listed. Note that if a driver is
   supported through the use of an interface the driver should be listed in the
   interface and not in the task.
+- 'dependencies' : If the task has rutime dependencies other than instruments
+  the ids of the corresponding analysers should be listed here.
 
 This is it. Now when starting Ecpy your new task should be listed.
 
@@ -545,7 +547,7 @@ Declaring the configurer
 Finally you must declare the config in a manifest by contributing an
 extension to the 'ecpy.tasks.configs' extension point. This is identical to
 how tasks are declared but relies on the |TaskConfigs| (instead of |Tasks|) and
-|TaskConfig| (instead of |Task|) objects. The base task class for which the 
+|TaskConfig| (instead of |Task|) objects. The base task class for which the
 configurer is meant should be returned by the get_task_class method.
 
 

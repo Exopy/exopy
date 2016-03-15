@@ -42,7 +42,7 @@ enamldef InstrTaskView(BaseTaskView):
         t_infos = plugin.get_task_infos(task.task_id)
 
         drivers = t_infos.instruments
-        for i in t_infos.walk_interfaces:
+        for i_id, i in t_infos.walk_interfaces:
             drivers += i.instruments
 
         return [p for p in profiles
@@ -55,7 +55,7 @@ enamldef InstrTaskView(BaseTaskView):
 
         """
         ds = t_infos.instruments
-        for i in t_infos.walk_interfaces:
+        for i_id, i in t_infos.walk_interfaces:
             ds += i.instruments
         return [d for d in drivers if d.id in ds]
 
@@ -97,7 +97,7 @@ enamldef InstrTaskView(BaseTaskView):
                 plugin = w.get_plugin('ecpy.tasks')
                 t_infos = plugin.get_task_infos(task.task_id)
                 if d not in t_infos.instruments:
-                    for i in t_infos.walk_interfaces():
+                    for i_id, i in t_infos.walk_interfaces():
                         if d in i.instruments:
                             interface = i.cls()
                             while i.parent is not t_infos:
