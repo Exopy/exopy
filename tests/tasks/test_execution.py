@@ -350,6 +350,17 @@ class TestTaskExecution(object):
             def clear_cache(self):
                 self.called += 1
 
+        class Starter(object):
+            """False instrument starter.
+
+            """
+            def reset(self, driver):
+                driver.clear_cache()
+                driver.owner = ''
+
+            def finalize(self, driver):
+                driver.finalize()
+
         def pause(task, value):
             """Post a method restarting execution on event loop and pause.
 
@@ -359,7 +370,7 @@ class TestTaskExecution(object):
 
         root = self.root
         dummy = Dummy()
-        root.resources['instrs']['test'] = dummy
+        root.resources['instrs']['test'] = dummy, Starter()
         par = CheckTask(name='test', custom=pause)
         comp = ComplexTask(name='comp', stoppable=False,
                            parallel={'activated': True, 'pool': 'test'})
@@ -444,6 +455,14 @@ class TestTaskExecution(object):
                 self.called += 1
                 raise Exception()
 
+        class FalseStarter(object):
+            """False instrument starter.
+
+            """
+
+            def finalize(self, driver):
+                driver.finalize()
+
         class FalseFile(object):
             """False file which cannot be closed.
 
@@ -458,7 +477,7 @@ class TestTaskExecution(object):
         thread = FalseThread()
         root.resources['threads']['test'] = [thread]
         instr = FalseInstr()
-        root.resources['instrs']['a'] = instr
+        root.resources['instrs']['a'] = instr, FalseStarter()
         stream = FalseFile()
         root.resources['files']['b'] = stream
 

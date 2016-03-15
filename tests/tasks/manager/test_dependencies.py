@@ -50,7 +50,7 @@ def test_analysing_task_dependencies(monkeypatch, task_workbench,
     """Test analysing the dependencies of a task.
 
     """
-    runtime = ['test']
+    runtime = {'test'}
     plugin = task_workbench.get_plugin('ecpy.tasks')
     monkeypatch.setattr(plugin.get_task_infos('ecpy.ComplexTask'),
                         'dependencies', runtime)
@@ -99,7 +99,7 @@ def test_analysing_interface_dependencies(monkeypatch, task_workbench,
     """Test analysing the dependencies in an interface.
 
     """
-    runtime = ['test']
+    runtime = {'test'}
     interface = ('LinspaceLoopInterface', 'ecpy.LoopTask')
     plugin = task_workbench.get_plugin('ecpy.tasks')
     monkeypatch.setattr(plugin.get_interface_infos(interface), 'dependencies',
