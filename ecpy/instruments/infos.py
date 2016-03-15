@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from collection import defaultdict
+from collections import defaultdict
 from itertools import chain
 
 from configobj import ConfigObj

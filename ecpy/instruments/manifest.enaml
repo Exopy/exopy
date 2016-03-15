@@ -23,11 +23,11 @@ from ..app.preferences.api import Preferences
 from ..app.states.api import State
 from ..app.dependencies.api import RuntimeDependencyCollector
 from ..app.errors.api import ErrorHandler
-from ..app.errors.api import BasicErrorDisplay
+from ..app.errors.widgets import BasicErrorsDisplay
 from ..utils.plugin_tools import make_handler
 
 from .manufacturer_aliases import ManufacturerAlias
-from .connections.visa_connection import VisaConnection
+from .connections.visa_connections import VisaConnection
 
 PLUGIN_ID = 'ecpy.instruments'
 
@@ -254,7 +254,7 @@ result : tuple(4) or None
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 
-enamldef InstrumenManagertManifest(PluginManifest):
+enamldef InstrumentManagerManifest(PluginManifest):
     """Manifest for the task manager.
 
     """
@@ -413,8 +413,8 @@ enamldef InstrumenManagertManifest(PluginManifest):
 
                 logger.debug(msg)
                 errors.update(new_errors)
-                return BasicErrorDisplay(kind='Driver information validation',
-                                         errors=new_errors)
+                return BasicErrorsDisplay(kind='Driver information validation',
+                                          errors=new_errors)
 
             report => (workbench):
                 return BasicErrorDisplay(kind='Driver information validation',

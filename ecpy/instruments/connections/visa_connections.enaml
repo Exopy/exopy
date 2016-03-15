@@ -56,7 +56,7 @@ enamldef BaseVisaConnection(BaseConnection):
     attr instrument_type
 
     #: Resource class used in the connection (INSTR, RAW (USB), SOCKET(TCPIP))
-    alias resource_class : rc_val.selected
+    alias resource_class : rc_value.selected
 
     #: List of all the names that should be returned by gather_infos.
     attr infos : list = ['instrument_type', 'resource_class']
@@ -101,7 +101,7 @@ enamldef VisaRS232(BaseVisaConnection):
 
     Label: b_lab:
         text = 'Board/Port'
-    IntFiedl: b_val:
+    IntField: b_val:
         enabled = read_only
         minimum = 0
 
@@ -135,7 +135,7 @@ enamldef VisaGPIB(BaseVisaConnection):
 
     Label: a_lab:
         text = 'Address'
-    IntFiedl: a_val:
+    IntField: a_val:
         enabled = read_only
         minimum = 0
         maximum = 30
@@ -151,14 +151,14 @@ enamldef VisaGPIB(BaseVisaConnection):
         Label: b_lab:
             text = 'Board'
             tool_tip = b_tooltip
-        IntFiedl: b_val:
+        IntField: b_val:
             enabled = read_only
             minimum = 0
             tool_tip = b_tooltip
 
         Label: sa_lab:
             text = 'Secondary address'
-        IntFiedl: sa_val:
+        IntField: sa_val:
             enabled = read_only
             minimum = 0
 
@@ -191,10 +191,12 @@ enamldef VisaUSB(BaseVisaConnection):
     resource_class = 'INSTR'
     rc_val.items = ['INSTR', 'RAW']
 
-    constraints << ([grid((a_lab, a_val), (rc_lab, rc_val), (adv,))]
+    constraints << ([grid((m_lab, m_val), (mc_lab, mc_val),
+                          (rc_lab, rc_val), (adv,))]
                     if not adv.checked else
-                    [grid((a_lab, a_val), (rc_lab, rc_val), (adv,),
-                          (b_lab, b_val), (sa_lab, sa_val))])
+                    [grid((m_lab, m_val), (mc_lab, mc_val),
+                          (rc_lab, rc_val), (adv,),
+                          (b_lab, b_val), (us_lab, us_val))])
 
     initialized ::
         self.infos.extend(['board', 'manufacturer_ID', 'model_code',
@@ -206,15 +208,15 @@ enamldef VisaUSB(BaseVisaConnection):
         enabled = read_only
         tool_tip = address_format
 
-    Label: a_lab:
+    Label: mc_lab:
         text = 'Model code'
-    Field: a_val:
+    Field: mc_val:
         enabled = read_only
         tool_tip = address_format
 
-    Label: a_lab:
+    Label: sr_lab:
         text = 'Serial number'
-    Field: a_val:
+    Field: sr_val:
         enabled = read_only
         tool_tip = address_format
 
@@ -229,14 +231,14 @@ enamldef VisaUSB(BaseVisaConnection):
         Label: b_lab:
             text = 'Board'
             tool_tip = b_tooltip
-        IntFiedl: b_val:
+        IntField: b_val:
             minimum = 0
             enabled = read_only
             tool_tip = b_tooltip
 
         Label: us_lab:
             text = 'USB interface number'
-        IntFiedl: us_val:
+        IntField: us_val:
             enabled = read_only
             minimum = 0
 
@@ -249,7 +251,7 @@ enamldef VisaTCPIP(BaseVisaConnection):
     alias board : b_val.value
 
     #: IP address of the instrument.
-    alias host_address : m_val.text
+    alias host_address : a_val.text
 
     #: LAN device name of the instrument (INSTR resource class only)
     alias LAN_device_name : la_val.text
@@ -297,7 +299,7 @@ enamldef VisaTCPIP(BaseVisaConnection):
 
         Label: p_lab:
             text = 'Port'
-        IntField: a_val:
+        IntField: p_val:
             enabled = read_only
             minimum = 0
 
@@ -313,7 +315,7 @@ enamldef VisaTCPIP(BaseVisaConnection):
         Label: b_lab:
             text = 'Board'
             tool_tip = b_tooltip
-        IntFiedl: b_val:
+        IntField: b_val:
             minimum = 0
             tool_tip = b_tooltip
             enabled = read_only
