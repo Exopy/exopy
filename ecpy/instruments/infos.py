@@ -326,27 +326,32 @@ class ManufacturerHolder(Atom):
     #: Expose the known instruments only of the matching kind.
     kind = Unicode('All')
 
-    def update_manufacturer(self, drivers, removed=False):
+    def update_manufacturers(self, drivers, removed=False):
         """Update a manufacturer infos and create it if it does not exist yet.
 
         Parameters
         ----------
         drivers : list
-            List of drivers sharing a common manufacturer.
+            List of drivers.
 
         """
-        m = drivers[0].infos['manufacturer']
-        if m not in self._manufacturers:
-            if removed:
-                return
-            self._manufacturers[m] = \
-                ManufacturerInfos(name=m, kind=self.kind,
-                                  use_series=self.use_series)
+        manufacturers = defaultdict(list)
+        for d in drivers:
+            manufacturers[d.infos['manufacturer']].append(d)
 
-        manufacturer = self._manufacturers[m]
-        manufacturer.update_series_and_models(drivers, removed)
-        if removed and not manufacturer._series and not manufacturer._models:
-            del self._manufacturers[m]
+        for m, ds in manufacturers.items():
+            if m not in self._manufacturers:
+                if removed:
+                    continue
+                self._manufacturers[m] = \
+                    ManufacturerInfos(name=m, kind=self.kind,
+                                      use_series=self.use_series)
+
+            manufacturer = self._manufacturers[m]
+            manufacturer.update_series_and_models(ds, removed)
+            if (removed and
+                    not manufacturer._series and not manufacturer._models):
+                del self._manufacturers[m]
 
         self._list_manufacturers()
 

@@ -455,12 +455,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
         """
         holder = ManufacturerHolder()
-        manufacturers = defaultdict(list)
         valid_drivers = [d for d in self._drivers.contributions.values()]
-        for d in valid_drivers:
-            manufacturers[d.infos['manufacturer']].append(d)
-
-        for m in manufacturers.values():
-            holder.update_manufacturer(m)
+        holder.update_manufacturers(valid_drivers)
 
         return holder
