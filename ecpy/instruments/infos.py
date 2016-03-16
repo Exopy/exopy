@@ -129,6 +129,14 @@ class InstrumentModelInfos(Atom):
     def update(self, drivers, removed=False):
         """Update the infos from a list of drivers.
 
+        Parameters
+        ----------
+        drivers : list[DriverInfos]
+            List of drivers infos to use for updating.
+
+        remove : bool, optional
+            Flag indicating whether the infos should be added or removed.
+
         """
         if not removed:
             for d in drivers:
@@ -145,7 +153,7 @@ class InstrumentModelInfos(Atom):
                     recursive_update(self.settings, d.settings)
 
     def find_matching_drivers(self, connection_id, settings_id=None):
-        """Find the matching driver implementation.
+        """Find the drivers supporting the right connection and settings.
 
         Parameters
         ----------
@@ -179,12 +187,12 @@ class SeriesInfos(Atom):
     #: Name of the serie.
     name = Unicode()
 
-    #: List of all declared instrument models.
+    #: List of the instrument models matching the selected kind.
     #: This object should not be manipulated by user code.
     instruments = List()
 
     #: Expose the known instruments only of the matching kind.
-    kind = Unicode('All')
+    kind = Enum('All', *INSTRUMENT_KINDS)
 
     def update_models(self, drivers, removed=False):
         """Update the known models from a list of drivers.
@@ -197,7 +205,7 @@ class SeriesInfos(Atom):
         for m in models_d:
             if m not in self._models:
                 if removed:
-                    return
+                    continue
                 di = list(models_d[m])[0].infos
                 i = InstrumentModelInfos(manufacturer=di['manufacturer'],
                                          serie=di['serie'],
@@ -208,7 +216,8 @@ class SeriesInfos(Atom):
             i.update(models_d[m], removed)
             if removed and not i.drivers:
                 del self._models[m]
-            self._list_instruments()
+
+        self.instruments = self._list_instruments(self._models.values())
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -221,17 +230,16 @@ class SeriesInfos(Atom):
         """Regenerate the list of models.
 
         """
-        self.instruments = self._list_instruments()
+        self.instruments = self._list_instruments(self._models.values())
 
     def _list_instruments(self, models):
-        """List all the known models matching the expected kind.
-
-        Parameters
-        ----------
+        """List all the models matching the expected kind.
 
         """
-        return filter(lambda x: x.kind == self.kind
-                      if self.kind != 'All' else None, models)
+        if self.kind == 'All':
+            return list(models)
+        else:
+            return filter(lambda x: x.kind == self.kind, models)
 
 
 class ManufacturerInfos(SeriesInfos):
@@ -248,7 +256,7 @@ class ManufacturerInfos(SeriesInfos):
     #: Known aliases for the manufacturer.
     aliases = List()
 
-    def update_series_and_models(self, drivers, removed):
+    def update_series_and_models(self, drivers, removed=False):
         """Update the known series and models from a list of drivers.
 
         """
@@ -269,7 +277,7 @@ class ManufacturerInfos(SeriesInfos):
                 if removed and not serie._models:
                     del self._series[s]
 
-        self.instruments = self._list_instruments()
+        self.instruments = self._list_instruments(self._models)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -282,13 +290,13 @@ class ManufacturerInfos(SeriesInfos):
         """Update the list of models when the usage of series is modified.
 
         """
-        self._list_instruments(())
+        self.instruments = self._list_instruments(())
 
     def _post_setattr_kind(self, old, new):
         """Regenerate the list of models.
 
         """
-        for s in self.series:
+        for s in self._series.values():
             s.kind = new
         super(ManufacturerInfos, self)._post_setattr_kind(old, new)
 
@@ -297,12 +305,12 @@ class ManufacturerInfos(SeriesInfos):
 
         """
         if not self.use_series:
-            models = chain(self._models,
-                           *[s.instruments for s in self.series.values()])
+            models = chain(self._models.values(),
+                           *[s.instruments for s in self._series.values()])
             return super(ManufacturerInfos, self)._list_instruments(models)
         else:
-            models = super(ManufacturerInfos, self)._list_instruments()
-            return [s for s in self.series.values() if s.instruments] + models
+            models = super(ManufacturerInfos, self)._list_instruments(models)
+            return [s for s in self._series.values() if s.instruments] + models
 
 
 class ManufacturerHolder(Atom):
