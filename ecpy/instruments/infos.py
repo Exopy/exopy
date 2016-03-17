@@ -177,7 +177,10 @@ class InstrumentModelInfos(Atom):
         """Getter for the id property.
 
         """
-        return self.manufacturer + '.' + self.model
+        parts = [self.manufacturer, self.model]
+        if self.serie:
+            parts.insert(1, self.serie)
+        return '.'.join(parts)
 
 
 class SeriesInfos(Atom):
@@ -313,7 +316,7 @@ class ManufacturerInfos(SeriesInfos):
             return [s for s in self._series.values() if s.instruments] + models
 
 
-class ManufacturerHolder(Atom):
+class ManufacturersHolder(Atom):
     """Container class for manufacturers.
 
     """
@@ -416,9 +419,9 @@ class ProfileInfos(Atom):
 
         """
         self._config.filename = self.path
-        self._config.update(**dict(id=self.id, model_id=self.model.id,
-                                   connections=self.connections,
-                                   settings=self.settings))
+        self._config.update(dict(id=self.id, model_id=self.model.id,
+                                 connections=self.connections,
+                                 settings=self.settings))
         self._config.write()
 
     def clone(self):
@@ -426,10 +429,10 @@ class ProfileInfos(Atom):
 
         """
         c = self._config.copy()
-        c.update(**dict(id=self.id, model_id=self.model.id,
-                        connections=self.connections,
-                        settings=self.settings))
-        return type(self)(path=self.path, _config=c)
+        c.update(dict(id=self.id, model_id=self.model.id,
+                      connections=self.connections,
+                      settings=self.settings))
+        return type(self)(path=self.path, _config=c, plugin=self.plugin)
 
     def get_connection(self, connection):
         """Retrieve the connection infos associated to an id.
@@ -460,7 +463,15 @@ class ProfileInfos(Atom):
         """Get the model from the profile.
 
         """
-        return self._config['model_id']
+        infos = self._config['model_id'].split('.')
+        h = self.plugin._manufacturers
+        if len(infos) == 2:
+            manufacturer, model = infos
+            return h._manufacturers[manufacturer]._models[model]
+        if len(infos) == 3:
+            manufacturer, serie, model = infos
+            m = h._manufacturers[manufacturer]
+            return m._series[serie]._models[model]
 
     def _default_connections(self):
         """Get the defined connections from the profile.

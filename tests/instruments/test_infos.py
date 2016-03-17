@@ -12,10 +12,13 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+
+import pytest
 
 from ecpy.instruments.infos import (DriverInfos, InstrumentModelInfos,
                                     SeriesInfos, ManufacturerInfos,
-                                    ManufacturerHolder, ProfileInfos)
+                                    ManufacturersHolder, ProfileInfos)
 
 
 def test_driver():
@@ -213,43 +216,126 @@ def test_manufaturer_not_using_series():
     assert len(m.instruments) == 4
 
 
-def test_holder_update_manufacturer():
+def test_holder():
+    """The the capabilities of the ManufacturersHolder.
+
     """
-    """
-    pass
+    d = [create_driver_infos(m+s, model=m, serie=s, manufacturer=man,
+                             kind='Lock-in' if m == 'm1' else 'Other')
+         for man in ('man1', 'man2')
+         for s in ('s', 's2', '')
+         for m in ('m1', 'm2', 'm2')
+         ]
+    h = ManufacturersHolder()
+    h.update_manufacturers(d)
+    assert len(h.manufacturers) == 2
+
+    h.kind = 'Lock-in'
+    for m in h.manufacturers:
+        assert m.kind == h.kind
+
+    h.use_series = not h.use_series
+    for m in h.manufacturers:
+        assert m.use_series == h.use_series
+
+    h.kind = 'All'
+    # Remove some drivers
+    h.update_manufacturers(d[:6]+d[9:], removed=True)
+    assert len(h.manufacturers) == 1
+    assert not h.manufacturers[0]._series
+
+    # Remove all drivers
+    h.update_manufacturers(d, removed=True)
+    assert not h.manufacturers
 
 
-def test_holder_filter():
-    """
-    """
-    pass
+PROFILE_PATH = os.path.join(os.path.dirname(__file__), 'false_profile.ini')
 
 
-def test_profile_members():
+@pytest.fixture
+def false_plugin():
+    """False instrument plugin to test the profile infos.
+
     """
-    """
-    pass
+    class FalsePlugin(object):
+        """Lighter than using the real plugin.
+
+        """
+        pass
+    p = FalsePlugin()
+    p.starters = {'starter': None}
+    p.connections = {'c1': {}, 'c2': {}, 'c3': {}}
+    p.settings = {'s1': {}, 's2': {}, 's3': {}}
+    h = ManufacturersHolder()
+    d = [create_driver_infos(m, model=m, serie='' if m != 'm2' else 'S',
+                             manufacturer=man,
+                             kind='Lock-in' if m == 'm2' else 'Other')
+         for man in ('manufacturer', 'man2')
+         for m in ('model', 'm2', 'm2')
+         ]
+    h.update_manufacturers(d)
+    p._manufacturers = h
+    return p
 
 
-def test_profile_write():
+def test_profile_members(false_plugin):
+    """Test accessing the values stored in the profile.
+
     """
-    """
-    pass
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    assert p.id == 'profile'
+    assert p.model.model == 'model'
+    assert sorted(p.connections) == ['visa_tcpip', 'visa_usb']
+    assert sorted(p.settings) == ['lantz', 'lantz-sim']
+
+    p._config = {'id': 'new'}
+    assert p.id == 'new'
 
 
-def test_profile_clone():
+def test_profile_write(tmpdir, false_plugin):
+    """Test writing a modified profile.
+
     """
-    """
-    pass
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p.id = 'new'
+    p.model.serie = 'S'
+    p.model.model = 'm2'
+    p.connections['new'] = {'inf': 1}
+    p.settings['new'] = {'inf': 2}
+    path = str(tmpdir.join('new.ini'))
+    p.path = path
+    p.write_to_file()
+
+    p = ProfileInfos(path=path, plugin=false_plugin)
+    assert p.id == 'new'
+    assert p.model.model == 'm2'
+    assert 'new' in p.connections and 'visa_tcpip' in p.connections
+    assert 'new' in p.settings and 'lantz' in p.settings
 
 
-def test_profile_get_connection():
+def test_profile_clone(false_plugin):
+    """Test cloning a profile.
+
     """
-    """
-    pass
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+
+    p.id = 'new'
+    p2 = p.clone()
+    assert p2.id == 'new'
+    assert p2.model.model == 'model'
 
 
-def test_profile_get_settings():
+def test_profile_get_connection(false_plugin):
+    """Test accessing a connection dict stored in the profile.
+
     """
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    assert p.get_connection('visa_tcpip') == {'address': '192.168.0.1'}
+
+
+def test_profile_get_settings(false_plugin):
+    """Test accessing a settings dict stored in the profile.
+
     """
-    pass
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    assert p.get_settings('lantz') == {'lib': 'visa.dll'}
