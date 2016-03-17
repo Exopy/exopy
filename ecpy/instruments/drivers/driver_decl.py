@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from traceback import format_exc
 
-from atom.api import Unicode, Enum, Dict, Property
+from atom.api import Unicode, Member, Dict, Property, Validate, Enum
 from enaml.core.api import d_
 from future.utils import python_2_unicode_compatible
 
@@ -53,7 +53,7 @@ class Driver(Declarator):
     #: Kind of the instrument, to ease instrument look up. If no kind match,
     #: leave 'Other' as the kind. Can be inferred from parent
     #: Drivers.
-    kind = d_(Enum(*INSTRUMENT_KINDS))
+    kind = d_(Enum(None, *INSTRUMENT_KINDS))
 
     #: Starter to use when initializing/finialzing this driver.
     #: Can be inferred from parent Drivers.
@@ -86,9 +86,13 @@ class Driver(Declarator):
         """
         # Build the driver id by assembling the package name, the architecture
         # and the class name
-        driver_id = self.id
+        try:
+            driver_id = self.id
+        except KeyError as e:  # Handle the lack of architecture
+            traceback[self.driver] = str(e)
+            return
 
-        # Determine the path to the task and view.
+        # Determine the path to the driver.
         path = self.get_path()
         try:
             d_path, driver = (path + '.' + self.driver
@@ -111,15 +115,19 @@ class Driver(Declarator):
                                            d_path)
             return
 
-        meta_infos = {k: getattr(self, k)
-                      for k in ('architecture', 'manufacturer', 'serie',
-                                'model', 'kind')
-                      }
-        infos = DriverInfos(id=driver_id,
-                            infos=meta_infos,
-                            starter=self.starter,
-                            connections=self.connections,
-                            settings=self.settings)
+        try:
+            meta_infos = {k: getattr(self, k)
+                          for k in ('architecture', 'manufacturer', 'serie',
+                                    'model', 'kind')
+                          }
+            infos = DriverInfos(id=driver_id,
+                                infos=meta_infos,
+                                starter=self.starter,
+                                connections=self.connections,
+                                settings=self.settings)
+        except KeyError as e:
+            traceback[driver_id] = str(e)
+            return
 
         # Get the driver class.
         d_cls = import_and_get(d_path, driver, traceback, driver_id)
@@ -129,7 +137,7 @@ class Driver(Declarator):
         try:
             infos.cls = d_cls
         except TypeError:
-            msg = '{} should a callable.\n{}'
+            msg = '{} should be a callable.\n{}'
             traceback[driver_id] = msg.format(d_cls, format_exc())
             return
 
@@ -186,6 +194,12 @@ class Driver(Declarator):
         """
         return self._get_inherited_member('kind')
 
+    def _default_architecture(self):
+        """Default value grabbed from parent if not provided explicitely.
+
+        """
+        return self._get_inherited_member('architecture')
+
     def _default_starter(self):
         """Default value grabbed from parent if not provided explicitely.
 
@@ -204,17 +218,27 @@ class Driver(Declarator):
         """
         return self._get_inherited_member('settings')
 
-    def _get_inherited_members(self, member, parent=None):
+    def _get_inherited_member(self, member, parent=None):
         """Get the value of a member found in a parent declarator.
 
         """
         parent = parent or self.parent
         if isinstance(parent, Drivers):
             value = getattr(parent, member)
-            if value is not None:
+            if value:
                 return value
             else:
-                return self._get_inherited_members(member, parent.parent)
+                parent = parent.parent
+                if parent is None:
+                    if member == 'settings':
+                        return {}  # Settings can be empty
+                    elif member == 'serie':
+                        return ''  # An instrument can have no serie
+                    elif member == 'kind':
+                        return 'Other'
+                    raise KeyError('No inherited member was found for %s' %
+                                   member)
+                return self._get_inherited_member(member, parent)
 
     def _get_id(self):
         """Create the unique identifier of the driver using the top level
@@ -226,8 +250,8 @@ class Driver(Declarator):
             d_path, d = (path + '.' + self.driver
                          if path else self.driver).split(':')
 
-            # Build the driver id by assembling the package name and the class
-            # name
+            # Build the driver id by assembling the package name, architecture
+            # and the class name
             return '.'.join((d_path.split('.', 1)[0], self.architecture, d))
 
         else:
@@ -252,7 +276,7 @@ class Drivers(GroupDeclarator):
     serie = d_(Unicode())
 
     #: Kind of the declared children.
-    kind = d_(Enum(*INSTRUMENT_KINDS))
+    kind = d_(Enum(None, *INSTRUMENT_KINDS))
 
     #: Starter to use for the declared children.
     starter = d_(Unicode())

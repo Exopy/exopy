@@ -6,19 +6,14 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Extension API for the instrument plugin.
+"""False driver to test the declarator.
 
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .user import InstrUser
+class FalseDriver(object):
+    """False driver to test the declarator.
 
-from .drivers.driver_decl import Driver, Drivers
-from .starters.base_starter import Starter
-from .starters.exceptions import InstrIOError
-from .connections.base_connection import BaseConnection, Connection
-from .settings.base_settings import BaseSettings, Settings
-
-__all__ = ['Driver', 'InstrUser', 'BaseConnection', 'Connection', 'Settings',
-           'BaseSettings', 'Starter', 'InstrIOError']
+    """
+    pass
