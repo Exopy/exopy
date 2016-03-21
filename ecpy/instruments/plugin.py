@@ -30,7 +30,7 @@ from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
-from .infos import ManufacturerHolder, ProfileInfos
+from .infos import ManufacturersHolder, ProfileInfos
 
 logger = logging.getLogger(__name__)
 
@@ -360,7 +360,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     _aliases = Typed(ExtensionsCollector)
 
     #: Declared manufacturers storing the corresponding model infos.
-    _manufacturers = Typed(ManufacturerHolder)
+    _manufacturers = Typed(ManufacturersHolder)
 
     #: Collector of users.
     _users = Typed(ExtensionsCollector)
@@ -368,7 +368,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     #: Collector of starters.
     _starters = Typed(ExtensionsCollector)
 
-    #: Collectorsof connections.
+    #: Collector of connections.
     _connections = Typed(ExtensionsCollector)
 
     #: Collector of settings.
@@ -454,7 +454,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         """Delayed till this is first needed.
 
         """
-        holder = ManufacturerHolder()
+        holder = ManufacturersHolder(plugin=self)
         valid_drivers = [d for d in self._drivers.contributions.values()]
         holder.update_manufacturers(valid_drivers)
 

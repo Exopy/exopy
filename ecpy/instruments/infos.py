@@ -320,6 +320,9 @@ class ManufacturersHolder(Atom):
     """Container class for manufacturers.
 
     """
+    #: Refrence to the instrument plugin.
+    plugin = Value()
+
     #: Filtered list of manufacturers.
     manufacturers = List()
 
@@ -338,9 +341,14 @@ class ManufacturersHolder(Atom):
             List of drivers.
 
         """
+        aliases = {a: o
+                   for o, m_a in self.plugin._aliases.contributions.items()
+                   for a in m_a.aliases}
+
         manufacturers = defaultdict(list)
         for d in drivers:
-            manufacturers[d.infos['manufacturer']].append(d)
+            m = d.infos['manufacturer']
+            manufacturers[aliases.get(m, m)].append(d)
 
         for m, ds in manufacturers.items():
             if m not in self._manufacturers:

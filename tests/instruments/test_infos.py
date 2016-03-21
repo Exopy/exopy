@@ -19,6 +19,7 @@ import pytest
 from ecpy.instruments.infos import (DriverInfos, InstrumentModelInfos,
                                     SeriesInfos, ManufacturerInfos,
                                     ManufacturersHolder, ProfileInfos)
+from ecpy.instruments.manufacturer_aliases import ManufacturerAlias
 
 
 def test_driver():
@@ -216,8 +217,27 @@ def test_manufaturer_not_using_series():
     assert len(m.instruments) == 4
 
 
-def test_holder():
-    """The the capabilities of the ManufacturersHolder.
+@pytest.fixture
+def false_plugin():
+    """False instrument plugin to test the profile infos.
+
+    """
+    class FalsePlugin(object):
+        """Lighter than using the real plugin.
+
+        """
+        pass
+    p = FalsePlugin()
+    p.starters = {'starter': None}
+    p.connections = {'c1': {}, 'c2': {}, 'c3': {}}
+    p.settings = {'s1': {}, 's2': {}, 's3': {}}
+    p._aliases = FalsePlugin()
+    p._aliases.contributions = {}
+    return p
+
+
+def test_holder1(false_plugin):
+    """Test the capabilities of the ManufacturersHolder.
 
     """
     d = [create_driver_infos(m+s, model=m, serie=s, manufacturer=man,
@@ -226,7 +246,7 @@ def test_holder():
          for s in ('s', 's2', '')
          for m in ('m1', 'm2', 'm2')
          ]
-    h = ManufacturersHolder()
+    h = ManufacturersHolder(plugin=false_plugin)
     h.update_manufacturers(d)
     assert len(h.manufacturers) == 2
 
@@ -249,24 +269,33 @@ def test_holder():
     assert not h.manufacturers
 
 
+def test_holder2(false_plugin):
+    """Test the automatic handling of aliases by ManufacturersHolder.
+
+    """
+    d = [create_driver_infos(m+s, model=m, serie=s, manufacturer=man,
+                             kind='Lock-in' if m == 'm1' else 'Other')
+         for man in ('man1', 'man2')
+         for s in ('s', 's2', '')
+         for m in ('m1', 'm2', 'm2')
+         ]
+    false_plugin._aliases.contributions = {'man1':
+                                           ManufacturerAlias(aliases=['man2'])}
+    h = ManufacturersHolder(plugin=false_plugin)
+    h.update_manufacturers(d)
+    assert len(h.manufacturers) == 1
+
+
 PROFILE_PATH = os.path.join(os.path.dirname(__file__), 'false_profile.ini')
 
 
 @pytest.fixture
-def false_plugin():
+def false_plugin_with_holder(false_plugin):
     """False instrument plugin to test the profile infos.
 
     """
-    class FalsePlugin(object):
-        """Lighter than using the real plugin.
-
-        """
-        pass
-    p = FalsePlugin()
-    p.starters = {'starter': None}
-    p.connections = {'c1': {}, 'c2': {}, 'c3': {}}
-    p.settings = {'s1': {}, 's2': {}, 's3': {}}
-    h = ManufacturersHolder()
+    p = false_plugin
+    h = ManufacturersHolder(plugin=false_plugin)
     d = [create_driver_infos(m, model=m, serie='' if m != 'm2' else 'S',
                              manufacturer=man,
                              kind='Lock-in' if m == 'm2' else 'Other')
@@ -278,11 +307,11 @@ def false_plugin():
     return p
 
 
-def test_profile_members(false_plugin):
+def test_profile_members(false_plugin_with_holder):
     """Test accessing the values stored in the profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
     assert p.id == 'profile'
     assert p.model.model == 'model'
     assert sorted(p.connections) == ['visa_tcpip', 'visa_usb']
@@ -292,11 +321,11 @@ def test_profile_members(false_plugin):
     assert p.id == 'new'
 
 
-def test_profile_write(tmpdir, false_plugin):
+def test_profile_write(tmpdir, false_plugin_with_holder):
     """Test writing a modified profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
     p.id = 'new'
     p.model.serie = 'S'
     p.model.model = 'm2'
@@ -306,18 +335,18 @@ def test_profile_write(tmpdir, false_plugin):
     p.path = path
     p.write_to_file()
 
-    p = ProfileInfos(path=path, plugin=false_plugin)
+    p = ProfileInfos(path=path, plugin=false_plugin_with_holder)
     assert p.id == 'new'
     assert p.model.model == 'm2'
     assert 'new' in p.connections and 'visa_tcpip' in p.connections
     assert 'new' in p.settings and 'lantz' in p.settings
 
 
-def test_profile_clone(false_plugin):
+def test_profile_clone(false_plugin_with_holder):
     """Test cloning a profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
 
     p.id = 'new'
     p2 = p.clone()
@@ -325,17 +354,17 @@ def test_profile_clone(false_plugin):
     assert p2.model.model == 'model'
 
 
-def test_profile_get_connection(false_plugin):
+def test_profile_get_connection(false_plugin_with_holder):
     """Test accessing a connection dict stored in the profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
     assert p.get_connection('visa_tcpip') == {'address': '192.168.0.1'}
 
 
-def test_profile_get_settings(false_plugin):
+def test_profile_get_settings(false_plugin_with_holder):
     """Test accessing a settings dict stored in the profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin)
+    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
     assert p.get_settings('lantz') == {'lib': 'visa.dll'}
