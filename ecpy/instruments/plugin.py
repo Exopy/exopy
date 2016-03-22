@@ -53,6 +53,8 @@ def validate_user(user):
     releasable.
 
     """
+    if not user.id:
+        return False, 'InstrUser must provide an id.'
     if user.policy == 'releasable':
         member = user.release_profiles
         func = getattr(member, 'im_func', getattr(member, '__func__', None))
@@ -263,7 +265,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         knowns = {d_id: ds[d_id] for d_id in drivers if d_id in ds}
         missing = list(set(drivers) - set(knowns))
 
-        return {d_id: (infos.cls, self._starters[infos.starter])
+        return {d_id: (infos.cls, self._starters.contributions[infos.starter])
                 for d_id, infos in knowns.items()}, missing
 
     def get_profiles(self, user_id, profiles, try_release=True, partial=False):

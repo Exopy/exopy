@@ -44,7 +44,7 @@ enamldef InstrContributor1(PluginManifest):
             id = 'false_connection'
             description = 'False connection'
             new => (workbench, defaults):
-                pass
+                return {'false_connection': defaults}
 
     Extension:
         id = 'settings'
@@ -53,7 +53,7 @@ enamldef InstrContributor1(PluginManifest):
             id = 'false_settings'
             description = 'False settings'
             new => (workbench, defaults):
-                pass
+                return {'false_settings': defaults}
 
     Extension:
         id = 'starters'
