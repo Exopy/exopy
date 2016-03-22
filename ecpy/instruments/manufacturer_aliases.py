@@ -23,7 +23,7 @@ class ManufacturerAlias(Declarative):
 
     """
     #: Main name under which the vendor is expected to be known
-    name = d_(Unicode())
+    id = d_(Unicode())
 
     #: List of aliased names.
     aliases = d_(List())

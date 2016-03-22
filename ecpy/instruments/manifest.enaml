@@ -39,8 +39,8 @@ def manager_plugin_factory():
     """ Factory funcion for the instr manager plugin.
 
     """
-    from .plugin import InstrumentPlugin
-    return InstrumentPlugin()
+    from .plugin import InstrumentManagerPlugin
+    return InstrumentManagerPlugin()
 
 
 # =============================================================================
@@ -316,7 +316,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
         id = 'manufacturer_alias'
         point = 'ecpy.instruments.manufacturer_aliases'
         ManufacturerAlias:
-            name = 'Keysight'
+            id = 'Keysight'
             aliases = ['Agilent', 'HP']
 
     Extension:

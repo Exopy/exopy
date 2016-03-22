@@ -13,10 +13,8 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
-import enaml
 from atom.api import Atom, Dict
 
-from ecpy.instruments.infos import DriverInfos
 from ecpy.instruments.drivers.driver_decl import Drivers, Driver
 
 
@@ -82,6 +80,30 @@ def test_handling_missing_non_required_members(collector):
     del m['kind']
     del m['settings']
     decl = make_decl(m.items())
+    decl.register(collector, tb)
+    assert not tb
+    assert len(collector.contributions) == 1
+    d = collector.contributions['tests.lantz.FalseDriver']
+    for m, v in (('kind', 'Other'), ('serie', ''), ('settings', {})):
+        try:
+            assert getattr(d, m) == v
+        except AttributeError:
+            assert d.infos[m] == v
+
+
+def test_handling_missing_non_required_members2(collector):
+    """Test registering a driver without values for the non-required members.
+
+    Case in which the declarator has no parent.
+
+    """
+    tb = {}
+    m = dict(DEFAULT_MEMBERS)
+    del m['serie']
+    del m['kind']
+    del m['settings']
+    decl = Driver(driver='tests.instruments.false_driver:FalseDriver',
+                  model='E8257D', parent=object(), **m)
     decl.register(collector, tb)
     assert not tb
     assert len(collector.contributions) == 1

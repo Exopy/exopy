@@ -19,6 +19,8 @@ from .starters.base_starter import Starter
 from .starters.exceptions import InstrIOError
 from .connections.base_connection import BaseConnection, Connection
 from .settings.base_settings import BaseSettings, Settings
+from .manufacturer_aliases import ManufacturerAlias
 
-__all__ = ['Driver', 'InstrUser', 'BaseConnection', 'Connection', 'Settings',
-           'BaseSettings', 'Starter', 'InstrIOError']
+__all__ = ['Driver', 'Drivers', 'InstrUser', 'BaseConnection', 'Connection',
+           'Settings', 'BaseSettings', 'Starter', 'ManufacturerAlias',
+           'InstrIOError']

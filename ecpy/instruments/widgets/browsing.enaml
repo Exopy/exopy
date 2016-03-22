@@ -92,3 +92,5 @@ enamldef BrowsingDialog(Dialog): dial:
                                Field:
                                    text = loop_item[1]
                                    read_only = True
+
+           # XXX add profile and settings exploration (as stated in the docs..)

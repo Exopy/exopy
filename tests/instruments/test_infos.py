@@ -286,7 +286,8 @@ def test_holder2(false_plugin):
     assert len(h.manufacturers) == 1
 
 
-PROFILE_PATH = os.path.join(os.path.dirname(__file__), 'false_profile.ini')
+PROFILE_PATH = os.path.join(os.path.dirname(__file__),
+                            'false_profile.instr.ini')
 
 
 @pytest.fixture

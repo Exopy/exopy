@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
+import sys
 import logging
 from functools import partial
 from collections import defaultdict
@@ -42,9 +43,27 @@ USERS_POINT = 'ecpy.instruments.users'
 
 CONNECTIONS_POINT = 'ecpy.instruments.connections'
 
-SETTINGS_POINT = 'ecpy.instuments.settings'
+SETTINGS_POINT = 'ecpy.instruments.settings'
 
-ALIASES_POINT = 'ecpy.instrumets.manufaturer_aliases'
+ALIASES_POINT = 'ecpy.instruments.manufacturer_aliases'
+
+
+def validate_user(user):
+    """Validate that the user does declare a validate method if its policy is
+    releasable.
+
+    """
+    if user.policy == 'releasable':
+        member = user.release_profiles
+        func = getattr(member, 'im_func', getattr(member, '__func__', None))
+        o_func = (InstrUser.release_profiles if sys.version_info >= (3,) else
+                  InstrUser.release_profiles.__func__)
+        if not func or func is o_func:
+            msg = ("InstrUser policy is releasable but it does not declare a"
+                   " a release_profiles function.")
+            return False, msg
+
+    return True, ''
 
 
 # TODO add a way to specify default values for settings from the preferences
@@ -100,11 +119,10 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
         self._profiles_folders = [p_dir]
 
-        checker = make_extension_validator(InstrUser, (), ('plugin_id'))
         self._users = ExtensionsCollector(workbench=self.workbench,
                                           point=USERS_POINT,
                                           ext_class=InstrUser,
-                                          validate_ext=checker)
+                                          validate_ext=validate_user)
         self._users.start()
 
         checker = make_extension_validator(Starter,
@@ -134,7 +152,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         self._settings.start()
 
         checker = make_extension_validator(ManufacturerAlias, (),
-                                           ('name', 'aliases'))
+                                           ('id', 'aliases',))
         self._aliases = ExtensionsCollector(workbench=self.workbench,
                                             point=ALIASES_POINT,
                                             ext_class=ManufacturerAlias,
@@ -146,11 +164,14 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                                              ext_class=Driver)
         self._drivers.start()
 
+        for contrib in ('users', 'starters', 'connections', 'settings'):
+            self._update_contribs(contrib, None)
+
         err = False
         details = {}
         for d_id, d_infos in self._drivers.contributions.items():
             res, tb = d_infos.validate(self)
-            if res:
+            if not res:
                 err = True
                 details[d_id] = tb
 
@@ -161,11 +182,9 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         # TODO providing in app a way to have a splash screen while starting to
         # let the user know what is going on would be nice
 
-        for contrib in ('users', 'starters', 'connections', 'settings'):
-            self._update_contribs(contrib, None)
-
         # TODO handle dynamic addition of drivers by observing contributions
         # and updating the manufacturers infos accordingly.
+        # should also observe manufacturer aliases
 
         self._refresh_profiles()
 
@@ -413,13 +432,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                 logger.warn('{} is not a valid directory'.format(path))
 
         self._profiles = profiles
-
-    def _update_profiles(self, change):
-        """Update the known profiles after a modification into one of the
-        profiles folders.
-
-        """
-        self._refresh_profiles()
+        self.profiles = list(profiles)
 
     def _bind_observers(self):
         """Start the observers.
@@ -430,7 +443,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             getattr(self, '_'+contrib).observe('contributions', callback)
 
         for folder in self._profiles_folders:
-            handler = SystematicFileUpdater(self._update_profiles)
+            handler = SystematicFileUpdater(self._refresh_profiles)
             self._observer.schedule(handler, folder, recursive=True)
 
         self._observer.start()

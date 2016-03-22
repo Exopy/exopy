@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from traceback import format_exc
 
-from atom.api import Unicode, Member, Dict, Property, Validate, Enum
+from atom.api import Unicode, Dict, Property, Enum
 from enaml.core.api import d_
 from future.utils import python_2_unicode_compatible
 
@@ -229,16 +229,20 @@ class Driver(Declarator):
                 return value
             else:
                 parent = parent.parent
-                if parent is None:
-                    if member == 'settings':
-                        return {}  # Settings can be empty
-                    elif member == 'serie':
-                        return ''  # An instrument can have no serie
-                    elif member == 'kind':
-                        return 'Other'
-                    raise KeyError('No inherited member was found for %s' %
-                                   member)
-                return self._get_inherited_member(member, parent)
+        else:
+            parent = None
+
+        if parent is None:
+            if member == 'settings':
+                return {}  # Settings can be empty
+            elif member == 'serie':
+                return ''  # An instrument can have no serie
+            elif member == 'kind':
+                return 'Other'
+            raise KeyError('No inherited member was found for %s' %
+                           member)
+
+        return self._get_inherited_member(member, parent)
 
     def _get_id(self):
         """Create the unique identifier of the driver using the top level

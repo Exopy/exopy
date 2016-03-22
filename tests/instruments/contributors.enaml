@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Instrument plugin contributor used for testing.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+
+from enaml.workbench.api import PluginManifest, Extension
+
+from ecpy.instruments.api import (Driver, Connection, Settings, Starter,
+                                  ManufacturerAlias, InstrUser)
+
+
+enamldef InstrContributor1(PluginManifest):
+    """Basic contributor providing all contributions required for testing.
+
+    """
+    id = 'ecpy.instr_contrib1'
+
+    Extension:
+        id = 'drivers'
+        point = 'ecpy.instruments.drivers'
+        Driver:
+            manufacturer = 'dummy'
+            model = '001'
+            architecture = 'test'
+            starter = 'false_starter'
+            driver = 'tests.instruments.false_driver:FalseDriver'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+
+    Extension:
+        id = 'connections'
+        point = 'ecpy.instruments.connections'
+        Connection:
+            id = 'false_connection'
+            description = 'False connection'
+            new => (workbench, defaults):
+                pass
+
+    Extension:
+        id = 'settings'
+        point = 'ecpy.instruments.settings'
+        Settings:
+            id = 'false_settings'
+            description = 'False settings'
+            new => (workbench, defaults):
+                pass
+
+    Extension:
+        id = 'starters'
+        point = 'ecpy.instruments.starters'
+        Starter:
+            id = 'false_starter'
+            description = 'False starter'
+            initialize => (driver, connection, settings):
+                pass
+            check_infos => (driver, connection, settings):
+                pass
+            reset => (driver):
+                pass
+            finalize => (driver):
+                pass
+
+    Extension:
+        id = 'users'
+        point = 'ecpy.instruments.users'
+        InstrUser:
+            id = 'tests'
+            policy = 'releasable'
+            release_profiles => (workbench, profiles):
+                pass
+
+    Extension:
+        id = 'aliases'
+        point = 'ecpy.instruments.manufacturer_aliases'
+        ManufacturerAlias:
+            id = 'Dummy'
+            aliases = ['dummy']
+
+
+enamldef InstrContributor2(PluginManifest):
+    """Additional contributor to test dynamic updates.
+
+    """
+    id = 'ecpy.instr_contrib2'
+
+    Extension:
+        id = 'connections'
+        point = 'ecpy.instruments.connections'
+        Connection:
+            id = 'false_connection2'
+            description = 'False connection'
+            new => (workbench, defaults):
+                pass
+
+    Extension:
+        id = 'settings'
+        point = 'ecpy.instruments.settings'
+        Settings:
+            id = 'false_settings2'
+            description = 'False settings'
+            new => (workbench, defaults):
+                pass
+
+    Extension:
+        id = 'starters'
+        point = 'ecpy.instruments.starters'
+        Starter:
+            id = 'false_starter2'
+            description = 'False starter'
+            initialize => (driver, connection, settings):
+                pass
+            check_infos => (driver, connection, settings):
+                pass
+            reset => (driver):
+                pass
+            finalize => (driver):
+                pass
+
+    Extension:
+        id = 'users'
+        point = 'ecpy.instruments.users'
+        InstrUser:
+            id = 'tests2'
+            policy = 'releasable'
+            release_profiles => (workbench, profiles):
+                pass
+
+
+enamldef InstrContributor3(PluginManifest):
+    """Additional contributor to test driver validation issue.
+
+    """
+    id = 'ecpy.instr_contrib3'
+
+    Extension:
+        id = 'drivers'
+        point = 'ecpy.instruments.drivers'
+        Driver:
+            manufacturer = 'dummy'
+            model = '001'
+            architecture = 'test'
+            starter = '__starter__'
+            driver = 'tests.instruments.false_driver:FalseDriver'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
