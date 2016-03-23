@@ -277,7 +277,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             Id of the user which request the authorization to use the
             instrument.
 
-        profile_id : list
+        profiles : list
             Ids of the instrument profiles which are requested.
 
         try_release : bool, optional
@@ -301,38 +301,44 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             raise ValueError('Unknown instrument user tried to query profiles')
 
         used = [p for p in profiles if p in self.used_profiles]
+        unavailable = []
         if used:
+            released = []
             if not try_release:
                 unavailable = used
-                released = []
             else:
                 used_by_owner = defaultdict(set)
-                unavailable = []
-                released = []
                 for p in used:
                     used_by_owner[self.used_profiles[p]].add(p)
-                for o in used_by_owner:
+                for o in list(used_by_owner):
                     user = self._users.contributions[o]
                     if user.policy == 'releasable':
                         to_release = used_by_owner[o]
-                        r = o.release_profiles(to_release)
+                        r = user.release_profiles(self.workbench, to_release)
                         unavailable.extend(set(to_release) - set(r))
                         released.extend(r)
                     else:
-                        unavailable.extend(used_by_owner[0])
+                        unavailable.extend(used_by_owner[o])
 
         if unavailable and not partial:
             if released:
                 used = {k: v for k, v in self.used_profiles.items()
                         if k not in released}
+                self.used_profiles = used
             return {}, unavailable
 
         available = ([p for p in profiles if p not in unavailable]
                      if unavailable else profiles)
 
+        with self.suppress_notifications():
+            u = self.used_profiles
+            self.used_profiles = {}
+        u.update({p: user_id for p in available})
+        self.used_profiles = u
+
         queried = {}
         for p in available:
-            queried[p] = self._profiles[p]._config.to_dict()
+            queried[p] = self._profiles[p]._config.dict()
 
         return queried, unavailable
 

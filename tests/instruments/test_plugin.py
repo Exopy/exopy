@@ -74,26 +74,26 @@ def test_plugin_lifecycle(instr_workbench):
     c2 = InstrContributor2()
     instr_workbench.register(c2)
 
-    assert 'tests2' in p.users
+    assert 'tests_' in p.users
     assert 'false_starter2' in p.starters
     assert 'false_connection2' in p.connections
     assert 'false_settings2' in p.settings
 
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
-    sleep(0.5)
+    sleep(0.1)
 
     assert 'false_profile' in p.profiles
 
     os.remove(os.path.join(p._profiles_folders[0], 'false_profile.instr.ini'))
-    sleep(0.5)
+    sleep(0.1)
 
     assert 'false_profile' not in p.profiles
 
     # Test dynamic unregsitrations (same remark as above)
     instr_workbench.unregister(c2.id)
 
-    assert 'tests2' not in p.users
+    assert 'tests_' not in p.users
     assert 'false_starter2' not in p.starters
     assert 'false_connection2' not in p.connections
     assert 'false_settings2' not in p.settings
@@ -104,10 +104,28 @@ def test_plugin_lifecycle(instr_workbench):
     p.stop()
 
 
-def test_handling_crash_of_watchdog(instr_workbench):
+def test_handling_crash_of_watchdog(instr_workbench, caplog):
+    """Test handling that we can close even if the observer fail to join.
+
     """
-    """
-    pass
+    instr_workbench.register(InstrContributor1())
+
+    # Test starting
+    p = instr_workbench.get_plugin('ecpy.instruments')
+
+    o = p._observer
+    j = o.join
+
+    def false_join():
+        import logging
+        logging.critical('Crash')
+        raise RuntimeError()
+
+    o.join = false_join
+
+    p.stop()
+    j()
+    assert any(r.levelname == 'CRITICAL' for r in caplog.records())
 
 
 def test_plugin_handling_driver_validation_issue(instr_workbench):
@@ -197,23 +215,85 @@ def test_get_drivers(instr_workbench):
     assert d is FalseDriver and s.id == 'false_starter'
 
 
+@pytest.fixture
+def prof_plugin(instr_workbench):
+    """Start the instrument plugin and add some profiles.
+
+    """
+    instr_workbench.register(InstrContributor1())
+    p = instr_workbench.get_plugin('ecpy.instruments')
+    # Test observation of profiles folders
+    for n in ('fp1', 'fp2', 'fp3', 'fp4'):
+        shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
+                                                   n + '.instr.ini'))
+    sleep(0.1)
+    return p
+
+
 # Test release and partial returns
-def test_get_profiles():
+def test_get_profiles(prof_plugin):
+    """Test requesting profiles from the plugin.
+
     """
-    """
-    pass
+    p, m = prof_plugin.get_profiles('tests2', ['fp1', 'fp2'])
+    assert not m and 'fp1' in p and 'fp2' in p
+    assert prof_plugin.used_profiles == {'fp1': 'tests2', 'fp2': 'tests2'}
 
 
-def test_release_profiles():
+def test_requesting_driver_already_owned_and_accept_partial(prof_plugin):
+    """Test requesting profiles owned by other users.
+
     """
-    """
-    pass
+    prof_plugin.used_profiles = {'fp1': 'tests3', 'fp2': 'tests3',
+                                 'fp3': 'tests2'}
+    p, m = prof_plugin.get_profiles('tests', ['fp1', 'fp2', 'fp3'],
+                                    try_release=True, partial=True)
+    assert 'fp1' in p
+    assert 'fp2' in m and 'fp3' in m
 
 
-def test_get_aliases():
+def test_requesting_driver_already_owned_and_reject_partial(prof_plugin):
+    """Test requesting profiles owned by other users.
+
     """
+    prof_plugin.used_profiles = {'fp1': 'tests3', 'fp2': 'tests3',
+                                 'fp3': 'tests2'}
+    p, m = prof_plugin.get_profiles('tests', ['fp1', 'fp2', 'fp3'],
+                                    try_release=True, partial=False)
+    assert not p
+    assert 'fp2' in m and 'fp3' in m
+    assert 'fp1' not in prof_plugin.used_profiles
+
+
+def test_get_profiles_no_partial_no_release(prof_plugin):
+    """Test requesting used profiles with no_partial and no_release.
+
     """
-    pass
+    prof_plugin.used_profiles = {'fp1': 'tests'}
+    p, m = prof_plugin.get_profiles('tests2', ['fp1', 'fp2'],
+                                    try_release=False, partial=False)
+    assert not p
+    assert 'fp1' in m and 'fp2' not in m
+
+
+def test_get_profiles_for_unknown_user(prof_plugin):
+    """Test requesting profiles from the plugin.
+
+    """
+    with pytest.raises(ValueError):
+        prof_plugin.get_profiles('unknown', ['fp1'])
+
+
+def test_release_profiles(prof_plugin):
+    """Test releasing a previously acquired profile.
+
+    """
+    prof_plugin.used_profiles = {'fp1': 'tests3', 'fp2': 'tests3',
+                                 'fp3': 'tests2'}
+    prof_plugin.release_profiles('tests3', ['fp1', 'fp2', 'fp3'])
+    assert 'fp1' not in prof_plugin.used_profiles
+    assert 'fp2' not in prof_plugin.used_profiles
+    assert 'fp3' in prof_plugin.used_profiles
 
 
 def test_driver_validation_dialog():

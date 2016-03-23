@@ -77,7 +77,17 @@ enamldef InstrContributor1(PluginManifest):
             id = 'tests'
             policy = 'releasable'
             release_profiles => (workbench, profiles):
+                return profiles
+        InstrUser:
+            id = 'tests2'
+            policy = 'unreleasable'
+            release_profiles => (workbench, profiles):
                 pass
+        InstrUser:
+            id = 'tests3'
+            policy = 'releasable'
+            release_profiles => (workbench, profiles):
+                return sorted(profiles)[:1]
 
     Extension:
         id = 'aliases'
@@ -130,7 +140,7 @@ enamldef InstrContributor2(PluginManifest):
         id = 'users'
         point = 'ecpy.instruments.users'
         InstrUser:
-            id = 'tests2'
+            id = 'tests_'
             policy = 'releasable'
             release_profiles => (workbench, profiles):
                 pass
