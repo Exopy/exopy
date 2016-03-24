@@ -21,6 +21,8 @@ import pytest
 
 from ecpy.instruments.user import InstrUser
 from ecpy.instruments.plugin import validate_user
+from ecpy.instruments.infos import DriverInfos
+from ecpy.testing.util import handle_dialog
 
 with enaml.imports():
     from .contributors import (InstrContributor1, InstrContributor2,
@@ -230,7 +232,6 @@ def prof_plugin(instr_workbench):
     return p
 
 
-# Test release and partial returns
 def test_get_profiles(prof_plugin):
     """Test requesting profiles from the plugin.
 
@@ -296,13 +297,71 @@ def test_release_profiles(prof_plugin):
     assert 'fp3' in prof_plugin.used_profiles
 
 
-def test_driver_validation_dialog():
+def test_driver_validation_error_handler(windows, instr_workbench):
+    """Test the error handler dedicated to driver validation issues.
+
     """
-    """
-    pass
+    core = instr_workbench.get_plugin('enaml.workbench.core')
+    p = instr_workbench.get_plugin('ecpy.instruments')
+    d = DriverInfos(starter='starter', connections={'c1': {}, 'c2': {}},
+                    settings={'s2': {}, 's3': {}})
+    cmd = 'ecpy.app.errors.signal'
+
+    def check_dialog(dial):
+        w = dial.errors['ecpy.driver-validation']
+        assert 'd' in w.errors
+        for err in ('starter', 'connections', 'settings'):
+            assert err in w.errors[d]
+
+    with handle_dialog('accept', check_dialog):
+        core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
+                                  'details': {'d': d.validate(p)}})
 
 
-def test_runtime_dependencies_collection():
+def test_validate_runtime_dependencies_driver(instr_workbench):
+    """Test the validation of drivers as runtime dependencies.
+
     """
+    instr_workbench.register(InstrContributor1())
+
+    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+
+    err = {}
+    d_c.validate(instr_workbench, ('tests.test.FalseDriver', 'dummy'), err)
+
+    assert len(err) == 1
+    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert 'dummy' in err['unknown-drivers']
+
+
+def test_collect_runtime_dependencies_driver(instr_workbench):
+    """Test the collection of drivers as runtime dependencies.
+
+    """
+    instr_workbench.register(InstrContributor1())
+
+    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+
+    dep = dict.fromkeys(('tests.test.FalseDriver', 'dummy'))
+    err = {}
+    un = set()
+    d_c.collect(instr_workbench, 'tests', dep, un, err)
+
+    assert len(err) == 1
+    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert 'dummy' in err['unknown-drivers']
+
+    assert not un
+
+    assert dep['tests.test.FalseDriver'] is not None
+    assert dep['dummy'] is None
+
+
+def test_runtime_dependencies_profiles(instr_workbench):
+    """Test the validation, collection and release of profiles as runtime
+    dependencies.
+
     """
     pass

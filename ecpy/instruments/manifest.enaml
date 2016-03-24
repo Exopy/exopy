@@ -336,7 +336,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
             collect => (workbench, owner, dependencies, unavailable, errors):
                 plugin = workbench.get_plugin(PLUGIN_ID)
                 known = [d for d in dependencies
-                         if d not in plugin.profiles]
+                         if d in plugin.profiles]
                 if owner not in plugin.users:
                     errors['unknown-user'] =\
                         '%s is not a registered user.' % owner
@@ -345,7 +345,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
                                            partial=False)
                 if known != list(dependencies):
                     unknown = [d for d in dependencies
-                           if d not in plugin.profiles]
+                               if d not in plugin.profiles]
                     ms = 'The following profile ids do not match any known id:'
                     m += '\n- ' + '\n- '.join(unknown)
                     errors['unknown-profiles'] = w
@@ -406,7 +406,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
 
                 new_errors = {}
                 for i in infos:
-                    formatted = self._format(i)
+                    formatted = self._format(i['details'])
                     msg += '\n'.join(('\nValidating %s:\n' % d + v
                                       for d, v in formatted.items()))
                     new_errors.update(formatted)
@@ -457,3 +457,6 @@ enamldef InstrumentManagerManifest(PluginManifest):
             id = 'ecpy.instruments.select_instrument'
             description = SELECT_INSTRUMENT_DESCRIPTION
             handler = select_instrument_handler
+        # XXX add command opening browsing widget
+
+    # XXX add ui contributions
