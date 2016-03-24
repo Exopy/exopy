@@ -36,6 +36,41 @@ enamldef InstrContributor1(PluginManifest):
             driver = 'tests.instruments.false_driver:FalseDriver'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '001'
+            architecture = 'test'
+            starter = 'false_starter'
+            driver = 'tests.instruments.false_driver:FalseDriver2'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '002'
+            architecture = 'test'
+            serie = 'dumb'
+            starter = 'false_starter'
+            driver = 'tests.instruments.false_driver:FalseDriver3'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '003'
+            serie = 'dumb'
+            architecture = 'test'
+            starter = 'false_starter'
+            driver = 'tests.instruments.false_driver:FalseDriver4'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy2'
+            model = '001'
+            architecture = 'test'
+            starter = 'false_starter'
+            kind = 'Lock-in'
+            driver = 'tests.instruments.false_driver:FalseDriver5'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
 
     Extension:
         id = 'connections'

@@ -24,13 +24,10 @@ from ecpy.instruments.plugin import validate_user
 from ecpy.instruments.infos import DriverInfos
 from ecpy.testing.util import handle_dialog
 
+from .conftest import PROFILE_PATH
 with enaml.imports():
     from .contributors import (InstrContributor1, InstrContributor2,
                                InstrContributor3)
-
-
-PROFILE_PATH = os.path.join(os.path.dirname(__file__),
-                            'false_profile.instr.ini')
 
 
 def test_validate_user():
@@ -215,21 +212,6 @@ def test_get_drivers(instr_workbench):
     d, s = d['tests.test.FalseDriver']
     from .false_driver import FalseDriver
     assert d is FalseDriver and s.id == 'false_starter'
-
-
-@pytest.fixture
-def prof_plugin(instr_workbench):
-    """Start the instrument plugin and add some profiles.
-
-    """
-    instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
-    # Test observation of profiles folders
-    for n in ('fp1', 'fp2', 'fp3', 'fp4'):
-        shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
-                                                   n + '.instr.ini'))
-    sleep(0.1)
-    return p
 
 
 def test_get_profiles(prof_plugin):

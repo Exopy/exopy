@@ -124,6 +124,7 @@ driver the "master" name should be used.
 
 """
 
+# XXX add the possible default fields for a driver in the descriptions
 VISA_RS232 =\
 """Visa connection informations necessary to open a serial connection to an
 instrument.

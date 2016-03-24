@@ -33,14 +33,6 @@ class BaseConnection(GroupBox):
     read_only = d_(Bool())
 
     @d_func
-    def list_defaults(self):
-        """List the fields for which default values can be provided in a driver
-        declaration.
-
-        """
-        raise NotImplementedError()
-
-    @d_func
     def gather_infos(self):
         """Return the current values as a dictionary.
 

@@ -61,8 +61,7 @@ class Driver(Declarator):
 
     #: Supported connections and default values for some parameters. The
     #: admissible values for a given kind can be determined by looking at the
-    #: Connection object whose id match. (This can be done in the application
-    #: Instruments->Connections.)
+    #: Connection object whose id match.
     #: ex : {'visa_tcpip' : {'port': 7500, 'resource_class': 'SOCKET'}}
     #: Can be inferred from parent Drivers.
     connections = d_(Dict())
@@ -70,8 +69,7 @@ class Driver(Declarator):
     #: Special settings for the driver, not fitting the connections. Multiple
     #: identical connection infos with different settings can co-exist in a
     #: profile. The admissible values for a given kind can be determined by
-    #: looking at the Settings object whose id match. (This can be done in the
-    #: application Instruments->Settings.)
+    #: looking at the Settings object whose id match.
     #: ex : {'lantz': {'resource_manager': '@py'}}
     #: Can be inferred from parent Drivers.
     settings = d_(Dict())

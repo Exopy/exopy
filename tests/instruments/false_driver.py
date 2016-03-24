@@ -12,7 +12,36 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+
 class FalseDriver(object):
+    """False driver to test the declarator.
+
+    """
+    pass
+
+
+class FalseDriver2(object):
+    """False driver to test the declarator.
+
+    """
+    pass
+
+
+class FalseDriver3(object):
+    """False driver to test the declarator.
+
+    """
+    pass
+
+
+class FalseDriver4(object):
+    """False driver to test the declarator.
+
+    """
+    pass
+
+
+class FalseDriver5(object):
     """False driver to test the declarator.
 
     """

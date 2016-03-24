@@ -42,9 +42,6 @@ enamldef VisaRaw(BaseConnection):
     gather_infos => ():
         return {'resource_name': self.resource_name}
 
-    list_defaults => ():
-        return ['resource_name']
-
 
 enamldef BaseVisaConnection(BaseConnection):
     """Base class for all connection relying on the VISA protocol.
@@ -73,11 +70,6 @@ enamldef BaseVisaConnection(BaseConnection):
 
     gather_infos => ():
         return {k.replace('_', ' '): getattr(self, k) for k in self.infos}
-
-    list_defaults => ():
-        d = list(self.gather_infos())
-        d.remove('instrument_type')
-        return d
 
 
 enamldef VisaRS232(BaseVisaConnection):
