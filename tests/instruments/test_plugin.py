@@ -359,9 +359,62 @@ def test_collect_runtime_dependencies_driver(instr_workbench):
     assert dep['dummy'] is None
 
 
-def test_runtime_dependencies_profiles(instr_workbench):
-    """Test the validation, collection and release of profiles as runtime
-    dependencies.
+def test_validate_runtime_dependencies_profiles(prof_plugin):
+    """Test the validation of profiles as runtime dependencies.
 
     """
-    pass
+    w = prof_plugin.workbench
+
+    d_p = w.get_plugin('ecpy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+
+    err = {}
+    d_c.validate(w, ('fp1', 'dummy'), err)
+
+    assert len(err) == 1
+    assert 'fp1' not in err['unknown-profiles']
+    assert 'dummy' in err['unknown-profiles']
+
+
+def test_collect_release_runtime_dependencies_profiles(prof_plugin):
+    """Test the collection and release of profiles as runtime dependencies.
+
+    """
+    w = prof_plugin.workbench
+
+    d_p = w.get_plugin('ecpy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+
+    dep = dict.fromkeys(('fp1', 'dummy'))
+    err = {}
+    un = set()
+    d_c.collect(w, 'tests', dep, un, err)
+
+    assert len(err) == 1
+    assert 'dummy' in err['unknown-profiles']
+
+    assert not un
+
+    assert dep['fp1'] is not None
+    assert dep['dummy'] is None
+
+    assert 'fp1' in prof_plugin.used_profiles
+
+    d_c.release(w, 'tests', list(dep))
+
+    assert not prof_plugin.used_profiles
+
+    prof_plugin.used_profiles = {'fp2': 'tests2'}
+    dep = dict.fromkeys(('fp1', 'fp2', 'dummy'))
+    err = {}
+    un = set()
+    d_c.collect(w, 'tests', dep, un, err)
+
+    assert len(err) == 1
+    assert 'dummy' in err['unknown-profiles']
+
+    assert 'fp2' in un
+
+    assert dep['fp1'] is None
+    assert dep['fp2'] is None
+    assert dep['dummy'] is None
