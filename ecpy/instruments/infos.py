@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from collections import defaultdict
 from itertools import chain
+from operator import attrgetter
 
 from configobj import ConfigObj
 from atom.api import (Atom, Unicode, Dict, Callable, List, Property, Typed,
@@ -240,9 +241,11 @@ class SeriesInfos(Atom):
 
         """
         if self.kind == 'All':
-            return list(models)
+            return sorted(models, key=attrgetter('model'))
         else:
-            return filter(lambda x: x.kind == self.kind, models)
+            ms = filter(lambda x: x.kind == self.kind, models)
+            ms.sort(key=attrgetter('model'))
+            return ms
 
 
 class ManufacturerInfos(SeriesInfos):
@@ -312,8 +315,11 @@ class ManufacturerInfos(SeriesInfos):
                            *[s.instruments for s in self._series.values()])
             return super(ManufacturerInfos, self)._list_instruments(models)
         else:
-            models = super(ManufacturerInfos, self)._list_instruments(models)
-            return [s for s in self._series.values() if s.instruments] + models
+            models = super(ManufacturerInfos,
+                           self)._list_instruments(self._models.values())
+            series = [s for s in self._series.values() if s.instruments]
+            series.sort(key=attrgetter('name'))
+            return series + models
 
 
 class ManufacturersHolder(Atom):
@@ -394,8 +400,9 @@ class ManufacturersHolder(Atom):
         the search criterias.
 
         """
-        self.manufacturers = filter(lambda m: m.instruments,
-                                    self._manufacturers.values())
+        ms = filter(lambda m: m.instruments, self._manufacturers.values())
+        ms.sort(key=attrgetter('name'))
+        self.manufacturers = ms
 
 
 class ProfileInfos(Atom):

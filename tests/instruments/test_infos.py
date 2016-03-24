@@ -217,6 +217,29 @@ def test_manufaturer_not_using_series():
     assert len(m.instruments) == 4
 
 
+def test_manufacturer_switching_series_use():
+    """Test switching between series and non series display.
+
+    """
+    d = [create_driver_infos(m+s, model=m, serie=s,
+                             kind='Lock-in' if m == 'm1' else 'Other')
+         for s in ('s', 's2', '')
+         for m in ('m1', 'm2', 'm2')
+         ]
+    m = ManufacturerInfos()
+    m.update_series_and_models(d)
+
+    assert len(m.instruments) == 4
+
+    m.use_series = False
+
+    assert len(m.instruments) == 6
+
+    m.use_series = True
+    print(m.instruments)
+    assert len(m.instruments) == 4
+
+
 @pytest.fixture
 def false_plugin():
     """False instrument plugin to test the profile infos.
