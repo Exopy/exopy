@@ -13,10 +13,23 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 
+from atom.api import Dict
 from enaml.workbench.api import PluginManifest, Extension
 
 from ecpy.instruments.api import (Driver, Connection, Settings, Starter,
-                                  ManufacturerAlias, InstrUser)
+                                  ManufacturerAlias, InstrUser,
+                                  BaseConnection, BaseSettings)
+
+
+class TestConnection(BaseConnection):
+
+    defaults = Dict()
+
+
+class TestSettings(BaseSettings):
+
+    defaults = Dict()
+
 
 
 enamldef InstrContributor1(PluginManifest):
@@ -34,8 +47,12 @@ enamldef InstrContributor1(PluginManifest):
             architecture = 'test'
             starter = 'false_starter'
             driver = 'tests.instruments.false_driver:FalseDriver'
-            connections = {'false_connection': {'slot': 1}}
-            settings = {'false_settings': {'host': 'local'}}
+            connections = {'false_connection': {'slot': 1},
+                           'false_connection2': {'slot': 1},
+                           'false_connection3': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'},
+                        'false_settings2': {'host': 'local'},
+                        'false_settings3': {'host': 'local'}}
         Driver:
             manufacturer = 'dummy'
             model = '001'
@@ -77,18 +94,44 @@ enamldef InstrContributor1(PluginManifest):
         point = 'ecpy.instruments.connections'
         Connection:
             id = 'false_connection'
-            description = 'False connection'
+            description = 'False connection 1'
             new => (workbench, defaults):
-                return {'false_connection': defaults}
+                return TestConnection(declaration=self,
+                                      defaults=defaults)
+        Connection:
+            id = 'false_connection2'
+            description = 'False connection 2'
+            new => (workbench, defaults):
+                return TestConnection(declaration=self,
+                                      defaults=defaults)
+        Connection:
+            id = 'false_connection3'
+            description = 'False connection 3'
+            new => (workbench, defaults):
+                return TestConnection(declaration=self,
+                                      defaults=defaults)
 
     Extension:
         id = 'settings'
         point = 'ecpy.instruments.settings'
         Settings:
             id = 'false_settings'
-            description = 'False settings'
+            description = 'False settings 1'
             new => (workbench, defaults):
-                return {'false_settings': defaults}
+                return TestSettings(declaration=self,
+                                    defaults=defaults)
+        Settings:
+            id = 'false_settings2'
+            description = 'False settings 2'
+            new => (workbench, defaults):
+                return TestSettings(declaration=self,
+                                    defaults=defaults)
+        Settings:
+            id = 'false_settings3'
+            description = 'False settings 3'
+            new => (workbench, defaults):
+                return TestSettings(declaration=self,
+                                    defaults=defaults)
 
     Extension:
         id = 'starters'

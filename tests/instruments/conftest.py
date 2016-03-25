@@ -25,7 +25,7 @@ with enaml.imports():
 pytest_plugins = str('ecpy.testing.instruments.fixtures'),
 
 PROFILE_PATH = os.path.join(os.path.dirname(__file__),
-                            'false_profile.instr.ini')
+                            'fp.instr.ini')
 
 
 @pytest.fixture

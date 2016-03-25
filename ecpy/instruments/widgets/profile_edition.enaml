@@ -16,9 +16,11 @@ from configobj import ConfigObj
 from atom.api import Coerced, Bool
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer
+from enaml.core.api import Conditional, Include
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
                                Dialog, MultilineField, ObjectCombo, Form,
-                               PopupView)
+                               PopupView, Container, Menu, Action,
+                               Window)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
@@ -61,13 +63,19 @@ enamldef ConnectionCreationDialog(Dialog): dial:
     #: Currently selected connection declaration.
     attr connection
 
+    #: Not yet existing connections
+    attr _connections = ids_to_unique_names([c for c in model_infos.connections
+                                             if c not in existing])
+
     func create_connection():
         """Create the connection editor corresponding to selected connection.
 
         """
-        c_id = items[selected_item]
-        infos = model_infos.connections[selected_item]
+        c_id = _connections[conns.selected_item]
+        infos = model_infos.connections[c_id]
         self.connection = plugin.create_connection(c_id, infos)
+
+    title = 'Select a connection'
 
     initialized ::
         create_connection()
@@ -78,8 +86,7 @@ enamldef ConnectionCreationDialog(Dialog): dial:
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = ids_to_unique_names([c for c in model_infos.connections
-                                         if c not in existing])
+            items = list(_connections)
             selected_item ::
                 create_connection()
 
@@ -138,7 +145,7 @@ enamldef ConnectionValidationWindow(Window): dial:
                 ObjectCombo: driver_impl:
                     items = list(d_map)
                     tool_tip = 'What driver should be used for testing.'
-                    selected_item ::
+                    selected ::
                         dial.driver = d_map[selected_item]
 
             Label: conn_lab:
@@ -146,7 +153,7 @@ enamldef ConnectionValidationWindow(Window): dial:
             ObjectCombo: conn:
                 items = profile_infos.connection
                 tool_tip = 'Connection informations to use for the test.'
-                selected_item >> dial.connection
+                selected >> dial.connection
 
             Conditional:
                 condition = bool(profile_infos.settings)
@@ -170,7 +177,7 @@ enamldef ConnectionValidationWindow(Window): dial:
 
         MultilineField: infos:
             Menu:
-                context = True
+                context_menu = True
                 Action:
                     text = 'Clear'
                     triggered :: infos.text = ''
@@ -178,10 +185,10 @@ enamldef ConnectionValidationWindow(Window): dial:
         PushButton:
             text = 'Close'
             clicked ::
-                dial.accept()
+                dial.close()
 
 
-enamldef SettingsCreationDialog(Dialog):
+enamldef SettingsCreationDialog(Dialog): dial:
     """Dialog allowing the user to select the settings to add to the profile.
 
     """
@@ -197,22 +204,27 @@ enamldef SettingsCreationDialog(Dialog):
     #: Settings instance to insert.
     attr settings
 
+    #: Settings pretty names
+    attr _settings = ids_to_unique_names(model_infos.settings)
+
     func create_settings():
-        s_id = items[selected_item]
-        infos = model_infos.settings[selected_item]
+        s_id = _settings[setts.selected_item]
+        infos = model_infos.settings[s_id]
         dial.settings = plugin.create_settings(s_id, infos)
+
+    title = 'Select a settings'
 
     initialized ::
         create_settings()
 
     Container:
 
-        constraints = [vbox(hbox(conns, vbox(lab, desc,
+        constraints = [vbox(hbox(setts, vbox(lab, desc,
                                              hbox(n_lab, n_val), spacer)),
                             hbox(spacer, can, ok))]
 
-        QtListStrWidget: conns:
-            items = ids_to_unique_names(model_infos.settings)
+        QtListStrWidget: setts:
+            items = list(_settings)
             selected_item ::
                 create_settings()
 
@@ -235,7 +247,7 @@ enamldef SettingsCreationDialog(Dialog):
 
         PushButton: ok:
             text = 'Ok'
-            enabled << n_val.text and n_val.validator.valid
+            enabled << bool(n_val.text) and n_val.validator.valid
             clicked ::
                 settings.name = n_val.name
                 dial.accept()
@@ -270,14 +282,17 @@ enamldef RenameSettingsPopup(PopupView): pop:
             clicked ::
                 pop.close()
         PushButton: ok:
-            enabled << n_val.text and n_val.validator.valid
+            enabled << bool(n_val.text) and n_val.validator.valid
             text = 'Ok'
             clicked ::
                 settings.name = n_val.text
                 pop.close()
 
 
-enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
+_DestroyableContainer = add_destroy_hook(Container)
+
+
+enamldef ProfileEditionWidget(_DestroyableContainer): main:
     """Widget dedicated to editing a profile.
 
     """
@@ -290,10 +305,10 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
     attr profile_infos
 
     #: Connections editors opened.
-    alias connections : cons.items
+    attr connections := cons.items
 
     #: Settings editors opened.
-    alias settings : setts.items
+    attr settings := setts.items
 
     #: Prevent edition while allowing to navigate the notebooks.
     attr read_only : bool = False
@@ -334,7 +349,7 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
 
     constraints = [vbox(hbox(id_lab, id_val),
                         hbox(model_lab, model, m_choose),
-                        *nb.items]
+                        *nb.items)]
 
     Label: id_lab:
         text = 'Id'
@@ -379,7 +394,7 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                                    [hbox(conns, *(tuple(s_conn.objects) +
                                                   (vbox(val_c, spacer))))])
 
-                    QtListStrEditor: conns:
+                    QtListStrWidget: conns:
                         sort = False
                         to_string = lambda c: c.title
                     Include: s_conn:
@@ -431,7 +446,7 @@ enamldef ProfileEditionWidget(add_destroy_hook(Container)): main:
                                    if not read_only else
                                    [hbox(setts, *s_sett.objects)])
 
-                    QtListStrEditor: setts:
+                    QtListStrWidget: setts:
                         sort = False
                         to_string = lambda s: s.name
                     Include: s_sett:

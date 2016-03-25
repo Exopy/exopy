@@ -183,7 +183,7 @@ def test_create_connection(instr_workbench):
 
     d = dict((i, i**2) for i in range(10))
     c = p.create_connection('false_connection', d)
-    assert c['false_connection'] == d
+    assert c.defaults == d
 
 
 def test_create_settings(instr_workbench):
@@ -195,7 +195,7 @@ def test_create_settings(instr_workbench):
 
     d = dict((i, i**2) for i in range(10))
     c = p.create_settings('false_settings', d)
-    assert c['false_settings'] == d
+    assert c.defaults == d
 
 
 def test_get_drivers(instr_workbench):
