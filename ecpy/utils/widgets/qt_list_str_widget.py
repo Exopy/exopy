@@ -86,14 +86,8 @@ class QtListStrWidget(RawWidget):
         # This is necessary to ensure that the first selection is correctly
         # dispatched.
         if self.items:
-            self._guard ^= INDEX_GUARD
-            self.selected_index = 0
-            self.selected_indexes = [0]
-            self.selected_item = self.items[0]
-            self.selected_items = [self.items[0]]
             widget.setCurrentItem(widget.item(0),
                                   QtGui.QItemSelectionModel.ClearAndSelect)
-            self._guard ^= INDEX_GUARD
         widget.itemSelectionChanged.connect(self.on_selection)
         return widget
 
@@ -236,6 +230,18 @@ class QtListStrWidget(RawWidget):
                 widget.setCurrentItem(widget.item(imap[i]),
                                       QtGui.QItemSelectionModel.Select)
             self._guard ^= INDEX_GUARD
+
+    def _default_selected_item(self):
+        """Useful when this is accessed during initialization.
+
+        """
+        return self.items[0]
+
+    def _default_selected_items(self):
+        """Useful when this is accessed during initialization.
+
+        """
+        return [self.items[0]]
 
     def _set_items(self, items, widget):
         """Set the list items sorting if necessary.
