@@ -38,7 +38,7 @@ class QtListStrWidget(RawWidget):
 
     #: The list of the currently selected str
     selected_item = d_(Value())
-    selected_items = d_(List(Value(), [None]))
+    selected_items = d_(List(Value()))
 
     #: Whether or not the user can select multiple lines
     multiselect = d_(Bool(False))
@@ -116,6 +116,8 @@ class QtListStrWidget(RawWidget):
 
         """
         widget = self.get_widget()
+        if not widget:
+            return
         widget.clearSelection()
         widget.clear()
         self._set_items(items, widget)
@@ -235,13 +237,13 @@ class QtListStrWidget(RawWidget):
         """Useful when this is accessed during initialization.
 
         """
-        return self.items[0]
+        return self.items[0] if self.items else None
 
     def _default_selected_items(self):
         """Useful when this is accessed during initialization.
 
         """
-        return [self.items[0]]
+        return [self.items[0]] if self.items else [None]
 
     def _set_items(self, items, widget):
         """Set the list items sorting if necessary.
