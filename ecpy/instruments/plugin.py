@@ -31,7 +31,7 @@ from .drivers.driver_decl import Driver
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
-from .infos import ManufacturersHolder, ProfileInfos
+from .infos import ManufacturersHolder, ProfileInfos, validate_profile_infos
 
 logger = logging.getLogger(__name__)
 
@@ -423,6 +423,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
         """
         profiles = {}
+        logger = logging.getLogger(__name__)
         for path in self._profiles_folders:
             if os.path.isdir(path):
                 filenames = sorted(f for f in os.listdir(path)
@@ -431,12 +432,16 @@ class InstrumentManagerPlugin(HasPrefPlugin):
 
                 for filename in filenames:
                     profile_path = os.path.join(path, filename)
-                    # Beware redundant names are overwrited
+                    # Beware redundant names are overwritten
                     name = filename[:-len('.instr.ini')]
-                    profiles[name] = ProfileInfos(path=profile_path,
-                                                  plugin=self)
+                    # TODO should be delayed and lead to a nicer report
+                    i = ProfileInfos(path=profile_path, plugin=self)
+                    res, msg = validate_profile_infos(i)
+                    if res:
+                        profiles[name] = i
+                    else:
+                        logger.warn(msg)
             else:
-                logger = logging.getLogger(__name__)
                 logger.warn('{} is not a valid directory'.format(path))
 
         self._profiles = profiles

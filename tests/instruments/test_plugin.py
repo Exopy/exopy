@@ -18,6 +18,7 @@ from time import sleep
 
 import enaml
 import pytest
+from configobj import ConfigObj
 
 from ecpy.instruments.user import InstrUser
 from ecpy.instruments.plugin import validate_user
@@ -148,6 +149,21 @@ def test_handle_wrong_profile_dir(instr_workbench, caplog):
 
     p._profiles_folders = ['dummy']
     p._refresh_profiles()
+
+    for records in caplog.records():
+        assert records.levelname == 'WARNING'
+
+
+def test_handle_corrupted_profile(prof_plugin, caplog):
+    """Test that if a profile is not validated a proper warning is emitted
+
+    """
+    c = ConfigObj(os.path.join(prof_plugin._profiles_folders[0],
+                               'fp1.instr.ini'))
+    del c['id']
+    c.write()
+
+    prof_plugin._refresh_profiles()
 
     for records in caplog.records():
         assert records.levelname == 'WARNING'

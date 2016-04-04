@@ -15,10 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 
 import pytest
+from configobj import ConfigObj
 
 from ecpy.instruments.infos import (DriverInfos, InstrumentModelInfos,
                                     SeriesInfos, ManufacturerInfos,
-                                    ManufacturersHolder, ProfileInfos)
+                                    ManufacturersHolder, ProfileInfos,
+                                    validate_profile_infos)
 from ecpy.instruments.manufacturer_aliases import ManufacturerAlias
 
 
@@ -378,17 +380,21 @@ def test_profile_clone(false_plugin_with_holder):
     assert p2.model.model == 'model'
 
 
-def test_profile_get_connection(false_plugin_with_holder):
-    """Test accessing a connection dict stored in the profile.
+def test_validate_profile_infos(tmpdir, false_plugin_with_holder):
+    """Test validating a profile.
 
     """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
-    assert p.get_connection('visa_tcpip') == {'address': '192.168.0.1'}
+    i = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
+    r, msg = validate_profile_infos(i)
+    assert r
 
-
-def test_profile_get_settings(false_plugin_with_holder):
-    """Test accessing a settings dict stored in the profile.
-
-    """
-    p = ProfileInfos(path=PROFILE_PATH, plugin=false_plugin_with_holder)
-    assert p.get_settings('lantz') == {'lib': 'visa.dll'}
+    for p, m in [(os.path.join(str(tmpdir), 'd_%s.instr.ini' % m), m)
+                 for m in ('id', 'model_id', 'connections', 'settings')]:
+        c = ConfigObj(PROFILE_PATH)
+        del c[m]
+        with open(p, 'w') as f:
+            c.write(f)
+        i = ProfileInfos(path=p, plugin=false_plugin_with_holder)
+        r, msg = validate_profile_infos(i)
+        assert not r
+        assert m in msg

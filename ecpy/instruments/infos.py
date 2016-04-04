@@ -449,18 +449,6 @@ class ProfileInfos(Atom):
                       settings=self.settings))
         return type(self)(path=self.path, _config=c, plugin=self.plugin)
 
-    def get_connection(self, connection):
-        """Retrieve the connection infos associated to an id.
-
-        """
-        return self._config['connections'][connection]
-
-    def get_settings(self, settings):
-        """Retrieve the settings infos associated to an id.
-
-        """
-        return self._config['settings'][settings]
-
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
@@ -512,3 +500,19 @@ class ProfileInfos(Atom):
 
         """
         del self.id, self.model, self.connections, self.settings
+
+
+def validate_profile_infos(infos):
+    """Make sure that a ProfileInfos is backed by a correct file.
+
+    """
+    for m in ('id', 'model', 'connections', 'settings'):
+        try:
+            delattr(infos, m)
+            getattr(infos, m)
+        except KeyError as e:
+            msg = ('The profile stored in {} does not declare the {} field or'
+                   'it contains incorrect values : {}')
+            return False, msg.format(infos.path, m, e)
+
+    return True, ''
