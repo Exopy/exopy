@@ -82,12 +82,18 @@ def test_connection_creation_dialog(prof_plugin, model_infos,
     assert d.connection.declaration.id == 'false_connection3'
 
 
-def test_connection_validation_dialog(prof_plugin, process_and_sleep):
-    """Test the dialog used to check that connection infos allows to open a
+def test_connection_validation_window(prof_plugin, process_and_sleep,
+                                      profile_infos):
+    """Test the window used to check that connection infos allows to open a
     connection.
 
     """
-    pass
+    ed = ProfileEditionDialog(plugin=prof_plugin, profile_infos=profile_infos)
+    ed.show()
+    process_and_sleep()
+    w = ConnectionValidationWindow(editor=ed.central_widget().widgets()[0])
+    w.show()
+    process_and_sleep()
 
 
 def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
