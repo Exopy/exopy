@@ -25,9 +25,6 @@ INDEX_GUARD = 0x1
 class QtListStrWidget(RawWidget):
     """A List widget for Enaml.
 
-    The current implementation is limited as it can only be used to select from
-    a list of unicode strings.
-
     """
     #: The list of str being viewed
     items = d_(List())
@@ -38,7 +35,7 @@ class QtListStrWidget(RawWidget):
 
     #: The list of the currently selected str
     selected_item = d_(Value())
-    selected_items = d_(List(Value()))
+    selected_items = d_(List())
 
     #: Whether or not the user can select multiple lines
     multiselect = d_(Bool(False))
@@ -116,13 +113,18 @@ class QtListStrWidget(RawWidget):
 
         """
         widget = self.get_widget()
-        if not widget:
-            return
-        widget.clearSelection()
-        widget.clear()
+        if widget is not None:
+            widget.clearSelection()
+            widget.clear()
         self._set_items(items, widget)
+
+        if widget is None:
+            return
+
         if not self.multiselect:
             if self.selected_item not in items:
+                del self.selected_item
+                del self.selected_index
                 item = widget.item(0)
                 widget.setCurrentItem(item,
                                       QtGui.QItemSelectionModel.ClearAndSelect)
@@ -130,6 +132,8 @@ class QtListStrWidget(RawWidget):
                 self._post_setattr_selected_item(None, self.selected_item)
         else:
             if not any(i in items for i in self.selected_items):
+                del self.selected_items
+                del self.selected_indexes
                 item = widget.item(0)
                 widget.setCurrentItem(item,
                                       QtGui.QItemSelectionModel.ClearAndSelect)
@@ -183,8 +187,9 @@ class QtListStrWidget(RawWidget):
             index = self._map[new]
             self.selected_item = self.items[new]
             widget = self.get_widget()
-            widget.setCurrentItem(widget.item(index),
-                                  QtGui.QItemSelectionModel.ClearAndSelect)
+            if widget is not None:
+                widget.setCurrentItem(widget.item(index),
+                                      QtGui.QItemSelectionModel.ClearAndSelect)
             self._guard ^= INDEX_GUARD
 
     def _post_setattr_selected_indexes(self, old, new):
@@ -195,12 +200,13 @@ class QtListStrWidget(RawWidget):
             self._guard ^= INDEX_GUARD
             self.selected_items = [self.items[i] for i in new]
             widget = self.get_widget()
-            widget.setCurrentItem(widget.item(0),
-                                  QtGui.QItemSelectionModel.Clear)
-            imap = self._map
-            for i in new:
-                widget.setCurrentItem(widget.item(imap[i]),
-                                      QtGui.QItemSelectionModel.Select)
+            if widget is not None:
+                widget.setCurrentItem(widget.item(0),
+                                      QtGui.QItemSelectionModel.Clear)
+                imap = self._map
+                for i in new:
+                    widget.setCurrentItem(widget.item(imap[i]),
+                                          QtGui.QItemSelectionModel.Select)
             self._guard ^= INDEX_GUARD
 
     def _post_setattr_selected_item(self, old, new):
@@ -212,8 +218,9 @@ class QtListStrWidget(RawWidget):
             index = self.items.index(new)
             self.selected_index = index
             widget = self.get_widget()
-            widget.setCurrentItem(widget.item(self._map[index]),
-                                  QtGui.QItemSelectionModel.ClearAndSelect)
+            if widget is not None:
+                widget.setCurrentItem(widget.item(self._map[index]),
+                                      QtGui.QItemSelectionModel.ClearAndSelect)
             self._guard ^= INDEX_GUARD
 
     def _post_setattr_selected_items(self, old, new):
@@ -225,12 +232,13 @@ class QtListStrWidget(RawWidget):
             indexes = [self.items.index(o) for o in new]
             self.selected_indexes = indexes
             widget = self.get_widget()
-            widget.setCurrentItem(widget.item(0),
-                                  QtGui.QItemSelectionModel.Clear)
-            imap = self._map
-            for i in indexes:
-                widget.setCurrentItem(widget.item(imap[i]),
-                                      QtGui.QItemSelectionModel.Select)
+            if widget is not None:
+                widget.setCurrentItem(widget.item(0),
+                                      QtGui.QItemSelectionModel.Clear)
+                imap = self._map
+                for i in indexes:
+                    widget.setCurrentItem(widget.item(imap[i]),
+                                          QtGui.QItemSelectionModel.Select)
             self._guard ^= INDEX_GUARD
 
     def _default_selected_item(self):
@@ -256,5 +264,6 @@ class QtListStrWidget(RawWidget):
 
         self._rmap = {i: j for i, j in enumerate(s_index)}
         self._map = {j: i for i, j in enumerate(s_index)}
-        for i in s_index:
-            widget.addItem(items[i])
+        if widget is not None:
+            for i in s_index:
+                widget.addItem(items[i])
