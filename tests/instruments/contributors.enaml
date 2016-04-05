@@ -33,7 +33,6 @@ class TestSettings(BaseSettings):
 
     defaults = Dict()
 
-
     def gather_infos(self):
         return {}
 
@@ -125,19 +124,22 @@ enamldef InstrContributor1(PluginManifest):
             description = 'False settings 1'
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
-                                    defaults=defaults)
+                                    defaults=defaults,
+                                    name=defaults.get('name'))
         Settings:
             id = 'false_settings2'
             description = 'False settings 2'
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
-                                    defaults=defaults)
+                                    defaults=defaults,
+                                    name=defaults.get('name'))
         Settings:
             id = 'false_settings3'
             description = 'False settings 3'
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
-                                    defaults=defaults)
+                                    defaults=defaults,
+                                    name=defaults.get('name'))
 
     Extension:
         id = 'starters'

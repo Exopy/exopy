@@ -45,7 +45,8 @@ class BaseSettings(GroupBox):
         return self.name + '(' + self.declaration.id + ')'
 
     def _post_setattr_name(self, old, new):
-        self.title = new + '(' + self.declaration.id + ')'
+        if self.declaration:
+            self.title = new + '(' + self.declaration.id + ')'
 
 
 class Settings(Declarative):

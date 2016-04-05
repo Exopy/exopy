@@ -314,10 +314,10 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
     attr profile_infos
 
     #: Connections editors opened.
-    attr connections
+    attr connections : list
 
     #: Settings editors opened.
-    attr settings
+    attr settings : list
 
     #: Prevent edition while allowing to navigate the notebooks.
     attr read_only : bool = False
@@ -343,8 +343,8 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
         self.connections = [plugin.create_connection(k, v)
                             for k, v in profile_infos.connections.items()]
 
-        self.settings = [plugin.create_settings(k, v)
-                         for k, v in profile_infos.settings.items()]
+        self.settings = [plugin.create_settings(v['id'], v)
+                         for v in profile_infos.settings.values()]
 
     ended ::
         if self._validator and self._validator.visible:
@@ -388,6 +388,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
             tabs_movable = False
             Page:
                 title = 'Connections'
+                name = 'connections'
                 Container:
 
                     constraints = ([hbox(conns, *(tuple(s_conn.objects) +
@@ -399,11 +400,11 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
 
                     QtListStrWidget: conns:
                         items << main.connections or []
-                        sort = False
+                        sort = True
                         to_string = lambda c: c.title
                     Include: s_conn:
                         destroy_old = False
-                        objects << (conns.selected_item if conns.selected_item
+                        objects << ([conns.selected_item] if conns.selected_item
                                     else [Container()])
                     PushButton: add_c:
                         text = 'Add'
@@ -412,7 +413,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
-                                  'model_info': profile_infos.model,
+                                  'model_infos': profile_infos.model,
                                   'existing': [c.declaration.id
                                                for c in connections]}
                             dial = ConnectionCreationDialog(**kw)
@@ -421,6 +422,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                 dial.connection.read_only = read_only
                                 main.connections = (main.connections[:] +
                                                     [dial.connection])
+                                conns.refresh_items()
                                 conns.selected_item = dial.connection
                     PushButton: del_c:
                         text = 'Delete'
@@ -428,7 +430,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             s = main.connections[:]
-                            del s[self.selected_index]
+                            del s[conns.selected_index]
                             main.connections = s
                     PushButton: val_c:
                         text = 'Validate'
@@ -443,27 +445,32 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
 
             Page:
                 title = 'Settings'
+                name = 'settings'
                 Container:
 
-                    constraints = ([hbox(setts, *(tuple(s_sett.objects) +
-                                                  (vbox(add_s, re_s, del_s),)))]
+                    constraints = ([hbox(setts,
+                                         *(tuple(s_sett.objects) +
+                                           (vbox(add_s, re_s, del_s, spacer),)
+                                           ))]
                                    if not read_only else
                                    [hbox(setts, *s_sett.objects)])
 
                     QtListStrWidget: setts:
-                        items = main.settings or []
-                        sort = False
+                        items << main.settings or []
+                        selected_item << (main.settings[0] if main.settings
+                                          else None)
+                        sort = True
                         to_string = lambda s: s.name
                     Include: s_sett:
                         destroy_old = False
-                        objects << (setts.selected_item if setts.selected_item
-                                    else [Container()])
+                        objects << ([setts.selected_item]
+                                    if setts.selected_item else [Container()])
                     PushButton: add_s:
                         text = 'Add'
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
-                                  'model_info': profile_infos.model,
+                                  'model_infos': profile_infos.model,
                                   'existing': [s.name for s in settings]}
                             dial = SettingsCreationDialog(**kw)
                             dial.exec_()
@@ -471,14 +478,15 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                 dial.settings.read_only = read_only
                                 main.settings = (main.settings[:] +
                                                  [dial.settings])
-                                conns.selected_item = dial.settings
+                                setts.refresh_items()
+                                setts.selected_item = dial.settings
                     PushButton: re_s:
                         text = 'Rename'
                         enabled << bool(setts.selected_item)
                         visible = not read_only
                         clicked ::
                             s = setts.selected_item
-                            others = set(s.name for s in settings)
+                            others = set((s.name for s in settings))
                             others.remove(s.name)
                             popup = RenameSettingsPopup(parent=self,
                                                         settings=s,
@@ -489,7 +497,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             s = main.settings[:]
-                            del s[self.selected_index]
+                            del s[setts.selected_index]
                             main.settings = s
 
 
