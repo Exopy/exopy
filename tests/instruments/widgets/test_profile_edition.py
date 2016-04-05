@@ -95,6 +95,14 @@ def test_connection_validation_window(prof_plugin, process_and_sleep,
     w.show()
     process_and_sleep()
 
+    widgets = w.central_widget().widgets()
+    p = widgets[-3]
+    p.clicked = True
+    assert 'The connection was successfully established' in widgets[-2].text
+
+    widgets[-1].clicked = True
+    process_app_events()
+
 
 def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
     """Test the dialog dedicated to create new settings.

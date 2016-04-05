@@ -25,11 +25,17 @@ class TestConnection(BaseConnection):
 
     defaults = Dict()
 
+    def gather_infos(self):
+        return {}
+
 
 class TestSettings(BaseSettings):
 
     defaults = Dict()
 
+
+    def gather_infos(self):
+        return {}
 
 
 enamldef InstrContributor1(PluginManifest):
@@ -142,7 +148,7 @@ enamldef InstrContributor1(PluginManifest):
             initialize => (driver, connection, settings):
                 pass
             check_infos => (driver, connection, settings):
-                pass
+                return True, ''
             reset => (driver):
                 pass
             finalize => (driver):
