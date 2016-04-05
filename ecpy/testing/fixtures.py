@@ -16,6 +16,7 @@ import os
 from os import remove  # Avoid issue when monkeypatching it
 import logging
 from inspect import getabsfile
+from time import sleep
 
 import pytest
 from configobj import ConfigObj
@@ -24,7 +25,7 @@ from enaml.qt.qt_application import QtApplication
 
 
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
-                   ecpy_path)
+                   ecpy_path, process_app_events)
 
 #: Global variable storing the application folder path
 ECPY = ''
@@ -148,3 +149,15 @@ def logger(caplog):
     yield logger
 
     logger.handlers = []
+
+
+@pytest.fixture
+def process_and_sleep(windows, dialog_sleep):
+    """Function to process app events and sleep.
+
+    """
+    def p():
+        process_app_events()
+        sleep(dialog_sleep)
+
+    return p

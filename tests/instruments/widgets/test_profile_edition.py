@@ -12,8 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from time import sleep
-
 import enaml
 import pytest
 
@@ -24,18 +22,6 @@ with enaml.imports():
         import (SetValidator, ConnectionCreationDialog,
                 ConnectionValidationWindow, SettingsCreationDialog,
                 RenameSettingsPopup, ProfileEditionDialog)
-
-
-@pytest.fixture
-def process_and_sleep(windows, dialog_sleep):
-    """Function to process app events and sleep.
-
-    """
-    def p():
-        process_app_events()
-        sleep(dialog_sleep)
-
-    return p
 
 
 @pytest.fixture
