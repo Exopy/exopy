@@ -354,7 +354,9 @@ class ManufacturersHolder(Atom):
         manufacturers = defaultdict(list)
         for d in drivers:
             m = d.infos['manufacturer']
-            manufacturers[aliases.get(m, m)].append(d)
+            alias = aliases.get(m, m)
+            d.infos['manufacturer'] = alias
+            manufacturers[alias].append(d)
 
         for m, ds in manufacturers.items():
             if m not in self._manufacturers:
