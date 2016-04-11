@@ -14,15 +14,19 @@ from __future__ import (division, unicode_literals, print_function,
 
 from configobj import ConfigObj
 from atom.api import Coerced
-from enaml.layout.api import hbox, vbox
+from enaml.core.api import Conditional
+from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Container, Dialog, Form, Label, ObjectCombo,
-                               PushButton)
+                               PushButton, Field)
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
 
 
-enamldef ProfileSelectionWidget(Container):
+SENTINEL = object()
+
+
+enamldef ProfileSelectionWidget(Container): pw:
     """A widget to select a profile and what connection and settings to use.
 
     """
@@ -32,31 +36,27 @@ enamldef ProfileSelectionWidget(Container):
     #: Callable used to filter the list of profiles displayed.
     #: The callable should take as single argument the profiles (id, infos)
     #: and return a filtered iterable of the valid profiles ids.
-    attr filter_profiles
+    attr filter_profiles = lambda x: x
 
     #: Callable used to filter the list of drivers displayed for a profile.
     #: The callable should take as single argument the drivers infos
     #: and return a filtered list.
-    attr filter_drivers
+    attr filter_drivers = lambda x: x
 
     #: Currently selected profile (id)
     alias profile : pl.selected_item
 
     #: Infos of the currently selected profile.
-    attr infos << plugin._profiles[profile] if profile else None
+    attr infos << plugin._profiles[profile] if profile else SENTINEL
 
     #: Currently selected driver (id)
-    attr driver = _drivers[0].id if _drivers else None
+    attr driver = _drivers[0].id if _drivers else SENTINEL
 
     #: Currently selected connection (id)
     attr connection
 
     #: Currently selected settings
     attr settings
-
-    #: Private list of valid profiles.
-    attr _profiles << (list(filter_func(plugin._profiles.copy()))
-                       if filter_func else list(plugin._profiles))
 
     #: Private list of valid drivers.
     attr _drivers << filter_drivers(infos.model.drivers) if infos else []
@@ -68,7 +68,8 @@ enamldef ProfileSelectionWidget(Container):
         if not p_infos or not d_id:
             return []
 
-        driver_connections = infos.model.drivers[driver].connections
+        d_map = {d.id : d for d in infos.model.drivers}
+        driver_connections = d_map[d_id].connections
         return [c for c in infos.connections if c in driver_connections]
 
     func matching_settings(p_infos, d_id):
@@ -78,49 +79,54 @@ enamldef ProfileSelectionWidget(Container):
         if not p_infos or not d_id:
             return []
 
-        driver_settings = infos.model.drivers[driver].settings
+        d_map = {d.id : d for d in infos.model.drivers}
+        driver_settings = d_map[d_id].settings
         return [s for s in infos.settings
-                if infos.get_settings[s]['id'] in driver_settings]
+                if infos.settings[s]['id'] in driver_settings]
 
-    constraints = [hbox(pl, pf)]
+    initialized ::
+        pl.items = sorted(filter_profiles(plugin._profiles.copy()))
+        pl.refresh_items()
+        if not pw.profile:
+            pw.profile = pl.items[0]
+
+    constraints = [hbox(pl, pf), pf.top == contents_top]
 
     QtListStrWidget: pl:
-        items = _profiles
+        items << (sorted(filter_profiles(plugin._profiles.copy()))
+                  if plugin else [])
         selected_item ::
-            driver = _drivers[0].id if _drivers else None
+            pw.driver = _drivers[0].id if _drivers else None
 
     Form: pf:
 
         Label:
             text = 'Manufacturer'
         Field:
-            text << '%s (%s)' % (infos.model.manufacturer,
-                                 plugin.get_aliases(infos.model.manufacturer))
+            attr aliases << tuple(plugin.get_aliases(infos.model.manufacturer))
+            text << ('' if infos is SENTINEL else
+                     ('%s  (%s)' % (infos.model.manufacturer,
+                                    ' '.join(aliases))
+                     if aliases else '%s' % infos.model.manufacturer))
             read_only = True
 
         Label:
             text = 'Model'
         Field:
-            text << infos.model.model
+            text << infos.model.model if infos is not SENTINEL else ''
 
         Conditional:
-            condition = len(_drivers) > 1
+            condition << len(_drivers) > 1
             Label:
                 text = 'Driver'
             ObjectCombo: dc:
-                # TODO handle same architecture for different drivers
-                attr drivers << {d.id: d.infos['architecture']
-                                 for d in _drivers}
-                items << list(drivers)
-                items ::
-                    self.selected = None
-                to_string = lambda i: drivers[i]
+                items << sorted((d.id for d in _drivers))
                 selected := driver
 
         Label:
             text = 'Connections'
         ObjectCombo: cc:
-            enabled << bool(driver)
+            enabled << bool(driver is not SENTINEL)
             items << matching_connections(infos, driver)
             items ::
                 if self.selected not in change['value']:
@@ -128,7 +134,7 @@ enamldef ProfileSelectionWidget(Container):
             selected := connection
 
         Conditional:
-            condition = bool(infos.settings)
+            condition << bool(infos is not SENTINEL and infos.settings)
             Label:
                 text << 'Settings'
             ObjectCombo: sc:
@@ -149,9 +155,14 @@ enamldef ProfileSelectionDialog(Dialog): dial:
     alias plugin : w.plugin
 
     #: Callable used to filter the list of profiles displayed.
-    #: The callable should take as ingle argument the profile infos and return
-    #: a boolean.
-    alias filter_func : w.filter_func
+    #: The callable should take as single argument the profiles (id, infos)
+    #: and return a filtered iterable of the valid profiles ids.
+    alias filter_profiles : w.filter_profiles
+
+    #: Callable used to filter the list of drivers displayed for a profile.
+    #: The callable should take as single argument the drivers infos
+    #: and return a filtered list.
+    alias filter_drivers : w.filter_drivers
 
     #: Currently selected profile (id)
     alias profile : w.profile
@@ -165,20 +176,22 @@ enamldef ProfileSelectionDialog(Dialog): dial:
     #: Currently selected settings (id)
     alias settings : w.settings
 
+    title = 'Select a profile'
+
     Container:
 
-        constraints = []
+        constraints = [vbox(w, hbox(spacer, can, ok))]
 
         ProfileSelectionWidget: w:
             pass
 
-        PushButton:
+        PushButton: can:
             text = 'Cancel'
             clicked ::
                 dial.reject()
 
-        PushButton:
+        PushButton: ok:
             text = 'Ok'
-            enabled << (w.driver and w.connection)
+            enabled << bool(w.driver and w.connection)
             clicked ::
                 dial.accept()
