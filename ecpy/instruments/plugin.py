@@ -366,7 +366,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         Parameters
         ----------
         manufacturer : id
-            Name of the manufacturer for which to retun the aliases.
+            Name of the manufacturer for which to return the aliases.
 
         Returns
         -------
@@ -374,7 +374,10 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             Known aliases of the manufacturer.
 
         """
-        return self._aliases.contributions.get(manufacturer, [])
+        aliases = self._aliases.contributions.get(manufacturer, [])
+        if aliases:
+            aliases = aliases.aliases
+        return aliases
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

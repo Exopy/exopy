@@ -239,6 +239,14 @@ def test_get_profiles(prof_plugin):
     assert prof_plugin.used_profiles == {'fp1': 'tests2', 'fp2': 'tests2'}
 
 
+def test_get_aliases(prof_plugin):
+    """Test requesting a manufacturer aliases.
+
+    """
+    a = prof_plugin.get_aliases('Dummy')
+    assert len(a) == 1
+
+
 def test_requesting_driver_already_owned_and_accept_partial(prof_plugin):
     """Test requesting profiles owned by other users.
 
