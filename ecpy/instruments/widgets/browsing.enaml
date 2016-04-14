@@ -29,6 +29,8 @@ enamldef BrowsingDialog(Dialog): dial:
     #: Reference to the instrument plugin driving this dialog.
     attr plugin
 
+    title = 'Instruments'
+
     Container:
 
        Notebook:
@@ -36,59 +38,67 @@ enamldef BrowsingDialog(Dialog): dial:
            tabs_closable = False
 
            Page:
+               name = 'models'
                title = 'Instrument models'
                Container:
 
-                    constraints << [hbox(m_sel, *m_dis.objects)]
+                    constraints << [hbox(m_sel, vbox(*(tuple(m_dis.objects) +
+                                                            (spacer,))))]
 
                     ModelSelectionWidget: m_sel:
                         plugin = dial.plugin
                         kind = 'All'
                         use_series = True
                     Include: m_dis:
-                        objects << (ModelView(model=m_sel.model)
-                                    if m_sel.model else Container())
+                        objects << [ModelView(model=m_sel.model)
+                                    if m_sel.model else Container()]
 
            Page:
+               name = 'profiles'
                title = 'Profiles'
                Container:
 
                    alias p_id : p_sel.selected_item
 
-                    constraints << [vbox(hbox(p_sel, *p_dis.objects),
-                                         hbox(spacer, p_ed)]
+                   constraints << [vbox(hbox(p_sel, *p_dis.objects),
+                                        hbox(spacer, p_ed))]
 
                    QtListStrWidget: p_sel:
                        items << plugin.profiles
                    Include: p_dis:
-                        objects << (ProfileEditionWidget(
+                        objects << [ProfileEditionWidget(
+                                        plugin=plugin,
                                         profile_infos=plugin._profiles[p_id],
                                         read_only=True)
-                                    if p_id else Container())
+                                     if p_id else Container()]
                    PushButton: p_ed:
                        text = 'Edit'
                        enabled << p_id and p_id not in plugin.used_profiles
                        clicked ::
                            p = plugin._profiles[p_id].clone()
-                           d = ProfileEditionDialog(profile_infos=p)
+                           d = ProfileEditionDialog(plugin=plugin,
+                                                    profile_infos=p)
                            if d.exec_():
                                ps = plugin._profiles.copy()
                                ps[p_id] = p
                                plugin._profiles = ps
 
            Page:
+               name = 'profile_use'
                title = 'Profiles use'
                Container:
                    ScrollArea:
                        Form:
                            Label:
                                text = 'Profile'
+                               hug_width = 'strong'
                            Label:
                                text = 'User'
                            Looper:
-                               items << plugin.used_profiles.items()
+                               iterable << plugin.used_profiles.items()
                                Label:
                                    text = loop_item[0]
+                                   hug_width = 'strong'
                                Field:
                                    text = loop_item[1]
                                    read_only = True

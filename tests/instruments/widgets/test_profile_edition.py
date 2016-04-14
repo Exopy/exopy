@@ -24,6 +24,9 @@ with enaml.imports():
                 RenameSettingsPopup, ProfileEditionDialog)
 
 
+# HINT the QtListStrWidget has some issues of display in test mode
+
+
 @pytest.fixture
 def profile_infos(prof_plugin):
     """A profile model to edit.

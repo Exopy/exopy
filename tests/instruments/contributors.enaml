@@ -125,21 +125,21 @@ enamldef InstrContributor1(PluginManifest):
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
                                     defaults=defaults,
-                                    name=defaults.get('name'))
+                                    name=defaults.get('name', 'empty'))
         Settings:
             id = 'false_settings2'
             description = 'False settings 2'
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
                                     defaults=defaults,
-                                    name=defaults.get('name'))
+                                    name=defaults.get('name', 'empty'))
         Settings:
             id = 'false_settings3'
             description = 'False settings 3'
             new => (workbench, defaults):
                 return TestSettings(declaration=self,
                                     defaults=defaults,
-                                    name=defaults.get('name'))
+                                    name=defaults.get('name', 'empty'))
 
     Extension:
         id = 'starters'
