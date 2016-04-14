@@ -196,10 +196,17 @@ class QtTreeWidget(RawWidget):
         """Update the selection when it changes externally.
 
         """
+        tree = self.get_widget()
+
+        if not tree:
+            return
+
         if not self._guard & INDEX_GUARD:
             self._guard ^= INDEX_GUARD
             try:
-                tree = self.get_widget()
+                if id(new) not in self._map:
+                    # TODO handle the automatic expanding of the tree
+                    return  # Otherwise would crash
                 tree.setCurrentItem(self._object_info(new)[2])
             except Exception:
                 self._guard ^= INDEX_GUARD
@@ -640,10 +647,6 @@ class QtTreeWidget(RawWidget):
                     # If there is a real selection, get the associated object:
                     expanded, node, sel_object = self._get_node_data(nid)
                     selected.append(sel_object)
-
-                    # Try to inform the node specific handler of the selection,
-                    # if there are multiple selections, we only care about the
-                    # first
 
                     # QTreeWidgetItem does not have an equal operator, so use
                     # id()
