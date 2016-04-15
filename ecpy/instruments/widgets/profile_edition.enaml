@@ -313,6 +313,10 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
     #: of the member.
     attr profile_infos
 
+    #: Flag indicating that we are creating a new profile which allows for more
+    #: edition.
+    attr creation : bool = False
+
     #: Connections editors opened.
     attr connections : list = [plugin.create_connection(k, v)
                                for k, v in profile_infos.connections.items()]
@@ -353,7 +357,10 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
     Field: id_val:
         text := profile_infos.id
         validator << SetValidator(existing=plugin.profiles)
-        enabled = not read_only
+        enabled = not read_only and creation
+        tool_tip = 'Profile name can only be edited during creation.'
+
+    # TODO : allow to select the folder in which to save the profile
 
     Label: model_lab:
         text = 'Instrument'
@@ -504,6 +511,10 @@ enamldef ProfileEditionDialog(Dialog): dial:
 
     #: ProfileInfos to edit.
     alias profile_infos : ed.profile_infos
+
+    #: Flag indicating that we are creating a new profile which allows for more
+    #: edition.
+    alias creation : ed.creation
 
     title = 'Edit profile %s' % profile_infos.id
 

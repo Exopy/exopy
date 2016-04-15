@@ -451,6 +451,18 @@ class ProfileInfos(Atom):
                       settings=self.settings))
         return type(self)(path=self.path, _config=c, plugin=self.plugin)
 
+    @classmethod
+    def create_blank(cls, plugin):
+        """Create a new blank ProfileInfos.
+
+        """
+        c = ConfigObj()
+        c['id'] = ''
+        c['model_id'] = ''
+        c['connections'] = {}
+        c['settings'] = {}
+        return cls(plugin=plugin, _config=c)
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================

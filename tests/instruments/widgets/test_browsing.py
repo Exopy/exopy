@@ -40,7 +40,7 @@ def test_browsing_dialog_instruments(prof_plugin, process_and_sleep):
     assert type(nb.pages()[0].page_widget().widgets()[1]) is not Container
 
 
-def test_browing_dialog_profiles(prof_plugin, process_and_sleep):
+def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
     """Test the browsing dialog page dedicated to explore the profiles.
 
     """
@@ -50,7 +50,20 @@ def test_browing_dialog_profiles(prof_plugin, process_and_sleep):
     d.show()
     process_and_sleep()
 
-    # TODO : add a meaningful test here ?
+    # XXX : add tests for add and edit
+
+
+def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
+    """Test the browsing dialog page dedicated to explore the profiles.
+
+    """
+    d = BrowsingDialog(plugin=prof_plugin)
+    nb = d.central_widget().widgets()[0]
+    nb.selected_tab = 'profiles'
+    d.show()
+    process_and_sleep()
+
+    # XXX : add tests for add and edit
 
 
 def test_browing_dialog_profiles_use(prof_plugin, process_and_sleep):

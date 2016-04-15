@@ -380,6 +380,12 @@ def test_profile_clone(false_plugin_with_holder):
     assert p2.model.model == 'model'
 
 
+def test_profile_blank(false_plugin_with_holder):
+    """
+    """
+    pass  # XXX do
+
+
 def test_validate_profile_infos(tmpdir, false_plugin_with_holder):
     """Test validating a profile.
 

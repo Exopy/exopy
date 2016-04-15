@@ -79,6 +79,13 @@ def select_instrument_handler(event):
     else:
         return None
 
+
+def open_browser_dialog_handler(event):
+    """
+    """
+    pass
+
+
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
@@ -249,6 +256,12 @@ result : tuple(4) or None
     Tuple containing the four afor mentionned ids or None if the selection
     was cancelled.
 
+"""
+
+
+# XXX write
+OPEN_BROWSER_DESCRIPTION =\
+"""
 """
 
 # =============================================================================
@@ -460,6 +473,19 @@ enamldef InstrumentManagerManifest(PluginManifest):
             id = 'ecpy.instruments.select_instrument'
             description = SELECT_INSTRUMENT_DESCRIPTION
             handler = select_instrument_handler
-        # XXX add command opening browsing widget
+        Command:
+            id = 'ecpy.instruments.open_browser'
+            description = OPEN_BROWSER_DESCRIPTION
+            handler = open_browser_dialog_handler
 
-    # XXX add ui contributions
+    Extension:
+        id = 'ui-menus'
+        point = 'enaml.workbench.ui.actions'
+        MenuItem:
+            path = 'tools/instruments'
+            label = 'Instruments'
+        ActionItem:
+            path = 'tools/instruments/browser'
+            label = 'Open browser'
+            tool_tip = ''
+            command = 'ecpy.instruments.open_browser'

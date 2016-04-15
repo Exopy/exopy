@@ -12,12 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+
 from enaml.core.api import Include, Conditional, Looper
 from enaml.widgets.api import (Dialog, Label, Container, ScrollArea, Notebook,
                                Page, PushButton, Form, Field)
 from enaml.layout.api import vbox, hbox, spacer
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ..infos import ProfileInfos
 from .instrument_selection import ModelSelectionWidget, ModelView
 from .profile_edition import ProfileEditionWidget, ProfileEditionDialog
 
@@ -61,7 +64,7 @@ enamldef BrowsingDialog(Dialog): dial:
                    alias p_id : p_sel.selected_item
 
                    constraints << [vbox(hbox(p_sel, *p_dis.objects),
-                                        hbox(spacer, p_ed))]
+                                        hbox(spacer, p_add, p_ed))]
 
                    QtListStrWidget: p_sel:
                        items << plugin.profiles
@@ -71,13 +74,28 @@ enamldef BrowsingDialog(Dialog): dial:
                                         profile_infos=plugin._profiles[p_id],
                                         read_only=True)
                                      if p_id else Container()]
+
+                   PushButton: p_add:
+                       text = 'Add'
+                       clicked ::
+                           i = ProfileInfos.create_blank(plugin)
+                           d = ProfileEditionDialog(plugin=plugin,
+                                                    profile_infos=p,
+                                                    creation=True)
+                           if d.exec_():
+                               folder = plugin._profiles_folders[0]
+                               i.path = os.path.join(folder,
+                                                     i.id + '.instr.ini')
+                               i.write_to_file()
+
                    PushButton: p_ed:
                        text = 'Edit'
                        enabled << p_id and p_id not in plugin.used_profiles
                        clicked ::
                            p = plugin._profiles[p_id].clone()
                            d = ProfileEditionDialog(plugin=plugin,
-                                                    profile_infos=p)
+                                                    profile_infos=p,
+                                                    creation=False)
                            if d.exec_():
                                ps = plugin._profiles.copy()
                                ps[p_id] = p
