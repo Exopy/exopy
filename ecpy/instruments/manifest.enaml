@@ -131,7 +131,7 @@ driver the "master" name should be used.
 
 """
 
-# XXX add the possible default fields for a driver in the descriptions
+
 VISA_RS232 =\
 """Visa connection informations necessary to open a serial connection to an
 instrument.
@@ -142,17 +142,44 @@ VISA_GPIB =\
 """Visa connection informations necessary to open a GPIB connection to an
 instrument.
 
+Defaults
+--------
+seondary_address : int
+    Secondary address to use.
+
 """
 
 VISA_TCPIP=\
 """Visa connection informations necessary to open a TCPIP connection to an
 instrument. The connection can use the INSTR or SOCKET protocol.
 
+Defaults
+--------
+resource_class : {'INSTR', 'SOCKET'}
+    Communication protocol to use
+
+LAN_device_name : str
+    Lan device name to use (INSTR protocol only)
+
+port : int
+    Port on which to connect (SOCKET mode only)
+
 """
 
 VISA_USB =\
 """Visa connection informations necessary to open a USB connection to an
 instrument. The connection can use the INSTR or RAW protocol.
+
+Defaults
+--------
+resource_class : {'INSTR', 'RAW'}
+    Protocol to use.
+
+manufacturer_ID : str
+    Manufacturer ID (first part of the USB address).
+
+model_code : str
+    Model code (second part of the USB address).
 
 """
 
@@ -259,9 +286,9 @@ result : tuple(4) or None
 """
 
 
-# XXX write
 OPEN_BROWSER_DESCRIPTION =\
-"""
+"""Open the instrument browser dialog.
+
 """
 
 # =============================================================================
@@ -310,6 +337,9 @@ enamldef InstrumentManagerManifest(PluginManifest):
     Extension:
         id = 'default_connections'
         point = 'ecpy.instruments.connections'
+        VisaConnection:
+            id = 'VisaRaw'
+            description = VISA_RAW
         VisaConnection:
             id = 'VisaRS232'
             description = VISA_RS232
