@@ -19,6 +19,7 @@ from functools import partial
 from collections import defaultdict
 
 from atom.api import Typed, List, Dict
+from enaml.application import deferred_call
 from watchdog.observers import Observer
 
 from ..utils.watchdog import SystematicFileUpdater
@@ -459,7 +460,9 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             getattr(self, '_'+contrib).observe('contributions', callback)
 
         for folder in self._profiles_folders:
-            handler = SystematicFileUpdater(self._refresh_profiles)
+            def update():
+                deferred_call(self._refresh_profiles)
+            handler = SystematicFileUpdater(update)
             self._observer.schedule(handler, folder, recursive=True)
 
         self._observer.start()

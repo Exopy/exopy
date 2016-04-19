@@ -12,14 +12,17 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+from time import sleep
+
 import enaml
 from enaml.widgets.api import Container
 
-from ecpy.testing.util import process_app_events
+from ecpy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
-    from ecpy.instruments.widgets.browsing\
-        import (BrowsingDialog)
+    from ecpy.instruments.widgets.browsing import BrowsingDialog
+    from ecpy.instruments.widgets.profile_edition import ProfileEditionDialog
 
 
 def test_browsing_dialog_instruments(prof_plugin, process_and_sleep):
@@ -50,7 +53,29 @@ def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
     d.show()
     process_and_sleep()
 
-    # XXX : add tests for add and edit
+    btn = nb.pages()[1].page_widget().widgets()[-2]
+
+    origin = prof_plugin.profiles[:]
+    with handle_dialog('reject', cls=ProfileEditionDialog):
+        btn.clicked = True
+
+    assert prof_plugin.profiles == origin
+
+    def handle(dial):
+        assert dial.creation
+        dial.profile_infos.id = 'test'
+        dial.profile_infos.model = prof_plugin._profiles['fp1'].model
+
+    with handle_dialog('accept', handle, cls=ProfileEditionDialog):
+        btn.clicked = True
+
+    # Wait for file notification to be treated
+    sleep(0.1)
+    process_app_events()
+
+    assert 'test' in prof_plugin.profiles
+    assert os.path.isfile(os.path.join(prof_plugin._profiles_folders[0],
+                                       'test.instr.ini'))
 
 
 def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
@@ -63,7 +88,33 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     d.show()
     process_and_sleep()
 
-    # XXX : add tests for add and edit
+    c = nb.pages()[1].page_widget()
+    btn = c.widgets()[-1]
+    c.p_id = 'fp1'
+
+    # A true user cannot edit the id from the UI but for testing purposes this
+    # is fine.
+
+    def handle(dial):
+        dial.profile_infos.id = 'dummy'
+
+    with handle_dialog('reject', handle, cls=ProfileEditionDialog):
+        btn.clicked = True
+
+    assert prof_plugin._profiles['fp1'].id != 'dummy'
+
+    # XXX Segfault ...
+
+    def handle(dial):
+        assert not dial.creation
+        dial.profile_infos.id = 'test'
+        dial.central_widget().widgets()[0].sync()
+
+    with handle_dialog('accept', handle, cls=ProfileEditionDialog):
+        btn.clicked = True
+
+    assert prof_plugin._profiles['fp1'].id == 'dummy'
+    # XXX must also check the file content
 
 
 def test_browing_dialog_profiles_use(prof_plugin, process_and_sleep):

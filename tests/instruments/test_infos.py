@@ -381,9 +381,14 @@ def test_profile_clone(false_plugin_with_holder):
 
 
 def test_profile_blank(false_plugin_with_holder):
+    """Test creating a blank profile.
+
     """
-    """
-    pass  # XXX do
+    p = ProfileInfos.create_blank(false_plugin_with_holder)
+    assert not p.id
+    assert not p.connections
+    assert not p.settings
+    assert p._config
 
 
 def test_validate_profile_infos(tmpdir, false_plugin_with_holder):

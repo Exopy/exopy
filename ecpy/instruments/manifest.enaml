@@ -352,9 +352,6 @@ enamldef InstrumentManagerManifest(PluginManifest):
         VisaConnection:
             id = 'VisaTCPIP'
             description = VISA_TCPIP
-        VisaConnection:
-            id = 'VisaRaw'
-            description = VISA_RAW
 
     Extension:
         id = 'manufacturer_alias'

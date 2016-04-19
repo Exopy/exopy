@@ -29,7 +29,7 @@ PROFILE_PATH = os.path.join(os.path.dirname(__file__),
 
 
 @pytest.fixture
-def prof_plugin(instr_workbench):
+def prof_plugin(app, instr_workbench):
     """Start the instrument plugin and add some profiles.
 
     """
