@@ -17,6 +17,7 @@ from time import sleep
 
 import enaml
 from enaml.widgets.api import Container
+from configobj import ConfigObj
 
 from ecpy.testing.util import process_app_events, handle_dialog
 
@@ -92,29 +93,28 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     btn = c.widgets()[-1]
     c.p_id = 'fp1'
 
-    # A true user cannot edit the id from the UI but for testing purposes this
-    # is fine.
+    manu = prof_plugin._manufacturers._manufacturers['Dummy']
+    model = manu._series['dumb']._models['002']
 
     def handle(dial):
-        dial.profile_infos.id = 'dummy'
+        dial.profile_infos.model = model
 
     with handle_dialog('reject', handle, cls=ProfileEditionDialog):
         btn.clicked = True
 
-    assert prof_plugin._profiles['fp1'].id != 'dummy'
-
-    # XXX Segfault ...
+    assert prof_plugin._profiles['fp1'].model != model
 
     def handle(dial):
         assert not dial.creation
-        dial.profile_infos.id = 'test'
+        dial.profile_infos.model = model
         dial.central_widget().widgets()[0].sync()
 
     with handle_dialog('accept', handle, cls=ProfileEditionDialog):
         btn.clicked = True
 
-    assert prof_plugin._profiles['fp1'].id == 'dummy'
-    # XXX must also check the file content
+    assert prof_plugin._profiles['fp1'].model == model
+    assert (ConfigObj(prof_plugin._profiles['fp1'].path)['model_id'] ==
+            'Dummy.dumb.002')
 
 
 def test_browing_dialog_profiles_use(prof_plugin, process_and_sleep):

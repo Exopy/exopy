@@ -38,6 +38,10 @@ class BaseSettings(GroupBox):
     def gather_infos(self):
         """Return the current values as a dictionary.
 
+        The base funcion should always be called (using
+        BaseSettings.gather_infos as super is not allowed in declarative
+        functions)
+
         """
         return {'id': self.declaration.id, 'name': self.name}
 

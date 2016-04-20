@@ -34,7 +34,7 @@ class TestSettings(BaseSettings):
     defaults = Dict()
 
     def gather_infos(self):
-        return {}
+        return BaseSettings.gather_infos(self)
 
 
 enamldef InstrContributor1(PluginManifest):

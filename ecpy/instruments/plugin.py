@@ -449,7 +449,6 @@ class InstrumentManagerPlugin(HasPrefPlugin):
                 logger.warn('{} is not a valid directory'.format(path))
 
         self._profiles = profiles
-        self.profiles = list(profiles)
 
     def _bind_observers(self):
         """Start the observers.
@@ -481,6 +480,12 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             self._observer.join()
         except RuntimeError:
             pass
+
+    def _post_setattr__profiles(self, old, new):
+        """Automatically update the profiles member.
+
+        """
+        self.profiles = list(new)
 
     def _default__manufacturers(self):
         """Delayed till this is first needed.

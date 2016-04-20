@@ -98,7 +98,6 @@ enamldef BrowsingDialog(Dialog): dial:
                                                     profile_infos=p,
                                                     creation=False)
                            if d.exec_():
-                               print(p_id)
                                ps = plugin._profiles.copy()
                                ps[p_id] = p
                                p.write_to_file()
