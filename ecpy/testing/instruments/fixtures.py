@@ -34,7 +34,7 @@ pytests_plugin = str('ecpy.testing.fixtures'),
 
 
 @pytest.yield_fixture
-def instr_workbench(monkeypatch, app_dir):
+def instr_workbench(monkeypatch, app_dir, app):
     """Setup the workbench in such a way that the instrs manager can be tested.
 
     """

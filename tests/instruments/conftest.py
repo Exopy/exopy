@@ -19,6 +19,8 @@ from time import sleep
 import pytest
 import enaml
 
+from ecpy.testing.util import process_app_events
+
 with enaml.imports():
     from .contributors import InstrContributor1
 
@@ -40,4 +42,5 @@ def prof_plugin(app, instr_workbench):
         shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
                                                    n + '.instr.ini'))
     sleep(0.1)
+    process_app_events()
     return p

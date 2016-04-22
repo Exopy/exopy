@@ -23,7 +23,7 @@ from configobj import ConfigObj
 from ecpy.instruments.user import InstrUser
 from ecpy.instruments.plugin import validate_user
 from ecpy.instruments.infos import DriverInfos
-from ecpy.testing.util import handle_dialog
+from ecpy.testing.util import handle_dialog, process_app_events
 
 from .conftest import PROFILE_PATH
 with enaml.imports():
@@ -75,28 +75,30 @@ def test_plugin_lifecycle(instr_workbench):
     instr_workbench.register(c2)
 
     assert 'tests_' in p.users
-    assert 'false_starter2' in p.starters
-    assert 'false_connection2' in p.connections
-    assert 'false_settings2' in p.settings
+    assert 'false_starter_bis' in p.starters
+    assert 'false_connection_bis' in p.connections
+    assert 'false_settings_bis' in p.settings
 
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
     sleep(0.1)
+    process_app_events()
 
-    assert 'false_profile' in p.profiles
+    assert 'fp' in p.profiles
 
-    os.remove(os.path.join(p._profiles_folders[0], 'false_profile.instr.ini'))
+    os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
     sleep(0.1)
+    process_app_events()
 
-    assert 'false_profile' not in p.profiles
+    assert 'fp' not in p.profiles
 
     # Test dynamic unregsitrations (same remark as above)
     instr_workbench.unregister(c2.id)
 
     assert 'tests_' not in p.users
-    assert 'false_starter2' not in p.starters
-    assert 'false_connection2' not in p.connections
-    assert 'false_settings2' not in p.settings
+    assert 'false_starter_bis' not in p.starters
+    assert 'false_connection_bis' not in p.connections
+    assert 'false_settings_bis' not in p.settings
 
     assert 'Dummy' in p._manufacturers._manufacturers  # dummy is an alias
 
@@ -181,13 +183,15 @@ def test_profiles_observation(instr_workbench):
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
     sleep(0.5)
+    process_app_events()
 
-    assert 'false_profile' in p.profiles
+    assert 'fp' in p.profiles
 
-    os.remove(os.path.join(p._profiles_folders[0], 'false_profile.instr.ini'))
+    os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
     sleep(0.5)
+    process_app_events()
 
-    assert 'false_profile' not in p.profiles
+    assert 'fp' not in p.profiles
 
 
 def test_create_connection(instr_workbench):

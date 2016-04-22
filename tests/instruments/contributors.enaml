@@ -193,7 +193,7 @@ enamldef InstrContributor2(PluginManifest):
         id = 'connections'
         point = 'ecpy.instruments.connections'
         Connection:
-            id = 'false_connection2'
+            id = 'false_connection_bis'
             description = 'False connection'
             new => (workbench, defaults):
                 pass
@@ -202,7 +202,7 @@ enamldef InstrContributor2(PluginManifest):
         id = 'settings'
         point = 'ecpy.instruments.settings'
         Settings:
-            id = 'false_settings2'
+            id = 'false_settings_bis'
             description = 'False settings'
             new => (workbench, defaults):
                 pass
@@ -211,7 +211,7 @@ enamldef InstrContributor2(PluginManifest):
         id = 'starters'
         point = 'ecpy.instruments.starters'
         Starter:
-            id = 'false_starter2'
+            id = 'false_starter_bis'
             description = 'False starter'
             initialize => (driver, connection, settings):
                 pass

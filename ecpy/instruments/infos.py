@@ -526,7 +526,7 @@ def validate_profile_infos(infos):
             getattr(infos, m)
         except KeyError as e:
             msg = ('The profile stored in {} does not declare the {} field or'
-                   'it contains incorrect values : {}')
+                   ' it contains incorrect values : {}')
             return False, msg.format(infos.path, m, e)
 
     return True, ''

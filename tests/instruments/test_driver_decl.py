@@ -103,7 +103,7 @@ def test_handling_missing_non_required_members2(collector):
     del m['kind']
     del m['settings']
     decl = Driver(driver='tests.instruments.false_driver:FalseDriver',
-                  model='E8257D', parent=object(), **m)
+                  model='E8257D', parent=None, **m)
     decl.register(collector, tb)
     assert not tb
     assert len(collector.contributions) == 1

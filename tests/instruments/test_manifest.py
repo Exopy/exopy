@@ -144,4 +144,34 @@ def test_collect_release_runtime_dependencies_profiles(prof_plugin):
     assert dep['dummy'] is None
 
 
-# XXX test the commands
+def test_select_instrument_profile_command(prof_plugin):
+    """Test selecting an instrument profile.
+
+    """
+    core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
+    with handle_dialog('reject'):
+        res = core.invoke_command('ecpy.instruments.select_instrument')
+
+    assert res is None
+
+    with handle_dialog('accept'):
+        res = core.invoke_command('ecpy.instruments.select_instrument',
+                                  dict(profile='fp1',
+                                       driver='tests.test.FalseDriver',
+                                       connection='false_connection3',
+                                       settings='false_settings3'))
+
+    assert res == ('fp1', 'tests.test.FalseDriver', 'false_connection3',
+                   'false_settings3')
+
+
+def test_open_browser_command(prof_plugin):
+    """Test opening the browsing window.
+
+    """
+    with enaml.imports():
+        from enaml.workbench.ui.ui_manifest import UIManifest
+    prof_plugin.workbench.register(UIManifest())
+    core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
+    with handle_dialog():
+        core.invoke_command('ecpy.instruments.open_browser')

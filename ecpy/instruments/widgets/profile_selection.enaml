@@ -34,7 +34,7 @@ enamldef ProfileSelectionWidget(Container): pw:
     attr plugin
 
     #: Callable used to filter the list of profiles displayed.
-    #: The callable should take as single argument the profiles (id, infos)
+    #: The callable should take as single argument the profiles {id: infos}
     #: and return a filtered iterable of the valid profiles ids.
     attr filter_profiles = lambda x: x
 
@@ -44,13 +44,13 @@ enamldef ProfileSelectionWidget(Container): pw:
     attr filter_drivers = lambda x: x
 
     #: Currently selected profile (id)
-    alias profile : pl.selected_item
+    attr profile
 
     #: Infos of the currently selected profile.
     attr infos << plugin._profiles[profile] if profile else SENTINEL
 
     #: Currently selected driver (id)
-    attr driver = _drivers[0].id if _drivers else SENTINEL
+    attr driver = _drivers[0].id if _drivers else ''
 
     #: Currently selected connection (id)
     attr connection
@@ -59,13 +59,14 @@ enamldef ProfileSelectionWidget(Container): pw:
     attr settings
 
     #: Private list of valid drivers.
-    attr _drivers << filter_drivers(infos.model.drivers) if infos else []
+    attr _drivers << (filter_drivers(infos.model.drivers)
+                      if infos is not SENTINEL else [])
 
     func matching_connections(p_infos, d_id):
         """Determine the allowed connections based on the selected driver.
 
         """
-        if not p_infos or not d_id:
+        if p_infos is SENTINEL or not d_id:
             return []
 
         d_map = {d.id : d for d in infos.model.drivers}
@@ -76,7 +77,7 @@ enamldef ProfileSelectionWidget(Container): pw:
         """Determine the allowed settings based on the selected driver.
 
         """
-        if not p_infos or not d_id:
+        if p_infos is SENTINEL or not d_id:
             return []
 
         d_map = {d.id : d for d in infos.model.drivers}
@@ -87,7 +88,7 @@ enamldef ProfileSelectionWidget(Container): pw:
     initialized ::
         pl.items = sorted(filter_profiles(plugin._profiles.copy()))
         pl.refresh_items()
-        if not pw.profile:
+        if not pw.profile and pl.items:
             pw.profile = pl.items[0]
 
     constraints = [hbox(pl, pf), pf.top == contents_top]
@@ -95,8 +96,10 @@ enamldef ProfileSelectionWidget(Container): pw:
     QtListStrWidget: pl:
         items << (sorted(filter_profiles(plugin._profiles.copy()))
                   if plugin else [])
+        selected_item := profile
         selected_item ::
-            pw.driver = _drivers[0].id if _drivers else None
+            if driver not in [d.id for d in _drivers]:
+                pw.driver = _drivers[0].id if _drivers else None
 
     Form: pf:
 
@@ -126,8 +129,8 @@ enamldef ProfileSelectionWidget(Container): pw:
         Label:
             text = 'Connections'
         ObjectCombo: cc:
-            enabled << bool(driver is not SENTINEL)
-            items << matching_connections(infos, driver)
+            enabled << bool(driver)
+            items << (matching_connections(infos, driver) if driver else [])
             items ::
                 if self.selected not in change['value']:
                     self.selected = None
@@ -136,10 +139,10 @@ enamldef ProfileSelectionWidget(Container): pw:
         Conditional:
             condition << bool(infos is not SENTINEL and infos.settings)
             Label:
-                text << 'Settings'
+                text = 'Settings'
             ObjectCombo: sc:
                 enabled << bool(driver)
-                items << matching_settings(infos, driver)
+                items << (matching_settings(infos, driver) if driver else [])
                 items ::
                     if self.selected not in change['value']:
                         self.selected = None

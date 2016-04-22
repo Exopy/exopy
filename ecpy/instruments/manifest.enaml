@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from ast import literal_eval
 
+import enaml
 from future.builtins import str
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
@@ -51,6 +52,9 @@ def select_instrument_handler(event):
     """Handler for the ecpy.instruments.select_instrument command.
 
     """
+    import enaml
+    with enaml.imports():
+        from .widgets.profile_selection import ProfileSelectionDialog
     plugin = event.workbench.get_plugin(PLUGIN_ID)
     dial_kw = {}
     profile = event.parameters.get('profile')
@@ -60,18 +64,19 @@ def select_instrument_handler(event):
 
         d = event.parameters.get('driver')
         if d in infos.model.drivers:
-            dial_kw['driver'] = d
+            dial_kw['driver'] = infos.model.drivers[d]
 
         c = event.parameters.get('connection')
         if c in infos.connections:
             dial_kw['connection'] = c
 
         s = event.parameters.get('settings')
-        if d in infos.settings:
-            dial_kw['settings'] = d
+        if s in infos.settings:
+            dial_kw['settings'] = s
 
-    dial_kw['filter_profiles'] = event.parameters.get('filter_profiles')
-    dial_kw['filter_drivers'] = event.parameters.get('filter_drivers')
+    for n in ('filter_profiles', 'filter_drivers'):
+        if n in event.parameters:
+            dial_kw[n] = event.parameters[n]
 
     dial = ProfileSelectionDialog(plugin=plugin, **dial_kw)
     if dial.exec_():
@@ -81,9 +86,15 @@ def select_instrument_handler(event):
 
 
 def open_browser_dialog_handler(event):
+    """Open the instrument browsing dialog.
+
     """
-    """
-    pass
+    # Get the application window if any
+    ui = event.workbench.get_plugin('enaml.workbench.ui')
+    instr = event.workbench.get_plugin('ecpy.instruments')
+    with enaml.imports():
+        from .widgets.browsing import BrowsingDialog
+    BrowsingDialog(ui.window, plugin=instr).exec_()
 
 
 # =============================================================================
