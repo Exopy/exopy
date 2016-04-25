@@ -17,6 +17,9 @@ from enaml.widgets.api import Label, Field, ToolButton
 from .base_views import BaseTaskView
 
 
+# TODO add a context manager allowing to get a temporary access to a driver
+
+
 enamldef InstrTaskView(BaseTaskView):
     """Base view for task needing to connect to an instrument.
 
@@ -42,7 +45,7 @@ enamldef InstrTaskView(BaseTaskView):
         t_infos = plugin.get_task_infos(task.task_id)
 
         drivers = t_infos.instruments
-        for i_id, i in t_infos.walk_interfaces:
+        for i_id, i in t_infos.walk_interfaces():
             drivers += i.instruments
 
         return [p for p in profiles
@@ -55,7 +58,7 @@ enamldef InstrTaskView(BaseTaskView):
 
         """
         ds = t_infos.instruments
-        for i_id, i in t_infos.walk_interfaces:
+        for i_id, i in t_infos.walk_interfaces():
             ds += i.instruments
         return [d for d in drivers if d.id in ds]
 
@@ -67,19 +70,37 @@ enamldef InstrTaskView(BaseTaskView):
         t = ('Selected profile : {}\nSelected driver : {}\n'
              'Selected connection : {}')
         if selected[3]:
-            t + = '\nSelected settings : {}'
+            t += '\nSelected settings : {}'
         else:
             selected = selected[:3]
         return t.format(*selected)
+
+    func select_interface():
+        """Select the interface matching the currently selected driver.
+
+        """
+        if task.selected_instrument and len(task.selected_intrument) == 4:
+            _, d, _, _ = task.selected_instrument
+            w = self.root.core.workbench
+            plugin = w.get_plugin('ecpy.tasks')
+            t_infos = plugin.get_task_infos(task.task_id)
+            if d not in t_infos.instruments:
+                for i_id, i in t_infos.walk_interfaces():
+                    if d in i.instruments:
+                        interface = i.cls()
+                        while i.parent is not t_infos:
+                            interface = i.cls(interface=i)
+                        task.interface = interface
 
     Label: i_lab:
         text = 'Instrument'
     Field: i_val:
         text << task.selected_instrument[0]
-        tooltip << make_selected_instrument_tooltip(task.selected_instrument)
+        tool_tip << make_selected_instrument_tooltip(task.selected_instrument)
     ToolButton: i_sel:
         # TODO move to a search icon
-        text_only = 'Select'
+        button_style = 'text_only'
+        text = 'Select'
         clicked ::
             cmd = 'ecpy.instruments.select_profile'
             p, d, c, s = task.selected_instrument
@@ -90,16 +111,3 @@ enamldef InstrTaskView(BaseTaskView):
                                                 )
             if selected is not None:
                 task.selected_instrument = selected
-
-                # Select th interface matching the selected driver.
-                _, d, _, _ = selected
-                w = self.root.core.workbench
-                plugin = w.get_plugin('ecpy.tasks')
-                t_infos = plugin.get_task_infos(task.task_id)
-                if d not in t_infos.instruments:
-                    for i_id, i in t_infos.walk_interfaces():
-                        if d in i.instruments:
-                            interface = i.cls()
-                            while i.parent is not t_infos:
-                                interface = i.cls(interface=i)
-                            task.interface = interface
