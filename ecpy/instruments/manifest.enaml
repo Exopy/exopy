@@ -393,7 +393,6 @@ enamldef InstrumentManagerManifest(PluginManifest):
                     errors['unknown-user'] =\
                         '%s is not a registered user.' % owner
                     return
-                print(known)
                 p, u = plugin.get_profiles(owner, known, try_release=True,
                                            partial=False)
                 if known != list(dependencies):
@@ -402,7 +401,6 @@ enamldef InstrumentManagerManifest(PluginManifest):
                     m = 'The following profile ids do not match any known id:'
                     m += '\n- ' + '\n- '.join(unknown)
                     errors['unknown-profiles'] = m
-                print(p, u)
                 unavailable.update(u)
                 dependencies.update(p)
 
