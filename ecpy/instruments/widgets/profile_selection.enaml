@@ -50,7 +50,7 @@ enamldef ProfileSelectionWidget(Container): pw:
     attr infos << plugin._profiles[profile] if profile else SENTINEL
 
     #: Currently selected driver (id)
-    attr driver = _drivers[0].id if _drivers else ''
+    attr driver
 
     #: Currently selected connection (id)
     attr connection
@@ -90,6 +90,8 @@ enamldef ProfileSelectionWidget(Container): pw:
         pl.refresh_items()
         if not pw.profile and pl.items:
             pw.profile = pl.items[0]
+        if driver not in {d.id for d in _drivers}:
+            pw.driver = _drivers[0].id
 
     constraints = [hbox(pl, pf), pf.top == contents_top]
 

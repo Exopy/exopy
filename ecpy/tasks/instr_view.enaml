@@ -44,22 +44,24 @@ enamldef InstrTaskView(BaseTaskView):
         plugin = w.get_plugin('ecpy.tasks')
         t_infos = plugin.get_task_infos(task.task_id)
 
-        drivers = t_infos.instruments
+        drivers = set(t_infos.instruments)
         for i_id, i in t_infos.walk_interfaces():
-            drivers += i.instruments
+            drivers |= i.instruments
 
-        return [p for p in profiles
+        return [p for p, v in profiles.items()
                 if any(d.id in drivers
-                       for m in p.models.values()
-                       for d in m.drivers)]
+                       for d in v.model.drivers)]
 
     func filter_drivers(drivers):
         """Filter the drivers that one can choose after selecting the profile.
 
         """
-        ds = t_infos.instruments
+        w = self.root.core.workbench
+        plugin = w.get_plugin('ecpy.tasks')
+        t_infos = plugin.get_task_infos(task.task_id)
+        ds = set(t_infos.instruments)
         for i_id, i in t_infos.walk_interfaces():
-            ds += i.instruments
+            ds |= i.instruments
         return [d for d in drivers if d.id in ds]
 
     func make_selected_instrument_tooltip(selected):
@@ -79,7 +81,7 @@ enamldef InstrTaskView(BaseTaskView):
         """Select the interface matching the currently selected driver.
 
         """
-        if task.selected_instrument and len(task.selected_intrument) == 4:
+        if task.selected_instrument and len(task.selected_instrument) == 4:
             _, d, _, _ = task.selected_instrument
             w = self.root.core.workbench
             plugin = w.get_plugin('ecpy.tasks')
@@ -102,12 +104,11 @@ enamldef InstrTaskView(BaseTaskView):
         button_style = 'text_only'
         text = 'Select'
         clicked ::
-            cmd = 'ecpy.instruments.select_profile'
+            cmd = 'ecpy.instruments.select_instrument'
             p, d, c, s = task.selected_instrument
             parameters = {'profile': p, 'driver': d, 'connection': c,
                           'settings': s, 'filter_profiles': filter_profiles,
                          'filter_drivers': filter_drivers}
-            selected = root.core.invoke_command(cmd,
-                                                )
+            selected = root.core.invoke_command(cmd, parameters)
             if selected is not None:
                 task.selected_instrument = selected

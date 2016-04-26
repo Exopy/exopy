@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import (Tuple, Value)
+from atom.api import (Tuple, Value, set_default)
 
 from .base_tasks import SimpleTask
 
@@ -32,6 +32,8 @@ class InstrumentTask(SimpleTask):
     #: Instance of instrument driver.
     driver = Value()
 
+    database_entries = set_default({'instrument': ''})
+
     def check(self, *args, **kwargs):
         """Chech that the provided informations allows to establish the
         connection to the instrument.
@@ -48,6 +50,7 @@ class InstrumentTask(SimpleTask):
 
         if self.selected_instrument and len(self.selected_instrument) == 4:
             p_id, d_id, c_id, s_id = self.selected_instrument
+            self.write_in_database('instrument', p_id)
             if PROFILE_DEPENDENCY_ID in run_time:
                 # Here use .get() to avoid errors if we were not granted the
                 # use of the profile. In that case config won't be used.
