@@ -523,5 +523,4 @@ enamldef InstrumentManagerManifest(PluginManifest):
         ActionItem:
             path = 'tools/instruments/browser'
             label = 'Open browser'
-            tool_tip = ''
             command = 'ecpy.instruments.open_browser'
