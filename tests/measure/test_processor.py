@@ -63,7 +63,7 @@ def wait_and_process(waiting_function):
 
     """
     i = 0
-    while not waiting_function(timeout=0.02):
+    while not waiting_function(timeout=0.04):
         process_app_events()
         i += 1
         if i > 10000:
