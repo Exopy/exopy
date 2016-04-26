@@ -63,8 +63,8 @@ def select_instrument_handler(event):
         infos = plugin._profiles[profile]
 
         d = event.parameters.get('driver')
-        if d in infos.model.drivers:
-            dial_kw['driver'] = infos.model.drivers[d].id
+        if d in {d.id for d in infos.model.drivers}:
+            dial_kw['driver'] = d
 
         c = event.parameters.get('connection')
         if c in infos.connections:
