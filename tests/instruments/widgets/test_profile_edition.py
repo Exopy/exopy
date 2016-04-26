@@ -162,6 +162,10 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
 
     assert settings.name == 'dummy'
 
+    # Open a new popup
+    s_page.page_widget().widgets()[3].clicked = True
+
+    assert len(RenameSettingsPopup.popup_views) == 1
     p = RenameSettingsPopup.popup_views[0]
     ws = p.central_widget().widgets()
 

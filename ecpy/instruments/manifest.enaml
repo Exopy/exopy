@@ -64,7 +64,7 @@ def select_instrument_handler(event):
 
         d = event.parameters.get('driver')
         if d in infos.model.drivers:
-            dial_kw['driver'] = infos.model.drivers[d]
+            dial_kw['driver'] = infos.model.drivers[d].id
 
         c = event.parameters.get('connection')
         if c in infos.connections:
