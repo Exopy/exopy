@@ -285,7 +285,7 @@ def test_interface_decl1(int_decl, collector):
     """
     task, interface = int_decl
     task.register(collector, {})
-    assert len(collector.contributions.values()[0].interfaces) == 1
+    assert len(list(collector.contributions.values())[0].interfaces) == 1
 
 
 def test_interface_decl2(int_decl, collector):
@@ -296,8 +296,9 @@ def test_interface_decl2(int_decl, collector):
     interface.views = ['views.loop_iterable_view:IterableLoopLabel',
                        'views.loop_iterable_view:IterableLoopField']
     task.register(collector, {})
-    contribs = collector.contributions.values()
-    assert len(contribs[0].interfaces.values()[0].views) == 2
+    contribs = list(collector.contributions.values())
+    interfaces = list(contribs[0].interfaces.values())
+    assert len(interfaces[0].views) == 2
 
 
 def test_interface_decl3(collector, int_decl):

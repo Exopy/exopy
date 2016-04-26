@@ -17,7 +17,7 @@ from time import sleep
 
 import pytest
 import enaml
-from future.builtins import str
+from future.builtins import str, bytes
 
 from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
 

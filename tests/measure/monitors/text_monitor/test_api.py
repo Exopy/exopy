@@ -17,4 +17,4 @@ def test_api_import():
     """Test importing all the names defined in the api module.
 
     """
-    from ecpy.measure.monitors.text_monitor.api import *
+    from ecpy.measure.monitors.text_monitor.api import BaseRule

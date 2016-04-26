@@ -865,10 +865,10 @@ class QtTreeWidget(RawWidget):
             # Prevent the itemChanged() signal from being emitted.
             blk = tree.blockSignals(True)
 
-            nids = {}
+            nids = []  # HINT QTreeWidgetItem is not hashable in Python 3
             for name2, nid in self._map[id(obj)]:
                 if nid not in nids:
-                    nids[nid] = None
+                    nids.append(nid)
                     node = self._get_node_data(nid)[1]
                     self._set_label(nid, node.get_label(obj))
                     self._update_icon(nid)

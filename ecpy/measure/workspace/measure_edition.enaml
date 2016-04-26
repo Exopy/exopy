@@ -230,7 +230,7 @@ class _MeasEditionModel(Atom):
         editors = plugin.get_declarations('editor', plugin.editors)
 
         # Find all valid editors.
-        valid_decls = {id: editor for id, editor in editors.iteritems()
+        valid_decls = {id: editor for id, editor in editors.items()
                        if editor.is_meant_for(plugin.workbench, new_task)}
         valid_ids = set(valid_decls)
 
@@ -389,8 +389,9 @@ enamldef MeasEditionView(Container): ed:
         tabs_closable = False
         hug_width = 'ignore'
         selected_tab ::
-            ed = self.find(selected_tab)
-            _internal.selected_editor = ed
+            if selected_tab:  # XXX not sure why this is necessary !
+                ed = nb.find(selected_tab)
+                _internal.selected_editor = ed
         Include:
             objects << _internal.valid_editors
 

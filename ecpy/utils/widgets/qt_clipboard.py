@@ -15,8 +15,12 @@ This has been ported from Enthought TraitsUI.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from cPickle import dumps, load, loads, PickleError
-from cStringIO import StringIO
+try:
+    from cPickle import dumps, load, loads, PickleError
+    from cStringIO import StringIO
+except ImportError:
+    from pickle import dumps, load, loads, PickleError
+    from io import StringIO
 import warnings
 
 from enaml.qt import QtCore, QtGui

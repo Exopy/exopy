@@ -43,9 +43,9 @@ def test_tool_handling(measure, kind):
         measure.add_tool(kind, 'dummy')
 
     if kind == 'pre-hook':
-        assert member().keys()[1] == 'dummy'
+        assert list(member())[1] == 'dummy'
         measure.move_tool(kind, 1, 0)
-        assert member().keys()[0] == 'dummy'
+        assert list(member())[0] == 'dummy'
 
     measure.remove_tool(kind, 'dummy')
     assert 'dummy' not in member()

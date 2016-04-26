@@ -242,7 +242,7 @@ class QtListStrWidget(RawWidget):
 
         """
         items = [self.to_string(o) for o in items]
-        s_index = range(len(items))
+        s_index = list(range(len(items)))
         if self.sort:
             s_index.sort(key=items.__getitem__)
 

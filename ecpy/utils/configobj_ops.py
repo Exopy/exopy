@@ -28,7 +28,7 @@ def include_configobj(new_parent, config):
         Section to merge into the new_parent.
 
     """
-    for key, val in config.iteritems():
+    for key, val in config.items():
         if isinstance(val, Section):
             new_parent[key] = {}
             include_configobj(new_parent[key], val)

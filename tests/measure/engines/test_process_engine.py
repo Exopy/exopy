@@ -114,7 +114,7 @@ def sync_server():
                 s_id = sock.recv(4096).decode('utf-8')
                 if sock_id != s_id:
                     raise RuntimeError('%s != %s' % (sock_id, s_id))
-                sock.sendall('OK')
+                sock.sendall('OK'.encode('utf-8'))
                 self._answer_pipes[sock_id] = sock
 
             self._answer_pipes[sock_id].recv(4096).decode('utf-8')

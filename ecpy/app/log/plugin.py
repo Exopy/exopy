@@ -14,6 +14,8 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 import logging
+
+from future.builtins import str
 from atom.api import Unicode, Dict, List, Tuple, Typed
 from enaml.workbench.api import Plugin
 
@@ -172,7 +174,7 @@ class LogPlugin(Plugin):
 
         """
         handlers = self._handlers
-        handler_id = unicode(handler_id)
+        handler_id = str(handler_id)
         if handler_id in handlers:
             handler, _ = handlers[handler_id]
             handler.setFormatter(formatter)

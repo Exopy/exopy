@@ -35,7 +35,7 @@ def clean_dict(mapping):
     """Keep only the non False entry from a dict.
 
     """
-    return {k: v for k, v in mapping.iteritems() if v}
+    return {k: v for k, v in mapping.items() if v}
 
 
 class BuildContainer(Atom):
@@ -281,7 +281,7 @@ class DependenciesPlugin(Plugin):
 
         """
         dependencies = {k: dict.fromkeys(v)
-                        for k, v in dependencies.iteritems()}
+                        for k, v in dependencies.items()}
 
         if kind == 'build':
             collectors = self.build_deps.contributions

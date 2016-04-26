@@ -4,14 +4,20 @@
 sudo: false
 dist: trusty
 
+branches:
+  only:
+    - master
+
 matrix:
   include:
     - env: PYTHON=2.7
+    - env: PYTHON=3.4
+    - env: PYTHON=3.5
 
 before_install:
 
   # Install Miniconda
-  - wget -q https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+  - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p ~/anaconda
   - export PATH=~/anaconda/bin:$PATH
@@ -26,11 +32,13 @@ before_install:
   - PIP_INSTALL="pip install -q"
 
   # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt future kiwisolver atom numpy
+  - $CONDA_INSTALL pyqt future numpy
   - $PIP_INSTALL configobj watchdog
 
-  # Install enaml from sources as we need the latest bug
-  - $PIP_INSTALL https://github.com/nucleic/enaml/tarball/master
+  # Install enaml/atom/kiwisolver from sources as we need the latest bug fixes and Py2/3 compat
+  - $PIP_INSTALL https://github.com/nucleic/kiwi/tarball/master
+  - $PIP_INSTALL https://github.com/MatthieuDartiailh/atom/tarball/py23
+  - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml/tarball/parser23
 
   # Intall test tools
   - $CONDA_INSTALL pytest

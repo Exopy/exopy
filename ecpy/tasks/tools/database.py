@@ -535,7 +535,7 @@ class TaskDatabase(Atom):
 
         """
         node = self.go_to_path(node)
-        return {k: v for k, v in node.data.iteritems()
+        return {k: v for k, v in node.data.items()
                 if not isinstance(v, DatabaseNode)}
 
     def prepare_to_run(self):
@@ -553,7 +553,7 @@ class TaskDatabase(Atom):
         mapping = {}
         datas = []
         for (node_path, node) in nodes:
-            for key, val in node.data.iteritems():
+            for key, val in node.data.items():
                 path = node_path + '/' + key
                 if isinstance(val, DatabaseNode):
                     nodes.append((path, val))
@@ -587,7 +587,7 @@ class TaskDatabase(Atom):
         """
         nodes = [('root', self._database)]
         for (node_path, node) in nodes:
-            for key, val in node.data.iteritems():
+            for key, val in node.data.items():
                 if isinstance(val, DatabaseNode):
                     path = node_path + '/' + key
                     nodes.append((path, val))

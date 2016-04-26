@@ -32,7 +32,7 @@ from atom.api import (Atom, Int, Bool, Value, Unicode, List,
 from configobj import Section, ConfigObj
 
 from ..utils.atom_util import (tagged_members, update_members_from_preferences,
-                               member_from_pref, member_to_pref)
+                               member_to_pref)
 from ..utils.container_change import ContainerChange
 from .tools.database import TaskDatabase
 from .tools.decorators import (make_parallel, make_wait, make_stoppable,
@@ -502,7 +502,7 @@ class BaseTask(Atom):
                             for aux in aux_strings
                             for el in aux.split('}')]
                 replacement_token = [PREFIX + str(i)
-                                     for i in xrange(len(elements[1::2]))]
+                                     for i in range(len(elements[1::2]))]
                 repl = {PREFIX + str(i): database.get_value(self.path,
                                                             key)
                         for i, key in enumerate(elements[1::2])}
@@ -541,8 +541,10 @@ class BaseTask(Atom):
 
         """
         if self.database:
-            added = set(new) - set(old)
-            removed = set(old) - set(new)
+            new = set(new)
+            old = set(old) if old else set()
+            added = new - old
+            removed = old - new
             for entry in removed:
                 full_name = self._task_entry(entry)
                 self.remove_from_database(full_name)

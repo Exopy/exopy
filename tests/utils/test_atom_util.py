@@ -12,7 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ast import literal_eval
 from collections import OrderedDict
 
 import pytest
@@ -75,8 +74,8 @@ def test_tagged_members1():
 def test_tagged_members2():
     aux = _Aux()
     members = tagged_members(aux, 'pref', [ordered_dict_to_pref,
-                                           ordered_dict_from_pref]).keys()
-    assert members == ['odict_']
+                                           ordered_dict_from_pref])
+    assert list(members) == ['odict_']
 
 
 def test_tagged_members3():
@@ -118,7 +117,7 @@ def test_member_from_pref5():
 def test_member_from_pref6():
     aux = _Aux()
     member = aux.get_member(str('odict_'))
-    assert member_from_pref(aux, member, "[(u'a', 1.0)]") == {"a": 1.0}
+    assert member_from_pref(aux, member, repr([(u'a', 1.0)])) == {"a": 1.0}
 
 
 def test_member_from_pref7():
@@ -157,7 +156,7 @@ def test_member_to_pref5():
 def test_member_to_pref6():
     aux = _Aux()
     member = aux.get_member(str('odict_'))
-    assert member_to_pref(aux, member, {"a": 1.0}) == "[(u'a', 1.0)]"
+    assert member_to_pref(aux, member, {"a": 1.0}) == repr([(u'a', 1.0)])
 
 
 def test_member_to_pref7():

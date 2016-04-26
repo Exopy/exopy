@@ -63,10 +63,10 @@ def wait_and_process(waiting_function):
 
     """
     i = 0
-    while not waiting_function(timeout=0.02):
+    while not waiting_function(timeout=0.04):
         process_app_events()
         i += 1
-        if i > 5000:
+        if i > 10000:
             assert False
     process_app_events()
 
@@ -454,7 +454,7 @@ def test_stopping_processing(processor, measure_with_tools):
 
 @pytest.mark.timeout(60)
 def test_stopping_processing_in_hook(processor, measure_with_tools):
-    """Test stopping processing while running the main task..
+    """Test stopping processing while running a hook.
 
     """
     plugin = processor.plugin.workbench.get_plugin('ecpy.measure')

@@ -21,32 +21,8 @@ with enaml.imports():
 
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.app_extensions import AppStartup, AppClosing, AppClosed
-    from ecpy.app.app_plugin import (validate_startup, validate_closing,
-                                     validate_closed)
     from .app_helpers import (StartupContributor, ClosingContributor1,
                               ClosingContributor2, ClosedContributor)
-
-
-def test_validate_startup():
-    """Check that validate start up identify wrong startup.
-
-    """
-    assert not validate_startup(AppStartup())[0]
-
-
-def test_validate_closing():
-    """Check that validate start up identify wrong startup.
-
-    """
-    assert not validate_closing(AppClosing())[0]
-
-
-def test_validate_closed():
-    """Check that validate start up identify wrong startup.
-
-    """
-    assert not validate_closed(AppClosed())[0]
 
 
 class FalseWindow(object):
@@ -99,7 +75,7 @@ class TestAppPlugin(object):
         plugin.validate_closing(window, ev)
 
         assert not ev.is_accepted()
-        assert not manifest2.called
+        assert not manifest2.called or not manifest1.called
 
         manifest1.accept = True
         manifest2.accept = True

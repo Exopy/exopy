@@ -207,7 +207,7 @@ class MeasureDependencies(Atom):
 
         deps = self._runtime_dependencies
         queried = {}
-        for runtime_id, r_deps in valids.iteritems():
+        for runtime_id, r_deps in valids.items():
             queried[runtime_id] = {k: deps[runtime_id][k] for k in r_deps}
 
         return queried
@@ -334,12 +334,12 @@ class Measure(HasPrefAtom):
         # Save the state of each monitor, pre-hook, post-hook.
         for kind in ('monitors', 'pre_hooks', 'post_hooks'):
             config[kind] = {}
-            for id, obj in getattr(self, kind).iteritems():
+            for id, obj in getattr(self, kind).items():
                 state = obj.get_state()
                 config[kind][id] = {}
                 include_configobj(config[kind][id], state)
 
-        with open(path, 'w') as f:
+        with open(path, 'wb') as f:
             config.write(f)
 
         self.path = path
@@ -401,7 +401,7 @@ class Measure(HasPrefAtom):
                 if 'ecpy.internal_checks' in saved:
                     del measure.pre_hooks['ecpy.internal_checks']
 
-            for id, state in saved.iteritems():
+            for id, state in saved.items():
                 try:
                     obj = measure_plugin.create(kind, id, default=False)
                     obj.set_state(state)
@@ -449,7 +449,7 @@ class Measure(HasPrefAtom):
         self._write_infos_in_task()
 
         msg = 'Running checks for pre-measure hook %s for measure %s'
-        for id, hook in self.pre_hooks.iteritems():
+        for id, hook in self.pre_hooks.items():
             logger.debug(msg, id, self.name)
             answer = hook.check(workbench, **kwargs)
             if answer is not None:
@@ -459,7 +459,7 @@ class Measure(HasPrefAtom):
                 result = result and check
 
         msg = 'Running checks for post-measure hook %s for measure %s'
-        for id, hook in self.post_hooks.iteritems():
+        for id, hook in self.post_hooks.items():
             logger.debug(msg, id, self.name)
             answer = hook.check(workbench, **kwargs)
             if answer is not None:
@@ -551,7 +551,7 @@ class Measure(HasPrefAtom):
         kind = kind.replace('-', '_') + 's'
 
         tools = getattr(self, kind)
-        keys = list(tools.keys())
+        keys = list(tools)
         id = keys[old]
         del keys[old]
         keys.insert(new, id)

@@ -87,7 +87,7 @@ def test_plugin_build_rule(text_monitor_plugin):
 
     assert rule.id == 'test_format'
 
-    rule_name = text_monitor_plugin._rule_configs.contributions.keys()[0]
+    rule_name = list(text_monitor_plugin._rule_configs.contributions)[0]
     rule = text_monitor_plugin.build_rule(rule_name)
     assert rule.id == rule_name
 

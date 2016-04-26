@@ -57,5 +57,5 @@ def task_workbench(monkeypatch, app_dir):
                  'ecpy.app.preferences', 'ecpy.app'):
         try:
             workbench.unregister(m_id)
-        except ValueError:
+        except Exception:
             pass

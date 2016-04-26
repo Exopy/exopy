@@ -13,9 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import logging
-from multiprocessing import Pipe
-from multiprocessing.queues import Queue
-from multiprocessing.synchronize import Event
+from multiprocessing import Pipe, Queue, Event
 from threading import Thread
 from threading import Event as tEvent
 
@@ -240,22 +238,22 @@ class ProcessEngine(BaseEngine):
     _stop_requested = Bool()
 
     #: Interprocess event used to pause the subprocess current job.
-    _task_pause = Typed(Event, ())
+    _task_pause = Value(factory=Event)
 
     #: Interprocess event signaling the subprocess current job is paused.
-    _task_paused = Typed(Event, ())
+    _task_paused = Value(factory=Event)
 
     #: Interprocess event signaling the subprocess current job has resumed.
-    _task_resumed = Typed(Event, ())
+    _task_resumed = Value(factory=Event)
 
     #: Interprocess event used to stop the subprocess current measure.
-    _task_stop = Typed(Event, ())
+    _task_stop = Value(factory=Event)
 
     #: Interprocess event used to stop the subprocess.
-    _process_stop = Typed(Event, ())
+    _process_stop = Value(factory=Event)
 
     #: Flag signaling that a forced exit has been requested
-    _force_stop = Value(tEvent())
+    _force_stop = Value(factory=tEvent)
 
     #: Current subprocess.
     _process = Typed(TaskProcess)
@@ -265,7 +263,7 @@ class ProcessEngine(BaseEngine):
     _pipe = Value()
 
     #: Inter-process queue used by the subprocess to transmit its log records.
-    _log_queue = Typed(Queue, ())
+    _log_queue = Value(factory=Queue)
 
     #: Thread in charge of collecting the log message coming from the
     #: subprocess.
@@ -273,7 +271,7 @@ class ProcessEngine(BaseEngine):
 
     #: Inter-process queue used by the subprocess to send the values of the
     #: observed database entries.
-    _monitor_queue = Typed(Queue, ())
+    _monitor_queue = Value(factory=Queue)
 
     #: Thread in charge of collecting the values of the observed database
     #: entries.

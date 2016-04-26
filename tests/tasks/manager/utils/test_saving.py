@@ -16,7 +16,10 @@ import os
 
 import pytest
 from configobj import ConfigObj
+import enaml
 from enaml.widgets.api import Dialog
+with enaml.imports():
+    from enaml.stdlib.message_box import MessageBox
 
 from ecpy.tasks.api import RootTask, ComplexTask
 
@@ -62,8 +65,8 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
         model.filename = 'test'
         model.doc = 'This is a test'
         dialog.show_result = True
-        with handle_dialog('accept', time=0):
-            assert model.accept_template_info(dialog)
+
+        assert model.accept_template_info(dialog)
 
     core = task_workbench.get_plugin('enaml.workbench.core')
     with handle_dialog('accept', answer_dialog):
