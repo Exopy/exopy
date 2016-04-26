@@ -454,7 +454,7 @@ def test_stopping_processing(processor, measure_with_tools):
 
 @pytest.mark.timeout(60)
 def test_stopping_processing_in_hook(processor, measure_with_tools):
-    """Test stopping processing while running the main task..
+    """Test stopping processing while running a hook.
 
     """
     plugin = processor.plugin.workbench.get_plugin('ecpy.measure')

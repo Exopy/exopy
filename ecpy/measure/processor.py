@@ -129,12 +129,13 @@ class MeasureProcessor(Atom):
         """Stop the currently active measure.
 
         """
+        if no_post_exec or force:
+            self._state.set('no_post_exec')
+
         self._state.set('stop_attempt')
         if self.running_measure:
             logger.info('Stopping measure %s.' % self.running_measure.name)
             self.running_measure.status = 'STOPPING'
-        if no_post_exec or force:
-            self._state.set('no_post_exec')
 
         if self._state.test('running_main'):
             self.engine.stop(force)
@@ -148,10 +149,10 @@ class MeasureProcessor(Atom):
         """
         if self.running_measure:
             logger.info('Stopping measure %s.' % self.running_measure.name)
-        self._state.set('stop_attempt', 'stop_processing')
-        self._state.clear('processing')
         if no_post_exec or force:
             self._state.set('no_post_exec')
+        self._state.set('stop_attempt', 'stop_processing')
+        self._state.clear('processing')
         if self._state.test('running_main'):
             self.engine.stop(force)
         else:
