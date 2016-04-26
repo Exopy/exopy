@@ -159,7 +159,7 @@ is straightforward. First your plugin should inherit from
 |HasPreferencesPlugin| and should call the parent class start method in its own
 start method. Second all members which should be saved should be
 tagged with the 'pref' metadata (use the tag method). The value of the
-metadata can be `True` or any of the values presented in :ref: XXXX. All value thus
+metadata can be `True` or any of the values presented in :ref: TODO. All value thus
 tagged are loaded from the preference file if found, and saved when the user
 request to save the preferences. Finally, a |Preferences| object to the
 'ecpy.app.preferences.plugin' extension point. A single |Preferences| object
@@ -168,8 +168,8 @@ can be contributed per plugin.
 .. note::
 
     The preferences system saves object by writing their repr to a file so any
-    object whose repr can be evaluated by literal_eval can be saved (literal_eval
-    is used for security reasons).
+    object whose repr can be evaluated by literal_eval can be saved
+    (literal_eval is used for security reasons).
 
 A |Preferences| object has the following members :
 
