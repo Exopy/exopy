@@ -196,7 +196,7 @@ def test_register_task_decl_view1_bis(collector, task_decl):
     tb = {}
     task_decl.view = 'ecpy.testing.broken_enaml:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'NameError' in tb['ecpy.RootTask']
+    assert 'ecpy.RootTask' in tb and 'AttributeError' in tb['ecpy.RootTask']
 
 
 def test_register_task_decl_view2(collector, task_decl):
@@ -506,7 +506,7 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
     task.insert_children(None, [i])
     task.register(collector, tb)
     assert ('ecpy.LoopTask.IterableLoopInterface_1' in tb and
-            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
+            'AttributeError' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
 
 
 def test_register_interface_decl_view2(int_decl, collector):
