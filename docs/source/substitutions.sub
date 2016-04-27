@@ -100,6 +100,27 @@
 .. |Engine| replace:: :py:class:`~ecpy.measure.engines.base_engine.Engine`
 
 
+.. Instruments substitutions
+.. ----------------------------------------------------------------------------
+
+.. |Drivers| replace:: :py:class:`~ecpy.instruments.drivers.driver_decl.Drivers`
+
+.. |Driver| replace:: :py:class:`~ecpy.instruments.drivers.driver_decl.Driver`
+
+.. |InstrUser| replace:: :py:class:`~ecpy.instrument.user.InstrUser`
+
+.. |Starter| replace:: :py:class:`~ecpy.instruments.starters.base_starter.Starter`
+
+.. |Connection| replace:: :py:class:`~ecpy.instruments.connections.base_connection.Connection`
+
+.. |BaseConnection| replace:: :py:class:`~ecpy.instruments.connections.base_connection.BaseConnection`
+
+.. |Settings| replace:: :py:class:`~ecpy.instruments.settings.base_settings.Settings`
+
+.. |BaseSettings| replace:: :py:class:`~ecpy.instruments.settings.base_settings.BaseSettings`
+
+.. |ManufacturerAlias| replace :: :py:class:`~ecpy.instruments.manufacturer_aliases.ManufacturerAlias`
+
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
 
@@ -132,6 +153,10 @@
 .. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
 
 .. |BaseTaskView| replace:: :py:class:`~ecpy.tasks.base_views.BaseTaskView`
+
+.. |InstrumentTask| replace:: :py:class:`~ecpy.tasks.instr_task.InstrumentTask`
+
+.. |InstrTaskView| replace:: :py:class:`~ecpy.tasks.instr_view.InstrTaskView`
 
 .. |InterfaceableTaskMixin| replace:: :py:class:`~ecpy.tasks.task_interfaces.InterfaceableTaskMixin`
 

@@ -18,20 +18,26 @@ please refer to its documentation for the specifics of the procedure.
     glossary
     application
     tasks
+    instruments
     measure
     testing
     style_guide
     atom_enaml
 
-
 .. note::
 
-   When writing code for ecpy, or an extension packages you should follow the
+   When writing code for Ecpy, or an extension packages you should follow the
    project style guides described in :doc:`style_guide`. Of course if you are
    developing a private extension you are free to do as you see fit but in
    order for a contribution to Ecpy or one of its official extension package
    to be accepted it must follow those style guides.
 
+.. note::
+
+    Ecpy does not export any name in the \_\_init\_\_.py module. However for 
+    ease of use the objects necessary to extend Ecpy functionality are exported
+    in the api.py file associated with each plugin.
+   
 .. note::
 
     Ecpy is built on top of Atom and Enaml. Please have a look at

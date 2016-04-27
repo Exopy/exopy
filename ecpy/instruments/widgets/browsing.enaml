@@ -25,6 +25,8 @@ from .instrument_selection import ModelSelectionWidget, ModelView
 from .profile_edition import ProfileEditionWidget, ProfileEditionDialog
 
 
+# TODO : add a page for connection, settings, and starters description
+
 enamldef BrowsingDialog(Dialog): dial:
     """Dialog allowing to explore the resources available to the plugin.
 

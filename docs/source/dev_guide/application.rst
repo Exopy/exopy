@@ -43,7 +43,7 @@ them :
 Declaring a Command
 ^^^^^^^^^^^^^^^^^^^
 
-In order to declare a command, you must contribute an |Command| object to the
+In order to declare a command, you must contribute a |Command| object to the
 'enaml.workbench.core.commands'  extension point. A |Command| must have :
 
 - an id which must be unique (this a dot separated name)

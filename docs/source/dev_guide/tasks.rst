@@ -108,6 +108,17 @@ starts, you can over-write the **prepare** method which is called by the
 |RootTask| before it starts to call its children perform method.
 
 
+.. note::
+
+    For task using instruments, the task should inherit from |InstrumentTask|
+    that provides :
+    - a 'selected_instrument' member storing all the data needed
+    to start the instrument.
+    - a 'check' method ensuring that those data makes sense.
+    - a 'start_driver' driver method creating the driver.
+    - a 'driver' member storing the driver instance after it has been created.    
+
+
 When to use interfaces
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -179,6 +190,18 @@ For more informations about the Enaml syntax please give a look at
 
     If your task accepts interfaces, the layout of your widget must be able to
     deal with it.
+    
+.. note::
+
+    For tasks dealing with instruments, the view should derive from  
+    |InstrTaskView| which provides three widgets :
+    
+    - 'instr_lab': a simple label describing the next widget.
+    - 'instr_field': a read only field displaying the currently selected 
+      profile and whose tool tip gives also the driver, connection and settings
+    - 'instr_sel': a button to open the selection dialog.
+    
+    Those widgets should be integrated inside the view layout.
 
 
 At this point your task is ready to be registered in Ecpy, however writing a
