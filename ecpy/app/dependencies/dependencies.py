@@ -121,7 +121,7 @@ class BuildDependency(Declarative):
         raise NotImplementedError()
 
 
-class RuntimeDependency(Declarative):
+class RuntimeDependencyAnalyser(Declarative):
     """Runtime dependencies are ressources needed at runtime by some
     structure (ex: tasks using instrument need at runtime the driver class and
     the instrument profile to work correctly).
@@ -130,9 +130,13 @@ class RuntimeDependency(Declarative):
     #: Unique id for this extension.
     id = d_(Unicode())
 
+    #: Id of the collector that should be used to collect the dependencies
+    #: discovered during analysis.
+    collector_id = d_(Unicode())
+
     @d_func
-    def analyse(self, workbench, obj, getter, dependencies, errors):
-        """Analyse the identified runtime dependencies.
+    def analyse(self, workbench, obj, dependencies, errors):
+        """Analyse the identified runtime dependencies of an object.
 
         This method should never raise an error but rather use the errors
         dictionary to signal any issue.
@@ -143,13 +147,7 @@ class RuntimeDependency(Declarative):
             Reference to the application workbench.
 
         obj :
-            Object whose build dependencies should be analysed and runtime
-            ones identified.
-
-        getter : callable(obj, name)
-            Callable to use to access obj attribute. Attribute must be accessed
-            using this function rather than the usual '.' syntax as the passed
-            object might be a dictionary like object.
+            Object whose runtime dependencies should be analysed.
 
         dependencies : set
             Set in which to list the dependencies.
@@ -160,6 +158,16 @@ class RuntimeDependency(Declarative):
 
         """
         raise NotImplementedError()
+
+
+class RuntimeDependencyCollector(Declarative):
+    """Runtime dependencies are ressources needed at runtime by some
+    structure (ex: tasks using instrument need at runtime the driver class and
+    the instrument profile to work correctly).
+
+    """
+    #: Unique id for this extension.
+    id = d_(Unicode())
 
     @d_func
     def validate(self, workbench, dependencies, errors):

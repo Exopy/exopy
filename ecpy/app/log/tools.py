@@ -286,7 +286,7 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
     Found on StackOverflow ...
 
     """
-    def __init__(self, filename, mode='w', **kwargs):
+    def __init__(self, filename, mode='wb', **kwargs):
         self.mode = mode
         super(DayRotatingTimeHandler, self).__init__(filename, when='MIDNIGHT',
                                                      **kwargs)

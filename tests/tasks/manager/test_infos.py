@@ -23,12 +23,28 @@ def test_dependencies_handling():
 
     infos.instruments = ['e']
 
-    assert len(infos.dependencies) == 2
+    assert len(infos.dependencies) == 3
 
     infos.instruments.update(['t', 'y'])
 
-    assert len(infos.dependencies) == 2
+    assert len(infos.dependencies) == 3
 
     infos.instruments = []
 
-    assert ['test'] == infos.dependencies
+    assert set(['test']) == infos.dependencies
+
+
+def test_interfaces_walking():
+    """Check that interfaces walking does yield interfaces and respect depth.
+
+    """
+    ints = {'interface1':
+            ObjectDependentInfos(interfaces={'i': ObjectDependentInfos()}),
+            'interface2': ObjectDependentInfos()}
+    infos = ObjectDependentInfos(interfaces=ints)
+    print(list(zip(*infos.walk_interfaces())))
+    assert (sorted(list(zip(*infos.walk_interfaces()))[0]) ==
+            sorted(('interface1', 'i', 'interface2')))
+
+    assert (sorted(list(zip(*infos.walk_interfaces(0)))[0]) ==
+            sorted(('interface1', 'interface2')))

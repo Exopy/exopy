@@ -44,8 +44,9 @@ class SleepTask(SimpleTask):
 
         """
         test, tb = super(SleepTask, self).check(*args, **kwargs)
+
         if test and self.format_and_eval_string(self.time) < 0:
-            tb[self.path + '/' + self.name] = 'Sleep time must be positive.'
+            tb[self.get_error_path()] = 'Sleep time must be positive.'
             test = False
 
         return test, tb

@@ -24,3 +24,5 @@ Enaml
 -----
 
 .. todo::
+
+    Need to describe the syntax for overriding declarative functions.

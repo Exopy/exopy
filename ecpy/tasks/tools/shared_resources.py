@@ -178,8 +178,10 @@ class ThreadPoolResource(ResourceHolder):
 
 
 class InstrsResource(ResourceHolder):
-    """Resource holder specialized to handle instruments presenting the API
-    defined in the Lantz library.
+    """Resource holder specialized to handle instruments.
+
+    Each driver instance should be stored as a 2-tuple with its associated
+    starter. (driver, starter)
 
     """
     def release(self):
@@ -188,20 +190,21 @@ class InstrsResource(ResourceHolder):
         """
         for instr_profile in self:
             try:
-                self[instr_profile].finalize()
+                driver, starter = self[instr_profile]
+                starter.finalize(driver)
             except Exception:
                 log = logging.getLogger(__name__)
                 mes = 'Failed to close connection to instr : %s'
                 log.exception(mes, self[instr_profile])
 
     def reset(self):
-        """Clean th cache of all drivers to avoid corrupted value due to
+        """Clean the cache of all drivers to avoid corrupted value due to
         user interferences.
 
         """
         for instr_id in self:
-            self[instr_id].owner = ''
-            self[instr_id].clear_cache()
+            d, starter = self[instr_id]
+            starter.reset(d)
 
 
 class FilesResource(ResourceHolder):

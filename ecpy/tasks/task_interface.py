@@ -245,9 +245,9 @@ class InterfaceableInterfaceMixin(InterfaceableMixin):
         the task one.
 
         """
-        # HINT Workaround Atom _DictProxy issue.
         task = self.task
         if task:
+            # HINT Workaround Atom _DictProxy issue.
             new_entries = dict(task.database_entries)
             if old:
                 inter = old

@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 from collections import OrderedDict
 from traceback import format_exc
-from ast import literal_eval
 
 from atom.api import (Typed, set_default)
 
@@ -52,13 +51,14 @@ class FormulaTask(SimpleTask):
         """
         traceback = {}
         test = True
+        err_path = self.get_error_path()
         for k, v in self.formulas.items():
             try:
                 value = self.format_and_eval_string(v)
                 self.write_in_database(k, value)
             except Exception:
                 test = False
-                name = self.path + '/' + self.name + '-' + k
+                name = err_path + '-' + k
                 traceback[name] =\
                     "Failed to eval the formula {}: {}".format(k, format_exc())
         return test, traceback

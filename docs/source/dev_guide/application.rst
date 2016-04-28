@@ -43,7 +43,7 @@ them :
 Declaring a Command
 ^^^^^^^^^^^^^^^^^^^
 
-In order to declare a command, you must contribute an |Command| object to the
+In order to declare a command, you must contribute a |Command| object to the
 'enaml.workbench.core.commands'  extension point. A |Command| must have :
 
 - an id which must be unique (this a dot separated name)
@@ -159,7 +159,7 @@ is straightforward. First your plugin should inherit from
 |HasPreferencesPlugin| and should call the parent class start method in its own
 start method. Second all members which should be saved should be
 tagged with the 'pref' metadata (use the tag method). The value of the
-metadata can be `True` or any of the values presented in :ref: XXXX. All value thus
+metadata can be `True` or any of the values presented in :ref: TODO. All value thus
 tagged are loaded from the preference file if found, and saved when the user
 request to save the preferences. Finally, a |Preferences| object to the
 'ecpy.app.preferences.plugin' extension point. A single |Preferences| object
@@ -168,8 +168,8 @@ can be contributed per plugin.
 .. note::
 
     The preferences system saves object by writing their repr to a file so any
-    object whose repr can be evaluated by literal_eval can be saved (literal_eval
-    is used for security reasons).
+    object whose repr can be evaluated by literal_eval can be saved
+    (literal_eval is used for security reasons).
 
 A |Preferences| object has the following members :
 
@@ -244,11 +244,24 @@ some part of the application and need to be queried beforehand to allow the
 system to run in a situation where the workbench is absent. Those are
 considered to be run-time dependencies.
 
-If your plugin introduces new object which can, for example, be used in tasks
-either as a build or as a runtime dependency you need to contribute either a
-|BuildDependency| object to the 'ecpy.app.dependencies.build' extension point
-or a |RuntimeDependecy| object to the 'ecpy.app.dependencies.runtime'
-extension point.
+If your plugin introduces a new type of object which can, for example, be used
+in tasks either as a build or as a runtime dependency you need to contribute
+either a |BuildDependency| object to the 'ecpy.app.dependencies.build'
+extension point or a |RuntimeDependecyCollector| object to the
+'ecpy.app.dependencies.runtime_collect' extension point. In the case of
+runtime dependencies, the collector is not responsible for the analysis of the
+dependencies of an object this is left to an associated
+|RuntimeDependecyAnalyser|, which allow to use the same kind of dependeny in
+object with totally different structures and for which the same scheme of
+analysis cannot be used. |RuntimeDependecyAnalyser| can be contributed to the
+'ecpy.app.dependencies.runtime_analyse' extension point.
+
+After analyses dependencies are stored into dedicated container class. Those
+containers can then be used to request the identified dependencies. Once again
+the same kind of container is returned which store the dependencies as a nested
+dict in its 'dependencies' member. The top level of that dict corresponds to
+the id of the dependency collector. Under each collector id the dependencies
+are stored simply by id.
 
 .. note::
 
@@ -262,23 +275,28 @@ A |BuildDependency| needs:
   attribute value of the object this dependency collector is meant to act on.
 - 'analyse': a method used to determine the dependencies of the object under
   scrutiny. Build dependencies should be added to the dependencies dictionary
-  and runtime dependencies collector ids should be returned (they will be
+  and runtime dependencies analysers ids should be returned (they will be
   called by the framework at a later time).
 - 'validate': a method checking that all dependencies corresponding to this
   collector can be collected (they exist).
 - 'collect': a method collecting the build dependencies previously identified
   by the analyse method.
 
-A |RuntimeDependecy| needs:
+A |RuntimeDependecyCollector| needs:
 
 - an 'id' which must be unique.
-- 'analyse': a method used to determine the runtime dependencies of the object
-  under scrutiny. The dependencies should not be collected.
 - 'validate': a method checking that all dependencies corresponding to this
   collector can be collected (they exist).
 - 'collect': a method getting the runtime dependencies previously identified by
   the analyse method. This method should request the privilege to use the
   dependencies if it makes sense.
+
+A |RuntimeDependencyAnalyser| needs:
+
+- an 'id' which must be unique.
+- a 'collector_id' which should match a declared RuntimeDependencyCollector id.
+- 'analyse': a method used to determine the runtime dependencies of the object
+  under scrutiny. The dependencies should not be collected.
 
 Please refer to the API documentation for more details about those objects and
 the signature of the methods that need to be implemented.

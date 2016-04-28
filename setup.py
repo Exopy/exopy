@@ -27,6 +27,8 @@ setup(
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Physics',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         ],
     zip_safe=False,
     packages=find_packages(exclude=['tests', 'tests.*']),

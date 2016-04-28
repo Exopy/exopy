@@ -389,7 +389,7 @@ enamldef MeasEditionView(Container): ed:
         tabs_closable = False
         hug_width = 'ignore'
         selected_tab ::
-            if selected_tab:  # XXX not sure why this is necessary !
+            if selected_tab:  # HINT not sure why this is necessary !
                 ed = nb.find(selected_tab)
                 _internal.selected_editor = ed
         Include:

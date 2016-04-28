@@ -42,6 +42,9 @@ LOG_ID = 'ecpy.measure.workspace'
 logger = logging.getLogger(__name__)
 
 
+# XXX add proper support for saving when multiple measure are edited through
+# asynchronous focus tracking
+
 class MeasureSpace(Workspace):
     """Workspace dedicated tot measure edition and execution.
 

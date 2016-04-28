@@ -72,11 +72,16 @@ enamldef DictTreeView(QtTreeWidget):
     root_node = Node(_mapping=mapping)
 
     hide_root = True
+    drag_drop = False
 
     TreeNode:
         node_for = [Node]
         label = 'name'
         children_member = 'nodes'
+        rename = False
+        rename_me = False
+        delete = False
+        delete_me = False
 
     TreeNode:
         node_for = [Leaf]

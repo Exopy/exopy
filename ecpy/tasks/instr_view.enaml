@@ -1,0 +1,114 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Base view for task needing to access an instrument.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import Label, Field, ToolButton
+
+from .base_views import BaseTaskView
+
+
+# TODO add a context manager allowing to get a temporary access to a driver
+
+
+enamldef InstrTaskView(BaseTaskView):
+    """Base view for task needing to connect to an instrument.
+
+    This provides the facilities to select the appropriate instrument profile.
+
+    """
+    #: Reference to the label of the instrument selection.
+    alias instr_lab : i_lab
+
+    #: Reference to the field indicating the selected instrument.
+    alias instr_field : i_val
+
+    #: Reference to the button allowing to select a different instrument.
+    alias instr_sel : i_sel
+
+    func filter_profiles(profiles):
+        """Function passed to the ecpy.instrument.select_profile command
+        to limit the displayed profiles.
+
+        """
+        w = self.root.core.workbench
+        plugin = w.get_plugin('ecpy.tasks')
+        t_infos = plugin.get_task_infos(task.task_id)
+
+        drivers = set(t_infos.instruments)
+        for i_id, i in t_infos.walk_interfaces():
+            drivers |= i.instruments
+
+        return [p for p, v in profiles.items()
+                if any([d.id in drivers
+                        for d in v.model.drivers])]
+
+    func filter_drivers(drivers):
+        """Filter the drivers that one can choose after selecting the profile.
+
+        """
+        w = self.root.core.workbench
+        plugin = w.get_plugin('ecpy.tasks')
+        t_infos = plugin.get_task_infos(task.task_id)
+        ds = set(t_infos.instruments)
+        for i_id, i in t_infos.walk_interfaces():
+            ds |= i.instruments
+        return [d for d in drivers if d.id in ds]
+
+    func make_selected_instrument_tooltip(selected):
+        """Build the tooltip summarizing the infos about the selected
+        instrument.
+
+        """
+        t = ('Selected profile : {}\nSelected driver : {}\n'
+             'Selected connection : {}')
+        if selected[3]:
+            t += '\nSelected settings : {}'
+        else:
+            selected = selected[:3]
+        return t.format(*selected)
+
+    func select_interface():
+        """Select the interface matching the currently selected driver.
+
+        """
+        if task.selected_instrument and len(task.selected_instrument) == 4:
+            _, d, _, _ = task.selected_instrument
+            w = self.root.core.workbench
+            plugin = w.get_plugin('ecpy.tasks')
+            t_infos = plugin.get_task_infos(task.task_id)
+            if d not in t_infos.instruments:
+                for i_id, i in t_infos.walk_interfaces():
+                    if d in i.instruments:
+                        interface = i.cls()
+                        while i.parent is not t_infos:
+                            interface = i.cls(interface=i)
+                        task.interface = interface
+
+    Label: i_lab:
+        text = 'Instrument'
+    Field: i_val:
+        text << task.selected_instrument[0]
+        tool_tip << make_selected_instrument_tooltip(task.selected_instrument)
+    ToolButton: i_sel:
+        # TODO move to a search icon
+        button_style = 'text_only'
+        text = 'Select'
+        clicked ::
+            cmd = 'ecpy.instruments.select_instrument'
+            p, d, c, s = task.selected_instrument
+            parameters = {'profile': p, 'driver': d, 'connection': c,
+                          'settings': s, 'filter_profiles': filter_profiles,
+                         'filter_drivers': filter_drivers}
+            selected = root.core.invoke_command(cmd, parameters)
+            if selected is not None:
+                task.selected_instrument = selected

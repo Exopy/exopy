@@ -21,7 +21,7 @@ from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
 from ...app.preferences.api import Preferences
 from ...app.states.api import State
-from ...app.dependencies.api import BuildDependency
+from ...app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
 from ...utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root
@@ -40,7 +40,7 @@ PLUGIN_ID = 'ecpy.tasks'
 # =============================================================================
 
 def manager_plugin_factory():
-    """ Factory funcion for the instr manager plugin.
+    """ Factory funcion for the task manager plugin.
 
     """
     from .plugin import TaskManagerPlugin
@@ -471,6 +471,21 @@ enamldef TasksManagerManifest(PluginManifest):
                         continue
 
                     dependencies[i_id] = i_infos.cls
+
+    Extension:
+        id = 'runtime_deps'
+        point = 'ecpy.app.dependencies.runtime_analyse'
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.profiles'
+            collector_id = 'ecpy.instruments.profiles'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[0])
+
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.drivers'
+            collector_id = 'ecpy.instruments.drivers'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[1])
 
     Extension:
         id = 'prefs'

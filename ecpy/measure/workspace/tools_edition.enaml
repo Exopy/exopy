@@ -72,7 +72,6 @@ enamldef ToolSelector(Dialog): dial:
             text = 'Ok'
             enabled << bool(dial.selected_decl)
             clicked ::
-                print('Accepted')
                 dial.accept()
 
         PushButton: cancel:
@@ -195,9 +194,7 @@ enamldef ToolsEditor(DestroyableContainer): main:
         clicked ::
             selector = ToolSelector(measure=measure, kind=kind)
             res = selector.exec_()
-            print(res)
             if res:
-                print('t')
                 workbench = measure.plugin.workbench
                 tool_id = selector.selected_decl.id
                 try:

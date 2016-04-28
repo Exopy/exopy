@@ -96,6 +96,9 @@ class QtTreeWidget(RawWidget):
     #: Flag controlling the automatic expansion of nodes.
     auto_expand = d_(Bool(True))
 
+    #: Is drag and drop allowed on the tree.
+    drag_drop = d_(Bool(True))
+
     #: Whether or not to show the icons for the leaves and nodes.
     show_icons = d_(Bool(True))
 
@@ -120,7 +123,7 @@ class QtTreeWidget(RawWidget):
 
         """
         # Create tree widget and connect signal
-        tree = _TreeWidget(parent)
+        tree = _TreeWidget(parent, self.drag_drop)
         tree._controller = self
 
         # Hide the header as we have a single column.
@@ -193,10 +196,17 @@ class QtTreeWidget(RawWidget):
         """Update the selection when it changes externally.
 
         """
+        tree = self.get_widget()
+
+        if not tree:
+            return
+
         if not self._guard & INDEX_GUARD:
             self._guard ^= INDEX_GUARD
             try:
-                tree = self.get_widget()
+                if id(new) not in self._map:
+                    # TODO handle the automatic expanding of the tree
+                    return  # Otherwise would crash
                 tree.setCurrentItem(self._object_info(new)[2])
             except Exception:
                 self._guard ^= INDEX_GUARD
@@ -638,10 +648,6 @@ class QtTreeWidget(RawWidget):
                     expanded, node, sel_object = self._get_node_data(nid)
                     selected.append(sel_object)
 
-                    # Try to inform the node specific handler of the selection,
-                    # if there are multiple selections, we only care about the
-                    # first
-
                     # QTreeWidgetItem does not have an equal operator, so use
                     # id()
                     if id(nid) == id(nids[0]):
@@ -903,14 +909,15 @@ class _TreeWidget(QtGui.QTreeWidget):
 
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, drag_drop):
         """ Initialise the tree widget.
         """
         QtGui.QTreeWidget.__init__(self, parent)
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.setDragEnabled(True)
-        self.setAcceptDrops(True)
+        if drag_drop:
+            self.setDragEnabled(True)
+            self.setAcceptDrops(True)
 
         self._dragging = None
         self._controller = None

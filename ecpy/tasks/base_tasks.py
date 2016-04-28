@@ -134,7 +134,7 @@ class BaseTask(Atom):
         """
         res = True
         traceback = {}
-        err_path = self.path + '/' + self.name
+        err_path = self.get_error_path()
         for n, m in tagged_members(self, 'fmt').items():
             try:
                 val = self.format_string(getattr(self, n))
@@ -516,6 +516,12 @@ class BaseTask(Atom):
                 return safe_eval(expr, repl)
             else:
                 return safe_eval(string, {})
+
+    def get_error_path(self):
+        """Build the path to use when reporting errors during checks.
+
+        """
+        return self.path + '/' + self.name
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

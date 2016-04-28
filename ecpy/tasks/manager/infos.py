@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, List, Subclass, Dict, Coerced
+from atom.api import Atom, List, Subclass, Dict, Coerced, Typed
 import enaml
 
 from ..base_tasks import BaseTask
@@ -24,7 +24,9 @@ with enaml.imports():
     from .configs.base_config_views import BaseConfigView
 
 
-INSTR_RUNTIME_ID = 'ecpy.instruments'
+INSTR_RUNTIME_DRIVERS_ID = 'ecpy.tasks.instruments.drivers'
+
+INSTR_RUNTIME_PROFILES_ID = 'ecpy.tasks.instruments.profiles'
 
 
 class ObjectDependentInfos(Atom):
@@ -35,17 +37,34 @@ class ObjectDependentInfos(Atom):
     instruments = Coerced(set, ())
 
     #: Runtime dependencies ids of this object.
-    dependencies = List()
+    dependencies = Coerced(set, ())
 
     #: List of interfaces supported by this object.
     interfaces = Dict()
 
+    def walk_interfaces(self, depth=None):
+        """Yield all the interfaces of a task/interfaces.
+
+        Parameters
+        ----------
+        depth : int | None
+            Interface depth at which to stop.
+
+        """
+        for i_id, i in self.interfaces.items():
+            yield i_id, i
+            if depth is None or depth > 0:
+                d = depth - 1 if depth else None
+                for ii_id, ii in i.walk_interfaces(d):
+                    yield ii_id, ii
+
     def _post_setattr_instruments(self, old, new):
         if new:
-            if INSTR_RUNTIME_ID not in self.dependencies:
-                self.dependencies.append(INSTR_RUNTIME_ID)
-        elif INSTR_RUNTIME_ID in self.dependencies:
-            self.dependencies.remove(INSTR_RUNTIME_ID)
+            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
+        else:
+            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
 
 
 class TaskInfos(ObjectDependentInfos):
@@ -72,6 +91,9 @@ class InterfaceInfos(ObjectDependentInfos):
 
     #: Widgets associated with this interface.
     views = List()
+
+    #: Parent task or interface infos.
+    parent = Typed(ObjectDependentInfos)
 
 
 class ConfigInfos(Atom):

@@ -95,7 +95,7 @@ enamldef BasicErrorsDisplay(Container):
 
     #: Currently selected error.
     alias selected : lis.selected_item
-    selected = errors.keys()[0] if errors else None
+    selected = list(errors)[0] if errors else None
 
     #: Kind of the errors.
     alias kind : lis_lab.text
