@@ -14,12 +14,10 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 import shutil
-from time import sleep
 
 import pytest
 import enaml
 
-from ecpy.testing.util import process_app_events
 
 with enaml.imports():
     from .contributors import InstrContributor1
@@ -41,6 +39,5 @@ def prof_plugin(app, instr_workbench):
     for n in ('fp1', 'fp2', 'fp3', 'fp4'):
         shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
                                                    n + '.instr.ini'))
-    sleep(0.1)
-    process_app_events()
+    p._refresh_profiles()
     return p

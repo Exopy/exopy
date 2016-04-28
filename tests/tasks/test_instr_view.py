@@ -46,11 +46,10 @@ def add_profile(workbench, name, model):
     c = ConfigObj(PROFILE_PATH)
     c['model_id'] = model
     with open(os.path.join(p_plugin._profiles_folders[0], name + '.instr.ini'),
-              'w') as f:
+              'wb') as f:
         c.write(f)
 
-    sleep(0.1)
-    process_app_events()
+    p_plugin._refresh_profiles()
 
 
 @pytest.fixture

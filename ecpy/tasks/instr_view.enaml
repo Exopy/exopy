@@ -49,8 +49,8 @@ enamldef InstrTaskView(BaseTaskView):
             drivers |= i.instruments
 
         return [p for p, v in profiles.items()
-                if any(d.id in drivers
-                       for d in v.model.drivers)]
+                if any([d.id in drivers
+                        for d in v.model.drivers])]
 
     func filter_drivers(drivers):
         """Filter the drivers that one can choose after selecting the profile.

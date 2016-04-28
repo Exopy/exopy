@@ -459,8 +459,8 @@ enamldef InstrumentManagerManifest(PluginManifest):
                 new_errors = {}
                 for i in infos:
                     formatted = self._format(i['details'])
-                    msg += '\n'.join(('\nValidating %s:\n' % d + v
-                                      for d, v in formatted.items()))
+                    msg += '\n'.join(['\nValidating %s:\n' % d + v
+                                      for d, v in formatted.items()])
                     new_errors.update(formatted)
 
                 logger.debug(msg)

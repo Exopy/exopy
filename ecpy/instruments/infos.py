@@ -402,7 +402,7 @@ class ManufacturersHolder(Atom):
         the search criterias.
 
         """
-        ms = filter(lambda m: m.instruments, self._manufacturers.values())
+        ms = [m for m in self._manufacturers.values() if m.instruments]
         ms.sort(key=attrgetter('name'))
         self.manufacturers = ms
 
