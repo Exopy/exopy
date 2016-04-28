@@ -413,7 +413,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
     _profiles = Dict()
 
     #: Watchdog observer tracking changes to the profiles folders.
-    _observer = Typed(Observer, ())
+    _observer = Typed(Observer)
 
     def _update_contribs(self, name, change):
         """Update the list of available contributions (editors, engines, tools)
@@ -458,9 +458,10 @@ class InstrumentManagerPlugin(HasPrefPlugin):
             callback = partial(self._update_contribs, contrib)
             getattr(self, '_'+contrib).observe('contributions', callback)
 
-        for folder in self._profiles_folders:
-            def update():
+        def update():
                 deferred_call(self._refresh_profiles)
+        self._observer = Observer()
+        for folder in self._profiles_folders:
             handler = SystematicFileUpdater(update)
             self._observer.schedule(handler, folder, recursive=True)
 

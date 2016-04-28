@@ -81,13 +81,13 @@ def test_plugin_lifecycle(instr_workbench):
 
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
-    sleep(0.1)
+    sleep(1.0)
     process_app_events()
 
     assert 'fp' in p.profiles
 
     os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
-    sleep(0.1)
+    sleep(1.0)
     process_app_events()
 
     assert 'fp' not in p.profiles
@@ -167,8 +167,9 @@ def test_handle_corrupted_profile(prof_plugin, caplog):
 
     prof_plugin._refresh_profiles()
 
-    for records in caplog.records():
-        assert records.levelname == 'WARNING'
+    for record in caplog.records():
+        if 'ecpy' in record.name:
+            assert record.levelname == 'WARNING'
 
 
 def test_profiles_observation(instr_workbench):
@@ -182,13 +183,13 @@ def test_profiles_observation(instr_workbench):
 
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
-    sleep(0.5)
+    sleep(1.0)
     process_app_events()
 
     assert 'fp' in p.profiles
 
     os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
-    sleep(0.5)
+    sleep(1.0)
     process_app_events()
 
     assert 'fp' not in p.profiles

@@ -40,7 +40,7 @@ def test_attempt_to_overwrite(fake_meas, tmpdir):
     fake_meas.id = '001'
     fake_meas.root_task.default_path = str(tmpdir)
 
-    with open(str(tmpdir.join('test_001.meas.ini')), 'w'):
+    with open(str(tmpdir.join('test_001.meas.ini')), 'wb'):
         pass
 
     fake_meas.dependencies.collect_runtimes()

@@ -35,9 +35,11 @@ def prof_plugin(app, instr_workbench):
     """
     instr_workbench.register(InstrContributor1())
     p = instr_workbench.get_plugin('ecpy.instruments')
+    p._unbind_observers()
     # Test observation of profiles folders
     for n in ('fp1', 'fp2', 'fp3', 'fp4'):
         shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
                                                    n + '.instr.ini'))
     p._refresh_profiles()
+    p._bind_observers()
     return p

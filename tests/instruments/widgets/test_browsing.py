@@ -71,7 +71,7 @@ def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
         btn.clicked = True
 
     # Wait for file notification to be treated
-    sleep(0.1)
+    sleep(1.0)
     process_app_events()
 
     assert 'test' in prof_plugin.profiles
@@ -130,7 +130,9 @@ def test_browing_dialog_profiles_use(prof_plugin, process_and_sleep):
     f = nb.pages()[-1].page_widget().widgets()[0].scroll_widget()
     assert len(f.widgets()) == 2
     p, m = prof_plugin.get_profiles('tests2', ['fp1', 'fp2'])
+    assert len(p) == 2
     process_and_sleep()
+    print(f.children[-1].iterable)
     assert len(f.widgets()) == 6
     prof_plugin.release_profiles('tests2', ['fp2'])
     process_and_sleep()

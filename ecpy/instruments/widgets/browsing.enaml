@@ -117,7 +117,7 @@ enamldef BrowsingDialog(Dialog): dial:
                            Label:
                                text = 'User'
                            Looper:
-                               iterable << plugin.used_profiles.items()
+                               iterable << list(plugin.used_profiles.items())
                                Label:
                                    text = loop_item[0]
                                    hug_width = 'strong'

@@ -243,7 +243,7 @@ class SeriesInfos(Atom):
         if self.kind == 'All':
             return sorted(models, key=attrgetter('model'))
         else:
-            ms = filter(lambda x: x.kind == self.kind, models)
+            ms = [m for m in models if m.kind == self.kind]
             ms.sort(key=attrgetter('model'))
             return ms
 

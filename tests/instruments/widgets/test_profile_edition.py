@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import enaml
 import pytest
 
@@ -161,6 +163,11 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
     process_and_sleep()
 
     assert settings.name == 'dummy'
+
+    i = 0
+    while i < 10 and len(RenameSettingsPopup.popup_views) != 0:
+        process_app_events()
+        sleep(0.1)
 
     # Open a new popup
     s_page.page_widget().widgets()[3].clicked = True

@@ -85,7 +85,7 @@ enamldef ConnectionCreationDialog(Dialog): dial:
                             hbox(spacer, can, ok))]
 
         QtListStrWidget: conns:
-            items = list(_connections)
+            items = sorted(_connections)
             selected_item ::
                 create_connection()
 

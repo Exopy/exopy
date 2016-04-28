@@ -42,8 +42,9 @@ def test_interfaces_walking():
             ObjectDependentInfos(interfaces={'i': ObjectDependentInfos()}),
             'interface2': ObjectDependentInfos()}
     infos = ObjectDependentInfos(interfaces=ints)
+    print(list(zip(*infos.walk_interfaces())))
+    assert (sorted(list(zip(*infos.walk_interfaces()))[0]) ==
+            sorted(('interface1', 'i', 'interface2')))
 
-    assert (zip(*infos.walk_interfaces())[0] ==
-            ('interface1', 'i', 'interface2'))
-
-    assert zip(*infos.walk_interfaces(0))[0] == ('interface1', 'interface2')
+    assert (sorted(list(zip(*infos.walk_interfaces(0)))[0]) ==
+            sorted(('interface1', 'interface2')))

@@ -403,7 +403,7 @@ def test_validate_profile_infos(tmpdir, false_plugin_with_holder):
                  for m in ('id', 'model_id', 'connections', 'settings')]:
         c = ConfigObj(PROFILE_PATH)
         del c[m]
-        with open(p, 'w') as f:
+        with open(p, 'wb') as f:
             c.write(f)
         i = ProfileInfos(path=p, plugin=false_plugin_with_holder)
         r, msg = validate_profile_infos(i)
