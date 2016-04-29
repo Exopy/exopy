@@ -46,7 +46,7 @@ def test_register_task_decl1(collector, task_decl):
     """Test registering the root task.
 
     """
-    parent = Tasks(group='test', path='ecpy.tasks')
+    parent = Tasks(group='test', path='ecpy.tasks.tasks')
     parent.insert_children(None, [task_decl])
     task_decl.task = 'base_tasks:RootTask'
     task_decl.view = 'base_views:RootTaskView'
@@ -196,7 +196,9 @@ def test_register_task_decl_view1_bis(collector, task_decl):
     tb = {}
     task_decl.view = 'ecpy.testing.broken_enaml:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'Failed to import' in tb['ecpy.RootTask']
+    assert 'ecpy.RootTask' in tb
+    assert ('AttributeError' in tb['ecpy.RootTask'] or
+            'NameError' in tb['ecpy.RootTask'])
 
 
 def test_register_task_decl_view2(collector, task_decl):
@@ -505,9 +507,9 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
                   views=['_dumy__:Test', 'ecpy.testing.broken_enaml:Task'])
     task.insert_children(None, [i])
     task.register(collector, tb)
-    assert ('ecpy.LoopTask.IterableLoopInterface_1' in tb and
-            'Failed to import' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
-
+    assert 'ecpy.LoopTask.IterableLoopInterface_1' in tb
+    assert ('AttributeError' in tb['ecpy.LoopTask.IterableLoopInterface_1'] or
+            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
 
 def test_register_interface_decl_view2(int_decl, collector):
     """Test handling view issues : undefined in module.

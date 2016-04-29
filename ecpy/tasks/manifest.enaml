@@ -343,7 +343,7 @@ enamldef TasksManagerManifest(PluginManifest):
         id = 'tasks_decl'
         point = 'ecpy.tasks.declarations'
         Tasks:
-            path = 'ecpy.tasks'
+            path = 'ecpy.tasks.tasks'
             Task:
                 task = 'base_tasks:ComplexTask'
                 view = 'base_views:ComplexTaskView'
@@ -387,7 +387,7 @@ enamldef TasksManagerManifest(PluginManifest):
                 config = 'base_configs:PyTaskConfig'
                 view = 'base_config_views:PyConfigView'
                 get_task_class => ():
-                    from ecpy.tasks.base_tasks import BaseTask
+                    from ecpy.tasks.tasks.base_tasks import BaseTask
                     return BaseTask
             TaskConfig:
                 config = 'base_configs:TemplateTaskConfig'
