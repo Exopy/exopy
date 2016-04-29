@@ -23,7 +23,7 @@ from future.builtins import str as text
 
 from ecpy.measure.engines.api import ExecutionInfos
 from ecpy.tasks.api import RootTask, SimpleTask
-from ecpy.tasks.manager.infos import TaskInfos
+from ecpy.tasks.infos import TaskInfos
 from ecpy.measure.engines.process_engine.subprocess import TaskProcess
 
 from ecpy.testing.util import process_app_events
@@ -32,7 +32,7 @@ with enaml.imports():
     from ecpy.measure.engines.process_engine.engine_declaration import\
         ProcFilter
     from ecpy.app.log.manifest import LogManifest
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
 
 
 pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),

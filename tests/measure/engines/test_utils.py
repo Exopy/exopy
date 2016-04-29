@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from multiprocessing import Queue
 
-from ecpy.tasks.tools.database import TaskDatabase
+from ecpy.tasks.tasks.database import TaskDatabase
 from ecpy.measure.engines.api import BaseEngine
 from ecpy.measure.engines.utils import MeasureSpy, ThreadMeasureMonitor
 

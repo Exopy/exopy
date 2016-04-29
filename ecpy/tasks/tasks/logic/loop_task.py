@@ -16,9 +16,9 @@ from atom.api import (Typed, Bool, set_default)
 
 from timeit import default_timer
 
-from ...base_tasks import (SimpleTask, ComplexTask)
-from ...task_interface import InterfaceableTaskMixin
-from ...tools.decorators import handle_stop_pause
+from ..base_tasks import (SimpleTask, ComplexTask)
+from ..task_interface import InterfaceableTaskMixin
+from ..decorators import handle_stop_pause
 from .loop_exceptions import BreakException, ContinueException
 
 

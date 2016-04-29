@@ -21,7 +21,7 @@ from enaml.core.api import Looper, Conditional
 from enaml.layout.api import vbox, hbox, spacer
 
 from ....tasks.api import ComplexTask, SimpleTask
-from ....tasks.tools.task_editor import FoldableTaskEditor
+from ....tasks.tasks.task_editor import FoldableTaskEditor
 from ..base_editor import BaseEditor
 from .editor_model import ExecutionEditorModel
 

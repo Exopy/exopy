@@ -16,7 +16,8 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.logic.loop_task import LoopTask
 from ecpy.tasks.tasks.logic.while_task import WhileTask
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
@@ -25,8 +26,6 @@ from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.loop_exceptions_views\
         import BreakView, ContinueView
-
-from ecpy.testing.util import show_and_close_widget
 
 
 @pytest.fixture(params=(BreakTask, ContinueTask))

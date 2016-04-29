@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from enaml.widgets.api import Container, ScrollArea
 
-from ...tasks.base_views import RootTaskView
+from ...tasks.tasks.base_views import RootTaskView
 from .base_editor import BaseEditor
 
 

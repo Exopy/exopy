@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ....base_views import BaseTaskView
+from ...base_views import BaseTaskView
 from ecpy.utils.widgets.dict_editor import (DictEditor, FieldFieldEditor)
 
 

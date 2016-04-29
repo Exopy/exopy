@@ -36,7 +36,7 @@ with enaml.imports():
     from ecpy.app.log.manifest import LogManifest
     from ecpy.measure.manifest import MeasureManifest
     from ecpy.instruments.manifest import InstrumentManagerManifest
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
 
 
 class ArgParser(Atom):

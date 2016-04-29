@@ -19,7 +19,7 @@ from atom.api import (Typed, set_default)
 
 from ....utils.atom_util import (ordered_dict_from_pref, ordered_dict_to_pref)
 
-from ...base_tasks import SimpleTask
+from ..base_tasks import SimpleTask
 
 
 class FormulaTask(SimpleTask):

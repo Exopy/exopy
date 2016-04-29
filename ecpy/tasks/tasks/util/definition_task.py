@@ -18,9 +18,9 @@ from traceback import format_exc
 from atom.api import Typed
 
 from ....utils.atom_util import (ordered_dict_from_pref, ordered_dict_to_pref)
-from ...tools.string_evaluation import safe_eval
+from ..string_evaluation import safe_eval
 
-from ...base_tasks import SimpleTask
+from ..base_tasks import SimpleTask
 
 
 class DefinitionTask(SimpleTask):

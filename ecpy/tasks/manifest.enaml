@@ -1,0 +1,551 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Plugin centralizing the collect and management of tasks and interfaces.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from ast import literal_eval
+
+from future.builtins import str
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+from ..app.preferences.api import Preferences
+from ..app.states.api import State
+from ..app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
+from ..utils.plugin_tools import make_handler
+
+from .utils.building import create_task, build_root
+from .utils.saving import save_task
+from .filters import (TaskFilter, GroupTaskFilter, SubclassTaskFilter,
+                      MetadataTaskFilter)
+from .declarations import Tasks, Task, TaskConfigs, TaskConfig
+
+from .tasks.logic.declarations import LogicTasks
+from .tasks.util.declarations import UtilTasks
+
+PLUGIN_ID = 'ecpy.tasks'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def manager_plugin_factory():
+    """ Factory funcion for the task manager plugin.
+
+    """
+    from .plugin import TaskManagerPlugin
+    return TaskManagerPlugin()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+DECLARATIONS_DESC =\
+"""Declarations are the way used to register new tasks and interfaces. Please
+refer to the different kind of declarations defined in declarations.py for
+more details.
+
+"""
+
+
+CONFIGS_DESC =\
+"""Configs are used a new task need to be inserted into a task hierarchy at
+runtime. They provide a way for the user to parametrize the task before
+inserting it into the hierarchy. See declarations.py for more infos about how
+to declare a new config.
+
+"""
+
+
+FILTERS_DESC =\
+"""Filters are used when listing the tasks known to the application. Filters
+must inherit from one of the base classes found in filters.py.
+
+"""
+
+
+GET_TASK_INFOS_DESCRIPTION =\
+"""Retrieve the infos object associated with a task given the name of the task.
+
+Parameters
+----------
+task_cls_name : unicode
+    Name of the task class name for which to retrieve the infos.
+
+Returns
+-------
+infos : TaskInfos|None
+    Infos for the requested task or None if no matching task was found.
+
+"""
+
+
+GET_TASK_DESCRIPTION =\
+"""Retrieve a task (and optionally the view) given the name of the task.
+
+Parameters
+----------
+task_cls_name : unicode
+    Name of the task class name for which to retrieve the class.
+
+view : bool, optional
+    Flag indicating whether or not to also return the associated widget.
+
+Returns
+-------
+task_cls : BaseTask|None
+    Class for the requested task or None if no matching task was found.
+
+view : optional
+    Widget is requested. None if no matching class was found.
+
+"""
+
+
+GET_TASKS_DESCRIPTION =\
+"""Access an ensemble of task classes.
+
+Parameters
+----------
+tasks : list[unicode]
+    Names of the task classes for which to return the actual classes.
+
+Returns
+-------
+tasks_cls : dict
+    Dictionary mapping the requested tasks to the actual classes.
+
+missing : list
+    List of classes that were not found.
+
+"""
+
+
+GET_INTERFACE_INFOS_DESCRIPTION =\
+"""Access a given interface infos.
+
+Parameters
+----------
+interface_cls_name : unicode
+    Name of the task class for which to return the actual class.
+
+interface_anchor : unicode or list
+    Name of the task to which this interface is linked and names of the
+    intermediate interfaces if any (going from the most general ones
+    to the more specialised ones).
+
+views : bool, optional
+    Whether or not to return the views assoicated with the interface.
+
+Returns
+-------
+infos : InterfaceInfos
+    Object containing all the infos about the requested interface.
+    this object should never be manipulated directly by user code.
+
+"""
+
+
+GET_INTERFACE_DESCRIPTION =\
+"""Access a given interface class.
+
+Parameters
+----------
+interface_cls_name : unicode
+    Name of the task class for which to return the actual class.
+
+interface_anchor : unicode or list
+    Name of the task to which this interface is linked and names of the
+    intermediate interfaces if any (going from the most general ones
+    to the more specialised ones).
+
+views : bool, optional
+    Whether or not to return the views assoicated with the interface.
+
+Returns
+-------
+interface_cls : type or None
+    Class corresponding to the requested interface or None if the class
+    was not found.
+
+views : list or None, optional
+    List of views associated with the interface.
+
+"""
+
+
+GET_INTERFACES_DESCRIPTION =\
+"""Access an ensemble of interface classes.
+
+Parameters
+----------
+interfaces_with_anchors : list(tuple(unicode, list(unicode)))
+    List of pairs (name of the interface class, corrisponding anchor)
+    for which to return the actual classes.
+
+Returns
+-------
+interfaces_cls : dict
+    Dictionary mapping the requested interfaces to the actual classes.
+
+missing : list
+    List of classes that were not found.
+
+"""
+
+
+LIST_TASKS_DESCRIPTION =\
+ """List the known tasks using the specified filter.
+
+Parameters
+----------
+filter_name : unicode, optional
+    Name of the filter to use
+
+Returns
+-------
+tasks : list(str) or None
+    Tasks selected by the filter, or None if the filter does not exist.
+
+"""
+
+
+GET_CONFIG_DESCRIPTION =\
+"""Access the proper config for a task.
+
+Parameters
+----------
+task : unicode or type
+    Name or class of the task for which a config is required
+
+Returns
+-------
+config : tuple
+    Tuple containing the requested config object, and its
+    visualisation.
+
+"""
+
+
+SAVE_TASK_DESCRIPTION =\
+"""Save a task in memory or in an .ini file.
+
+Parameters
+----------
+task : BaseTask
+    Task to save.
+
+mode : {'config', 'template'}
+    Should the task be returned as a dict (ConfigObj) or saved as a,
+    template.
+
+widget : optional
+    Optional widget to use as a parent for the dialog when savind as
+    template.
+
+Returns:
+-------
+config or None:
+    A dict is returned if the mode is 'config'.
+
+"""
+
+
+CREATE_TASK_DESCRIPTION =\
+"""Open a dialog to include a task in a task hierarchy.
+
+This function is meant to be used as a Command handler. Parameters are
+passed through the parameters attributes of the event object.
+
+Parameters:
+----------
+parent_ui : optional
+    Optional parent widget for the dialog.
+
+Returns:
+-------
+task : BaseTask
+    Task selected by the user to be added to a hierarchy.
+
+"""
+
+
+BUILD_ROOT_DESCRIPTION =\
+"""Create a new RootTask.
+
+This function is meant to be used as a Command handler. Parameters are
+passed through the parameters attributes of the event object.
+
+Parameters
+----------
+mode : {'from config', 'from template'}
+    Whether to use the given config, or look for one in templates or a
+    file.
+
+config : configobj.Section
+    Object holding the informations necessary to build the root task.
+
+widget : optional
+    Optional parent widget for the dialog ('from template' mode only).
+
+build_dep : optional
+    Optionnal dict containing the build dependencies.
+
+Returns:
+-------
+task : RootTask
+
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef TasksManagerManifest(PluginManifest):
+    """Manifest for the task manager.
+
+    """
+    id = PLUGIN_ID
+    factory = manager_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'declarations'
+        description = DECLARATIONS_DESC
+
+    ExtensionPoint:
+        id = 'configs'
+        description = CONFIGS_DESC
+
+    ExtensionPoint:
+        id = 'filters'
+        description = FILTERS_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'tasks_decl'
+        point = 'ecpy.tasks.declarations'
+        Tasks:
+            path = 'ecpy.tasks.tasks'
+            Task:
+                task = 'base_tasks:ComplexTask'
+                view = 'base_views:ComplexTaskView'
+
+        LogicTasks:
+            pass
+        UtilTasks:
+            pass
+
+    Extension:
+        id = 'filters'
+        point = 'ecpy.tasks.filters'
+        TaskFilter:
+            id = 'All'
+        TaskFilter:
+            id = 'Templates'
+            filter_tasks => (tasks, templates):
+                return list(templates)
+        TaskFilter:
+            id = 'Python'
+            filter_tasks => (tasks, templates):
+                return list(tasks)
+        GroupTaskFilter:
+            id = 'Logic'
+            group = 'logic'
+        GroupTaskFilter:
+            id = 'Utilities'
+            group = 'util'
+
+        MetadataTaskFilter:
+            id = 'Loopable'
+            meta_key = 'loopable'
+            meta_value = True
+
+    Extension:
+        id = 'configs'
+        point = 'ecpy.tasks.configs'
+        TaskConfigs:
+            path = 'ecpy.tasks.configs'
+            TaskConfig:
+                config = 'base_configs:PyTaskConfig'
+                view = 'base_config_views:PyConfigView'
+                get_task_class => ():
+                    from ecpy.tasks.tasks.base_tasks import BaseTask
+                    return BaseTask
+            TaskConfig:
+                config = 'base_configs:TemplateTaskConfig'
+                view = 'base_config_views:TemplateConfigView'
+                get_task_class => ():
+                    return '__template__'
+            TaskConfig:
+                config = 'loop_config:LoopTaskConfig'
+                view = 'loop_config_view:LoopConfigView'
+                get_task_class => ():
+                    from ecpy.tasks.tasks.logic.loop_task import LoopTask
+                    return LoopTask
+
+    Extension:
+        id = 'build_deps'
+        point = 'ecpy.app.dependencies.build'
+        BuildDependency:
+            id = 'ecpy.task'
+            analyse => (workbench, obj, getter, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+
+                t_id = getter(obj, 'task_id')
+                t_infos = manager.get_task_infos(t_id)
+
+                if t_infos is None:
+                    errors[t_id] = 'Unknown task.'
+                    return
+
+                dependencies.add(t_id)
+                return t_infos.dependencies
+
+            validate => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for t_id in dependencies:
+                    t_infos = manager.get_task_infos(t_id)
+                    if t_infos is None:
+                        errors[t_id] = 'Unknown task.'
+
+            collect => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for t_id in dependencies:
+                    t_infos = manager.get_task_infos(t_id)
+                    if t_infos is None:
+                        errors[t_id] = 'Unknown task.'
+                        continue
+
+                    dependencies[t_id] = t_infos.cls
+
+        BuildDependency:
+            id = 'ecpy.tasks.interface'
+            analyse => (workbench, obj, getter, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+
+                interface_anchor = getter(obj, 'interface_id')
+                if not isinstance(interface_anchor, tuple):
+                    interface_anchor = literal_eval(interface_anchor)
+
+                i_infos = manager.get_interface_infos(interface_anchor)
+                if i_infos is None:
+                    msg = 'Unknown interface.'
+                    errors[str(interface_anchor)] = msg
+                    return
+
+                dependencies.add(interface_anchor)
+
+                return i_infos.dependencies
+
+            validate => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for i_id in dependencies:
+                    i_infos = manager.get_interface_infos(i_id)
+                    if i_infos is None:
+                        errors[i_id] = 'Unknown interface.'
+
+            collect => (workbench, dependencies, errors):
+                manager = workbench.get_plugin('ecpy.tasks')
+                for i_id in dependencies:
+                    i_infos = manager.get_interface_infos(i_id)
+                    if i_infos is None:
+                        errors[i_id] = 'Unknown interface.'
+                        continue
+
+                    dependencies[i_id] = i_infos.cls
+
+    Extension:
+        id = 'runtime_deps'
+        point = 'ecpy.app.dependencies.runtime_analyse'
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.profiles'
+            collector_id = 'ecpy.instruments.profiles'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[0])
+
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.instruments.drivers'
+            collector_id = 'ecpy.instruments.drivers'
+            analyse => (workbench, obj, dependencies, errors):
+                dependencies.add(obj.selected_instrument[1])
+
+    Extension:
+        id = 'prefs'
+        point = 'ecpy.app.preferences.plugin'
+        Preferences:
+            pass
+
+    Extension:
+        id = 'state'
+        point = 'ecpy.app.states.state'
+        State:
+            id = 'ecpy.tasks'
+            description = MANAGER_STATE_DESCRIPTION
+            sync_members = ['templates_folders', 'templates', 'filters',
+                            'auto_task_path', 'auto_task_names']
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'ecpy.tasks.get_task_infos'
+            description = GET_TASK_INFOS_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_task_infos')
+        Command:
+            id = 'ecpy.tasks.get_task'
+            description = GET_TASK_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'get_task')
+        Command:
+            id = 'ecpy.tasks.get_tasks'
+            description = GET_TASKS_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'get_tasks')
+        Command:
+            id = 'ecpy.tasks.get_interface_infos'
+            description = GET_INTERFACE_INFOS_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'get_interface_infos')
+        Command:
+            id = 'ecpy.tasks.get_interface'
+            description = GET_INTERFACE_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'get_interface')
+        Command:
+            id = 'ecpy.tasks.get_interfaces'
+            description = GET_INTERFACES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_interfaces')
+        Command:
+            id = 'ecpy.tasks.list_tasks'
+            description = LIST_TASKS_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'list_tasks')
+        Command:
+            id = 'ecpy.tasks.get_config'
+            description = GET_CONFIG_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_config')
+        Command:
+            id = 'ecpy.tasks.save'
+            description = SAVE_TASK_DESCRIPTION
+            handler = save_task
+        Command:
+            id = 'ecpy.tasks.create_task'
+            description = CREATE_TASK_DESCRIPTION
+            handler = create_task
+        Command:
+            id = 'ecpy.tasks.build_root'
+            description = BUILD_ROOT_DESCRIPTION
+            handler = build_root

@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import Value, Int, Callable
 
-from ecpy.tasks.base_tasks import SimpleTask
+from ecpy.tasks.tasks.base_tasks import SimpleTask
 
 
 class CheckTask(SimpleTask):

@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.widgets.api import (Container, Label, Splitter, SplitItem)
 
 from .....utils.widgets.qt_completers import QtLineCompleter
-from ....tools.string_evaluation import EVALUATER_TOOLTIP
+from ...string_evaluation import EVALUATER_TOOLTIP
 
 
 enamldef LinspaceLoopView(Splitter): view:

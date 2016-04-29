@@ -24,7 +24,7 @@ from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
                       Value)
 from configobj import ConfigObj
 
-from ..tasks.base_tasks import RootTask
+from ..tasks.api import RootTask
 from ..utils.configobj_ops import include_configobj
 from ..utils.atom_util import HasPrefAtom
 

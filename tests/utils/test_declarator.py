@@ -144,7 +144,7 @@ def test_import_and_get():
     assert 'ImportError' in tb['test']
 
     import_and_get('ecpy.testing.broken_enaml', 'r', tb, 'test')
-    assert 'Failed to import' in tb['test']
+    assert 'AttributeError' in tb['test'] or 'NameError' in tb['test']
 
     import_and_get('ecpy.utils.declarator', '___D', tb, 'test')
     assert 'AttributeError' in tb['test']

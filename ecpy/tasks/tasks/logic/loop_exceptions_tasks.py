@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, set_default)
 
-from ...base_tasks import SimpleTask
+from ..base_tasks import SimpleTask
 from .loop_task import LoopTask
 from .while_task import WhileTask
 from .loop_exceptions import BreakException, ContinueException

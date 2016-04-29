@@ -22,7 +22,7 @@ from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask
 
 with enaml.imports():
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
     from ecpy.testing.measure.contributions import Flags
 
 

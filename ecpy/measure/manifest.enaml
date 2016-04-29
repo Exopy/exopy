@@ -186,7 +186,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
                 return DatabaseAccessEditor(declaration=self, name=self.id)
 
             is_meant_for => (workbench, selected_task):
-                from ..tasks.base_tasks import ComplexTask
+                from ..tasks.api import ComplexTask
                 return isinstance(selected_task, ComplexTask)
 
         Editor:

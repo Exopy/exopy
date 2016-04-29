@@ -16,7 +16,9 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.tasks.util import CheckTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.logic.loop_task import LoopTask
 from ecpy.tasks.tasks.logic.loop_iterable_interface\
     import IterableLoopInterface
@@ -27,13 +29,10 @@ from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
 
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.loop_view import LoopView
-    from ecpy.tasks.base_views import RootTaskView
-
-from ecpy.testing.tasks.util import CheckTask
-from ecpy.testing.util import show_and_close_widget
+    from ecpy.tasks.tasks.base_views import RootTaskView
 
 
-pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
+pytest_plugins = str('ecpy.testing.tasks.fixtures'),
 
 
 @pytest.fixture
