@@ -18,7 +18,7 @@ import re
 from traceback import format_exc
 
 import enaml
-from atom.api import Typed, Value, set_default
+from atom.api import Typed, Value, Property, set_default
 from enaml.application import deferred_call
 from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
@@ -54,6 +54,9 @@ class MeasureSpace(Workspace):
 
     #: Reference to the log panel model received from the log plugin.
     log_model = Value()
+
+    #: Reference to the last edited measure used for saving.
+    last_selected_measure = Property()
 
     window_title = set_default('Measure')
 
@@ -96,6 +99,8 @@ class MeasureSpace(Workspace):
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
+        # XXX Create new queue and start background thread
+
         # TODO implement layout reloading so that we can easily switch between
         # workspaces.
 
@@ -124,6 +129,8 @@ class MeasureSpace(Workspace):
         self.workbench.unregister('ecpy.measure.workspace.menus')
 
         self.plugin.workspace = None
+
+        # XXX Stop thread and delete queue
 
         # TODO implement layout saving so that we can easily switch between
         # workspaces.
@@ -421,6 +428,10 @@ class MeasureSpace(Workspace):
 
     # --- Private API ---------------------------------------------------------
 
+    #: Background thread determining the last edited measure by analysing the
+    #: last selected widget.
+    _selection_tacker = Typed()
+
     def _attach_default_tools(self, measure):
         """Add the default tools to a measure.
 
@@ -492,3 +503,9 @@ class MeasureSpace(Workspace):
         if new and new in self.plugin.engines:
             engine = self.plugin.get_declarations('engine', [new])[new]
             engine.contribute_to_workspace(self)
+
+    def _get_last_selected_measure(self):
+        """Wait for the background to finish processing the selected widgets.
+
+        """
+        pass  # XXX implement

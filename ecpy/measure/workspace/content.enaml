@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from enaml.widgets.api import (Container, DockArea, DockItem, Menu, Action,
-                               PopupView, Label)
+                               PopupView, Label, FocusTracker)
 from enaml.layout.api import HSplitLayout, VSplitLayout
 
 from ...utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
@@ -26,6 +26,10 @@ enamldef MeasureContent(Container): main:
     """
     #: Reference to the workspace driving this widget.
     attr workspace
+
+    FocusTracker:
+        focused_widget ::
+            workspace.selection_tracker.enqueue(change['value'])
 
     DockArea:
         # Sizes are exppressed in pixels

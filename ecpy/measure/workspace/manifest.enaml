@@ -183,6 +183,21 @@ enamldef MeasureSpaceMenu(PluginManifest):
             label = 'New measure'
             command = 'ecpy.measure.workspace.new'
             group = 'user'
+            before = 'save'
+        ActionItem:
+            path = '/file/save'
+            label = 'Save measure'
+            shortcut = 'Ctrl+S'
+            command = 'ecpy.measure.workspace.save'
+            parameters = dict(measure=workspace.last_selected_measure)
+            group = 'user'
+            before = 'save_as'
+        ActionItem:
+            path = '/file/save_as'
+            label = 'Save measure as'
+            command = 'ecpy.measure.workspace.save_as'
+            parameters = dict(measure=workspace.last_selected_measure)
+            group = 'user'
             before = 'load'
         ActionItem:
             path = '/file/load'
