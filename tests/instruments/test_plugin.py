@@ -327,6 +327,7 @@ def test_driver_validation_error_handler(windows, instr_workbench):
     with handle_dialog('accept', check_dialog):
         core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
                                   'details': {'d': d.validate(p)}})
+        sleep(0.2)
 
 
 def test_validate_runtime_dependencies_driver(instr_workbench):
