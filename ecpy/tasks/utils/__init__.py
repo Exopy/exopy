@@ -6,6 +6,6 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""ecpy.tasks.manager.utils : Utility functions.
+"""ecpy.tasks.utils : Utility functions.
 
 """

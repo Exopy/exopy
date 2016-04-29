@@ -493,7 +493,7 @@ class TaskConfig(Declarator):
     """
     #: Path to the config object. Path should be dot separated and the class
     #: name preceded by ':'.
-    #: ex: ecpy.tasks.manager.config.base_config:PyConfigTask
+    #: ex: ecpy.tasks.config.base_config:PyConfigTask
     #: The path of any parent GroupDeclarator object will be prepended to it.
     config = d_(Unicode())
 

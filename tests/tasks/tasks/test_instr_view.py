@@ -28,7 +28,7 @@ with enaml.imports():
     from ecpy.tasks.manifest import TasksManagerManifest
     from ecpy.tasks.tasks.base_views import RootTaskView
 
-from ..instruments.conftest import PROFILE_PATH, prof_plugin
+from ...instruments.conftest import PROFILE_PATH, prof_plugin
 
 pytest_plugins = str('ecpy.testing.instruments.fixtures'),
 

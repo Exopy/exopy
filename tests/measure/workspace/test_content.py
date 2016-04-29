@@ -22,7 +22,7 @@ from ecpy.testing.util import process_app_events
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
     from ecpy.app.log.manifest import LogManifest
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
 
 
 pytests_plugin = str('ecpy.testing.measure.fixtures'),

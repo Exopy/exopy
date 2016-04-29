@@ -48,7 +48,7 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
     """Test saving a task as a template.
 
     """
-    from ecpy.tasks.manager.utils import saving
+    from ecpy.tasks.utils import saving
 
     monkeypatch.setattr(saving.TemplateViewer, 'exec_',
                         saving.TemplateViewer.show)
@@ -83,7 +83,7 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
     """Test saving a task as a template : fail to save.
 
     """
-    from ecpy.tasks.manager.utils import saving
+    from ecpy.tasks.utils import saving
 
     def false_save(path, data, doc):
         raise OSError()

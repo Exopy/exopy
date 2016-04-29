@@ -27,7 +27,7 @@ from ecpy.testing.util import ErrorDialogException, process_app_events
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
 
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
     from ecpy.testing.measure.contributions import Flags
 
 

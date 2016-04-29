@@ -32,7 +32,7 @@ with enaml.imports():
     from ecpy.tasks.tasks.base_views import RootTaskView
 
 
-pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
+pytest_plugins = str('ecpy.testing.tasks.fixtures'),
 
 
 @pytest.fixture

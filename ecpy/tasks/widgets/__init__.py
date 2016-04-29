@@ -6,6 +6,6 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""ecpy.tasks.manager.widgets : Widgets for browsing/building/saving
+"""ecpy.tasks.widgets : Widgets for browsing/building/saving
 
 """

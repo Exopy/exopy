@@ -213,7 +213,7 @@ def test_register_driver_decl_drivercls2(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'ecpy.tasks.base_tasks:Task'
+    d.driver = 'ecpy.tasks.tasks.base_tasks:Task'
     driver_decl.register(collector, tb)
     assert 'ecpy.lantz.Task' in tb and 'attribute' in tb['ecpy.lantz.Task']
 

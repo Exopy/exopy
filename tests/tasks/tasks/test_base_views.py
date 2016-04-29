@@ -24,13 +24,13 @@ from enaml.widgets.api import Container
 from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
     from ecpy.tasks.tasks.base_views import RootTaskView
-    from ecpy.tasks.tasks.manager.widgets.building import BuilderView
+    from ecpy.tasks.widgets.building import BuilderView
 
 from ecpy.testing.util import (show_widget, process_app_events, handle_dialog,
                                get_window)
 
 
-pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
+pytest_plugins = str('ecpy.testing.tasks.fixtures'),
 
 
 @pytest.mark.ui

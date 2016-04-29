@@ -30,7 +30,7 @@ def test_lifecycle(task_workbench):
 
     assert 'ecpy.ComplexTask' in plugin._tasks.contributions
     assert 'All' in plugin._filters.contributions
-    from ecpy.tasks.base_tasks import BaseTask
+    from ecpy.tasks.tasks.base_tasks import BaseTask
     assert BaseTask in plugin._configs.contributions
     assert 'All' in plugin.filters
 
@@ -43,7 +43,7 @@ def test_observer_error(task_workbench, monkeypatch):
     """Test handling an error when trying to join the observer.
 
     """
-    from ecpy.tasks.manager.plugin import Observer
+    from ecpy.tasks.plugin import Observer
 
     def false_join(self):
         raise RuntimeError
@@ -58,7 +58,7 @@ def test_template_folder_creation_issue(task_workbench, monkeypatch):
     """Test handling an error when attempting to create the template dir.
 
     """
-    from ecpy.tasks.manager import plugin
+    from ecpy.tasks import plugin
     monkeypatch.setattr(plugin, 'TEMPLATE_PATH', '')
     monkeypatch.setattr(plugin.TaskManagerPlugin, 'templates_folders',
                         [''])
@@ -82,7 +82,7 @@ def test_template_observation(task_workbench, tmpdir, monkeypatch):
 
     """
     from watchdog.observers.polling import PollingObserver
-    from ecpy.tasks.manager import plugin
+    from ecpy.tasks import plugin
     monkeypatch.setattr(plugin, 'Observer', PollingObserver)
 
     plugin = task_workbench.get_plugin('ecpy.tasks')
@@ -163,7 +163,7 @@ def test_get_task(task_workbench):
     from ecpy.tasks.api import ComplexTask
     assert t[0] is ComplexTask
     with enaml.imports():
-        from ecpy.tasks.base_views import ComplexTaskView
+        from ecpy.tasks.tasks.base_views import ComplexTaskView
     assert t[1] is ComplexTaskView
 
     assert core.invoke_command(cmd, dict(task='')) is None

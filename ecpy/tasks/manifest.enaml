@@ -382,7 +382,7 @@ enamldef TasksManagerManifest(PluginManifest):
         id = 'configs'
         point = 'ecpy.tasks.configs'
         TaskConfigs:
-            path = 'ecpy.tasks.manager.configs'
+            path = 'ecpy.tasks.configs'
             TaskConfig:
                 config = 'base_configs:PyTaskConfig'
                 view = 'base_config_views:PyConfigView'

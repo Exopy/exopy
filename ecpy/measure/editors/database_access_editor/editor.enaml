@@ -20,7 +20,7 @@ from enaml.widgets.api import (Container, GroupBox, ScrollArea, Menu, Action,
                                Label, FlowArea, FlowItem)
 from enaml.core.api import Looper, Conditional
 
-from ....tasks.tools.task_editor import FoldableTaskEditor
+from ....tasks.tasks.task_editor import FoldableTaskEditor
 from ..base_editor import BaseEditor
 from .editor_model import EditorModel
 

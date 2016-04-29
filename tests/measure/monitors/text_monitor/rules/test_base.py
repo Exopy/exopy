@@ -148,7 +148,7 @@ def test_register_rule_decl_taskcls3(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.rule = 'ecpy.tasks.tools.database:TaskDatabase'
+    rule_decl.rule = 'ecpy.tasks.tasks.database:TaskDatabase'
     rule_decl.register(collector, tb)
     assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
 
@@ -188,7 +188,7 @@ def test_register_rule_decl_view3(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.view = 'ecpy.tasks.tools.database:TaskDatabase'
+    rule_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
     rule_decl.register(collector, tb)
     assert 'ecpy.RejectRule' in tb and 'subclass' in tb['ecpy.RejectRule']
 

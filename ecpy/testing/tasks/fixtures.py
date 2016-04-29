@@ -26,7 +26,7 @@ with enaml.imports():
     from ecpy.app.dependencies.manifest import DependenciesManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
+    from ecpy.tasks.manifest import TasksManagerManifest
 
 
 pytests_plugin = str('ecpy.testing.fixtures'),

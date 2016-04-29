@@ -38,8 +38,8 @@ def collector():
 
 @pytest.fixture
 def task_decl():
-    return Task(task='ecpy.tasks.base_tasks:RootTask',
-                view='ecpy.tasks.base_views:RootTaskView')
+    return Task(task='ecpy.tasks.tasks.base_tasks:RootTask',
+                view='ecpy.tasks.tasks.base_views:RootTaskView')
 
 
 def test_register_task_decl1(collector, task_decl):
@@ -52,9 +52,9 @@ def test_register_task_decl1(collector, task_decl):
     task_decl.view = 'base_views:RootTaskView'
     parent.register(collector, {})
     infos = collector.contributions['ecpy.RootTask']
-    from ecpy.tasks.base_tasks import RootTask
+    from ecpy.tasks.tasks.base_tasks import RootTask
     with enaml.imports():
-        from ecpy.tasks.base_views import RootTaskView
+        from ecpy.tasks.tasks.base_views import RootTaskView
     assert infos.cls is RootTask
     assert infos.view is RootTaskView
     assert infos.metadata['group'] == 'test'
@@ -164,7 +164,7 @@ def test_register_task_decl_taskcls2(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks.base_tasks:Task'
+    task_decl.task = 'ecpy.tasks.tasks.base_tasks:Task'
     task_decl.register(collector, tb)
     assert 'ecpy.Task' in tb and 'attribute' in tb['ecpy.Task']
 
@@ -174,7 +174,7 @@ def test_register_task_decl_taskcls3(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks.tools.database:TaskDatabase'
+    task_decl.task = 'ecpy.tasks.tasks.database:TaskDatabase'
     task_decl.register(collector, tb)
     assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
 
@@ -204,7 +204,7 @@ def test_register_task_decl_view2(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks.base_views:Task'
+    task_decl.view = 'ecpy.tasks.tasks.base_views:Task'
     task_decl.register(collector, tb)
     assert 'ecpy.RootTask' in tb and 'import' in tb['ecpy.RootTask']
 
@@ -214,7 +214,7 @@ def test_register_task_decl_view3(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks.tools.database:TaskDatabase'
+    task_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
     task_decl.register(collector, tb)
     assert 'ecpy.RootTask' in tb and 'subclass' in tb['ecpy.RootTask']
 
@@ -685,12 +685,12 @@ def test_str_interface(int_decl):
 def config_decl():
     class Config(TaskConfig):
         def get_task_class(self):
-            from ecpy.tasks.base_tasks import BaseTask
+            from ecpy.tasks.tasks.base_tasks import BaseTask
             return BaseTask
 
     return Config(
-        config='ecpy.tasks.manager.configs.base_configs:PyTaskConfig',
-        view='ecpy.tasks.manager.configs.base_config_views:PyConfigView')
+        config='ecpy.tasks.configs.base_configs:PyTaskConfig',
+        view='ecpy.tasks.configs.base_config_views:PyConfigView')
 
 
 def test_register_config_decl(collector, config_decl):
@@ -698,11 +698,11 @@ def test_register_config_decl(collector, config_decl):
 
     """
     config_decl.register(collector, {})
-    from ecpy.tasks.base_tasks import BaseTask
+    from ecpy.tasks.tasks.base_tasks import BaseTask
     infos = collector.contributions[BaseTask]
-    from ecpy.tasks.manager.configs.base_configs import PyTaskConfig
+    from ecpy.tasks.configs.base_configs import PyTaskConfig
     with enaml.imports():
-        from ecpy.tasks.manager.configs.base_config_views import PyConfigView
+        from ecpy.tasks.configs.base_config_views import PyConfigView
     assert infos.cls is PyTaskConfig
     assert infos.view is PyConfigView
 
@@ -744,7 +744,7 @@ def test_register_config_decl_duplicate1(collector, config_decl):
     """Test handling duplicate config for a task.
 
     """
-    from ecpy.tasks.base_tasks import BaseTask
+    from ecpy.tasks.tasks.base_tasks import BaseTask
     collector.contributions[BaseTask] = None
     tb = {}
     config_decl.register(collector, tb)
@@ -785,7 +785,7 @@ def test_register_task_decl_cls2(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks.base_tasks:Task'
+    config_decl.config = 'ecpy.tasks.tasks.base_tasks:Task'
     config_decl.register(collector, tb)
     assert 'ecpy.Task' in tb and 'attribute' in tb['ecpy.Task']
 
@@ -795,7 +795,7 @@ def test_register_task_decl_cls3(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks.tools.database:TaskDatabase'
+    config_decl.config = 'ecpy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
     assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
 
@@ -825,7 +825,7 @@ def test_register_config_decl_view2(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks.base_views:Task'
+    config_decl.view = 'ecpy.tasks.tasks.base_views:Task'
     config_decl.register(collector, tb)
     assert 'ecpy.PyTaskConfig' in tb and 'import' in tb['ecpy.PyTaskConfig']
 
@@ -835,7 +835,7 @@ def test_register_config_decl_view3(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks.tools.database:TaskDatabase'
+    config_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
     assert 'ecpy.PyTaskConfig' in tb and 'subclass' in tb['ecpy.PyTaskConfig']
 

@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Atom, Typed, List, ForwardTyped, Signal, Dict
 
 from ....tasks.api import RootTask, ComplexTask
-from ....tasks.tools.database import DatabaseNode
+from ....tasks.tasks.database import DatabaseNode
 from ....utils.container_change import ContainerChange
 from ....utils.atom_util import tagged_members
 
