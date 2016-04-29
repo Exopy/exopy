@@ -15,9 +15,9 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 
 from ecpy.tasks.api import ComplexTask, SimpleTask
-from ecpy.tasks.manager.infos import TaskInfos
-from ecpy.tasks.manager.filters import (TaskFilter, GroupTaskFilter,
-                                        SubclassTaskFilter, MetadataTaskFilter)
+from ecpy.tasks.infos import TaskInfos
+from ecpy.tasks.filters import (TaskFilter, GroupTaskFilter,
+                                SubclassTaskFilter, MetadataTaskFilter)
 
 
 @pytest.fixture

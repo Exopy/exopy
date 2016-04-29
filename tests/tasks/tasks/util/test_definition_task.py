@@ -17,15 +17,14 @@ import enaml
 from multiprocessing import Event
 from collections import OrderedDict
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.tasks.string_evaluation import safe_eval
+from ecpy.tasks.tasks.base_tasks import RootTask
 from ecpy.tasks.tasks.util.definition_task import DefinitionTask
-from ecpy.utils.atom_util import (ordered_dict_from_pref, ordered_dict_to_pref)
+from ecpy.utils.atom_util import (ordered_dict_from_pref)
 
 with enaml.imports():
     from ecpy.tasks.tasks.util.views.definition_view import DefinitionView
-
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.tools.string_evaluation import safe_eval
 
 
 class TestDefinitionTask(object):
@@ -45,7 +44,7 @@ class TestDefinitionTask(object):
         """
         self.task.write_in_database('it', 'World')
         self.task.definitions = OrderedDict([('key1', "2.0+3.0"),
-                                          ('key2', 'Hello')])
+                                             ('key2', 'Hello')])
         self.root.prepare()
 
         self.task.check()
@@ -59,9 +58,11 @@ class TestDefinitionTask(object):
 
         """
         self.task.write_in_database('it', 'World')
+
+        pref = "[(u'key1', u'1.0+3.0'), (u'key2', u'Hello')]"
         self.task.definitions = ordered_dict_from_pref(self,
-                    self.task.definitions,
-                    "[(u'key1', u'1.0+3.0'), (u'key2', u'Hello')]")
+                                                       self.task.definitions,
+                                                       pref)
 
         self.root.prepare()
 
@@ -75,12 +76,12 @@ class TestDefinitionTask(object):
 
         """
         self.task.definitions = OrderedDict([('key1', "1.0+3.0"),
-                                          ('key2', '3.0+4.0 + {Test_pi}')])
+                                             ('key2', '3.0+4.0 + {Test_pi}')])
 
         test, traceback = self.task.check()
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test-key2' in traceback 
+        assert 'root/Test-key2' in traceback
 
 
 @pytest.mark.ui

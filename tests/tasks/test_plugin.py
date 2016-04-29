@@ -17,9 +17,9 @@ from time import sleep
 
 import pytest
 import enaml
-from future.builtins import str, bytes
+from future.builtins import str
 
-from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
+from ecpy.tasks.infos import TaskInfos, InterfaceInfos
 
 
 def test_lifecycle(task_workbench):

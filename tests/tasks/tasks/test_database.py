@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from pytest import raises
 
-from ecpy.tasks.tools.database import TaskDatabase
+from ecpy.tasks.tasks.database import TaskDatabase
 
 # TODO add tests checking that the notifiers did run properly
 # =============================================================================

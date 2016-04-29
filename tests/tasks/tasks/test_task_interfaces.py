@@ -16,9 +16,11 @@ import pytest
 
 from atom.api import Bool, Unicode, set_default
 
-from ecpy.tasks.base_tasks import ComplexTask, RootTask
-from ecpy.tasks.task_interface import (InterfaceableTaskMixin, TaskInterface,
-                                       InterfaceableInterfaceMixin, IInterface)
+from ecpy.tasks.tasks.base_tasks import ComplexTask, RootTask
+from ecpy.tasks.tasks.task_interface import (InterfaceableTaskMixin,
+                                             TaskInterface,
+                                             InterfaceableInterfaceMixin,
+                                             IInterface)
 
 
 class InterfaceTest(TaskInterface):

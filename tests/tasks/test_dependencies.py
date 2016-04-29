@@ -20,7 +20,7 @@ from future.builtins import str
 from ecpy.app.dependencies.api import (BuildDependency,
                                        RuntimeDependencyAnalyser)
 from ecpy.tasks.api import ComplexTask, InstrumentTask
-from ecpy.tasks.manager.infos import TaskInfos
+from ecpy.tasks.infos import TaskInfos
 
 
 @pytest.fixture

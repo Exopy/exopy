@@ -16,13 +16,12 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.tasks.util import CheckTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.logic.conditional_task import ConditionalTask
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
-
-from ecpy.testing.tasks.util import CheckTask
-from ecpy.testing.util import show_and_close_widget
 
 
 class TestConditionTask(object):

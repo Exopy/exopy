@@ -13,9 +13,9 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 
-from ecpy.tasks.base_tasks import RootTask
-from ecpy.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
-                                   DRIVER_DEPENDENCY_ID)
+from ecpy.tasks.tasks.base_tasks import RootTask
+from ecpy.tasks.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
+                                         DRIVER_DEPENDENCY_ID)
 
 p_id = PROFILE_DEPENDENCY_ID
 d_id = DRIVER_DEPENDENCY_ID

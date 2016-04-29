@@ -18,7 +18,7 @@ import pytest
 from future.builtins import str
 from configobj import ConfigObj
 
-from ecpy.tasks.manager.utils.building import build_task_from_config
+from ecpy.tasks.utils.building import build_task_from_config
 
 from ecpy.testing.util import handle_dialog, process_app_events
 

@@ -23,10 +23,10 @@ from ecpy.testing.util import (handle_dialog, process_app_events,
                                show_and_close_widget)
 from ecpy.tasks.api import (RootTask, InstrTaskView, TaskInterface,
                             InstrumentTask, InterfaceableTaskMixin)
-from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
+from ecpy.tasks.infos import TaskInfos, InterfaceInfos
 with enaml.imports():
-    from ecpy.tasks.manager.manifest import TasksManagerManifest
-    from ecpy.tasks.base_views import RootTaskView
+    from ecpy.tasks.manifest import TasksManagerManifest
+    from ecpy.tasks.tasks.base_views import RootTaskView
 
 from ..instruments.conftest import PROFILE_PATH, prof_plugin
 
@@ -43,7 +43,7 @@ def add_profile(workbench, name, model):
 
     """
     p_plugin = workbench.get_plugin('ecpy.instruments')
-    c = ConfigObj(PROFILE_PATH)
+    c = ConfigObj(PROFILE_PATH, encoding='utf-8')
     c['model_id'] = model
     with open(os.path.join(p_plugin._profiles_folders[0], name + '.instr.ini'),
               'wb') as f:

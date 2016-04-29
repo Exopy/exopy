@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from future.builtins import str
 from configobj import ConfigObj
 
-from ecpy.tasks.manager.utils.templates import save_template, load_template
+from ecpy.tasks.utils.templates import save_template, load_template
 
 
 def test_save_template(tmpdir):

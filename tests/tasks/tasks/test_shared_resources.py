@@ -15,7 +15,7 @@ check that in single thread things work.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.tasks.tools.shared_resources import SharedCounter, SharedDict
+from ecpy.tasks.tasks.shared_resources import SharedCounter, SharedDict
 
 
 def test_shared_counter():

@@ -17,7 +17,9 @@ from multiprocessing import Event
 import pytest
 import enaml
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.testing.tasks.util import CheckTask
+from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.logic.while_task import WhileTask
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
@@ -25,9 +27,6 @@ from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
 with enaml.imports():
     from ecpy.tasks.tasks.logic.views.while_view\
         import WhileView
-
-from ecpy.testing.util import show_and_close_widget
-from ecpy.testing.tasks.util import CheckTask
 
 
 class TestWhileTask(object):

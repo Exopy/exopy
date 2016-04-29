@@ -16,10 +16,7 @@ import os
 
 import pytest
 from configobj import ConfigObj
-import enaml
 from enaml.widgets.api import Dialog
-with enaml.imports():
-    from enaml.stdlib.message_box import MessageBox
 
 from ecpy.tasks.api import RootTask, ComplexTask
 

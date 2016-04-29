@@ -19,7 +19,7 @@ from time import sleep
 from atom.api import Unicode, set_default
 from enaml.application import deferred_call
 
-from ecpy.tasks.base_tasks import RootTask, ComplexTask
+from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
 
 from ecpy.testing.tasks.util import CheckTask, ExceptionTask
 from ecpy.testing.util import process_app_events

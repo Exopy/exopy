@@ -17,12 +17,11 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.tasks.manager.configs.loop_config import (LoopTaskConfig)
-with enaml.imports():
-    from ecpy.tasks.manager.configs.loop_config_view import LoopConfigView
-
 from ecpy.testing.util import (show_and_close_widget, show_widget,
                                process_app_events)
+from ecpy.tasks.configs.loop_config import (LoopTaskConfig)
+with enaml.imports():
+    from ecpy.tasks.configs.loop_config_view import LoopConfigView
 
 
 @pytest.mark.ui

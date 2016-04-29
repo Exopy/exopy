@@ -16,12 +16,11 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.tasks.base_tasks import RootTask
 from ecpy.tasks.tasks.util.log_task import LogTask
 with enaml.imports():
     from ecpy.tasks.tasks.util.views.log_view import LogView
-
-from ecpy.testing.util import show_and_close_widget
 
 
 class TestLogTask(object):

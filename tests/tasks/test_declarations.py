@@ -16,8 +16,8 @@ import pytest
 import enaml
 from atom.api import Atom, Dict, List
 
-from ecpy.tasks.manager.infos import TaskInfos, InterfaceInfos
-from ecpy.tasks.manager.declarations import Task, Tasks, Interface, TaskConfig
+from ecpy.tasks.infos import TaskInfos, InterfaceInfos
+from ecpy.tasks.declarations import Task, Tasks, Interface, TaskConfig
 
 
 class _DummyCollector(Atom):

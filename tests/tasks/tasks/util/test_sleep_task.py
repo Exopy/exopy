@@ -16,12 +16,11 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.tasks.base_tasks import RootTask
+from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.util.sleep_task import SleepTask
 with enaml.imports():
     from ecpy.tasks.tasks.util.views.sleep_view import SleepView
-
-from ecpy.testing.util import show_and_close_widget
 
 
 class TestSleepTask(object):

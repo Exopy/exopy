@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.tasks.manager.infos import ObjectDependentInfos
+from ecpy.tasks.infos import ObjectDependentInfos
 
 
 def test_dependencies_handling():

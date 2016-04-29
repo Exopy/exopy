@@ -17,13 +17,12 @@ import os
 import pytest
 import enaml
 
-from ecpy.tasks.manager.configs.base_configs import (PyTaskConfig,
-                                                     TemplateTaskConfig)
-with enaml.imports():
-    from ecpy.tasks.manager.configs.base_config_views\
-        import (PyConfigView, TemplateConfigView)
-
 from ecpy.testing.util import show_and_close_widget
+from ecpy.tasks.configs.base_configs import (PyTaskConfig,
+                                             TemplateTaskConfig)
+with enaml.imports():
+    from ecpy.tasks.configs.base_config_views\
+        import (PyConfigView, TemplateConfigView)
 
 
 @pytest.mark.ui

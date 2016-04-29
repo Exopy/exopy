@@ -12,4 +12,4 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-pytest_plugins = str('ecpy.testing.tasks.manager.fixtures'),
+pytest_plugins = str('ecpy.testing.tasks.fixtures'),

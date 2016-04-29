@@ -21,10 +21,10 @@ import pytest
 import enaml
 from enaml.widgets.api import Container
 
-from ecpy.tasks.base_tasks import RootTask, ComplexTask
+from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
-    from ecpy.tasks.base_views import RootTaskView
-    from ecpy.tasks.manager.widgets.building import BuilderView
+    from ecpy.tasks.tasks.base_views import RootTaskView
+    from ecpy.tasks.tasks.manager.widgets.building import BuilderView
 
 from ecpy.testing.util import (show_widget, process_app_events, handle_dialog,
                                get_window)

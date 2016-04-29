@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 from atom.api import Value, List
-from ecpy.tasks.base_tasks import RootTask, SimpleTask, ComplexTask
+from ecpy.tasks.tasks.base_tasks import RootTask, SimpleTask, ComplexTask
 
 
 class SignalListener(object):
