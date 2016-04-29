@@ -16,7 +16,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import (Unicode, set_default)
 from time import sleep
 
-from ...base_tasks import SimpleTask
+from ..base_tasks import SimpleTask
 
 
 class SleepTask(SimpleTask):

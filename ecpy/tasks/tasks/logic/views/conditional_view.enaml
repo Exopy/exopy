@@ -17,8 +17,8 @@ from enaml.layout.api import hbox, vbox, align
 from inspect import cleandoc
 
 from .....utils.widgets.qt_completers import QtLineCompleter
-from ....tools.string_evaluation import EVALUATER_TOOLTIP
-from ....base_views import ComplexTaskView
+from ...string_evaluation import EVALUATER_TOOLTIP
+from ...base_views import ComplexTaskView
 
 
 enamldef ConditionalView(ComplexTaskView): view:

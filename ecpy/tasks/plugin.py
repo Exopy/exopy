@@ -23,9 +23,9 @@ from watchdog.observers import Observer
 from .declarations import (Task, Interface, Tasks, Interfaces, TaskConfig,
                            TaskConfigs)
 from .filters import TaskFilter
-from ...utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
-                                   DeclaratorsCollector)
-from ...utils.watchdog import SystematicFileUpdater
+from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+                                  DeclaratorsCollector)
+from ..utils.watchdog import SystematicFileUpdater
 
 
 TASK_EXT_POINT = 'ecpy.tasks.declarations'

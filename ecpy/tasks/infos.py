@@ -15,12 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Atom, List, Subclass, Dict, Coerced, Typed
 import enaml
 
-from ..base_tasks import BaseTask
-from ..task_interface import BaseInterface
+from .tasks.base_tasks import BaseTask
+from .tasks.task_interface import BaseInterface
 from .configs.base_configs import BaseTaskConfig
 
 with enaml.imports():
-    from ..base_views import BaseTaskView
+    from .tasks.base_views import BaseTaskView
     from .configs.base_config_views import BaseConfigView
 
 

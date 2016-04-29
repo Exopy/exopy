@@ -21,7 +21,7 @@ from enaml.widgets.api import (Container, Field, MultilineField, CheckBox,
 from enaml.layout.api import align, hbox, vbox, spacer
 from enaml.stdlib.message_box import question
 
-from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ..utils.templates import load_template
 
 

@@ -19,10 +19,10 @@ from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
 
-from ...app.preferences.api import Preferences
-from ...app.states.api import State
-from ...app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
-from ...utils.plugin_tools import make_handler
+from ..app.preferences.api import Preferences
+from ..app.states.api import State
+from ..app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
+from ..utils.plugin_tools import make_handler
 
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
@@ -30,8 +30,8 @@ from .filters import (TaskFilter, GroupTaskFilter, SubclassTaskFilter,
                       MetadataTaskFilter)
 from .declarations import Tasks, Task, TaskConfigs, TaskConfig
 
-from ..tasks.logic.declarations import LogicTasks
-from ..tasks.util.declarations import UtilTasks
+from .tasks.logic.declarations import LogicTasks
+from .tasks.util.declarations import UtilTasks
 
 PLUGIN_ID = 'ecpy.tasks'
 

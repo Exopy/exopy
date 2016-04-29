@@ -20,7 +20,7 @@ from atom.api import Unicode, List, Value, Dict, Property
 from enaml.core.api import d_, d_func
 
 from .infos import TaskInfos, InterfaceInfos, ConfigInfos
-from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
+from ..utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
 def check_children(declarator):

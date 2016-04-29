@@ -21,7 +21,7 @@ from enaml.core.declarative import d_, d_func
 from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label
 from enaml.layout.api import vbox, hbox, align, spacer
 
-from ..base_tasks import ComplexTask
+from .base_tasks import ComplexTask
 from ...utils.widgets.list_editor import PopupListMenu
 from ...utils.container_change import ContainerChange
 

@@ -15,8 +15,8 @@ from __future__ import (division, unicode_literals, print_function,
 from enaml.core.api import Conditional, Include
 from enaml.widgets.api import ObjectCombo, Container
 
-from ....utils.widgets.qt_list_str_widget import QtListStrWidget
-from ....utils.transformers import ids_to_unique_names
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
 
 
 # TODO would be nicer with regex but I never managed to get the regex right.

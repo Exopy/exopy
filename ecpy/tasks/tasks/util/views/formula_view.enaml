@@ -12,9 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from .....tasks.tools.string_evaluation import EVALUATER_TOOLTIP
+from ...string_evaluation import EVALUATER_TOOLTIP
 
-from ....base_views import BaseTaskView
+from ...base_views import BaseTaskView
 from ecpy.utils.widgets.dict_editor import (DictEditor,
                                     FieldFieldCompleterEditor)
 

@@ -31,15 +31,15 @@ from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
 
-from ..utils.atom_util import (tagged_members, update_members_from_preferences,
-                               member_to_pref)
-from ..utils.container_change import ContainerChange
-from .tools.database import TaskDatabase
-from .tools.decorators import (make_parallel, make_wait, make_stoppable,
-                               smooth_crash)
-from .tools.string_evaluation import safe_eval
-from .tools.shared_resources import (SharedCounter, ThreadPoolResource,
-                                     InstrsResource, FilesResource)
+from ...utils.atom_util import (tagged_members, member_to_pref,
+                                update_members_from_preferences)
+from ...utils.container_change import ContainerChange
+from .database import TaskDatabase
+from .decorators import (make_parallel, make_wait, make_stoppable,
+                         smooth_crash)
+from .string_evaluation import safe_eval
+from .shared_resources import (SharedCounter, ThreadPoolResource,
+                               InstrsResource, FilesResource)
 
 
 #: Prefix for placeholders in string formatting and evaluation.

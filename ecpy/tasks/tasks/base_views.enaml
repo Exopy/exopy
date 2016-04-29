@@ -21,8 +21,8 @@ from atom.api import Event
 from enaml.widgets.api import GroupBox, Stack, StackItem
 from enaml.core.api import d_, d_func
 
-from ..utils.enaml_destroy_hook import add_destroy_hook
-from .tools.task_editor import TaskEditor, FoldableTaskEditor
+from ...utils.enaml_destroy_hook import add_destroy_hook
+from .task_editor import TaskEditor, FoldableTaskEditor
 from .base_tasks import BaseTask
 
 

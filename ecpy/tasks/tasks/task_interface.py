@@ -16,7 +16,7 @@ from ast import literal_eval
 from traceback import format_exc
 from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property, Constant
 
-from ..utils.atom_util import HasPrefAtom, tagged_members
+from ...utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
 
 

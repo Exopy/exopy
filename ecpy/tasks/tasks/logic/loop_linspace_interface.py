@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Unicode
 from numpy import linspace
 
-from ...task_interface import TaskInterface
+from ..task_interface import TaskInterface
 
 
 class LinspaceLoopInterface(TaskInterface):

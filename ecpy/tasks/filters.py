@@ -17,8 +17,8 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Value, Subclass, Unicode, Property, set_default
 from enaml.core.api import d_func, d_
 
-from ..base_tasks import BaseTask
-from ...utils.declarator import Declarator
+from .tasks.base_tasks import BaseTask
+from ..utils.declarator import Declarator
 
 
 class TaskFilter(Declarator):
