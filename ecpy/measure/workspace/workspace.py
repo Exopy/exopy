@@ -27,6 +27,7 @@ from enaml.layout.api import InsertItem, InsertTab
 from ..measure import Measure
 from ..plugin import MeasurePlugin
 from ...tasks.api import RootTask
+from .measure_tracking import MeasureTacker
 
 with enaml.imports():
     from .checks_display import ChecksDisplay
@@ -41,9 +42,6 @@ LOG_ID = 'ecpy.measure.workspace'
 
 logger = logging.getLogger(__name__)
 
-
-# XXX add proper support for saving when multiple measure are edited through
-# asynchronous focus tracking
 
 class MeasureSpace(Workspace):
     """Workspace dedicated tot measure edition and execution.
@@ -99,7 +97,7 @@ class MeasureSpace(Workspace):
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
-        # XXX Create new queue and start background thread
+        self._selection_tacker.start(plugin.edited_measures.measures[0])
 
         # TODO implement layout reloading so that we can easily switch between
         # workspaces.
@@ -130,7 +128,7 @@ class MeasureSpace(Workspace):
 
         self.plugin.workspace = None
 
-        # XXX Stop thread and delete queue
+        self._selection_tacker.stop()
 
         # TODO implement layout saving so that we can easily switch between
         # workspaces.
@@ -430,7 +428,7 @@ class MeasureSpace(Workspace):
 
     #: Background thread determining the last edited measure by analysing the
     #: last selected widget.
-    _selection_tacker = Typed()
+    _selection_tacker = Typed(MeasureTacker, ())
 
     def _attach_default_tools(self, measure):
         """Add the default tools to a measure.
@@ -508,4 +506,4 @@ class MeasureSpace(Workspace):
         """Wait for the background to finish processing the selected widgets.
 
         """
-        pass  # XXX implement
+        return self._selection_tracker.get_selected_measure()
