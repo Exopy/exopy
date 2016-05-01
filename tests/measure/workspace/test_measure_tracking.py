@@ -88,7 +88,8 @@ def test_measure_tracker(measure_workbench):
     # Test discarding the buffer when new widgets are enqueued while processing
     tracker.enqueue(w3)
     tracker.enqueue(w1)
-    sleep(0.01)
+    while tracker._buffer_empty.is_set():
+        sleep(0.01)
     assert not tracker._queue_not_empty.is_set()
     tracker.enqueue(w2)
     ev3.set()

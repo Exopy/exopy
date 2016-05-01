@@ -58,6 +58,8 @@ def test_workspace_lifecycle(workspace):
     workbench = workspace.plugin.workbench
     log = workbench.get_plugin('ecpy.app.logging')
     # Check UI creation
+    assert workspace._selection_tracker._thread
+    assert workspace.last_selected_measure
     assert workspace.content
     assert workspace.dock_area
     assert workbench.get_manifest('ecpy.measure.workspace.menus')
@@ -88,6 +90,7 @@ def test_workspace_lifecycle(workspace):
     assert not engine.workspace_contributing
     assert workbench.get_manifest('ecpy.measure.workspace.menus') is None
     assert 'ecpy.measure.workspace' not in log.handler_ids
+    assert not workspace._selection_tracker._thread.is_alive()
 
     # Test restarting now that we have one edited measure.
     cmd = 'enaml.workbench.ui.select_workspace'

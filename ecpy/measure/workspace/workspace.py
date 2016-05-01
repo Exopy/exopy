@@ -27,7 +27,7 @@ from enaml.layout.api import InsertItem, InsertTab
 from ..measure import Measure
 from ..plugin import MeasurePlugin
 from ...tasks.api import RootTask
-from .measure_tracking import MeasureTacker
+from .measure_tracking import MeasureTracker
 
 with enaml.imports():
     from .checks_display import ChecksDisplay
@@ -97,7 +97,7 @@ class MeasureSpace(Workspace):
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
-        self._selection_tacker.start(plugin.edited_measures.measures[0])
+        self._selection_tracker.start(plugin.edited_measures.measures[0])
 
         # TODO implement layout reloading so that we can easily switch between
         # workspaces.
@@ -128,7 +128,7 @@ class MeasureSpace(Workspace):
 
         self.plugin.workspace = None
 
-        self._selection_tacker.stop()
+        self._selection_tracker.stop()
 
         # TODO implement layout saving so that we can easily switch between
         # workspaces.
@@ -422,13 +422,13 @@ class MeasureSpace(Workspace):
 
         """
         if self.content and self.content.children:
-            return self.content.children[0]
+            return self.content.children[1]
 
     # --- Private API ---------------------------------------------------------
 
     #: Background thread determining the last edited measure by analysing the
     #: last selected widget.
-    _selection_tacker = Typed(MeasureTacker, ())
+    _selection_tracker = Typed(MeasureTracker, ())
 
     def _attach_default_tools(self, measure):
         """Add the default tools to a measure.
