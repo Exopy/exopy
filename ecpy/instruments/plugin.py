@@ -115,7 +115,7 @@ class InstrumentManagerPlugin(HasPrefPlugin):
         if not os.path.isdir(i_dir):
             os.mkdir(i_dir)
 
-        p_dir = os.path.join(state.app_directory, 'profiles')
+        p_dir = os.path.join(i_dir, 'profiles')
         # Create profiles subfolder if it does not exist.
         if not os.path.isdir(p_dir):
             os.mkdir(p_dir)
