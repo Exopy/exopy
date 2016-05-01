@@ -73,7 +73,7 @@ def save_measure(event):
     """
     workbench = event.workbench
     workspace = workbench.get_plugin('ecpy.measure').workspace
-    measure = event.parameters['measure']
+    measure = event.parameters['measure'] or workspace.last_selected_measure
 
     if measure.path:
         measure.save(measure.path)
@@ -90,7 +90,9 @@ def save_measure_as(event):
     """
     workbench = event.workbench
     plugin = workbench.get_plugin('ecpy.measure')
-    plugin.workspace.save_measure(event.parameters['measure'], False)
+    measure = event.parameters['measure'] or workspace.last_selected_measure
+
+    plugin.workspace.save_measure(measure, False)
 
 
 def load_measure(event):
@@ -184,19 +186,20 @@ enamldef MeasureSpaceMenu(PluginManifest):
             command = 'ecpy.measure.workspace.new'
             group = 'user'
             before = 'save'
+        # XXX cannot use parameters here need a dynamic behavior
         ActionItem:
             path = '/file/save'
             label = 'Save measure'
             shortcut = 'Ctrl+S'
             command = 'ecpy.measure.workspace.save'
-            parameters = dict(measure=workspace.last_selected_measure)
+            parameters = dict(measure=None)
             group = 'user'
             before = 'save_as'
         ActionItem:
             path = '/file/save_as'
             label = 'Save measure as'
             command = 'ecpy.measure.workspace.save_as'
-            parameters = dict(measure=workspace.last_selected_measure)
+            parameters = dict(measure=None)
             group = 'user'
             before = 'load'
         ActionItem:

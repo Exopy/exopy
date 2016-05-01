@@ -31,6 +31,7 @@ with enaml.imports():
     from ecpy.app.dependencies.manifest import DependenciesManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
+    from ecpy.app.states.manifest import StateManifest
     from ecpy.measure.manifest import MeasureManifest
 
 with enaml.imports():
@@ -60,6 +61,7 @@ def measure_workbench(monkeypatch, app_dir):
     workbench.register(PreferencesManifest())
     workbench.register(ErrorsManifest())
     workbench.register(DependenciesManifest())
+    workbench.register(StateManifest())
     workbench.register(MeasureManifest())
 
     yield workbench

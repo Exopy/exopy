@@ -21,8 +21,8 @@ with enaml.imports():
     from ecpy.testing.measure.contributions import MeasureTestManifest
 
 
-def test_lifecycle(measure_workbench):
-    """Test the basic opertaions performed when starting, living, stopping.
+def test_lifecycle(measure_workbench, app_dir):
+    """Test the basic operations performed when starting, living, stopping.
 
     This includes :
 
@@ -31,6 +31,8 @@ def test_lifecycle(measure_workbench):
 
     """
     plugin = measure_workbench.get_plugin('ecpy.measure')
+
+    # XXX check that the default path is set to app_dir
 
     assert plugin.engines
     assert plugin.pre_hooks

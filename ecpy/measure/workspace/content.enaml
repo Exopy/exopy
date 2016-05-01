@@ -29,7 +29,8 @@ enamldef MeasureContent(Container): main:
 
     FocusTracker:
         focused_widget ::
-            workspace.selection_tracker.enqueue(change['value'])
+            if change['value']:
+                workspace._selection_tracker.enqueue(change['value'])
 
     DockArea:
         # Sizes are exppressed in pixels
