@@ -46,7 +46,7 @@ class PrefPlugin(Plugin):
         self.app_directory = app_path
         self._prefs = ConfigObj(encoding='utf8', default_encoding='utf8')
 
-        pref_path = os.path.join(app_path, 'prefs')
+        pref_path = os.path.join(app_path, 'preferences')
         if not os.path.isdir(pref_path):
             os.mkdir(pref_path)
 
@@ -76,7 +76,8 @@ class PrefPlugin(Plugin):
 
         """
         if path is None:
-            path = os.path.join(self.app_directory, 'prefs', 'default.ini')
+            path = os.path.join(self.app_directory, 'preferences',
+                                'default.ini')
 
         prefs = ConfigObj(path)
         for plugin_id in self._pref_decls:
@@ -98,7 +99,8 @@ class PrefPlugin(Plugin):
 
         """
         if path is None:
-            path = os.path.join(self.app_directory, 'prefs', 'default.ini')
+            path = os.path.join(self.app_directory, 'preferences',
+                                'default.ini')
 
         if not os.path.isfile(path):
             return

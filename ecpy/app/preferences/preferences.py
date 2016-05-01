@@ -19,7 +19,7 @@ from enaml.core.api import Declarative, d_, d_func
 class Preferences(Declarative):
     """ Declarative class for defining a workbench preference contribution.
 
-    Preferences object can be contributed as extensions child to the 'prefs'
+    Preferences object can be contributed as extensions child to the 'plugin'
     extension point of a preference plugin.
 
     """
