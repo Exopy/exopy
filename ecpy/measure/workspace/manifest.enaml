@@ -186,7 +186,6 @@ enamldef MeasureSpaceMenu(PluginManifest):
             command = 'ecpy.measure.workspace.new'
             group = 'user'
             before = 'save'
-        # XXX cannot use parameters here need a dynamic behavior
         ActionItem:
             path = '/file/save'
             label = 'Save measure'

@@ -107,7 +107,8 @@ class MeasureTracker(Atom):
 
             self._buffer_empty.wait()
             if self._queue_not_empty.is_set():
-                sleep(0.05)
+                # Cannot be tested in a perfectly deterministic way
+                sleep(0.05)  # pragma: no cover
             else:
                 break
 
