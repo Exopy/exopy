@@ -18,7 +18,7 @@ import re
 from traceback import format_exc
 
 import enaml
-from atom.api import Typed, Value, set_default
+from atom.api import Typed, Value, Property, set_default
 from enaml.application import deferred_call
 from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
@@ -27,6 +27,7 @@ from enaml.layout.api import InsertItem, InsertTab
 from ..measure import Measure
 from ..plugin import MeasurePlugin
 from ...tasks.api import RootTask
+from .measure_tracking import MeasureTracker
 
 with enaml.imports():
     from .checks_display import ChecksDisplay
@@ -42,9 +43,6 @@ LOG_ID = 'ecpy.measure.workspace'
 logger = logging.getLogger(__name__)
 
 
-# XXX add proper support for saving when multiple measure are edited through
-# asynchronous focus tracking
-
 class MeasureSpace(Workspace):
     """Workspace dedicated tot measure edition and execution.
 
@@ -54,6 +52,9 @@ class MeasureSpace(Workspace):
 
     #: Reference to the log panel model received from the log plugin.
     log_model = Value()
+
+    #: Reference to the last edited measure used for saving.
+    last_selected_measure = Property()
 
     window_title = set_default('Measure')
 
@@ -96,6 +97,8 @@ class MeasureSpace(Workspace):
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
+        self._selection_tracker.start(plugin.edited_measures.measures[0])
+
         # TODO implement layout reloading so that we can easily switch between
         # workspaces.
 
@@ -124,6 +127,8 @@ class MeasureSpace(Workspace):
         self.workbench.unregister('ecpy.measure.workspace.menus')
 
         self.plugin.workspace = None
+
+        self._selection_tracker.stop()
 
         # TODO implement layout saving so that we can easily switch between
         # workspaces.
@@ -417,9 +422,13 @@ class MeasureSpace(Workspace):
 
         """
         if self.content and self.content.children:
-            return self.content.children[0]
+            return self.content.children[1]
 
     # --- Private API ---------------------------------------------------------
+
+    #: Background thread determining the last edited measure by analysing the
+    #: last selected widget.
+    _selection_tracker = Typed(MeasureTracker, ())
 
     def _attach_default_tools(self, measure):
         """Add the default tools to a measure.
@@ -492,3 +501,9 @@ class MeasureSpace(Workspace):
         if new and new in self.plugin.engines:
             engine = self.plugin.get_declarations('engine', [new])[new]
             engine.contribute_to_workspace(self)
+
+    def _get_last_selected_measure(self):
+        """Wait for the background to finish processing the selected widgets.
+
+        """
+        return self._selection_tracker.get_selected_measure()

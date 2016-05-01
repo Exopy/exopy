@@ -295,7 +295,7 @@ enamldef PreferencesManifest(PluginManifest):
             description = GET_PLUGIN_PREF_DESCRIPTION
             handler = get_plugin_preferences
 #        Command:
-#            id = 'hqc_meas.preferences.open_editor'
+#            id = 'ecpy.preferences.open_editor'
 #            description = OPEN_EDITOR_DESCRIPTION
 #            handler = open_editor
 

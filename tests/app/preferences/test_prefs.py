@@ -159,7 +159,7 @@ class TestPreferencesPlugin(object):
         # Start preferences plugin.
         prefs = self.workbench.get_plugin(PLUGIN_ID)
         assert prefs.app_directory == app_dir
-        assert os.path.isdir(os.path.join(app_dir, 'prefs'))
+        assert os.path.isdir(os.path.join(app_dir, 'preferences'))
         core = self.workbench.get_plugin('enaml.workbench.core')
         assert core.invoke_command('ecpy.app.preferences.get',
                                    dict(plugin_id='test.prefs')) is not None
@@ -182,8 +182,8 @@ class TestPreferencesPlugin(object):
         is loaded on startup.
 
         """
-        prefs_path = os.path.join(app_dir, 'prefs')
-        os.mkdir(os.path.join(app_dir, 'prefs'))
+        prefs_path = os.path.join(app_dir, 'preferences')
+        os.mkdir(os.path.join(app_dir, 'preferences'))
 
         conf = ConfigObj(os.path.join(prefs_path, 'default.ini'))
         c_man = PrefContributor()
@@ -230,14 +230,14 @@ class TestPreferencesPlugin(object):
         contrib.auto = 'test_auto'
 
         ref = {c_man.id: {'auto': 'test_auto'}}
-        path = os.path.join(app_dir, 'prefs', 'default.ini')
+        path = os.path.join(app_dir, 'preferences', 'default.ini')
         assert os.path.isfile(path)
         assert ConfigObj(path).dict() == ref
 
         contrib.auto = 'test'
 
         ref = {c_man.id: {'auto': 'test'}}
-        path = os.path.join(app_dir, 'prefs', 'default.ini')
+        path = os.path.join(app_dir, 'preferences', 'default.ini')
         assert os.path.isfile(path)
         assert ConfigObj(path).dict() == ref
 
@@ -255,7 +255,7 @@ class TestPreferencesPlugin(object):
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.preferences.save', {}, self)
 
-        path = os.path.join(app_dir, 'prefs', 'default.ini')
+        path = os.path.join(app_dir, 'preferences', 'default.ini')
         ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
         assert os.path.isfile(path)
         assert ConfigObj(path).dict() == ref
@@ -271,7 +271,7 @@ class TestPreferencesPlugin(object):
         contrib = self.workbench.get_plugin(c_man.id)
         contrib.string = 'test_save'
 
-        path = os.path.join(app_dir, 'prefs', 'custom.ini')
+        path = os.path.join(app_dir, 'preferences', 'custom.ini')
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.preferences.save', {'path': path})
 
@@ -290,7 +290,7 @@ class TestPreferencesPlugin(object):
         contrib = self.workbench.get_plugin(c_man.id)
         contrib.string = 'test_save'
 
-        prefs_path = os.path.join(app_dir, 'prefs')
+        prefs_path = os.path.join(app_dir, 'preferences')
         path = os.path.join(prefs_path, 'custom.ini')
 
         @classmethod
@@ -321,7 +321,7 @@ class TestPreferencesPlugin(object):
         c_man = PrefContributor()
         self.workbench.register(c_man)
 
-        path = os.path.join(app_dir, 'prefs', 'default.ini')
+        path = os.path.join(app_dir, 'preferences', 'default.ini')
         conf = ConfigObj(path)
         conf[c_man.id] = {}
         conf[c_man.id]['string'] = 'test'
@@ -356,7 +356,7 @@ class TestPreferencesPlugin(object):
         self.workbench.register(c_man)
         contrib = self.workbench.get_plugin(c_man.id)
 
-        path = os.path.join(app_dir, 'prefs', 'custom.ini')
+        path = os.path.join(app_dir, 'preferences', 'custom.ini')
         conf = ConfigObj(path)
         conf[c_man.id] = {}
         conf[c_man.id]['string'] = 'test'
@@ -379,7 +379,7 @@ class TestPreferencesPlugin(object):
         self.workbench.register(c_man)
         contrib = self.workbench.get_plugin(c_man.id)
 
-        prefs_path = os.path.join(app_dir, 'prefs')
+        prefs_path = os.path.join(app_dir, 'preferences')
         path = os.path.join(prefs_path, 'custom.ini')
         conf = ConfigObj(path)
         conf[c_man.id] = {}

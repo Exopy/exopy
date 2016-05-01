@@ -151,7 +151,10 @@ class MeasurePlugin(HasPrefPlugin):
         super(MeasurePlugin, self).start()
 
         if not os.path.isdir(self.path):
-            self.path = ''
+            core = self.workbench.get_plugin('enaml.workbench.core')
+            state = core.invoke_command('ecpy.app.states.get',
+                                        {'state_id': 'ecpy.app.directory'})
+            self.path = state.app_directory
 
         cmd = 'ecpy.app.errors.signal'
         for contrib in ('pre_hooks', 'monitors', 'post_hooks'):
