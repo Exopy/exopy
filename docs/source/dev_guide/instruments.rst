@@ -100,8 +100,16 @@ Let's look at the example below:
                 manufacturer = 'MyManufacturer'
 
                 Driver:
-                    task = 'my_driver:MyDriver'
-                    .. XXX complete
+                    driver = 'my_driver:MyDriver'
+                    architecture = 'MyArchitecture'
+                    model = 'MyModel'
+                    kind = 'DC source'
+                    connections = {'VisaTCPIP': {'resource_class': 'SOCKET',
+                                                 'port': 10000},
+                                   'VisaUSB': {'resource_class': 'INSTR',
+                                               'manufacturer_ID': '0x49',
+                                               'model_code': '0x46'}
+                                   }
 
 We declare a single child for the extension a |Drivers| object. |Drivers| does
 nothing by themselves they are simply container for grouping drivers
