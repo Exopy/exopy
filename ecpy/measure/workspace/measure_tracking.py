@@ -28,7 +28,7 @@ with enaml.imports():
 MEASURE_PARENTS = (MeasureEditorDockItem, ToolsEditorDockItem)
 
 
-class MeasureTacker(Atom):
+class MeasureTracker(Atom):
     """Object responsible for tracking the currently edited measure.
 
     The tracking relies on the last focus that got focus.
@@ -41,7 +41,9 @@ class MeasureTacker(Atom):
         """
         self._selected = measure
         self._should_stop.clear()
+        self._buffer_empty.set()
         self._thread = Thread(target=self.run)
+        self._thread.daemon = True
         self._thread.start()
 
     def stop(self):
@@ -58,6 +60,7 @@ class MeasureTacker(Atom):
         """
         with self._lock:
             self._queue.append(widget)
+            self._queue_not_empty.set()
 
     def run(self):
         """Method called by the working thread.
@@ -81,15 +84,17 @@ class MeasureTacker(Atom):
                 for p in w.traverse_ancestors():
                     if isinstance(p, MEASURE_PARENTS):
                         selected = p.measure
-                        self._buffer = []
-                        self._buffer_empty.set()
                         break
 
                 if selected is not None:
                     self._selected = selected
                     break
-                if self._queue_not_empty.is_set():
+                if (self._queue_not_empty.is_set() or
+                        self._should_stop.is_set()):
                     break
+
+            self._buffer = []
+            self._buffer_empty.set()
 
     def get_selected_measure(self):
         """Get the currently selected measure.
