@@ -42,9 +42,11 @@ class PrefPlugin(Plugin):
 
         """
         app_path = ConfigObj(os.path.join(MODULE_PATH,
-                                          'app_directory.ini'))['app_path']
+                                          'app_directory.ini'),
+                             encoding='utf-8')['app_path']
         self.app_directory = app_path
-        self._prefs = ConfigObj(encoding='utf8', default_encoding='utf8')
+        self._prefs = ConfigObj(encoding='utf8', default_encoding='utf8',
+                                indent_type='    ')
 
         pref_path = os.path.join(app_path, 'preferences')
         if not os.path.isdir(pref_path):
@@ -79,7 +81,7 @@ class PrefPlugin(Plugin):
             path = os.path.join(self.app_directory, 'preferences',
                                 'default.ini')
 
-        prefs = ConfigObj(path)
+        prefs = ConfigObj(path, encoding='utf-8', indent_type='    ')
         for plugin_id in self._pref_decls:
             plugin = self.workbench.get_plugin(plugin_id)
             decl = self._pref_decls[plugin_id]
@@ -105,7 +107,7 @@ class PrefPlugin(Plugin):
         if not os.path.isfile(path):
             return
 
-        prefs = ConfigObj(path)
+        prefs = ConfigObj(path, encoding='utf-8', indent_type='    ')
         self._prefs.merge(prefs)
         for plugin_id in prefs:
             if plugin_id in self._pref_decls:

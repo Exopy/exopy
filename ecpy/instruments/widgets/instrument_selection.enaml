@@ -13,7 +13,6 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import kiwisolver as kiwi
-from configobj import ConfigObj
 from atom.api import Coerced
 from enaml.core.api import Include, Conditional, Looper
 from enaml.widgets.api import (Dialog, CheckBox, ObjectCombo, Label, Container,

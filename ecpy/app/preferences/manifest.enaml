@@ -94,7 +94,8 @@ def check_app_folder(workbench, cmd_args):
 
     """
     app_dir = os.path.join(MODULE_PATH, 'app_directory.ini')
-    if (not os.path.isfile(app_dir) or 'app_path' not in ConfigObj(app_dir) or
+    if (not os.path.isfile(app_dir) or
+            'app_path' not in ConfigObj(app_dir, encoding='utf-8') or
             getattr(cmd_args, 'reset_app_folder', None)):
         path = ''
         try:
@@ -107,11 +108,11 @@ def check_app_folder(workbench, cmd_args):
         dial = AppDirSelectionDialog(path=path)
         if not dial.exec_():
             sys.exit(1)
-        conf = ConfigObj(app_dir)
+        conf = ConfigObj(app_dir, encoding='utf-8', indent_type='    ')
         conf['app_path'] = dial.path
         conf.write()
 
-    app_path = ConfigObj(app_dir)['app_path']
+    app_path = ConfigObj(app_dir, encoding='utf-8')['app_path']
     if not os.path.isdir(app_path):
         try:
             os.makedirs(app_path)

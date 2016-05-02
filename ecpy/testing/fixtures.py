@@ -131,7 +131,7 @@ def app_dir(tmpdir):
     # that it cannot be a user file.
     app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
     app_dir = text(tmpdir)
-    conf = ConfigObj()
+    conf = ConfigObj(encoding='utf-8', indent_type='    ')
     conf.filename = app_pref
     conf['app_path'] = app_dir
     conf.write()

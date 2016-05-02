@@ -1083,7 +1083,7 @@ class RootTask(ComplexTask):
     database_entries = set_default({'default_path': ''})
 
     def __init__(self, *args, **kwargs):
-        self.preferences = ConfigObj(indent_type='    ')
+        self.preferences = ConfigObj(indent_type='    ', encoding='utf-8')
         self.database = TaskDatabase()
         super(RootTask, self).__init__(*args, **kwargs)
         self.register_in_database()
