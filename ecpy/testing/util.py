@@ -167,7 +167,8 @@ def set_preferences(workbench, preferences):
 
     """
     plugin = workbench.get_plugin('ecpy.app.preferences')
-    plugin._prefs = ConfigObj(preferences)
+    plugin._prefs = ConfigObj(preferences, indent_type='    ',
+                              encoding='utf-8')
 
 
 class ErrorDialogException(Exception):

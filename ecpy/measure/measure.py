@@ -370,7 +370,7 @@ class Measure(HasPrefAtom):
         """
         # Create the measure.
         measure = cls(plugin=measure_plugin)
-        config = ConfigObj(path)
+        config = ConfigObj(path, encoding='utf-8')
         measure.path = path
         measure.update_members_from_preferences(config)
 

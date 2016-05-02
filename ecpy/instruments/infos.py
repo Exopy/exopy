@@ -445,7 +445,7 @@ class ProfileInfos(Atom):
         """Clone this object.
 
         """
-        c = ConfigObj(encoding='utf-8')
+        c = ConfigObj(encoding='utf-8', indent_type='    ')
         c.update(dict(id=self.id, model_id=self.model.id,
                       connections=self.connections,
                       settings=self.settings))
@@ -456,7 +456,7 @@ class ProfileInfos(Atom):
         """Create a new blank ProfileInfos.
 
         """
-        c = ConfigObj(encoding='utf-8')
+        c = ConfigObj(encoding='utf-8', indent_type='    ', )
         c['id'] = ''
         c['model_id'] = ''
         c['connections'] = {}
@@ -506,7 +506,7 @@ class ProfileInfos(Atom):
         """Load the config from the file.
 
         """
-        return ConfigObj(self.path, encoding='utf-8')
+        return ConfigObj(self.path, encoding='utf-8', indent_type='    ')
 
     def _post_setattr__config(self, old, new):
         """Clean id, model, connections and settings so that default is called

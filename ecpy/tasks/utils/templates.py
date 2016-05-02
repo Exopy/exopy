@@ -32,7 +32,7 @@ def load_template(path):
             The doc of the template.
 
     """
-    config = ConfigObj(path, encoding='utf-8')
+    config = ConfigObj(path, encoding='utf-8', indent_type='    ')
     doc_list = [com[1:].strip() for com in config.initial_comment]
     doc = '\n'.join(doc_list)
 
