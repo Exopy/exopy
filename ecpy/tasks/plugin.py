@@ -69,6 +69,7 @@ class TaskManagerPlugin(HasPrefPlugin):
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
+        # TODO move it to the application folder
         if not os.path.isdir(TEMPLATE_PATH):
             try:
                 os.mkdir(TEMPLATE_PATH)

@@ -23,10 +23,6 @@ class SleepTask(SimpleTask):
     """Simply sleeps for the specified amount of time.
     Wait for any parallel operation before execution by default.
     """
-
-    # Class attribute marking this task as being logical, used in filtering.
-    util_task = True
-
     # Time to wait
     time = Unicode().tag(pref=True, feval=True)
 
