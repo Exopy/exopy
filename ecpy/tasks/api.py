@@ -18,12 +18,13 @@ from .tasks.base_tasks import BaseTask, SimpleTask, ComplexTask, RootTask
 from .tasks.instr_task import InstrumentTask
 
 from .tasks.task_interface import (InterfaceableTaskMixin, TaskInterface,
-                             InterfaceableInterfaceMixin, IInterface)
+                                   InterfaceableInterfaceMixin, IInterface)
+from .tasks.string_evaluation import FORMATTER_TOOLTIP, EVALUATER_TOOLTIP
 
 from .declarations import (Tasks, Task, Interfaces, Interface,
-                                   TaskConfig)
+                           TaskConfig)
 from .filters import (TaskFilter, SubclassTaskFilter, GroupTaskFilter,
-                              MetadataTaskFilter)
+                      MetadataTaskFilter)
 
 from .configs.base_configs import BaseTaskConfig
 
@@ -41,4 +42,5 @@ __all__ = ['BaseTask', 'SimpleTask', 'ComplexTask', 'RootTask',
            'Tasks', 'Task', 'Interfaces', 'Interface', 'TaskConfig',
            'TaskFilter', 'SubclassTaskFilter', 'GroupTaskFilter',
            'MetadataTaskFilter', 'BaseTaskConfig', 'BaseConfigView',
-           'build_task_from_config']
+           'build_task_from_config',
+           'FORMATTER_TOOLTIP', 'EVALUATER_TOOLTIP']
