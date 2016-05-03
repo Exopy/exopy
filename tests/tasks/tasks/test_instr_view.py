@@ -13,13 +13,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
-from time import sleep
 
 import pytest
 import enaml
 from configobj import ConfigObj
 
-from ecpy.testing.util import (handle_dialog, process_app_events,
+from ecpy.testing.util import (handle_dialog,
                                show_and_close_widget)
 from ecpy.tasks.api import (RootTask, InstrTaskView, TaskInterface,
                             InstrumentTask, InterfaceableTaskMixin)

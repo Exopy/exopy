@@ -135,6 +135,9 @@ Ecpy add some other :
 - dialog_sleep : return the time to sleep as specified by the --ecpy-sleep
   option
 
+The other fixtures can be found in the testing package. Each subpackage usually
+defining a fixture.py module in which those are defined.
+
 If a fixture need to be available in multiple test module it can be defined in
 a conftest.py module inside the package. If the fixture can be of use to other
 packages it should be defined in a fixtures.py module inside the testing
@@ -146,6 +149,8 @@ package.
     'pytest_plugin' variable at the top of the test module with a list of all
     the module containing fixtures to load (modules should be specified using
     their full path).
+
+    ex : pytest_plugins = [str('ecpy.testing.instruments.fixtures')]
 
 .. note::
 
