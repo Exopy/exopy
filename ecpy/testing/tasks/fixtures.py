@@ -26,6 +26,7 @@ with enaml.imports():
     from ecpy.app.app_manifest import AppManifest
     from ecpy.app.preferences.manifest import PreferencesManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
+    from ecpy.app.states.manifest import StateManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.tasks.manifest import TasksManagerManifest
@@ -51,6 +52,7 @@ def task_workbench(monkeypatch, app_dir):
     workbench.register(AppManifest())
     workbench.register(PreferencesManifest())
     workbench.register(ErrorsManifest())
+    workbench.register(StateManifest())
     workbench.register(DependenciesManifest())
     workbench.register(TasksManagerManifest())
 
