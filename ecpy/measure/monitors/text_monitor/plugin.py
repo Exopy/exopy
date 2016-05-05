@@ -16,7 +16,8 @@ import logging
 from atom.api import List, Dict, Typed
 
 from ....utils.plugin_tools import (DeclaratorsCollector, ExtensionsCollector,
-                                    make_extension_validator, HasPrefPlugin)
+                                    make_extension_validator,
+                                    HasPreferencesPlugin)
 from ..base_monitor import Monitor
 from .monitor import TextMonitor
 from .rules.base import RuleType, Rules, RuleConfig
@@ -29,7 +30,7 @@ RULE_CONFIG_POINT = 'ecpy.measure.monitors.text_monitor.rules.config'
 logger = logging.getLogger(__name__)
 
 
-class TextMonitorPlugin(HasPrefPlugin):
+class TextMonitorPlugin(HasPreferencesPlugin):
     """Plugin managing the preferences of the TextMonitor.
 
     """

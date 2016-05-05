@@ -23,7 +23,7 @@ from enaml.application import deferred_call
 from watchdog.observers import Observer
 
 from ..utils.watchdog import SystematicFileUpdater
-from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   DeclaratorsCollector,
                                   make_extension_validator)
 from .user import InstrUser
@@ -70,7 +70,7 @@ def validate_user(user):
 
 
 # TODO add a way to specify default values for settings from the preferences
-class InstrumentManagerPlugin(HasPrefPlugin):
+class InstrumentManagerPlugin(HasPreferencesPlugin):
     """The instrument plugin manages the instrument drivers and their use.
 
     """

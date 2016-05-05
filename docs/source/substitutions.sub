@@ -62,7 +62,7 @@
 
 .. |Preferences| replace:: :py:class:`~ecpy.app.preferences.preferences.Preferences`
 
-.. |HasPreferencesPlugin| replace:: :py:class:`~ecpy.utils.plugin_tools.HasPreferencesPlugin`
+.. |HasPreferencesPlugin| replace:: :py:class:`~ecpy.utils.plugin_tools.HasPrefPlugin`
 
 .. |State| replace:: :py:class:`~ecpy.app.states.state.State`
 

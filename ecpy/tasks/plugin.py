@@ -23,7 +23,7 @@ from watchdog.observers import Observer
 from .declarations import (Task, Interface, Tasks, Interfaces, TaskConfig,
                            TaskConfigs)
 from .filters import TaskFilter
-from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   DeclaratorsCollector)
 from ..utils.watchdog import SystematicFileUpdater
 
@@ -40,7 +40,7 @@ TEMPLATE_PATH = os.path.realpath(os.path.join(FOLDER_PATH, '..',
                                               'templates'))
 
 
-class TaskManagerPlugin(HasPrefPlugin):
+class TaskManagerPlugin(HasPreferencesPlugin):
     """Plugin responsible for collecting and providing tasks.
 
     """
