@@ -469,8 +469,8 @@ enamldef InstrumentManagerManifest(PluginManifest):
                                           errors=new_errors)
 
             report => (workbench):
-                return BasicErrorDisplay(kind='Driver information validation',
-                                         errors=errors)
+                return BasicErrorsDisplay(kind='Driver information validation',
+                                          errors=errors)
 
             func _format(infos):
                 """Format the validation infos for the logger.
