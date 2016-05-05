@@ -209,7 +209,7 @@ class DummyMonitor(BaseMonitor):
     def stop(self):
         self.running = False
 
-    def refresh_monitored_entries(self):
+    def refresh_monitored_entries(self, entries=None):
         """Do nothing when refreshing.
 
         """

@@ -14,6 +14,9 @@ from __future__ import (division, unicode_literals, print_function,
 
 
 class LoopException(BaseException):
+    """Base exception used for control flows in tasks.
+
+    """
     pass
 
 

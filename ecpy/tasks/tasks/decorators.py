@@ -77,7 +77,9 @@ def make_stoppable(function_to_decorate):
 
     """
     def decorator(*args, **kwargs):
+        """Wrap function to check for stop/pause condition.
 
+        """
         if handle_stop_pause(args[0].root):
             return
 
@@ -94,6 +96,9 @@ def smooth_crash(function_to_decorate):
 
     """
     def decorator(*args, **kwargs):
+        """Wrap function to handle nicelay craches.
+
+        """
         obj = args[0]
 
         try:
@@ -125,7 +130,9 @@ def make_parallel(perform, pool):
 
     """
     def wrapper(*args, **kwargs):
+        """Wrap function to run wrapped function in a new thread.
 
+        """
         obj = args[0]
         root = obj.root
         safe_perform = smooth_crash(perform)
@@ -176,7 +183,9 @@ def make_wait(perform, wait, no_wait):
     """
     if wait:
         def wrapper(obj, *args, **kwargs):
+            """Wrap function to wait upon specified pools.
 
+            """
             all_threads = obj.root.resources['threads']
             while True:
                 threads = []
@@ -206,7 +215,9 @@ def make_wait(perform, wait, no_wait):
 
     elif no_wait:
         def wrapper(obj, *args, **kwargs):
+            """Wrap function not waiting on specified pools.
 
+            """
             all_threads = obj.root.resources['threads']
             with all_threads.locked():
                 pools = [k for k in all_threads if k not in no_wait]
@@ -238,7 +249,9 @@ def make_wait(perform, wait, no_wait):
             return perform(obj, *args, **kwargs)
     else:
         def wrapper(obj, *args, **kwargs):
+            """Wrap funxtion waiting on all pool threads.
 
+            """
             all_threads = obj.root.resources['threads']
             while True:
                 threads = []

@@ -30,7 +30,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 import os
-import sys
 import time
 import datetime
 from future.moves import queue

@@ -321,6 +321,9 @@ class DependenciesPlugin(Plugin):
             container = BuildContainer()
 
             def collect(dep_id):
+                """Collect dependencies matching the specified id.
+
+                """
                 try:
                     collectors[dep_id].collect(self.workbench,
                                                dependencies[dep_id],
@@ -340,6 +343,9 @@ class DependenciesPlugin(Plugin):
                 # Next part is skipped as dependencies is empty
 
             def collect(dep_id):
+                """Collect dependencies matching the specified id.
+
+                """
                 try:
                     collectors[dep_id].collect(self.workbench, owner,
                                                dependencies[dep_id],

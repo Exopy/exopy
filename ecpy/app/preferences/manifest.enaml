@@ -326,12 +326,12 @@ enamldef PreferencesManifest(PluginManifest):
             path = '/prefs/save_default'
             label = 'Save default'
             group = 'pref'
-            command = 'hqc_meas.preferences.save'
+            command = 'ecpy.preferences.save'
         ActionItem:
             path = '/prefs/load_default'
             label = 'Load default'
             group = 'pref'
-            command = 'hqc_meas.preferences.load'
+            command = 'ecpy.preferences.load'
 #        ActionItem:
 #            path = '/prefs/edit'
 #            label = 'Edit'

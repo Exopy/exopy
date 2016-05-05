@@ -39,6 +39,9 @@ def instr_workbench(monkeypatch, app_dir, app):
 
     """
     def exit_err(self):
+        """Turn error reporting into error raising.
+
+        """
         if self._delayed:
             raise Exception('Unexpected exceptions occured :\n' +
                             pformat(self._delayed))

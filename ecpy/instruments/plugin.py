@@ -106,7 +106,6 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
-        core = self.workbench.get_plugin('enaml.workbench.core')
         state = core.invoke_command('ecpy.app.states.get',
                                     {'state_id': 'ecpy.app.directory'})
 
