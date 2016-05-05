@@ -15,7 +15,6 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 from collections import defaultdict
-from traceback import format_exc
 
 from atom.api import List, Dict, Typed, Unicode
 from watchdog.observers import Observer
@@ -36,17 +35,11 @@ CONFIG_POINT = 'ecpy.tasks.configs'
 
 FOLDER_PATH = os.path.dirname(__file__)
 
-TEMPLATE_PATH = os.path.realpath(os.path.join(FOLDER_PATH, '..',
-                                              'templates'))
-
 
 class TaskManagerPlugin(HasPreferencesPlugin):
     """Plugin responsible for collecting and providing tasks.
 
     """
-    #: Folders containings templates which should be loaded.
-    templates_folders = List(default=[TEMPLATE_PATH]).tag(pref=True)
-
     #: Known templates (store full path to .ini).
     #: This should not be manipulated by user code.
     templates = Dict()
@@ -69,23 +62,20 @@ class TaskManagerPlugin(HasPreferencesPlugin):
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
-        # TODO move it to the application folder
-        if not os.path.isdir(TEMPLATE_PATH):
-            try:
-                os.mkdir(TEMPLATE_PATH)
-            except Exception:
-                if TEMPLATE_PATH in self.templates_folders:
-                    self.templates_folders.remove(TEMPLATE_PATH)
-                core = self.workbench.get_plugin('enaml.workbench.core')
-                msg = 'Failed to create template folder.'
-                # Python 2 windows issue
-                try:
-                    msg += 'Traceback : %s' % format_exc()
-                except UnicodeError:
-                    msg += 'Failed to format error message.'
-                core.invoke_command('ecpy.app.errors.signal',
-                                    dict(kind='error',
-                                         message=msg))
+        state = core.invoke_command('ecpy.app.states.get',
+                                    {'state_id': 'ecpy.app.directory'})
+
+        t_dir = os.path.join(state.app_directory, 'tasks')
+        # Create tasks subfolder if it does not exist.
+        if not os.path.isdir(t_dir):
+            os.mkdir(t_dir)
+
+        temp_dir = os.path.join(t_dir, 'templates')
+        # Create profiles subfolder if it does not exist.
+        if not os.path.isdir(temp_dir):
+            os.mkdir(temp_dir)
+
+        self._template_folders = [temp_dir]
 
         self._filters = ExtensionsCollector(workbench=self.workbench,
                                             point=FILTERS_POINT,
@@ -389,6 +379,10 @@ class TaskManagerPlugin(HasPreferencesPlugin):
     #: Contributed task configs.
     _configs = Typed(DeclaratorsCollector)
 
+    #: List of folders in which to search for templates.
+    # TODO make that list editable and part of the preferences
+    _template_folders = List()
+
     #: Watchdog observer tracking changes to the templates folders.
     _observer = Typed(Observer, ())
 
@@ -399,7 +393,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
         # TODO rework to handle in an nicer fashion same template in multiple
         # folders
         templates = {}
-        for path in self.templates_folders:
+        for path in self._template_folders:
             if os.path.isdir(path):
                 filenames = sorted(f for f in os.listdir(path)
                                    if f.endswith('.task.ini') and
@@ -422,7 +416,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
         """
         self._observer.unschedule_all()
 
-        for folder in self.templates_folders:
+        for folder in self._template_folders:
             if os.path.isdir(folder):
                 handler = SystematicFileUpdater(self._update_templates)
                 self._observer.schedule(handler, folder, recursive=True)
@@ -443,7 +437,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
         """Setup all observers.
 
         """
-        for folder in self.templates_folders:
+        for folder in self._template_folders:
             handler = SystematicFileUpdater(self._update_templates)
             self._observer.schedule(handler, folder, recursive=True)
 
