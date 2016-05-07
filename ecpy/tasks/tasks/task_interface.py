@@ -272,9 +272,6 @@ class BaseInterface(HasPrefAtom):
     This class should not be used directly, use one of its subclass.
 
     """
-    #: Class attribute indicating whether this interface has views or not.
-    has_view = False
-
     #: Identifier for the build dependency collector
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 

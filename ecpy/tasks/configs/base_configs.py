@@ -25,6 +25,9 @@ from ..utils.building import build_task_from_config
 
 # Circular import protection
 def task_manager():
+    """Delayed import of TaskManagerPlugin.
+
+    """
     from ..plugin import TaskManagerPlugin
     return TaskManagerPlugin
 

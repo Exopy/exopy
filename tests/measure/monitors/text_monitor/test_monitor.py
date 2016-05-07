@@ -19,7 +19,6 @@ import pytest
 import enaml
 
 from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
-
 from ecpy.measure.monitors.text_monitor.rules.std_rules import (FormatRule,
                                                                 RejectRule)
 from ecpy.testing.util import process_app_events, handle_dialog
@@ -289,7 +288,7 @@ def test_process_news(monitor):
 
 
 def test_clear_state(monitor):
-    """ Test clearing the monitor state.
+    """Test clearing the monitor state.
 
     """
     rule = FormatRule(id='Test', suffixes=['loop', 'index'],
@@ -309,7 +308,7 @@ def test_clear_state(monitor):
     assert not monitor.monitored_entries
 
 
-def test_get_set_state(monitor, monkeypatch):
+def test_get_set_state(monitor, monkeypatch, measure):
     """ Test get_state.
 
     """
@@ -359,13 +358,29 @@ def test_get_set_state(monitor, monkeypatch):
 
     monitor._clear_state()
     import ecpy.measure.monitors.text_monitor.monitor as mod
-    monkeypatch.setattr(mod, 'information', lambda *args, **kwargs: None)
-    monitor.set_state(state, {'root/test_loop': 10, 'root/test2_index': 1,
-                              'root/test_index': 1, 'root/test2_loop': 10,
-                              'root/r': 1})
+    monkeypatch.setattr(mod, 'information',
+                        lambda *args, **kwargs: print(args, kwargs))
+
+    monitor.set_state(state)
 
     assert monitor.rules
     assert monitor.rules[0].id == 'Test'
+    assert monitor._state
+
+    state2 = monitor.get_state()
+    assert state == state2
+
+    from ecpy.tasks.tasks.database import TaskDatabase
+    monkeypatch.setattr(TaskDatabase, 'list_all_entries',
+                        lambda *args, **kwargs: {'root/test_loop': 10,
+                                                 'root/test2_index': 1,
+                                                 'root/test_index': 1,
+                                                 'root/test2_loop': 10,
+                                                 'root/r': 1})
+    monitor.link_to_measure(measure)
+
+    assert not monitor._state
+    print(sorted([e.path for e in monitor.displayed_entries]))
     assert (sorted([e.path for e in monitor.displayed_entries]) ==
             sorted(['custom', 'root/test_progress', 'root/test2_progress',
                     'root/r']))

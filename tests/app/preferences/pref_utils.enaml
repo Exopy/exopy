@@ -15,11 +15,11 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Atom, Unicode
 from enaml.workbench.api import PluginManifest, Extension
 
-from ecpy.utils.plugin_tools import HasPrefPlugin
+from ecpy.utils.plugin_tools import HasPreferencesPlugin
 from ecpy.app.preferences.preferences import Preferences
 
 
-class _Pref(HasPrefPlugin):
+class _Pref(HasPreferencesPlugin):
     """Plugin having two members declared as preferences.
 
     """

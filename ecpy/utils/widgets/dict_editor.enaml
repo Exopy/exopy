@@ -179,8 +179,6 @@ template DictEditor(Content):
 
     The content should be an enaml widget with a **model** attribute which will
     receive one Pair object representing the key/value being edited.
-    As the order of the key in a dict does not matter, the ui allow to change
-    the order but does not notify the model about this change.
 
     Attributes
     ----------
@@ -244,10 +242,10 @@ enamldef FieldFieldEditor(Container):
 enamldef FieldFieldCompleterEditor(Container):
     """ Possible content for the Dictionary Editor containing a pair of
     key-value Fields (String-like fields) where the second one has the
-    line-completer that suggests possible entries from the database.
+    line-completer.
 
     It expects the model to declare either the entries or entries_updater
-    function
+    function and to declare an evaluator_tooltip.
 
     """
     attr model

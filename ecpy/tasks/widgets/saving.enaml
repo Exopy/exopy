@@ -53,7 +53,7 @@ class TemplateSaverModel(Atom):
 
     def __init__(self, **kwargs):
         super(TemplateSaverModel, self).__init__(**kwargs)
-        self.folder = self.manager.templates_folders[0]
+        self.folder = self.manager._template_folders[0]
 
     def accept_template_info(self, ui):
         """ Whether or not the provided infos allows to save the template.

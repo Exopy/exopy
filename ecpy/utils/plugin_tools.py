@@ -23,7 +23,7 @@ from .atom_util import (update_members_from_preferences,
                         preferences_from_members)
 
 
-class HasPrefPlugin(Plugin):
+class HasPreferencesPlugin(Plugin):
     """ Base class for plugin using preferences.
 
     Simply defines the most basic preferences system inherited from

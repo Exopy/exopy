@@ -35,10 +35,15 @@ Implementing the logic
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The task itself should be a subclass either of |SimpleTask| or |ComplexTask|,
-according to whether or not it can have children tasks attached to it. The
-task parameters should be declared using the appropriate member and tagged with
-'pref' in order to be correctly saved (the value does not matter). If a
-parameter value can depend on values stored in the database, it should be
+according to whether or not it can have children tasks attached to it.
+
+The task parameters should be declared using the appropriate member and tagged
+with 'pref' in order to be correctly saved. If the default way of
+saving/restoring (repr/literal_eval) is enough simply use True as a value
+otherwise you can specify the function to use to serailize/desarialize should
+be passed as a tuple/list.
+
+If a parameter value can depend on values stored in the database, it should be
 declared as a Unicode member to let the user enter a formula ('{' and '}' are
 used to identify the part to replace with the value stored in the database).
 
@@ -101,7 +106,16 @@ called every time the system need to check the state of the task. The checking
 of formulas (either simply formatted or formatted and evaluated) is done
 automatically in the base class check method. To take advantage of it, you
 simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
-(formatting and evaluation) (value should be True).
+(formatting and evaluation). For default testing the value should be True, to
+simply warn the user on error it should be 'Warn', to test only if the field
+is not empty it should be 'Skip_empty'.
+
+..note::
+
+    The **check** method should not raise but add errors in the dictionary
+    returned as second value. To avoid duplicate keys the path and name of the
+    task  should be used. A preformatted key can be obtained by calling the
+    **get_error_path** method.
 
 If your task needs to run code once before the whole hierarchy execution
 starts, you can over-write the **prepare** method which is called by the
@@ -116,7 +130,7 @@ starts, you can over-write the **prepare** method which is called by the
     to start the instrument.
     - a 'check' method ensuring that those data makes sense.
     - a 'start_driver' driver method creating the driver.
-    - a 'driver' member storing the driver instance after it has been created.    
+    - a 'driver' member storing the driver instance after it has been created.
 
 
 When to use interfaces
@@ -190,17 +204,17 @@ For more informations about the Enaml syntax please give a look at
 
     If your task accepts interfaces, the layout of your widget must be able to
     deal with it.
-    
+
 .. note::
 
-    For tasks dealing with instruments, the view should derive from  
+    For tasks dealing with instruments, the view should derive from
     |InstrTaskView| which provides three widgets :
-    
+
     - 'instr_lab': a simple label describing the next widget.
-    - 'instr_field': a read only field displaying the currently selected 
+    - 'instr_field': a read only field displaying the currently selected
       profile and whose tool tip gives also the driver, connection and settings
     - 'instr_sel': a button to open the selection dialog.
-    
+
     Those widgets should be integrated inside the view layout.
 
 
@@ -331,6 +345,13 @@ implemented and the handling of the database use the same members.
     not on the interface, so you need to access to them through the task (via
     the *task* member)
 
+.. note::
+
+    The check method of the interface is called before the check method of the
+    task hence the interface should not crash if some values expected from the
+    task are not available. It does not need to report those issues as the
+    task is supposed to do so.
+
 
 When to use interfaces
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -349,10 +370,10 @@ Just like for task, you need to provide a widget to edit the interface
 parameters. Actually for interfaces you can provide several. Whether you need
 one or several depends on the task your interface plugs into.
 
-Because of this liberty, there is no base widget for interfaces as different
-tasks. However to work correctly, your views should always declare a *root*
-attribute (to which a reference to the view of the root task is assigned) and
-an *interface* attribute (in which a reference to the interface is stored).
+Because of this freedom, there is no base widget for interfaces. However to
+work correctly, your views should always declare a *root* attribute (to which a
+ reference to the view of the root task is assigned) and an *interface*
+attribute (in which a reference to the interface is stored).
 
 .. code-block:: enaml
 
@@ -414,7 +435,7 @@ to the interface and views attributes.
 
 However when declaring an interface for an existing task, redeclaring the task
 would be tedious that's why the |Interface| has an *extended* member. This
-member expect a list with the name of the task to which this interface
+member expect a list with the id of the task to which this interface
 contributes. If the interface contribute to an interface the task and all the
 intermediate interfaces should be listed (the task being the first in the
 list). Contributing to the |LoopTask| for example would look like that for
@@ -435,7 +456,7 @@ example :
                 Interface:
                     interface = 'my_interface:MyInterface'
                     views = ['views.my_interface:MyInterfaceView']
-                    extended = ['LoopTask']
+                    extended = ['ecpy.LoopTask']
 
 .. note::
 

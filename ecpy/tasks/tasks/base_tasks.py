@@ -129,6 +129,8 @@ class BaseTask(Atom):
         By default tries to format all members tagged with 'fmt' and try to
         eval all members tagged with 'feval'. If the tag value is 'Warn', the
         test will considered passed but a traceback entry will be filled.
+        If the tag value is 'Skip_empty', the test will be run only if the
+        member value is not empty.
         The perform_ member is also computed at this time.
 
         """
@@ -147,6 +149,8 @@ class BaseTask(Atom):
                 traceback[err_path + '-' + n] = msg
 
         for n, m in tagged_members(self, 'feval').items():
+            if m.metadata['feval'] == 'Skip_empty' and not getattr(self, n):
+                continue
             try:
                 val = self.format_and_eval_string(getattr(self, n))
                 if n in self.database_entries:

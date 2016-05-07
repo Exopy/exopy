@@ -16,7 +16,7 @@ from __future__ import (division, unicode_literals, print_function,
 from past.builtins import basestring
 from future.utils import bind_method
 from collections import OrderedDict
-from atom.api import Str, Unicode, Enum, Atom, Constant, Tuple, List
+from atom.api import Str, Unicode, Enum, Atom, Constant
 from ast import literal_eval
 
 from textwrap import fill

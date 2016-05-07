@@ -17,7 +17,6 @@ from time import sleep
 
 import pytest
 import enaml
-from future.builtins import str
 
 from ecpy.tasks.infos import TaskInfos, InterfaceInfos
 
@@ -54,28 +53,7 @@ def test_observer_error(task_workbench, monkeypatch):
     plugin.stop()
 
 
-def test_template_folder_creation_issue(task_workbench, monkeypatch):
-    """Test handling an error when attempting to create the template dir.
-
-    """
-    from ecpy.tasks import plugin
-    monkeypatch.setattr(plugin, 'TEMPLATE_PATH', '')
-    monkeypatch.setattr(plugin.TaskManagerPlugin, 'templates_folders',
-                        [''])
-
-    def false_format_exc():
-        class Dummy(object):
-            def __str__(self):
-                raise UnicodeError()
-        return Dummy()
-
-    monkeypatch.setattr(plugin, 'format_exc', false_format_exc)
-
-    with pytest.raises(Exception):
-        task_workbench.get_plugin('ecpy.tasks')
-
-
-def test_template_observation(task_workbench, tmpdir, monkeypatch):
+def test_template_observation(task_workbench, app_dir, monkeypatch):
     """Test template folders observations and handling of new template folders.
 
     Force using PollingObserver to make this run on Travis CI.
@@ -86,10 +64,8 @@ def test_template_observation(task_workbench, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, 'Observer', PollingObserver)
 
     plugin = task_workbench.get_plugin('ecpy.tasks')
-    path = tmpdir.mkdir('templates')
-    plugin.templates_folders = [str(path), 'dummy']
 
-    template = str(path.join('test.task.ini'))
+    template = os.path.join(app_dir, 'tasks', 'templates', 'test.task.ini')
     with open(template, 'wb'):
         pass
 
@@ -98,6 +74,19 @@ def test_template_observation(task_workbench, tmpdir, monkeypatch):
     sleep(1.2)
 
     assert 'test' in plugin.templates
+
+
+def test_handle_wrong_template_dir(task_workbench, caplog):
+    """Test that an incorrect path in _profiles_dirs does not crash anything.
+
+    """
+    p = task_workbench.get_plugin('ecpy.tasks')
+
+    p._template_folders = ['dummy']
+    p._refresh_templates()
+
+    for records in caplog.records():
+        assert records.levelname == 'WARNING'
 
 
 def test_list_tasks(task_workbench):

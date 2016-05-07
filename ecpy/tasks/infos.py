@@ -39,7 +39,7 @@ class ObjectDependentInfos(Atom):
     #: Runtime dependencies ids of this object.
     dependencies = Coerced(set, ())
 
-    #: List of interfaces supported by this object.
+    #: Dict of interfaces supported by this object as {id: InterfaceInfos}.
     interfaces = Dict()
 
     def walk_interfaces(self, depth=None):

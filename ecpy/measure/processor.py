@@ -456,7 +456,11 @@ class MeasureProcessor(Atom):
 
         """
         def start_monitors(self, measure):
+            """Start the monitors attached to a measure.
 
+            Called in the main thread.
+
+            """
             workbench = self.plugin.workbench
             if not self.monitors_window:
                 ui_plugin = workbench.get_plugin('enaml.workbench.ui')

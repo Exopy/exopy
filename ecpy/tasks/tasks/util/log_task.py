@@ -22,14 +22,9 @@ class LogTask(SimpleTask):
     """ Task logging a message. Loopable.
 
     """
-
-    #: Class attribute marking this task as being logical, used in filtering.
-    util_task = True
-
     #: Message to log when the task is executed.
     message = Unicode().tag(pref=True, fmt=True)
 
-    loopable = True
     database_entries = set_default({'message': ''})
 
     wait = set_default({'activated': True})  # Wait on all pools by default.

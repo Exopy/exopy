@@ -51,11 +51,18 @@ class TestTaskExecution(object):
 
             feval = Unicode().tag(feval=True)
 
-            database_entries = set_default({'form': '', 'feval': 0})
+            feval_warn = Unicode().tag(feval='Warn')
+
+            feval_empty = Unicode().tag(feval='Skip_empty')
+
+            database_entries = set_default({'form': '', 'feval': 0,
+                                            'feval_warn': 0, 'feval_empty': 0})
 
         tester = Tester(name='test', form='{default_path}',
-                        feval='2*{test_val}',
-                        database_entries={'val': 1, 'form': '', 'feval': 0})
+                        feval='2*{test_val}', feval_warn='{test_val}',
+                        feval_empty='{test_val}',
+                        database_entries={'val': 1, 'form': '', 'feval': 0,
+                                          'feval_warn': 0, 'feval_empty': 0})
         self.root.default_path = str(tmpdir)
         self.root.add_child_task(0, tester)
 
@@ -63,6 +70,17 @@ class TestTaskExecution(object):
         assert res and tb == {}
         assert self.root.get_from_database('test_form') == str(tmpdir)
         assert self.root.get_from_database('test_feval') == 2
+        assert self.root.get_from_database('test_feval_warn') == 1
+        assert self.root.get_from_database('test_feval_empty') == 1
+
+        tester.feval_empty = ''
+        res, tb = self.root.check()
+        assert res and tb == {}
+
+        tester.feval_warn = '**'
+        res, tb = self.root.check()
+        assert res
+        assert 'root/test-feval_warn' in tb
 
         tester.form = '{test}'
         res, tb = self.root.check()

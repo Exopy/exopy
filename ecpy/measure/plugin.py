@@ -18,7 +18,7 @@ from functools import partial
 
 from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool
 
-from ..utils.plugin_tools import (HasPrefPlugin, ExtensionsCollector,
+from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   make_extension_validator)
 from .engines.api import Engine
 from .monitors.api import Monitor
@@ -45,7 +45,7 @@ def _workspace():
     return MeasureSpace
 
 
-class MeasurePlugin(HasPrefPlugin):
+class MeasurePlugin(HasPreferencesPlugin):
     """The measure plugin is reponsible for managing all measure related
     extensions and handling measure execution.
 

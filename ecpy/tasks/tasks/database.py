@@ -355,7 +355,7 @@ class TaskDatabase(Atom):
 
         Returns
         -------
-        paths : list(unicode) or dict is values
+        paths : list(unicode) or dict if values
             List of all accessible entries with their full path.
 
         """
