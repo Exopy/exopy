@@ -16,7 +16,7 @@ from ast import literal_eval
 from textwrap import fill
 
 import enaml
-from atom.api import (List, Dict, ForwardTyped, Property)
+from atom.api import (List, Dict, ForwardTyped, Property, Value)
 
 from ..base_monitor import BaseMonitor
 from .entry import MonitoredEntry
@@ -169,19 +169,26 @@ class TextMonitor(BaseMonitor):
             else:
                 prefs[aux] = rule.preferences_from_members()
 
-        # Get the state of each entry based on its path.
-        prefs['displayed'] = repr([e.path for e in self.displayed_entries])
-        prefs['undisplayed'] = repr([e.path for e in self.undisplayed_entries])
-        prefs['hidden'] = repr([e.path for e in self.hidden_entries])
+        # Get the displayed/undisplayed status of each entry based on its path.
+        # If the monitor was never linked keep the values stored.
+        if self._state:
+            prefs['displayed'] = self._state['displayed']
+            prefs['undisplayed'] = self._state['undisplayed']
+            prefs['hidden'] = self._state['hidden']
+        else:
+            prefs['displayed'] = repr([e.path for e in self.displayed_entries])
+            prefs['undisplayed'] = repr([e.path
+                                         for e in self.undisplayed_entries])
+            prefs['hidden'] = repr([e.path for e in self.hidden_entries])
 
         return prefs
 
-    def set_state(self, config, entries):
+    def set_state(self, state):
         """Rebuild all rules and dispatch entries according to the state.
 
         """
         # Request all the rules class from the plugin.
-        rules_config = [conf for name, conf in config.items()
+        rules_config = [conf for name, conf in state.items()
                         if name.startswith('rule_')]
 
         # Rebuild all rules.
@@ -193,41 +200,53 @@ class TextMonitor(BaseMonitor):
 
         self.rules = rules
 
-        customs_config = [conf for name, conf in config.items()
+        customs_config = [conf for name, conf in state.items()
                           if name.startswith('custom_')]
         for custom_config in customs_config:
             entry = MonitoredEntry()
             entry.update_members_from_preferences(custom_config)
             self.custom_entries.append(entry)
 
-        self.refresh_monitored_entries(entries)
+        self._state = state
 
-        m_entries = set(self.displayed_entries + self.undisplayed_entries +
-                        self.hidden_entries + self.custom_entries)
+    def link_to_measure(self, measure):
+        """Set the entries according to the state if one is present.
 
-        pref_disp = literal_eval(config['displayed'])
-        pref_undisp = literal_eval(config['undisplayed'])
-        pref_hidden = literal_eval(config['hidden'])
+        """
+        database = measure.root_task.database
+        self.refresh_monitored_entries(database.list_all_entries(values=True))
 
-        disp = [e for e in m_entries if e.path in pref_disp]
-        m_entries -= set(disp)
-        undisp = [e for e in m_entries if e.path in pref_undisp]
-        m_entries -= set(undisp)
-        hidden = [e for e in m_entries if e.path in pref_hidden]
-        m_entries -= set(hidden)
+        if self._state:
+            m_entries = set(self.displayed_entries + self.undisplayed_entries +
+                            self.hidden_entries + self.custom_entries)
 
-        if m_entries:
-            e_l = [e.name for e in m_entries]
-            mess = ('The following entries were not expected from the config :'
-                    ' {}. These entries has been added to the displayed ones.')
-            information(parent=None,
-                        title='Unhandled entries',
-                        text=fill(mess.format(e_l)))
-            disp += list(m_entries)
+            config = self._state
+            del self._state
+            pref_disp = literal_eval(config['displayed'])
+            pref_undisp = literal_eval(config['undisplayed'])
+            pref_hidden = literal_eval(config['hidden'])
 
-        self.displayed_entries = disp
-        self.undisplayed_entries = undisp
-        self.hidden_entries = hidden
+            disp = [e for e in m_entries if e.path in pref_disp]
+            m_entries -= set(disp)
+            undisp = [e for e in m_entries if e.path in pref_undisp]
+            m_entries -= set(undisp)
+            hidden = [e for e in m_entries if e.path in pref_hidden]
+            m_entries -= set(hidden)
+
+            # TODO this should not assume the UI exists
+            if m_entries:
+                e_l = [e.name for e in m_entries]
+                mess = ('The following entries were not expected from the '
+                        'config :  {}. These entries has been added to the '
+                        'displayed ones.')
+                information(parent=None,
+                            title='Unhandled entries',
+                            text=fill(mess.format(e_l)))
+                disp += list(m_entries)
+
+            self.displayed_entries = disp
+            self.undisplayed_entries = undisp
+            self.hidden_entries = hidden
 
     def add_entries(self, section, entries):
         """Add entries to the specified section.
@@ -337,6 +356,10 @@ class TextMonitor(BaseMonitor):
 
     #: Reference to the monitor plugin handling the rules persistence.
     _plugin = ForwardTyped(import_monitor_plugin)
+
+    #: Temporary storage of the state that is preserved till the tool is
+    #: linked to a measure.
+    _state = Value()
 
     @staticmethod
     def _create_default_entry(entry_path, value):
