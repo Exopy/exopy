@@ -410,17 +410,6 @@ class TaskManagerPlugin(HasPreferencesPlugin):
 
         self.templates = templates
 
-    def _post_setattr_templates_folders(self, old, new):
-        """Ensure that the template observer always watch the right folder.
-
-        """
-        self._observer.unschedule_all()
-
-        for folder in self._template_folders:
-            if os.path.isdir(folder):
-                handler = SystematicFileUpdater(self._update_templates)
-                self._observer.schedule(handler, folder, recursive=True)
-
     def _update_templates(self):
         """Simply refresh the templates task.
 

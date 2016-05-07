@@ -17,7 +17,6 @@ from time import sleep
 
 import pytest
 import enaml
-from future.builtins import str
 
 from ecpy.tasks.infos import TaskInfos, InterfaceInfos
 
@@ -75,6 +74,19 @@ def test_template_observation(task_workbench, app_dir, monkeypatch):
     sleep(1.2)
 
     assert 'test' in plugin.templates
+
+
+def test_handle_wrong_template_dir(task_workbench, caplog):
+    """Test that an incorrect path in _profiles_dirs does not crash anything.
+
+    """
+    p = task_workbench.get_plugin('ecpy.tasks')
+
+    p._template_folders = ['dummy']
+    p._refresh_templates()
+
+    for records in caplog.records():
+        assert records.levelname == 'WARNING'
 
 
 def test_list_tasks(task_workbench):
