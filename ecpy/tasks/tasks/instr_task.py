@@ -90,6 +90,12 @@ class InstrumentTask(SimpleTask):
 
         return True, traceback
 
+    def prepare(self):
+        """Always start the driver.
+
+        """
+        self.start_driver()
+
     def start_driver(self):
         """Create an instance of the instrument driver and connect it.
 

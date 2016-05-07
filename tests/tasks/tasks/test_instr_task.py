@@ -129,7 +129,7 @@ class TestInstrumentTask(object):
         """Test starting a driver.
 
         """
-        self.task.start_driver()
+        self.task.prepare()
         d = self.task.driver
         self.task.start_driver()
         assert d is self.task.driver
