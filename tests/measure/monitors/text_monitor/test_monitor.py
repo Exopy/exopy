@@ -367,6 +367,9 @@ def test_get_set_state(monitor, monkeypatch, measure):
     assert monitor.rules[0].id == 'Test'
     assert monitor._state
 
+    state2 = monitor.get_state()
+    assert state == state2
+
     from ecpy.tasks.tasks.database import TaskDatabase
     monkeypatch.setattr(TaskDatabase, 'list_all_entries',
                         lambda *args, **kwargs: {'root/test_loop': 10,
