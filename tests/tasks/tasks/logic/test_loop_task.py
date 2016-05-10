@@ -574,6 +574,17 @@ class TestLoopTask(object):
         show_and_close_widget(LoopView(task=self.task, root=root))
 
     @pytest.mark.ui
+    def test_view_interface_not_inline(self, windows, task_workbench,
+                                       linspace_interface):
+        """Test the LoopTask view.
+
+        """
+        core = task_workbench.get_plugin('enaml.workbench.core')
+        root = RootTaskView(core=core)
+        self.task.interface = linspace_interface
+        show_and_close_widget(LoopView(task=self.task, root=root))
+
+    @pytest.mark.ui
     def test_view_with_subtask(self, windows, task_workbench):
         """Test the LoopTask view.
 

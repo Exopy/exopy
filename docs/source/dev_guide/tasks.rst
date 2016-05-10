@@ -182,9 +182,9 @@ note that the |QtLineCompleter| and |QtTextCompleter| widgets give
 auto-completion for the database entries after a '{'. You need to set the
 entries_updater attribute to *task.list_accessible_database_entries*. If you do
 so you may also want to use |EVALUATER_TOOLTIP| as a tool tip (tool_tip member)
-so that your user get a nice explanation about he can and cannot write in this
-field. From a general point of view it is a good idea to provide meaningful
-tool tips.
+so that your user get a nice explanation about what he can and cannot write in
+this field. From a general point of view it is a good idea to provide
+meaningful tool tips.
 
 .. code-block:: enaml
 
@@ -198,7 +198,9 @@ tool tips.
 All views have a reference to the view of the root task which provides some
 useful methods to handle interfaces. It also holds a reference to the core
 plugin of the application giving access to all the application commands
-(see :doc:`application`).
+(see :doc:`application`). Views of tasks that can be embedded into a |LoopTask|
+can declare an 'in_loop' boolean attribute, that will be set if they are used
+for an embedded task.
 
 For more informations about the Enaml syntax please give a look at
 :doc:`atom_enaml`.
