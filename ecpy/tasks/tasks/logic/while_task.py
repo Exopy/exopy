@@ -26,9 +26,6 @@ class WhileTask(ComplexTask):
     See Python break statement documenttaion.
 
     """
-    #: Class attribute marking this task as being part of the logical tasks
-    logic_task = True
-
     #: Condition under which to continue looping.
     condition = Unicode().tag(pref=True, feval=True)
 

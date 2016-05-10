@@ -21,9 +21,6 @@ class ConditionalTask(ComplexTask):
     """Task calling its children only if a given condition is met.
 
     """
-    #: Class attribute marking this task as being logical, used in filtering.
-    logic_task = True
-
     #: Condition to meet in order to perform the children tasks.
     condition = Unicode().tag(pref=True, feval=True)
 
