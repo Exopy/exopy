@@ -141,14 +141,12 @@ def show_and_close_widget(widget):
 
     """
     from .fixtures import DIALOG_SLEEP
-    try:
-        win = show_widget(widget)
-        sleep(DIALOG_SLEEP)
-        win.close()
-        process_app_events()
-    except Exception:
-        close_all_windows()
-        raise
+    win = show_widget(widget)
+    sleep(DIALOG_SLEEP)
+    win.close()
+    process_app_events()
+
+    close_all_windows()
 
 
 def set_preferences(workbench, preferences):
