@@ -119,7 +119,7 @@ enamldef RootTaskView(BaseTaskView): main:
             infos = core.invoke_command(cmd,
                                         {'interface': obj.interface_id})
 
-        return [i.cls for i in infos.interfaces.values()]
+        return infos.interfaces
 
     func view_for(obj):
         """Create a widget for the specified task.

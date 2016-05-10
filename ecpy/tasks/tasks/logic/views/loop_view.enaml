@@ -22,11 +22,11 @@ from ...string_evaluation import EVALUATER_TOOLTIP
 from ...base_views import ComplexTaskView
 
 
-def format_name(i_class):
+def format_name(interface_id):
     """Helper funtion formatting interfaces name for object combo widget.
 
     """
-    aux = i_class.__name__
+    aux = interface_id.split('.')[-1]
     if aux.endswith('LoopInterface'):
         aux = aux[:-13]
     return aux
@@ -67,22 +67,23 @@ enamldef LoopView(ComplexTaskView): view:
         i_include = view.find('interface_include')
 
         if not t.interface:
-            t.interface = i_select.items[0]()
+            t.interface = i_select.interfaces[i_select.items[0]].cls()
 
         i_include.objects = root.view_for(t.interface)
 
     Label:
         text = 'Interface'
     ObjectCombo: i_select:
-        items << list(root.get_interfaces_for(task))
+        attr interfaces = root.get_interfaces_for(task)
+        items << sorted(interfaces)
         to_string = format_name
-        selected << type(task.interface) if task.interface else items[0]
+        selected << task.interface.interface_id if task.interface else items[0]
         selected ::
             i_include = view.find('interface_include')
             i_include.objects = []
 
             if change['value']:
-                task.interface = change['value']()
+                task.interface = interfaces[change['value']].cls()
 
                 i_include.objects = root.view_for(t.interface)
 
