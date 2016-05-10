@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from atom.api import Unicode
 
 from ecpy.tasks.tasks.base_tasks import RootTask
 from ecpy.tasks.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
@@ -46,8 +47,12 @@ class TestInstrumentTask(object):
         r.run_time = {d_id: {'d': (object, FalseStarter())},
                       p_id: {'p': {'connections': {'c': {}, 'c2': {}},
                                    'settings': {'s': {}}}}}
-        self.task = InstrumentTask(name='Dummy',
-                                   selected_instrument=('p', 'd', 'c', 's'))
+
+        class InTask(InstrumentTask):
+            feval = Unicode('1').tag(feval=True)
+
+        self.task = InTask(name='Dummy',
+                           selected_instrument=('p', 'd', 'c', 's'))
         r.add_child_task(0, self.task)
         self.err_path = 'root/Dummy-instrument'
 
@@ -113,6 +118,14 @@ class TestInstrumentTask(object):
         """
         res, tb = self.task.check(test_instr=True)
         assert res
+
+    def test_instr_task_check_super_called(self):
+        """Test running the check when we are asked to check the connection
+
+        """
+        self.task.feval = '*1'
+        res, tb = self.task.check(test_instr=True)
+        assert not res
 
     def test_instr_task_check_starter_fail(self):
         """Test running the check when we are asked to check the connection
