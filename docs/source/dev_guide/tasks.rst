@@ -215,10 +215,10 @@ For more informations about the Enaml syntax please give a look at
     For tasks dealing with instruments, the view should derive from
     |InstrTaskView| which provides three widgets :
 
-    - 'instr_lab': a simple label describing the next widget.
-    - 'instr_field': a read only field displaying the currently selected
-      profile and whose tool tip gives also the driver, connection and settings
-    - 'instr_sel': a button to open the selection dialog.
+    - 'instr_label': a simple label describing the next widget.
+    - 'instr_selection': a read only field displaying the currently selected
+      profile and whose tool tip gives also the driver, connection and
+      settings, with a button next to it to open the selection dialog.
 
     Those widgets should be integrated inside the view layout.
 
