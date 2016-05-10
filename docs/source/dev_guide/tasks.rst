@@ -195,7 +195,7 @@ tool tips.
 All views have a reference to the view of the root task which provides some
 useful methods to handle interfaces. It also holds a reference to the core
 plugin of the application giving access to all the application commands
-(see :doc:`application`)
+(see :doc:`application`).
 
 For more informations about the Enaml syntax please give a look at
 :doc:`atom_enaml`.
@@ -278,7 +278,8 @@ but only two of them must be given non-default values :
 - 'instruments': This only apply to tasks using an instrument. In this
   attribute, the supported driver should be listed. Note that if a driver is
   supported through the use of an interface the driver should be listed in the
-  interface and not in the task.
+  interface and not in the task. Driver should be listed by specifying their id
+  ie top_package.class_name.
 - 'dependencies' : If the task has rutime dependencies other than instruments
   the ids of the corresponding analysers should be listed here.
 
