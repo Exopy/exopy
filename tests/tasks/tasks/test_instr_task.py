@@ -26,6 +26,7 @@ class FalseStarter(object):
     """False instrument starter used for testing.
 
     """
+    finalize_called = False
 
     def __init__(self, should_pass=True):
         self.should_pass = should_pass
@@ -35,6 +36,9 @@ class FalseStarter(object):
 
     def initialize(self, driver_cls, connection, settings):
         return object()
+
+    def finalize(self, driver):
+        FalseStarter.finalize_called = True
 
 
 class TestInstrumentTask(object):
@@ -156,3 +160,16 @@ class TestInstrumentTask(object):
         self.task.selected_instrument = ('p', 'd', 'c2', 's')
         self.task.start_driver()
         assert d is not self.task.driver
+
+    def test_instr_task_test_driver(self):
+        """Test getting a temporary access to a driver.
+
+        """
+        with self.task.test_driver() as d:
+            assert d is not None
+
+        assert FalseStarter.finalize_called
+
+        self.task.selected_instrument = ()
+        with self.task.test_driver() as d:
+            assert d is None

@@ -129,8 +129,11 @@ starts, you can over-write the **prepare** method which is called by the
     - a 'selected_instrument' member storing all the data needed
     to start the instrument.
     - a 'check' method ensuring that those data makes sense.
-    - a 'start_driver' driver method creating the driver.
-    - a 'driver' member storing the driver instance after it has been created.
+    - a 'driver' member storing the driver instance after it has been created
+      (the driver is created in prepare so the driver is always initialized in
+      perform.)
+    - a 'test_driver' method acting as a context manager that can be used to
+      get a fully initialized driver to run additional checks.
 
 
 When to use interfaces

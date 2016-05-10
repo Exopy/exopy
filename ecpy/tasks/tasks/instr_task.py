@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from contextlib import contextmanager
+
 from atom.api import (Tuple, Value, set_default)
 
 from .base_tasks import SimpleTask
@@ -116,4 +118,25 @@ class InstrumentTask(SimpleTask):
             # User should be careful about this (and should be warned)
             instrs[self.selected_instrument] = (self.driver, starter)
 
-    # XXX add context manager yielding an initialized driver to use in checks
+    @contextmanager
+    def test_driver(self):
+        """Safe temporary access to the driver to run some checks.
+
+        Yield either a fully initialized driver or None.
+
+        """
+        try:
+            run_time = self.root.run_time
+            p_id, d_id, c_id, s_id = self.selected_instrument
+            profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
+            d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            driver = starter.initialize(d_cls,
+                                        profile['connections'][c_id],
+                                        profile['settings'][s_id])
+        except Exception:
+            driver = None
+
+        yield driver
+
+        if driver:
+            starter.finalize(driver)
