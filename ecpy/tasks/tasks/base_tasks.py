@@ -169,8 +169,8 @@ class BaseTask(Atom):
         This method is called once by the root task before starting the
         execution of its children tasks. By default it simply build the
         perform_ method by wrapping perform with the appropriate decorators.
-        This method can be overridden to execute other task, however keep in
-        my mind that those task must not depende on the state of the system
+        This method can be overridden to execute other actions, however keep in
+        my mind that those actions must not depende on the state of the system
         (no link to database).
 
         """

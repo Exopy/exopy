@@ -59,6 +59,14 @@ class InterfaceableMixin(Atom):
         traceback.update(res[1])
         return test, traceback
 
+    def prepare(self):
+        """Prepare both the task and the interface.
+
+        """
+        super(InterfaceableMixin, self).prepare()
+        if self.interface:
+            self.interface.prepare()
+
     def perform(self, *args, **kwargs):
         """Implementation of perform relying on interfaces.
 
@@ -317,6 +325,15 @@ class BaseInterface(HasPrefAtom):
                 traceback[err_path + '-' + n] = msg
 
         return res, traceback
+
+    def prepare(self):
+        """Prepare the interface to be performed.
+
+        This method is called once by the parent task before starting the
+        execution.
+
+        """
+        pass
 
     def perform(self, *args, **kwargs):
         """Method called by the parent perform method.

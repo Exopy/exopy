@@ -43,6 +43,9 @@ class InterfaceTest(TaskInterface):
         else:
             return False, {'i': 0}
 
+    def prepare(self):
+        self.called = True
+
     def perform(self):
         self.task.write_in_database('itest', 2.0)
 
@@ -231,6 +234,15 @@ class TestInterfaceableTaskMixin(object):
         assert len(traceback) == 2
         assert 'root/Simple-fmt' in traceback
         assert 'root/Simple-feval' in traceback
+
+    def test_prepare(self):
+        """Test that the prepare method does prepare the interface.
+
+        """
+        self.mixin.interface = InterfaceTest()
+
+        self.mixin.prepare()
+        assert self.mixin.interface.called
 
     def test_perform1(self):
         """Test perform does call interface if present.
