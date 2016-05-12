@@ -283,7 +283,7 @@ class TestLoopTask(object):
         test, traceback = self.task.check()
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test' in traceback
+        assert 'root/Test-iterable' in traceback
 
     def test_check_execution_order(self, iterable_interface):
         """Test that the interface checks are run before the children checks.

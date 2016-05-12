@@ -21,6 +21,8 @@ from .tasks.task_interface import (InterfaceableTaskMixin, TaskInterface,
                                    InterfaceableInterfaceMixin, IInterface)
 from .tasks.string_evaluation import FORMATTER_TOOLTIP, EVALUATER_TOOLTIP
 
+from .tasks import validators
+
 from .declarations import (Tasks, Task, Interfaces, Interface,
                            TaskConfig)
 from .filters import (TaskFilter, SubclassTaskFilter, GroupTaskFilter,

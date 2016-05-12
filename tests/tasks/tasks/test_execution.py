@@ -16,10 +16,12 @@ import pytest
 import threading
 from multiprocessing import Event
 from time import sleep
+
 from atom.api import Unicode, set_default
 from enaml.application import deferred_call
 
 from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
+from ecpy.tasks.tasks.validators import Feval, SkipEmpty
 
 from ecpy.testing.tasks.util import CheckTask, ExceptionTask
 from ecpy.testing.util import process_app_events
@@ -49,11 +51,11 @@ class TestTaskExecution(object):
             """
             form = Unicode().tag(fmt=True)
 
-            feval = Unicode().tag(feval=True)
+            feval = Unicode().tag(feval=Feval())
 
-            feval_warn = Unicode().tag(feval='Warn')
+            feval_warn = Unicode().tag(feval=Feval(warn=True))
 
-            feval_empty = Unicode().tag(feval='Skip_empty')
+            feval_empty = Unicode().tag(feval=SkipEmpty())
 
             database_entries = set_default({'form': '', 'feval': 0,
                                             'feval_warn': 0, 'feval_empty': 0})
@@ -90,6 +92,24 @@ class TestTaskExecution(object):
         tester.feval = '2*{test_val}*'
         res, tb = self.root.check()
         assert not res and 'root/test-feval' in tb
+
+    def test_check_handle_wrong_feval(self, tmpdir):
+        """Test handling the wrong type of feval value.
+
+        """
+        class Tester(CheckTask):
+            """Class declaring a member to eval with the wrong kind of
+            validator.
+
+            """
+            feval = Unicode().tag(feval=object())
+
+        tester = Tester(name='test', feval='2*{test_val}',
+                        database_entries={'val': 1, 'feval': 0})
+        self.root.default_path = str(tmpdir)
+        self.root.add_child_task(0, tester)
+        res, tb = self.root.check()
+        assert not res
 
     def test_check_complex_task(self, tmpdir):
         """Check handlign an exception occuring while running the checks.

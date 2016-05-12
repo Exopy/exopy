@@ -138,7 +138,7 @@ def test_select_instrument(instr_task_workbench, instr_view):
     """Test selecting an instrument from the view.
 
     """
-    tool_btn = instr_view.widgets()[-1]
+    tool_btn = instr_view.widgets()[-1].widgets()[-1]
     selec = ('fp1', 'tests.test.FalseDriver',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec

@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, set_default)
 
+from ..validators import Feval
 from ..base_tasks import SimpleTask
 from .loop_task import LoopTask
 from .while_task import WhileTask
@@ -27,7 +28,7 @@ class BreakTask(SimpleTask):
 
     """
     #: Condition under which to perform the break.
-    condition = Unicode().tag(pref=True, feval=True)
+    condition = Unicode().tag(pref=True, feval=Feval())
 
     #: Never run this task in parallel.
     parallel = set_default({'forbidden': True})
@@ -61,7 +62,7 @@ class ContinueTask(SimpleTask):
 
     """
     #: Condition under which to continue.
-    condition = Unicode().tag(pref=True, feval=True)
+    condition = Unicode().tag(pref=True, feval=Feval())
 
     #: Never run this task in parallel.
     parallel = set_default({'forbidden': True})

@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Unicode
 
 from ecpy.tasks.tasks.base_tasks import RootTask
+from ecpy.tasks.tasks.validators import Feval
 from ecpy.tasks.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
                                          DRIVER_DEPENDENCY_ID)
 
@@ -53,7 +54,7 @@ class TestInstrumentTask(object):
                                    'settings': {'s': {}}}}}
 
         class InTask(InstrumentTask):
-            feval = Unicode('1').tag(feval=True)
+            feval = Unicode('1').tag(feval=Feval())
 
         self.task = InTask(name='Dummy',
                            selected_instrument=('p', 'd', 'c', 's'))

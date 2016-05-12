@@ -13,10 +13,12 @@ for a set amount of time.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import numbers
 from atom.api import (Unicode, set_default)
 from time import sleep
 
 from ..base_tasks import SimpleTask
+from ..validators import Feval
 
 
 class SleepTask(SimpleTask):
@@ -24,7 +26,7 @@ class SleepTask(SimpleTask):
     Wait for any parallel operation before execution by default.
     """
     # Time to wait
-    time = Unicode().tag(pref=True, feval=True)
+    time = Unicode().tag(pref=True, feval=Feval(types=numbers.Real))
 
     wait = set_default({'': True})
 

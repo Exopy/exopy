@@ -18,6 +18,7 @@ from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property, Constant
 
 from ...utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
+from . import validators
 
 
 #: Id used to identify dependencies type.
@@ -314,15 +315,18 @@ class BaseInterface(HasPrefAtom):
                 traceback[err_path + '-' + n] = msg
 
         for n, m in tagged_members(self, 'feval').items():
-            try:
-                val = task.format_and_eval_string(getattr(self, n))
-                if n in self.database_entries:
-                    task.write_in_database(n, val)
-            except Exception:
-                if m.metadata['feval'] != 'Warn':
-                    res = False
-                msg = 'Failed to eval %s : %s' % (n, format_exc())
+            val = m.metadata['feval']
+            if not isinstance(val, validators.Feval):
+                res = False
+                msg = 'Feval validator is not a subclass validators.Feval'
+            else:
+                value, f_res, msg = val.check(self, n)
+                res &= f_res
+
+            if msg:
                 traceback[err_path + '-' + n] = msg
+            elif value and n in self.database_entries:
+                task.write_in_database(n, value)
 
         return res, traceback
 

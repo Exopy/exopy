@@ -16,6 +16,7 @@ from atom.api import Unicode
 from collections import Iterable
 
 from ..task_interface import TaskInterface
+from ..validators import Feval
 
 
 class IterableLoopInterface(TaskInterface):
@@ -23,7 +24,7 @@ class IterableLoopInterface(TaskInterface):
 
     """
     #: Iterable on which to iterate.
-    iterable = Unicode('0.0').tag(pref=True, feval=True)
+    iterable = Unicode('0.0').tag(pref=True, feval=Feval(types=Iterable))
 
     def check(self, *args, **kwargs):
         """Check that the iterable member evaluation does yield an iterable.
@@ -36,14 +37,9 @@ class IterableLoopInterface(TaskInterface):
 
         task = self.task
         iterable = task.format_and_eval_string(self.iterable)
-        if isinstance(iterable, Iterable):
-            task.write_in_database('point_number', len(iterable))
-            if 'value' in task.database_entries:
-                task.write_in_database('value', next(iter(iterable)))
-        else:
-            test = False
-            traceback[task.path + '/' + task.name] = \
-                'The computed iterable is not iterable.'
+        task.write_in_database('point_number', len(iterable))
+        if 'value' in task.database_entries:
+            task.write_in_database('value', next(iter(iterable)))
 
         return test, traceback
 

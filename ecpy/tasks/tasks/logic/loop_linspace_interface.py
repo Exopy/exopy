@@ -12,10 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import numbers
 from atom.api import Unicode
 from numpy import linspace
 
 from ..task_interface import TaskInterface
+from ..validators import Feval
 
 
 class LinspaceLoopInterface(TaskInterface):
@@ -23,13 +25,13 @@ class LinspaceLoopInterface(TaskInterface):
 
     """
     #: Value at which to start the loop.
-    start = Unicode('0.0').tag(pref=True, feval=True)
+    start = Unicode('0.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Value at which to stop the loop (included)
-    stop = Unicode('1.0').tag(pref=True, feval=True)
+    stop = Unicode('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    step = Unicode('0.1').tag(pref=True, feval=True)
+    step = Unicode('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.

@@ -106,11 +106,47 @@ called every time the system need to check the state of the task. The checking
 of formulas (either simply formatted or formatted and evaluated) is done
 automatically in the base class check method. To take advantage of it, you
 simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
-(formatting and evaluation). For default testing the value should be True, to
-simply warn the user on error it should be 'Warn', to test only if the field
-is not empty it should be 'Skip_empty'.
+(formatting and evaluation) :
 
-..note::
+- for formatting only the value should be True, or 'Warn' if the error does not
+  forbids to enqueue the measure.
+- for formatting and evaluation it should be a |Feval| instance. See example.
+
+.. code-block:: python
+
+    import numbers
+    from ecpy.tasks.api import validators as v
+
+    class MyTask(SimpleTask):
+        """MyTask description.
+
+        """
+        value1 = Unicode().tag(feval=v.Feval(types=numbers.Real,
+                                             warn=True))
+
+        value2 = Unicode().tag(feval=v.SkipEmpty())
+
+        value3 = Unicode().tag(feval=v.SkipLoop())
+
+In the above example :
+
+- the value1 is always formatted and evaluated during the checks and the result
+  should be a real number. If something goes amiss it won't be considered an
+  outright error but the user will be warned.
+- the value2 is checked only if a non-empty formula is passed.
+- the value3 is checked only if the task is not embedded in a LoopTask.
+
+Of course in case 2 and 3 types and warn could have been set. Note that types
+can be a simple type or an iterable of types.
+
+.. note::
+
+    When validating on types be sure not to be too restrictive. For example
+    if the output should behave like a float without any other restriction
+    use numbers.Real that will also validate numpy.float32 where simply
+    checking against float would fail.
+
+.. note::
 
     The **check** method should not raise but add errors in the dictionary
     returned as second value. To avoid duplicate keys the path and name of the
