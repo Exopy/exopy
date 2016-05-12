@@ -28,7 +28,7 @@ from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   make_extension_validator)
 from .user import InstrUser
 from .starters.base_starter import Starter
-from .drivers.driver_decl import Driver
+from .drivers.driver_decl import Driver, Drivers
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
@@ -163,7 +163,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         self._drivers = DeclaratorsCollector(workbench=self.workbench,
                                              point=DRIVERS_POINT,
-                                             ext_class=Driver)
+                                             ext_class=[Driver, Drivers])
         self._drivers.start()
 
         for contrib in ('users', 'starters', 'connections', 'settings'):
