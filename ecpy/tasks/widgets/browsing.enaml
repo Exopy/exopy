@@ -32,7 +32,8 @@ def normalize_name(name):
         return name.capitalize()
 
     if name.endswith('Task'):
-        name = name[:-4] + '\0'
+        name = name[:-4]
+    name += '\0'
 
     package = None
     if '.' in name:
@@ -110,4 +111,3 @@ enamldef TaskSelector(Container): sel:
             new_val = change['value']
             if new_val:
                 sel.selected_task = _task_map[new_val]
-
