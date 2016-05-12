@@ -166,7 +166,7 @@ class Task(Declarator):
             infos.view = t_view
         except TypeError:
             msg = '{} should a subclass of BaseTaskView.\n{}'
-            traceback[task_id] = msg.format(t_cls, format_exc())
+            traceback[task_id] = msg.format(t_view, format_exc())
             return
 
         # Check children type.
@@ -580,7 +580,7 @@ class TaskConfig(Declarator):
             infos.view = view
         except TypeError:
             msg = '{} should a subclass of BaseConfigView.\n{}'
-            traceback[self.id] = msg.format(c_cls, format_exc())
+            traceback[self.id] = msg.format(view, format_exc())
             return
 
         collector.contributions[t_cls] = infos
