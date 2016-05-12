@@ -104,10 +104,11 @@ Let's look at the example below:
                     architecture = 'MyArchitecture'
                     model = 'MyModel'
                     kind = 'DC source'
+                    starter = 'my_starter_id'
                     connections = {'VisaTCPIP': {'resource_class': 'SOCKET',
                                                  'port': 10000},
                                    'VisaUSB': {'resource_class': 'INSTR',
-                                               'manufacturer_ID': '0x49',
+                                               'manufacturer_ID': '0xB49',
                                                'model_code': '0x46'}
                                    }
 
@@ -132,9 +133,10 @@ will be accessed if Driver does not provide a value for a specific field :
   the serie might be more descriptive than the model (example : Keysight EXG,
   MXG, and EXG microwave sources). For such instruments the serie field should
   set.
-- 'kind': the kind of instrument. Known kinds are defined in
-  'ecpy.instruments.infos'. This is used only for filtering so this field is
-  not mandatory.
+- 'kind': the kind of instrument. Allowed values are : 'Other', 'DC source',
+  'AWG', 'RF source', 'Lock-in', 'Spectrum analyser', 'Multimeter'.
+  Those values are defined in 'ecpy.instruments.infos'. This is used only for
+  filtering so this field is not mandatory.
 - 'starter': Id of the starter to use with this driver.
 - 'connections': Ids and default values for the supported connections (the
   meaningful default values should be documented by the connections).
