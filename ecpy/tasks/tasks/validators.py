@@ -49,10 +49,7 @@ class Feval(Atom):
         if not msg:
             val, msg = self.validate(task_or_interface, val)
 
-        if not msg or (msg and self.warn):
-            res = True
-        else:
-            res = False
+        res = bool(not msg or (msg and self.warn))
 
         return val, res, msg
 
