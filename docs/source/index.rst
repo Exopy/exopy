@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
    
    Developer guide <dev_guide/index>
+   API reference <api_docs/index>
 
 
 
