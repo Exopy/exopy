@@ -247,17 +247,17 @@ class HasPrefAtom(Atom):
 
 
 def preferences_from_members(self):
-        """ Get the members values as string to store them in .ini files.
+    """ Get the members values as string to store them in .ini files.
 
-        """
-        pref = OrderedDict()
-        for name, member in tagged_members(self, 'pref').items():
-            old_val = getattr(self, name)
-            if issubclass(type(old_val), HasPrefAtom):
-                pref[name] = old_val.preferences_from_members()
-            else:
-                pref[name] = member_to_pref(self, member, old_val)
-        return pref
+    """
+    pref = OrderedDict()
+    for name, member in tagged_members(self, 'pref').items():
+        old_val = getattr(self, name)
+        if issubclass(type(old_val), HasPrefAtom):
+            pref[name] = old_val.preferences_from_members()
+        else:
+            pref[name] = member_to_pref(self, member, old_val)
+    return pref
 
 
 def update_members_from_preferences(self, parameters):

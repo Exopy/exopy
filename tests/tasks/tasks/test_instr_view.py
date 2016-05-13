@@ -138,7 +138,7 @@ def test_select_instrument(instr_task_workbench, instr_view):
     """Test selecting an instrument from the view.
 
     """
-    tool_btn = instr_view.widgets()[-1]
+    tool_btn = instr_view.widgets()[-1].widgets()[-1]
     selec = ('fp1', 'tests.test.FalseDriver',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
@@ -166,3 +166,20 @@ def test_select_interface_based_on_instrument(instr_task_workbench,
     instr_view.task.selected_instrument = selec
     instr_view.select_interface()
     assert instr_view.task.interface
+
+    # Check that moving back to an instrument with no associated interface
+    # does discard the interface.
+    selec = ('fp1', 'tests.test.FalseDriver',
+             'false_connection', 'false_settings')
+    instr_view.task.selected_instrument = selec
+    instr_view.select_interface()
+    assert not instr_view.task.interface
+
+    selec = ('fp1', 'tests.test.FalseDriver2',
+             'false_connection', 'false_settings')
+    instr_view.task.selected_instrument = selec
+    instr_view.select_interface()
+
+    instr_view.task.selected_instrument = ()
+    instr_view.select_interface()
+    assert not instr_view.task.interface

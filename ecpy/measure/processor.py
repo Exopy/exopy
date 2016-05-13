@@ -524,6 +524,11 @@ class MeasureProcessor(Atom):
 
         """
         def stop_monitors(engine, measure):
+            """Stop the monitors.
+
+            Executed on the main thread.
+
+            """
             if engine:
                 engine.unobserve('news')
             for monitor in measure.monitors.values():

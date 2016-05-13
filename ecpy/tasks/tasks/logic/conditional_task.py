@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode)
 
+from ..validators import Feval
 from ..base_tasks import ComplexTask
 
 
@@ -21,11 +22,8 @@ class ConditionalTask(ComplexTask):
     """Task calling its children only if a given condition is met.
 
     """
-    #: Class attribute marking this task as being logical, used in filtering.
-    logic_task = True
-
     #: Condition to meet in order to perform the children tasks.
-    condition = Unicode().tag(pref=True, feval=True)
+    condition = Unicode().tag(pref=True, feval=Feval())
 
     def perform(self):
         """Call the children task if the condition evaluate to True.

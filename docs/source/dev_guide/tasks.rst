@@ -106,11 +106,47 @@ called every time the system need to check the state of the task. The checking
 of formulas (either simply formatted or formatted and evaluated) is done
 automatically in the base class check method. To take advantage of it, you
 simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
-(formatting and evaluation). For default testing the value should be True, to
-simply warn the user on error it should be 'Warn', to test only if the field
-is not empty it should be 'Skip_empty'.
+(formatting and evaluation) :
 
-..note::
+- for formatting only the value should be True, or 'Warn' if the error does not
+  forbids to enqueue the measure.
+- for formatting and evaluation it should be a |Feval| instance. See example.
+
+.. code-block:: python
+
+    import numbers
+    from ecpy.tasks.api import validators as v
+
+    class MyTask(SimpleTask):
+        """MyTask description.
+
+        """
+        value1 = Unicode().tag(feval=v.Feval(types=numbers.Real,
+                                             warn=True))
+
+        value2 = Unicode().tag(feval=v.SkipEmpty())
+
+        value3 = Unicode().tag(feval=v.SkipLoop())
+
+In the above example :
+
+- the value1 is always formatted and evaluated during the checks and the result
+  should be a real number. If something goes amiss it won't be considered an
+  outright error but the user will be warned.
+- the value2 is checked only if a non-empty formula is passed.
+- the value3 is checked only if the task is not embedded in a LoopTask.
+
+Of course in case 2 and 3 types and warn could have been set. Note that types
+can be a simple type or an iterable of types.
+
+.. note::
+
+    When validating on types be sure not to be too restrictive. For example
+    if the output should behave like a float without any other restriction
+    use numbers.Real that will also validate numpy.float32 where simply
+    checking against float would fail.
+
+.. note::
 
     The **check** method should not raise but add errors in the dictionary
     returned as second value. To avoid duplicate keys the path and name of the
@@ -129,8 +165,11 @@ starts, you can over-write the **prepare** method which is called by the
     - a 'selected_instrument' member storing all the data needed
     to start the instrument.
     - a 'check' method ensuring that those data makes sense.
-    - a 'start_driver' driver method creating the driver.
-    - a 'driver' member storing the driver instance after it has been created.
+    - a 'driver' member storing the driver instance after it has been created
+      (the driver is created in prepare so the driver is always initialized in
+      perform.)
+    - a 'test_driver' method acting as a context manager that can be used to
+      get a fully initialized driver to run additional checks.
 
 
 When to use interfaces
@@ -179,9 +218,9 @@ note that the |QtLineCompleter| and |QtTextCompleter| widgets give
 auto-completion for the database entries after a '{'. You need to set the
 entries_updater attribute to *task.list_accessible_database_entries*. If you do
 so you may also want to use |EVALUATER_TOOLTIP| as a tool tip (tool_tip member)
-so that your user get a nice explanation about he can and cannot write in this
-field. From a general point of view it is a good idea to provide meaningful
-tool tips.
+so that your user get a nice explanation about what he can and cannot write in
+this field. From a general point of view it is a good idea to provide
+meaningful tool tips.
 
 .. code-block:: enaml
 
@@ -195,7 +234,9 @@ tool tips.
 All views have a reference to the view of the root task which provides some
 useful methods to handle interfaces. It also holds a reference to the core
 plugin of the application giving access to all the application commands
-(see :doc:`application`)
+(see :doc:`application`). Views of tasks that can be embedded into a |LoopTask|
+can declare an 'in_loop' boolean attribute, that will be set if they are used
+for an embedded task.
 
 For more informations about the Enaml syntax please give a look at
 :doc:`atom_enaml`.
@@ -210,10 +251,10 @@ For more informations about the Enaml syntax please give a look at
     For tasks dealing with instruments, the view should derive from
     |InstrTaskView| which provides three widgets :
 
-    - 'instr_lab': a simple label describing the next widget.
-    - 'instr_field': a read only field displaying the currently selected
-      profile and whose tool tip gives also the driver, connection and settings
-    - 'instr_sel': a button to open the selection dialog.
+    - 'instr_label': a simple label describing the next widget.
+    - 'instr_selection': a read only field displaying the currently selected
+      profile and whose tool tip gives also the driver, connection and
+      settings, with a button next to it to open the selection dialog.
 
     Those widgets should be integrated inside the view layout.
 
@@ -278,7 +319,8 @@ but only two of them must be given non-default values :
 - 'instruments': This only apply to tasks using an instrument. In this
   attribute, the supported driver should be listed. Note that if a driver is
   supported through the use of an interface the driver should be listed in the
-  interface and not in the task.
+  interface and not in the task. Driver should be listed by specifying their id
+  ie top_package.class_name.
 - 'dependencies' : If the task has rutime dependencies other than instruments
   the ids of the corresponding analysers should be listed here.
 

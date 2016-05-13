@@ -41,10 +41,7 @@ class LoopTaskConfig(PyTaskConfig):
         if self.task_name != '':
             if self.use_subtask:
                 if self.subconfig is not None:
-                    if self.subconfig.ready:
-                        self.ready = True
-                    else:
-                        self.ready = False
+                    self.ready = self.subconfig.ready
                 else:
                     self.ready = False
             else:

@@ -22,14 +22,28 @@ from ...string_evaluation import EVALUATER_TOOLTIP
 from ...base_views import ComplexTaskView
 
 
-def format_name(i_class):
+def format_name(interface_id):
     """Helper funtion formatting interfaces name for object combo widget.
 
     """
-    aux = i_class.__name__
+    aux = interface_id.split('.')[-1]
     if aux.endswith('LoopInterface'):
         aux = aux[:-13]
     return aux
+
+
+def make_view(root, task):
+    """Create the view for the task embedded in the loop and set the in_loop
+    flag if pertinent.
+
+    """
+    view = root.view_for(task.task)
+    try:
+        view.in_loop = True
+    except AttributeError:
+        pass
+
+    return [view]
 
 
 enamldef LoopView(ComplexTaskView): view:
@@ -40,59 +54,59 @@ enamldef LoopView(ComplexTaskView): view:
     """
 
     layout_constraints => ():
-        children = view.visible_widgets()
+        bottom_widgets = (list(embedded_task.objects) + [editor])
         if self.find('interface_include').objects:
             i_views = view.find('interface_include').objects
             i_len = len(i_views)
             if getattr(i_views[0], 'inline', False):
-                labels = children[:i_len+4:2]
-                vals = children[1:i_len+4:2]
-                return [vbox(grid(labels, vals), *children[i_len+4:])]
+                labels = [i_lab, t_lab] + i_views[::2]
+                vals = [i_select, t_val] + i_views[1::2]
+                return [vbox(grid(labels, vals), *bottom_widgets)]
 
             else:
-                c_1 = hbox(children[0], children[1], children[2], children[3],
-                           spacer)
-                return [vbox(c_1, *children[4:]),
-                        align('v_center', children[0], children[1]),
-                        align('v_center', children[1], children[2]),
-                        align('v_center', children[2], children[3])]
+                c_1 = hbox(i_lab, i_select, t_lab, t_val, spacer)
+                return [vbox(c_1, *(list(interface.objects) + bottom_widgets)),
+                        align('v_center', i_lab, i_select),
+                        align('v_center', i_select, t_lab),
+                        align('v_center', t_lab, t_val)]
 
         else:
-            c_1 = hbox(children[0], children[1], children[2], children[3],
-                       spacer)
-            return [vbox(c_1, *children[4:])]
+            c_1 = hbox(i_lab, i_select, t_lab, t_val, spacer)
+            return [vbox(c_1, *bottom_widgets)]
 
     initialized ::
         t = self.task
         i_include = view.find('interface_include')
 
         if not t.interface:
-            t.interface = i_select.items[0]()
+            t.interface = i_select.interfaces[i_select.items[0]].cls()
 
         i_include.objects = root.view_for(t.interface)
 
-    Label:
+    Label: i_lab:
         text = 'Interface'
     ObjectCombo: i_select:
-        items << list(root.get_interfaces_for(task))
+        attr interfaces = root.get_interfaces_for(task)
+        items << sorted(interfaces)
         to_string = format_name
-        selected << type(task.interface) if task.interface else items[0]
+        selected << (task.interface.interface_id[0]
+                     if task.interface else items[0])
         selected ::
             i_include = view.find('interface_include')
             i_include.objects = []
 
             if change['value']:
-                task.interface = change['value']()
+                task.interface = interfaces[change['value']].cls()
 
                 i_include.objects = root.view_for(t.interface)
 
-    Label:
+    Label: t_lab:
         text = 'Timing'
-    CheckBox:
+    CheckBox: t_val:
         checked := task.timing
 
     Include: interface:
         name = 'interface_include'
 
-    Include:
-        objects << [root.view_for(task.task)] if task.task else []
+    Include: embedded_task:
+        objects << make_view(root, task) if task.task else []

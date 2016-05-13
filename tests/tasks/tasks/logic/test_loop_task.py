@@ -283,7 +283,7 @@ class TestLoopTask(object):
         test, traceback = self.task.check()
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test' in traceback
+        assert 'root/Test-iterable' in traceback
 
     def test_check_execution_order(self, iterable_interface):
         """Test that the interface checks are run before the children checks.
@@ -571,6 +571,17 @@ class TestLoopTask(object):
         """
         core = task_workbench.get_plugin('enaml.workbench.core')
         root = RootTaskView(core=core)
+        show_and_close_widget(LoopView(task=self.task, root=root))
+
+    @pytest.mark.ui
+    def test_view_interface_not_inline(self, windows, task_workbench,
+                                       linspace_interface):
+        """Test the LoopTask view.
+
+        """
+        core = task_workbench.get_plugin('enaml.workbench.core')
+        root = RootTaskView(core=core)
+        self.task.interface = linspace_interface
         show_and_close_widget(LoopView(task=self.task, root=root))
 
     @pytest.mark.ui

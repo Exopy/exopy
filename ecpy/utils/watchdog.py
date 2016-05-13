@@ -25,16 +25,25 @@ class SystematicFileUpdater(FileSystemEventHandler):
         self.handler = handler
 
     def on_created(self, event):
+        """Called on creation of a file.
+
+        """
         super(SystematicFileUpdater, self).on_created(event)
         if isinstance(event, FileCreatedEvent):
             self.handler()
 
     def on_deleted(self, event):
+        """Called on deletion of a file.
+
+        """
         super(SystematicFileUpdater, self).on_deleted(event)
         if isinstance(event, FileDeletedEvent):
             self.handler()
 
     def on_moved(self, event):
+        """Called on displacement of a file.
+
+        """
         super(SystematicFileUpdater, self).on_moved(event)
         if isinstance(event, FileMovedEvent):
             self.handler()

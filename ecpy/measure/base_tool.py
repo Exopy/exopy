@@ -33,10 +33,16 @@ from ..utils.atom_util import HasPrefAtom
 
 
 def tool_decl():
+    """Forward typing for the declaration member of the BaseMeasureTool.
+
+    """
     return BaseToolDeclaration
 
 
 def measure():
+    """Delayed import to avoid circular import issues.
+
+    """
     from .measure import Measure
     return Measure
 

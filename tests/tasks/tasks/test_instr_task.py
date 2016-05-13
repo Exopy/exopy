@@ -12,8 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from atom.api import Unicode
 
 from ecpy.tasks.tasks.base_tasks import RootTask
+from ecpy.tasks.tasks.validators import Feval
 from ecpy.tasks.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
                                          DRIVER_DEPENDENCY_ID)
 
@@ -25,6 +27,7 @@ class FalseStarter(object):
     """False instrument starter used for testing.
 
     """
+    finalize_called = False
 
     def __init__(self, should_pass=True):
         self.should_pass = should_pass
@@ -34,6 +37,9 @@ class FalseStarter(object):
 
     def initialize(self, driver_cls, connection, settings):
         return object()
+
+    def finalize(self, driver):
+        FalseStarter.finalize_called = True
 
 
 class TestInstrumentTask(object):
@@ -46,8 +52,12 @@ class TestInstrumentTask(object):
         r.run_time = {d_id: {'d': (object, FalseStarter())},
                       p_id: {'p': {'connections': {'c': {}, 'c2': {}},
                                    'settings': {'s': {}}}}}
-        self.task = InstrumentTask(name='Dummy',
-                                   selected_instrument=('p', 'd', 'c', 's'))
+
+        class InTask(InstrumentTask):
+            feval = Unicode('1').tag(feval=Feval())
+
+        self.task = InTask(name='Dummy',
+                           selected_instrument=('p', 'd', 'c', 's'))
         r.add_child_task(0, self.task)
         self.err_path = 'root/Dummy-instrument'
 
@@ -114,6 +124,14 @@ class TestInstrumentTask(object):
         res, tb = self.task.check(test_instr=True)
         assert res
 
+    def test_instr_task_check_super_called(self):
+        """Test running the check when we are asked to check the connection
+
+        """
+        self.task.feval = '*1'
+        res, tb = self.task.check(test_instr=True)
+        assert not res
+
     def test_instr_task_check_starter_fail(self):
         """Test running the check when we are asked to check the connection
         and the check fail.
@@ -143,3 +161,16 @@ class TestInstrumentTask(object):
         self.task.selected_instrument = ('p', 'd', 'c2', 's')
         self.task.start_driver()
         assert d is not self.task.driver
+
+    def test_instr_task_test_driver(self):
+        """Test getting a temporary access to a driver.
+
+        """
+        with self.task.test_driver() as d:
+            assert d is not None
+
+        assert FalseStarter.finalize_called
+
+        self.task.selected_instrument = ()
+        with self.task.test_driver() as d:
+            assert d is None

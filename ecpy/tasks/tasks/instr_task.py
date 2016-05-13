@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from contextlib import contextmanager
+
 from atom.api import (Tuple, Value, set_default)
 
 from .base_tasks import SimpleTask
@@ -43,9 +45,9 @@ class InstrumentTask(SimpleTask):
         # with different infos (need a way to share states, could use the
         # errors member of the root or similar, to avoid modifying the way
         # this method is called.
+        test, traceback = super(InstrumentTask, self).check(*args, **kwargs)
         err_path = self.get_error_path() + '-instrument'
         run_time = self.root.run_time
-        traceback = {}
         profile = None
 
         if self.selected_instrument and len(self.selected_instrument) == 4:
@@ -88,7 +90,7 @@ class InstrumentTask(SimpleTask):
                     traceback[err_path] = msg
                     return False, traceback
 
-        return True, traceback
+        return test, traceback
 
     def prepare(self):
         """Always start the driver.
@@ -115,3 +117,26 @@ class InstrumentTask(SimpleTask):
             # accessed using multiple settings.
             # User should be careful about this (and should be warned)
             instrs[self.selected_instrument] = (self.driver, starter)
+
+    @contextmanager
+    def test_driver(self):
+        """Safe temporary access to the driver to run some checks.
+
+        Yield either a fully initialized driver or None.
+
+        """
+        try:
+            run_time = self.root.run_time
+            p_id, d_id, c_id, s_id = self.selected_instrument
+            profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
+            d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            driver = starter.initialize(d_cls,
+                                        profile['connections'][c_id],
+                                        profile['settings'][s_id])
+        except Exception:
+            driver = None
+
+        yield driver
+
+        if driver:
+            starter.finalize(driver)

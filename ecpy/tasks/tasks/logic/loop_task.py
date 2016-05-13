@@ -26,9 +26,6 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
     """Complex task which, at each iteration, call all its child tasks.
 
     """
-    #: Class attribute marking this task as being part of the logical tasks
-    logic_task = True
-
     #: Flag indicating whether or not to time the loop.
     timing = Bool().tag(pref=True)
 

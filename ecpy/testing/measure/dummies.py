@@ -109,6 +109,9 @@ class DummyEngine(BaseEngine):
 
 
 class DummyHook(Atom):
+    """Base class for dummy mesure hook used for testing.
+
+    """
     fail_check = Bool().tag(pref=True)
 
     fail_run = Bool()
@@ -134,6 +137,9 @@ class DummyHook(Atom):
     go_on_resumed = Value(factory=Event)
 
     def run(self, workbench, engine):
+        """Run method esecuting the hook.
+
+        """
         self.waiting.set()
         self.go_on.wait()
         if self.fail_run:
@@ -154,12 +160,21 @@ class DummyHook(Atom):
         self.go_on.clear()
 
     def pause(self):
+        """Method to call to pause execution.
+
+        """
         self.should_pause = True
 
     def resume(self):
+        """Method to call to resume execution.
+
+        """
         self.should_resume = True
 
     def stop(self, force=False):
+        """Method to call to stop execution.
+
+        """
         self.stop_called = True
 
 

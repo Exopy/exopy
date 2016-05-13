@@ -141,14 +141,12 @@ def show_and_close_widget(widget):
 
     """
     from .fixtures import DIALOG_SLEEP
-    try:
-        win = show_widget(widget)
-        sleep(DIALOG_SLEEP)
-        win.close()
-        process_app_events()
-    except Exception:
-        close_all_windows()
-        raise
+    win = show_widget(widget)
+    sleep(DIALOG_SLEEP)
+    win.close()
+    process_app_events()
+
+    close_all_windows()
 
 
 def set_preferences(workbench, preferences):
@@ -188,6 +186,9 @@ def signal_error_raise():
     func = ErrorsPlugin.signal
 
     def raise_for_signal(self, kind, **kwargs):
+        """Raise an easy to identify error.
+
+        """
         raise ErrorDialogException()
 
     ErrorsPlugin.signal = raise_for_signal
@@ -199,7 +200,9 @@ def signal_error_raise():
 
 
 class CallSpy(object):
+    """Object simply monitoring how many times it gets called.
 
+    """
     __slots__ = ('called', 'args', 'kwargs')
 
     def __init__(self):

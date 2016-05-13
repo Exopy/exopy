@@ -28,7 +28,7 @@ from ecpy.testing.util import handle_dialog, process_app_events
 from .conftest import PROFILE_PATH
 with enaml.imports():
     from .contributors import (InstrContributor1, InstrContributor2,
-                               InstrContributor3)
+                               InstrContributor3, InstrContributor4)
 
 
 def test_validate_user():
@@ -136,6 +136,18 @@ def test_plugin_handling_driver_validation_issue(instr_workbench):
 
     """
     instr_workbench.register(InstrContributor3())
+
+    with pytest.raises(Exception) as execinfo:
+        instr_workbench.get_plugin('ecpy.instruments')
+
+    assert 'Unexpected exceptions occured' in str(execinfo.value)
+
+
+def test_plugin_handling_driver_kind_issue(instr_workbench):
+    """Test that a wrong kind for a driver does not crash the whole app.
+
+    """
+    instr_workbench.register(InstrContributor4())
 
     with pytest.raises(Exception) as execinfo:
         instr_workbench.get_plugin('ecpy.instruments')

@@ -137,6 +137,7 @@ enamldef ModelView(Container):
             push_col1(r_flx)
             push_col2(widget)
             push_col2(r_flx)
+        push((widgets[0].width >= 4*labels[0].width) | 'strong')
 
         # Handle the odd child and create the column constraints
         if odd_child is not None:

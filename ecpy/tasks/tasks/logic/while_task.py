@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import (Unicode, set_default)
 
-
+from ..validators import Feval
 from ..base_tasks import ComplexTask
 from .loop_exceptions import BreakException, ContinueException
 from ..decorators import handle_stop_pause
@@ -26,11 +26,8 @@ class WhileTask(ComplexTask):
     See Python break statement documenttaion.
 
     """
-    #: Class attribute marking this task as being part of the logical tasks
-    logic_task = True
-
     #: Condition under which to continue looping.
-    condition = Unicode().tag(pref=True, feval=True)
+    condition = Unicode().tag(pref=True, feval=Feval())
 
     database_entries = set_default({'index': 1})
 

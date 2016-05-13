@@ -18,6 +18,7 @@ from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property, Constant
 
 from ...utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
+from . import validators
 
 
 #: Id used to identify dependencies type.
@@ -58,6 +59,14 @@ class InterfaceableMixin(Atom):
         test &= res[0]
         traceback.update(res[1])
         return test, traceback
+
+    def prepare(self):
+        """Prepare both the task and the interface.
+
+        """
+        super(InterfaceableMixin, self).prepare()
+        if self.interface:
+            self.interface.prepare()
 
     def perform(self, *args, **kwargs):
         """Implementation of perform relying on interfaces.
@@ -306,17 +315,29 @@ class BaseInterface(HasPrefAtom):
                 traceback[err_path + '-' + n] = msg
 
         for n, m in tagged_members(self, 'feval').items():
-            try:
-                val = task.format_and_eval_string(getattr(self, n))
-                if n in self.database_entries:
-                    task.write_in_database(n, val)
-            except Exception:
-                if m.metadata['feval'] != 'Warn':
-                    res = False
-                msg = 'Failed to eval %s : %s' % (n, format_exc())
+            val = m.metadata['feval']
+            if not isinstance(val, validators.Feval):
+                res = False
+                msg = 'Feval validator is not a subclass validators.Feval'
+            else:
+                value, f_res, msg = val.check(self, n)
+                res &= f_res
+
+            if msg:
                 traceback[err_path + '-' + n] = msg
+            elif value is not None and n in self.database_entries:
+                task.write_in_database(n, value)
 
         return res, traceback
+
+    def prepare(self):
+        """Prepare the interface to be performed.
+
+        This method is called once by the parent task before starting the
+        execution.
+
+        """
+        pass
 
     def perform(self, *args, **kwargs):
         """Method called by the parent perform method.

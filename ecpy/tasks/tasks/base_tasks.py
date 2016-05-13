@@ -40,7 +40,7 @@ from .decorators import (make_parallel, make_wait, make_stoppable,
 from .string_evaluation import safe_eval
 from .shared_resources import (SharedCounter, ThreadPoolResource,
                                InstrsResource, FilesResource)
-
+from . import validators
 
 #: Prefix for placeholders in string formatting and evaluation.
 PREFIX = '_a'
@@ -149,17 +149,18 @@ class BaseTask(Atom):
                 traceback[err_path + '-' + n] = msg
 
         for n, m in tagged_members(self, 'feval').items():
-            if m.metadata['feval'] == 'Skip_empty' and not getattr(self, n):
-                continue
-            try:
-                val = self.format_and_eval_string(getattr(self, n))
-                if n in self.database_entries:
-                    self.write_in_database(n, val)
-            except Exception:
-                if m.metadata['feval'] != 'Warn':
-                    res = False
-                msg = 'Failed to eval %s : %s' % (n, format_exc())
+            val = m.metadata['feval']
+            if not isinstance(val, validators.Feval):
+                res = False
+                msg = 'Feval validator is not a subclass validators.Feval'
+            else:
+                value, f_res, msg = val.check(self, n)
+                res &= f_res
+
+            if msg:
                 traceback[err_path + '-' + n] = msg
+            elif value is not None and n in self.database_entries:
+                self.write_in_database(n, value)
 
         return res, traceback
 
@@ -169,8 +170,8 @@ class BaseTask(Atom):
         This method is called once by the root task before starting the
         execution of its children tasks. By default it simply build the
         perform_ method by wrapping perform with the appropriate decorators.
-        This method can be overridden to execute other task, however keep in
-        my mind that those task must not depende on the state of the system
+        This method can be overridden to execute other actions, however keep in
+        my mind that those actions must not depende on the state of the system
         (no link to database).
 
         """

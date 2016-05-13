@@ -28,13 +28,11 @@ from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   make_extension_validator)
 from .user import InstrUser
 from .starters.base_starter import Starter
-from .drivers.driver_decl import Driver
+from .drivers.driver_decl import Driver, Drivers
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
 from .infos import ManufacturersHolder, ProfileInfos, validate_profile_infos
-
-logger = logging.getLogger(__name__)
 
 DRIVERS_POINT = 'ecpy.instruments.drivers'
 
@@ -163,7 +161,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         self._drivers = DeclaratorsCollector(workbench=self.workbench,
                                              point=DRIVERS_POINT,
-                                             ext_class=Driver)
+                                             ext_class=[Driver, Drivers])
         self._drivers.start()
 
         for contrib in ('users', 'starters', 'connections', 'settings'):
@@ -458,7 +456,11 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             getattr(self, '_'+contrib).observe('contributions', callback)
 
         def update():
-                deferred_call(self._refresh_profiles)
+            """Run the handler on the main thread to avoid GUI issues.
+
+            """
+            deferred_call(self._refresh_profiles)
+
         self._observer = Observer()
         for folder in self._profiles_folders:
             handler = SystematicFileUpdater(update)

@@ -12,7 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from enaml.widgets.api import Label, Field, ToolButton
+from enaml.widgets.api import Label, Field, ToolButton, Container
+from enaml.layout.api import hbox
 
 from .base_views import BaseTaskView
 
@@ -27,13 +28,10 @@ enamldef InstrTaskView(BaseTaskView):
 
     """
     #: Reference to the label of the instrument selection.
-    alias instr_lab : i_lab
+    alias instr_label : i_lab
 
     #: Reference to the field indicating the selected instrument.
-    alias instr_field : i_val
-
-    #: Reference to the button allowing to select a different instrument.
-    alias instr_sel : i_sel
+    alias instr_selection : i_val_sel
 
     func filter_profiles(profiles):
         """Function passed to the ecpy.instrument.select_profile command
@@ -86,29 +84,41 @@ enamldef InstrTaskView(BaseTaskView):
             w = self.root.core.workbench
             plugin = w.get_plugin('ecpy.tasks')
             t_infos = plugin.get_task_infos(task.task_id)
-            if d not in t_infos.instruments:
+            if d in t_infos.instruments:
+                task.interface = None
+            else:
                 for i_id, i in t_infos.walk_interfaces():
                     if d in i.instruments:
                         interface = i.cls()
                         while i.parent is not t_infos:
                             interface = i.cls(interface=i)
                         task.interface = interface
+        else:
+            task.interface = None
 
     Label: i_lab:
         text = 'Instrument'
-    Field: i_val:
-        text << task.selected_instrument[0]
-        tool_tip << make_selected_instrument_tooltip(task.selected_instrument)
-    ToolButton: i_sel:
-        # TODO move to a search icon
-        button_style = 'text_only'
-        text = 'Select'
-        clicked ::
-            cmd = 'ecpy.instruments.select_instrument'
-            p, d, c, s = task.selected_instrument
-            parameters = {'profile': p, 'driver': d, 'connection': c,
-                          'settings': s, 'filter_profiles': filter_profiles,
-                         'filter_drivers': filter_drivers}
-            selected = root.core.invoke_command(cmd, parameters)
-            if selected is not None:
-                task.selected_instrument = selected
+
+    Container: i_val_sel:
+
+        padding = 0
+        constraints = [hbox(i_val, i_sel)]
+
+        Field: i_val:
+            attr selected << task.selected_instrument
+            text << selected[0] if selected else ''
+            tool_tip << make_selected_instrument_tooltip(selected)
+        ToolButton: i_sel:
+            # TODO move to a search icon
+            button_style = 'text_only'
+            text = 'Select'
+            clicked ::
+                cmd = 'ecpy.instruments.select_instrument'
+                p, d, c, s = task.selected_instrument
+                parameters = {'profile': p, 'driver': d, 'connection': c,
+                              'settings': s,
+                              'filter_profiles': filter_profiles,
+                              'filter_drivers': filter_drivers}
+                selected = root.core.invoke_command(cmd, parameters)
+                if selected is not None:
+                    task.selected_instrument = selected

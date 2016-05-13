@@ -86,8 +86,8 @@ class Driver(Declarator):
         # and the class name
         try:
             driver_id = self.id
-        except KeyError as e:  # Handle the lack of architecture
-            traceback[self.driver] = str(e)
+        except KeyError:  # Handle the lack of architecture
+            traceback[self.driver] = format_exc()
             return
 
         # Determine the path to the driver.
@@ -97,13 +97,14 @@ class Driver(Declarator):
                               if path else self.driver).split(':')
         except ValueError:
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
-            traceback[driver_id] = msg
+            traceback[driver_id] = msg % (driver_id, self.driver)
             return
 
         # Check that the driver does not already exist.
         if driver_id in collector.contributions or driver_id in traceback:
-            i = 1
+            i = 0
             while True:
+                i += 1
                 err_id = '%s_duplicate%d' % (driver_id, i)
                 if err_id not in traceback:
                     break
@@ -123,8 +124,9 @@ class Driver(Declarator):
                                 starter=self.starter,
                                 connections=self.connections,
                                 settings=self.settings)
-        except KeyError as e:
-            traceback[driver_id] = str(e)
+        # ValueError catch wrong kind value
+        except (KeyError, ValueError):
+            traceback[driver_id] = format_exc()
             return
 
         # Get the driver class.

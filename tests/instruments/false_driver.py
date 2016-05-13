@@ -46,3 +46,10 @@ class FalseDriver5(object):
 
     """
     pass
+
+
+class FalseDriver6(object):
+    """False driver to test the declarator.
+
+    """
+    pass

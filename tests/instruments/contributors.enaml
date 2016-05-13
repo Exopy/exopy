@@ -18,7 +18,8 @@ from enaml.workbench.api import PluginManifest, Extension
 
 from ecpy.instruments.api import (Driver, Connection, Settings, Starter,
                                   ManufacturerAlias, InstrUser,
-                                  BaseConnection, BaseSettings)
+                                  BaseConnection, BaseSettings,
+                                  Drivers)
 
 
 class TestConnection(BaseConnection):
@@ -46,18 +47,19 @@ enamldef InstrContributor1(PluginManifest):
     Extension:
         id = 'drivers'
         point = 'ecpy.instruments.drivers'
-        Driver:
-            manufacturer = 'dummy'
-            model = '001'
-            architecture = 'test'
-            starter = 'false_starter'
-            driver = 'tests.instruments.false_driver:FalseDriver'
-            connections = {'false_connection': {'slot': 1},
-                           'false_connection2': {'slot': 1},
-                           'false_connection3': {'slot': 1}}
-            settings = {'false_settings': {'host': 'local'},
-                        'false_settings2': {'host': 'local'},
-                        'false_settings3': {'host': 'local'}}
+        Drivers:
+            Driver:
+                manufacturer = 'dummy'
+                model = '001'
+                architecture = 'test'
+                starter = 'false_starter'
+                driver = 'tests.instruments.false_driver:FalseDriver'
+                connections = {'false_connection': {'slot': 1},
+                               'false_connection2': {'slot': 1},
+                               'false_connection3': {'slot': 1}}
+                settings = {'false_settings': {'host': 'local'},
+                            'false_settings2': {'host': 'local'},
+                            'false_settings3': {'host': 'local'}}
         Driver:
             manufacturer = 'dummy'
             model = '001'
@@ -247,5 +249,26 @@ enamldef InstrContributor3(PluginManifest):
             architecture = 'test'
             starter = '__starter__'
             driver = 'tests.instruments.false_driver:FalseDriver'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+
+
+enamldef InstrContributor4(PluginManifest):
+    """Additional contributor to test driver validation issue.
+
+    """
+    id = 'ecpy.instr_contrib3'
+
+    Extension:
+        id = 'drivers'
+        point = 'ecpy.instruments.drivers'
+        # Validate that a wrong kind cannot crash the whole app.
+        Driver:
+            manufacturer = 'dummy2'
+            model = '010'
+            architecture = 'test'
+            starter = 'false_starter'
+            kind = '__XXX__'
+            driver = 'tests.instruments.false_driver:FalseDriver6'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}

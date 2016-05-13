@@ -180,7 +180,9 @@ def test_register_driver_decl_duplicate2(collector, driver_decl):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'tests.lantz.FalseDriver': 'rr'}
+    # Ensure that we can deal with multiple duplicate.
+    tb = {'tests.lantz.FalseDriver': 'rr',
+          'tests.lantz.FalseDriver_duplicate1': 'tt'}
     driver_decl.register(collector, tb)
     assert 'tests.lantz.FalseDriver_duplicate1' in tb
 

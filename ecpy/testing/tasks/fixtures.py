@@ -42,6 +42,9 @@ def task_workbench(monkeypatch, app_dir):
 
     """
     def exit_err(self):
+        """Turn error reporting into an exception.
+
+        """
         if self._delayed:
             raise Exception('Unexpected exceptions occured :\n' +
                             pformat(self._delayed))

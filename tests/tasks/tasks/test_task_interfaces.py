@@ -17,6 +17,7 @@ import pytest
 from atom.api import Bool, Unicode, set_default
 
 from ecpy.tasks.tasks.base_tasks import ComplexTask, RootTask
+from ecpy.tasks.tasks.validators import Feval
 from ecpy.tasks.tasks.task_interface import (InterfaceableTaskMixin,
                                              TaskInterface,
                                              InterfaceableInterfaceMixin,
@@ -43,6 +44,9 @@ class InterfaceTest(TaskInterface):
         else:
             return False, {'i': 0}
 
+    def prepare(self):
+        self.called = True
+
     def perform(self):
         self.task.write_in_database('itest', 2.0)
 
@@ -55,7 +59,20 @@ class InterfaceTest2(TaskInterface):
     fmt = Unicode().tag(fmt=True)
 
     #: Member to test auto evaluation of tagged members.
-    feval = Unicode().tag(feval=True)
+    feval = Unicode().tag(feval=Feval())
+
+    database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
+
+
+class InterfaceTest2bis(TaskInterface):
+    """Subclass with a different default value for the database entry.
+
+    """
+    #: Member to test auto formatting of tagged members.
+    fmt = Unicode().tag(fmt=True)
+
+    #: Member to test auto evaluation of tagged members.
+    feval = Unicode().tag(feval=object())
 
     database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
 
@@ -111,7 +128,7 @@ class IIinterfaceTest2(IInterface):
     fmt = Unicode().tag(fmt=True)
 
     #: Member to test auto evaluation of tagged members.
-    feval = Unicode().tag(feval=True)
+    feval = Unicode().tag(feval=Feval())
 
     database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
 
@@ -205,7 +222,7 @@ class TestInterfaceableTaskMixin(object):
         assert self.mixin.interface.called
 
     def test_check5(self):
-        """Check that auto-check of fmt and feavl tagged members works.
+        """Check that auto-check of fmt and feval tagged members works.
 
         """
         self.mixin.interface = InterfaceTest2(fmt='{Simple_test}',
@@ -216,6 +233,13 @@ class TestInterfaceableTaskMixin(object):
         assert not traceback
         assert self.root.get_from_database('Simple_fmt') == '2.0'
         assert self.root.get_from_database('Simple_feval') == 4.0
+
+        self.mixin.interface = InterfaceTest2bis(fmt='{Simple_test}',
+                                                 feval='2*{Simple_test}')
+
+        res, traceback = self.mixin.check()
+        assert not res
+        assert 'root/Simple-feval' in traceback
 
     def test_check6(self):
         """Check that auto-check of fmt and feavl handle errors.
@@ -231,6 +255,15 @@ class TestInterfaceableTaskMixin(object):
         assert len(traceback) == 2
         assert 'root/Simple-fmt' in traceback
         assert 'root/Simple-feval' in traceback
+
+    def test_prepare(self):
+        """Test that the prepare method does prepare the interface.
+
+        """
+        self.mixin.interface = InterfaceTest()
+
+        self.mixin.prepare()
+        assert self.mixin.interface.called
 
     def test_perform1(self):
         """Test perform does call interface if present.
