@@ -138,6 +138,9 @@ def make_parallel(perform, pool):
         safe_perform = smooth_crash(perform)
 
         def thread_perform(task, *args, **kwargs):
+            """Target for the thread running the code in parallel.
+
+            """
             safe_perform(task, *args, **kwargs)
             task.root.active_threads_counter.decrement()
 

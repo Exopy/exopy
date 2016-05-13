@@ -21,7 +21,10 @@ def add_destroy_hook(cls):
 
     """
     class Destroyable(cls):
+        """Subclass overriding the destroy method to emit 'ended' before
+        destroying.
 
+        """
         #: Event emitted just before destroying the object.
         ended = d_(Event())
 

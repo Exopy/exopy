@@ -29,7 +29,7 @@ from ..utils.configobj_ops import include_configobj
 from ..utils.atom_util import HasPrefAtom
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLOGGER(__name__)
 
 
 def measure_plugin():
@@ -450,7 +450,7 @@ class Measure(HasPrefAtom):
 
         msg = 'Running checks for pre-measure hook %s for measure %s'
         for id, hook in self.pre_hooks.items():
-            logger.debug(msg, id, self.name)
+            LOGGER.debug(msg, id, self.name)
             answer = hook.check(workbench, **kwargs)
             if answer is not None:
                 check, errors = answer
@@ -460,7 +460,7 @@ class Measure(HasPrefAtom):
 
         msg = 'Running checks for post-measure hook %s for measure %s'
         for id, hook in self.post_hooks.items():
-            logger.debug(msg, id, self.name)
+            LOGGER.debug(msg, id, self.name)
             answer = hook.check(workbench, **kwargs)
             if answer is not None:
                 check, errors = answer

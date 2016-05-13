@@ -299,12 +299,18 @@ class TreeNode(Declarative):
             return None
 
     def get_background(self, obj):
+        """Returns the background color for the item.
+
+        """
         background = self.background
         if isinstance(background, basestring):
             background = getattr(obj, background, background)
         return background
 
     def get_foreground(self, obj):
+        """Returns the foreground color for the item.
+
+        """
         foreground = self.foreground
         if isinstance(foreground, basestring):
             foreground = getattr(obj, foreground, foreground)
@@ -318,7 +324,6 @@ class TreeNode(Declarative):
 
     def can_rename_me(self, obj):
         """Returns whether the object can be renamed.
-
 
         """
         return self.rename_me

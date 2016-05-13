@@ -34,8 +34,6 @@ from .settings.base_settings import Settings
 from .manufacturer_aliases import ManufacturerAlias
 from .infos import ManufacturersHolder, ProfileInfos, validate_profile_infos
 
-logger = logging.getLogger(__name__)
-
 DRIVERS_POINT = 'ecpy.instruments.drivers'
 
 STARTERS_POINT = 'ecpy.instruments.starters'
@@ -458,7 +456,11 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             getattr(self, '_'+contrib).observe('contributions', callback)
 
         def update():
-                deferred_call(self._refresh_profiles)
+            """Run the handler on the main thread to avoid GUI issues.
+
+            """
+            deferred_call(self._refresh_profiles)
+
         self._observer = Observer()
         for folder in self._profiles_folders:
             handler = SystematicFileUpdater(update)

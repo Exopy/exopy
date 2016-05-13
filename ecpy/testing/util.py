@@ -186,6 +186,9 @@ def signal_error_raise():
     func = ErrorsPlugin.signal
 
     def raise_for_signal(self, kind, **kwargs):
+        """Raise an easy to identify error.
+
+        """
         raise ErrorDialogException()
 
     ErrorsPlugin.signal = raise_for_signal
@@ -197,7 +200,9 @@ def signal_error_raise():
 
 
 class CallSpy(object):
+    """Object simply monitoring how many times it gets called.
 
+    """
     __slots__ = ('called', 'args', 'kwargs')
 
     def __init__(self):

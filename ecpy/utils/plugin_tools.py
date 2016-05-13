@@ -56,6 +56,10 @@ def make_handler(id, method_name):
     """
 
     def handler(event):
+        """Handler getting the method corresponding to the command from the
+        plugin.
+
+        """
         pl = event.workbench.get_plugin(id)
         return getattr(pl, method_name)(**event.parameters)
 
@@ -86,7 +90,9 @@ def make_extension_validator(base_cls, fn_names=(),
 
     """
     def validator(contrib):
+        """Validate the children of an extension.
 
+        """
         for name in fn_names:
             member = getattr(contrib, name)
             # Compatibilty trick for Enaml declarative function (not necessary

@@ -58,6 +58,9 @@ def pytest_configure(config):
 
 @pytest.fixture
 def dialog_sleep():
+    """Return the time to sleep as set by the --ecpy-sleep option.
+
+    """
     return DIALOG_SLEEP
 
 

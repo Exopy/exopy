@@ -86,14 +86,21 @@ class SharedDict(Atom):
         self._lock.release()
 
     def get(self, key, default=None):
+        """Equivalent of dict.get but lock protected.
+
+        """
         with self._lock:
             aux = self._dict.get(key, default)
 
         return aux
 
     def items(self):
+        """Equivalent of dict.items but lock protected.
+
+        """
         with self.locked():
-            return self._dict.items()
+            for item in self._dict.items():
+                yield item
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
