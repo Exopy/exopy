@@ -159,7 +159,7 @@ class BaseTask(Atom):
 
             if msg:
                 traceback[err_path + '-' + n] = msg
-            elif value and n in self.database_entries:
+            elif value is not None and n in self.database_entries:
                 self.write_in_database(n, value)
 
         return res, traceback

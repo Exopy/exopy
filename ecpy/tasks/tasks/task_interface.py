@@ -325,7 +325,7 @@ class BaseInterface(HasPrefAtom):
 
             if msg:
                 traceback[err_path + '-' + n] = msg
-            elif value and n in self.database_entries:
+            elif value is not None and n in self.database_entries:
                 task.write_in_database(n, value)
 
         return res, traceback
