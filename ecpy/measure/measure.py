@@ -29,7 +29,7 @@ from ..utils.configobj_ops import include_configobj
 from ..utils.atom_util import HasPrefAtom
 
 
-LOGGER = logging.getLOGGER(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def measure_plugin():
