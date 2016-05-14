@@ -27,7 +27,7 @@ def create_task(event):
     This function is meant to be used as a Command handler. Parameters are
     passed through the parameters attributes of the event object.
 
-    Parameters:
+    Parameters
     ----------
     widget : optional
         Optional parent widget for the dialog.
@@ -65,7 +65,7 @@ def build_task_from_config(config, build_dep, as_root=False):
 
     Returns
     -------
-    task :
+    task : BaseTask
         Newly built task.
 
     Raises

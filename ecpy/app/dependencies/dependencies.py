@@ -66,7 +66,7 @@ class BuildDependency(Declarative):
 
         Returns
         -------
-        runtime_collectors : list, optional
+        runtime_collectors : list
             List of runtime dependencies that this object have.
 
         """

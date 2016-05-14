@@ -127,11 +127,7 @@ class BaseTask(Atom):
         """Check that everything is alright before starting a measurement.
 
         By default tries to format all members tagged with 'fmt' and try to
-        eval all members tagged with 'feval'. If the tag value is 'Warn', the
-        test will considered passed but a traceback entry will be filled.
-        If the tag value is 'Skip_empty', the test will be run only if the
-        member value is not empty.
-        The perform_ member is also computed at this time.
+        eval all members tagged with 'feval'.
 
         """
         res = True
@@ -169,7 +165,7 @@ class BaseTask(Atom):
 
         This method is called once by the root task before starting the
         execution of its children tasks. By default it simply build the
-        perform_ method by wrapping perform with the appropriate decorators.
+        perform\_ method by wrapping perform with the appropriate decorators.
         This method can be overridden to execute other actions, however keep in
         my mind that those actions must not depende on the state of the system
         (no link to database).
@@ -459,8 +455,8 @@ class BaseTask(Atom):
 
         Returns
         -------
-        formatted : str
-            Formatted version of the input.
+        value : object
+            Evaluated version of the input.
 
         """
         # If a cache evaluation of the string already exists use it.
@@ -920,7 +916,7 @@ class ComplexTask(BaseTask):
 
         Returns
         -------
-        task :
+        task : BaseTask
             Newly created and initiliazed task.
 
         Notes
@@ -1063,10 +1059,12 @@ class RootTask(ComplexTask):
     #: Each key is associated to a different kind of resource. Resources must
     #: be stored in SharedDict subclass.
     #: By default three kind of resources exists:
+    #:
     #: - threads : currently running threads grouped by pool.
     #:   ({pool: [threads, releaser]})
     #: - instrs : used instruments referenced by profiles.
     #: - files : currently opened files by path.
+    #:
     resources = Dict()
 
     #: Counter keeping track of the active threads.
@@ -1115,7 +1113,7 @@ class RootTask(ComplexTask):
 
     @smooth_crash
     def perform(self):
-        """ Run sequentially all child tasks, and close ressources.
+        """Run sequentially all child tasks, and close ressources.
 
         """
         result = True
@@ -1181,7 +1179,7 @@ class RootTask(ComplexTask):
 
         Returns
         -------
-        task :
+        task : RootTask
             Newly created and initiliazed task.
 
         Notes

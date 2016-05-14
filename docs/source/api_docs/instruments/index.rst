@@ -17,7 +17,6 @@ Submodules
 
 .. toctree::
 
-   api
    infos
    manifest
    manufacturer_aliases

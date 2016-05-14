@@ -6,7 +6,6 @@ Submodules
 
 .. toctree::
 
-   api
    base_hooks
    internal_checks
 

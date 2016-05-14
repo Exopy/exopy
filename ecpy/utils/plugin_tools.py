@@ -85,7 +85,7 @@ def make_extension_validator(base_cls, fn_names=(),
 
     Returns
     -------
-    validator : function
+    validator : callable
         Function that can be used to validate an extension contribution.
 
     """

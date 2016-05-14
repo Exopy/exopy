@@ -86,7 +86,7 @@ class BaseExecutionHook(BaseMeasureTool):
 
         Returns
         -------
-        runtime : RuntimeContainer|None
+        runtime : RuntimeContainer | None
             Runtime dependencies as returned by a call to the command
             'ecpy.app.dependencies.analyse'. None means that the hook has no
             runtime dependency.

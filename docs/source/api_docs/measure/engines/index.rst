@@ -13,7 +13,6 @@ Submodules
 
 .. toctree::
 
-   api
    base_engine
    selection
    utils

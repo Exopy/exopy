@@ -56,9 +56,9 @@
 
 .. |BuildDependency| replace:: :py:class:`~ecpy.app.dependencies.dependencies.BuildDependency`
 
-.. |RuntimeDependecyCollector| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyCollector`
+.. |RuntimeDependencyCollector| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyCollector`
 
-.. |RuntimeDependecyAnalyser| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyAnalyser`
+.. |RuntimeDependencyAnalyser| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyAnalyser`
 
 .. |Preferences| replace:: :py:class:`~ecpy.app.preferences.preferences.Preferences`
 
@@ -119,7 +119,7 @@
 
 .. |BaseSettings| replace:: :py:class:`~ecpy.instruments.settings.base_settings.BaseSettings`
 
-.. |ManufacturerAlias| replace :: :py:class:`~ecpy.instruments.manufacturer_aliases.ManufacturerAlias`
+.. |ManufacturerAlias| replace:: :py:class:`~ecpy.instruments.manufacturer_aliases.ManufacturerAlias`
 
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------

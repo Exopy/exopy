@@ -16,7 +16,6 @@ Submodules
 
 .. toctree::
 
-   api
    declarations
    filters
    infos

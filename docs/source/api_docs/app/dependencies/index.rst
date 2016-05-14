@@ -6,7 +6,6 @@ Submodules
 
 .. toctree::
 
-   api
    dependencies
    manifest
    plugin

@@ -196,10 +196,10 @@ class MeasureSpace(Workspace):
 
         Parameters
         ----------
-        mode : str
-            file: ask the user to specify a file from which to load a measure.
-            template: ask the user to choose a template and use default for the
-                rest.
+        mode : {'file', 'template'}
+            In file mode, ask the user to specify a file from which to load a
+            measure. In template mode, ask the user to choose a template and
+            use the defaults settings of the plugin for the tools..
 
         """
         if mode == 'file':
@@ -241,7 +241,7 @@ class MeasureSpace(Workspace):
 
         Returns
         -------
-        bool :
+        bool
             True is the measure was successfully enqueued, False otherwise.
 
         """

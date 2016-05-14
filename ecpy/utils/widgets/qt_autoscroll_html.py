@@ -20,7 +20,7 @@ from enaml.widgets.api import RawWidget
 class QtAutoscrollHtml(RawWidget):
     """ Custom Html display which scrolls down to the last line on update.
 
-    Carriage returns ('\n') are automatically converted to '<br>' so that there
+    Carriage returns are automatically converted to '<br>' so that there
     is no issue in the Html rendering.
 
     """
@@ -31,8 +31,8 @@ class QtAutoscrollHtml(RawWidget):
     hug_height = 'ignore'
 
     def create_widget(self, parent):
-        """ Finishes initializing the editor by creating the underlying toolkit
-            widget.
+        """Finishes initializing the editor by creating the underlying toolkit
+        widget.
 
         """
         widget = QtGui.QTextEdit(parent)
@@ -41,8 +41,8 @@ class QtAutoscrollHtml(RawWidget):
         return widget
 
     def _post_setattr_text(self, old, new):
-        """ Updates the editor when the object trait changes externally to the
-            editor.
+        """Updates the editor when the object trait changes externally to the
+        editor.
 
         """
         if self.proxy_is_active:

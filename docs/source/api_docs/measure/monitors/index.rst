@@ -13,7 +13,6 @@ Submodules
 
 .. toctree::
 
-   api
    base_monitor
 
 Module contents

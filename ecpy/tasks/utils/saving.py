@@ -41,7 +41,7 @@ def save_task(event):
 
     Returns:
     -------
-    config or None:
+    config : dict or None
         A dict is returned if the mode is 'config'.
 
     """

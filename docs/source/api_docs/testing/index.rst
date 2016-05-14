@@ -15,8 +15,6 @@ Submodules
 
 .. toctree::
 
-   broken_enaml
-   broken_module
    fixtures
    util
    windows

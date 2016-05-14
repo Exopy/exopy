@@ -151,7 +151,7 @@ def member_to_pref(obj, member, val):
 
     Returns
     -------
-    pref_value : Value
+    pref_value : str
         The serialized value/string that will be stored in the pref.
 
     """
@@ -196,16 +196,16 @@ def ordered_dict_to_pref(obj, member, val):
 
     Parameters
     ----------
-        obj: Atom
-            the instance of the Task calling the function
-        member: Member
-            the member that must be stored
-        val: Value
-            the current value of the orderedDict
+    obj: Atom
+        The instance calling the function
+    member: Member
+        The member that must be stored
+    val: OrderedDict
+        The current value of the member
 
     Returns
     -------
-    value
+    value : str
         the serialized value
 
     """
@@ -213,23 +213,24 @@ def ordered_dict_to_pref(obj, member, val):
 
 
 def ordered_dict_from_pref(obj, member, val):
-    """ Function to read back the list of tuples saved by
-    'definitions_to_pref'. We simply do a literal_eval of the
-     list of tuples, and then convert it to an OrderedDict
+    """Read back the list of tuples saved by 'ordered_dict_to_pref'.
+
+    We simply do a literal_eval of the list of tuples, and then convert it to
+    an OrderedDict.
 
     Parameters
     ----------
-        obj: Atom
-            the instance of the Task calling the function
-        member: Member
-            the member that must be stored
-        val: Value
-            the stored value
+    obj: Atom
+        The instance calling the function
+    member: Member
+        The member that must be stored
+    val: str
+        The string representation of the stored value
 
     Returns
     -------
-    value
-        an Ordered Dict that can be assigned to the member.
+    value : OrderedDict
+        An Ordered Dict that can be assigned to the member.
 
     """
     return OrderedDict(literal_eval(val))

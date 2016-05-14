@@ -6,7 +6,6 @@ Submodules
 
 .. toctree::
 
-   api
    errors
    manifest
    plugin

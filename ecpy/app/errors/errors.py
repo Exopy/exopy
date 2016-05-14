@@ -45,7 +45,7 @@ class ErrorHandler(Declarative):
 
         Returns
         -------
-        widget : enaml.widgets.Container
+        widget : enaml.widgets.api.Container
             Enaml widget to display as appropriate in a dialog.
 
         """
@@ -59,7 +59,7 @@ class ErrorHandler(Declarative):
 
         Returns
         -------
-        widget :
+        widget : enaml.widgets.api.Container
             A widget describing the errors that will be included in a dialog
             by the plugin. If None is returned the report is simply ignored.
 

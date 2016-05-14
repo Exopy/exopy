@@ -14,7 +14,6 @@ Submodules
 
 .. toctree::
 
-   api
    base_editor
    standard_editor
 

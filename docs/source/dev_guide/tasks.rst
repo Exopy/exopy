@@ -162,8 +162,9 @@ starts, you can over-write the **prepare** method which is called by the
 
     For task using instruments, the task should inherit from |InstrumentTask|
     that provides :
+
     - a 'selected_instrument' member storing all the data needed
-    to start the instrument.
+      to start the instrument.
     - a 'check' method ensuring that those data makes sense.
     - a 'driver' member storing the driver instance after it has been created
       (the driver is created in prepare so the driver is always initialized in
@@ -414,7 +415,7 @@ one or several depends on the task your interface plugs into.
 
 Because of this freedom, there is no base widget for interfaces. However to
 work correctly, your views should always declare a *root* attribute (to which a
- reference to the view of the root task is assigned) and an *interface*
+reference to the view of the root task is assigned) and an *interface*
 attribute (in which a reference to the interface is stored).
 
 .. code-block:: enaml
