@@ -5,16 +5,9 @@ Submodules
 ----------
 
 .. toctree::
+    :maxdepth: 2
 
    errors
    manifest
    plugin
    widgets
-
-Module contents
----------------
-
-.. automodule:: ecpy.app.errors
-    :members:
-    :undoc-members:
-    :show-inheritance:

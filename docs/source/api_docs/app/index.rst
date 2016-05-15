@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     dependencies <dependencies/index>
     errors <errors/index>
@@ -21,11 +22,3 @@ Submodules
    app_extensions
    app_manifest
    app_plugin
-
-Module contents
----------------
-
-.. automodule:: ecpy.app
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     instruments <instruments/index>
     measure <measure/index>
@@ -18,11 +19,3 @@ Submodules
    fixtures
    util
    windows
-
-Module contents
----------------
-
-.. automodule:: ecpy.testing
-    :members:
-    :undoc-members:
-    :show-inheritance:

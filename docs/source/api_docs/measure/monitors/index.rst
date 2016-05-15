@@ -14,11 +14,3 @@ Submodules
 .. toctree::
 
    base_monitor
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure.monitors
-    :members:
-    :undoc-members:
-    :show-inheritance:

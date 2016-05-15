@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     app <app/index>
     instruments <instruments/index>
@@ -20,10 +21,3 @@ Submodules
 
    version
 
-Module contents
----------------
-
-.. automodule:: ecpy
-    :members:
-    :undoc-members:
-    :show-inheritance:

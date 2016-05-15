@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     connections <connections/index>
     drivers <drivers/index>
@@ -16,17 +17,10 @@ Submodules
 ----------
 
 .. toctree::
+    :maxdepth: 2
 
    infos
    manifest
    manufacturer_aliases
    plugin
    user
-
-Module contents
----------------
-
-.. automodule:: ecpy.instruments
-    :members:
-    :undoc-members:
-    :show-inheritance:

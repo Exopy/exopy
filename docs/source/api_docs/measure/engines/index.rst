@@ -16,11 +16,3 @@ Submodules
    base_engine
    selection
    utils
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure.engines
-    :members:
-    :undoc-members:
-    :show-inheritance:

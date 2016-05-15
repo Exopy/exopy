@@ -16,11 +16,3 @@ Submodules
 
    base_editor
    standard_editor
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure.editors
-    :members:
-    :undoc-members:
-    :show-inheritance:

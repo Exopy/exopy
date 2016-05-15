@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     monitors <monitors/index>
     workspace <workspace/index>
@@ -17,11 +18,3 @@ Submodules
    contributions
    dummies
    fixtures
-
-Module contents
----------------
-
-.. automodule:: ecpy.testing.measure
-    :members:
-    :undoc-members:
-    :show-inheritance:

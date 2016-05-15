@@ -9,11 +9,3 @@ Submodules
    building
    saving
    templates
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:

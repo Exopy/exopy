@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     configs <configs/index>
     tasks <tasks/index>
@@ -21,11 +22,3 @@ Submodules
    infos
    manifest
    plugin
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks
-    :members:
-    :undoc-members:
-    :show-inheritance:

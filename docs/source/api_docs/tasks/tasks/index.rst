@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 2
 
     logic <logic/index>
     util <util/index>
@@ -25,11 +26,3 @@ Submodules
    task_editor
    task_interface
    validators
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.tasks
-    :members:
-    :undoc-members:
-    :show-inheritance:

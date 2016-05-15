@@ -12,11 +12,3 @@ Submodules
    loop_linspace_view
    loop_view
    while_view
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.tasks.logic.views
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -21,11 +21,3 @@ Submodules
    loop_linspace_interface
    loop_task
    while_task
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.tasks.logic
-    :members:
-    :undoc-members:
-    :show-inheritance:

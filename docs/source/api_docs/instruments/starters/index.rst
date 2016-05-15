@@ -8,11 +8,3 @@ Submodules
 
    base_starter
    exceptions
-
-Module contents
----------------
-
-.. automodule:: ecpy.instruments.starters
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -16,11 +16,3 @@ Submodules
    qt_tree_menu
    qt_tree_widget
    tree_nodes
-
-Module contents
----------------
-
-.. automodule:: ecpy.utils.widgets
-    :members:
-    :undoc-members:
-    :show-inheritance:

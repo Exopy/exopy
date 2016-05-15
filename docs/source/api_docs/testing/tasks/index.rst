@@ -8,11 +8,3 @@ Submodules
 
    fixtures
    util
-
-Module contents
----------------
-
-.. automodule:: ecpy.testing.tasks
-    :members:
-    :undoc-members:
-    :show-inheritance:

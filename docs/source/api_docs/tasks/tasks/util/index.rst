@@ -18,11 +18,3 @@ Submodules
    formula_task
    log_task
    sleep_task
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.tasks.util
-    :members:
-    :undoc-members:
-    :show-inheritance:

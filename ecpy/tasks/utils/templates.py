@@ -25,11 +25,11 @@ def load_template(path):
 
     Returns
     -------
-        data : ConfigObj
-            The data needed to rebuild the tasks.
+    data : ConfigObj
+        The data needed to rebuild the tasks.
 
-        doc : unicode
-            The doc of the template.
+    doc : unicode
+        The doc of the template.
 
     """
     config = ConfigObj(path, encoding='utf-8', indent_type='    ')

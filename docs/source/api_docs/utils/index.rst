@@ -24,11 +24,3 @@ Submodules
    priority_heap
    transformers
    watchdog
-
-Module contents
----------------
-
-.. automodule:: ecpy.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -15,11 +15,3 @@ Submodules
    monitors_window
    tools_edition
    workspace
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure.workspace
-    :members:
-    :undoc-members:
-    :show-inheritance:

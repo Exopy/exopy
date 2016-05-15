@@ -23,11 +23,3 @@ Submodules
    measure
    plugin
    processor
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure
-    :members:
-    :undoc-members:
-    :show-inheritance:

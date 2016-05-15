@@ -5,15 +5,8 @@ Submodules
 ----------
 
 .. toctree::
+    :maxdepth: 2
 
    manifest
    plugin
    state
-
-Module contents
----------------
-
-.. automodule:: ecpy.app.states
-    :members:
-    :undoc-members:
-    :show-inheritance:

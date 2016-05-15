@@ -20,11 +20,3 @@ Submodules
    monitor
    monitor_views
    plugin
-
-Module contents
----------------
-
-.. automodule:: ecpy.measure.monitors.text_monitor
-    :members:
-    :undoc-members:
-    :show-inheritance:

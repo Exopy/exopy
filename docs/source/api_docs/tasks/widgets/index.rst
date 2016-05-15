@@ -9,11 +9,3 @@ Submodules
    browsing
    building
    saving
-
-Module contents
----------------
-
-.. automodule:: ecpy.tasks.widgets
-    :members:
-    :undoc-members:
-    :show-inheritance:
