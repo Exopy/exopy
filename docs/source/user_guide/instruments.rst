@@ -1,0 +1,6 @@
+.. _instruments:
+
+Instruments
+===========
+
+.. contents::
