@@ -33,9 +33,8 @@ When the application starts you should see this window::
     the  application graphical user interface, but as the result of this 
     process is cached subsequents start ups should be much faster. 
 
-The different panels can be re-organized, tabbed or reduced. The bottom panels
-are used for log messages. The left one for will display messages from the
-application, the right one the ones coming from 'engine' running the measures.
+The different panels can be re-organized, tabbed or reduced. The bottom panel
+is used for log messages, it will display messages from the application.
 The left top panel is used to edit measures, actually multiple measures can be
 edited at the same time and similar panels will be opened if necessary. The 
 right top panel display the measures waiting to be performed.
@@ -55,8 +54,9 @@ The next sections will detail how those panels work.
     If you installed a broken extension package, Ecpy may fail to start. If 
     that is the case, the application should display a dialog explaining the
     issue. The easiest way to fixit is to uninstall the offending package
-    and report the bug to its maintainer. If nothing works, does not hesitate 
-    to contact the maintainer.
+    and report the bug to its maintainer. If nothing works, and you have 
+    already set the application directory, you can give alook at the log file.
+    If nothing works do not hesitate to contact the maintainer.
     
 .. note::
 
@@ -127,6 +127,12 @@ need to remember all the possibilities.
     In the standard editor the small button shown close to each task can be use 
     to add/move/remove the tasks.
     
+.. note::
+
+    For task using a physical instrument, you need to specify the instrument to
+    use. How to register an instrument so that it can be selected in the task
+    is explained in the next section.
+    
 Once you are happy with your measure you can save it using either the menu or
 the button in the panel. Measures are saved in under the '.ini' format which
 is text based and can easily be re-edited if need be.
@@ -144,8 +150,13 @@ that editing this measure **won't change** the state of the enqueued measure.
 If some checks do not pass or raise some warning a dialog will pop-up. If only
 warnings where emitted (for example the measure will override some existing
 files), you can choose to enqueue the measure nonetheless. Actually even if 
-some errors occurred you can force the enqueueing but you should have very good
-reason to do so.
+some errors occurred you can force the enqueueing but you should have a very 
+good reason to do so.
+
+.. note::
+
+    You can re-edit an enqueued measure by opening a dedicated dialog using the
+    button nect to the measure name in the queue.
 
 Congratulations your measure is now waiting for execution. The next setion will
 describe how to start it and what happens next.
@@ -153,3 +164,51 @@ describe how to start it and what happens next.
 Running a measure
 -----------------
 
+Starting the measure is straightforward as you simply have to click on the 
+'Start' button. If no 'engine' is currently selected (an engine is responsible 
+for executing the tasks), you will be prompted to choose one. The default one
+coming with Ecpy will add another log panel just by the one use by the 
+application.
+
+For each enqueued measure, the execution will happen as follow:
+
+- the checks are run once again as at enqueuing time some of them may have been
+  skipped (for example if measure was using an instrument, its properties
+  could not be tested).
+- the pre-execution hooks are executed
+- the main task is handed over to the engine for execution. It is at this step
+  that the monitors will be started if you attached any to your measure.
+- the post-execution hooks are called.
+
+.. note::
+
+    If a hook also execute tasks, it will also hand them over to the engine
+    for execution.
+    
+At any step of the execution, you can pause the measure or stop. Note however,
+that if a long running task is under way and it does listen for the proper 
+signals you may have to wait for this task to complete before seing the 
+execution pause or stop. 
+
+Pausing can be handy if you need to manually change a parameter on one 
+instrument for example. When you will resume the measure, all previously known
+states of the instruments will be re-initialized so that your intervention does
+not affect the state of the measure.
+
+When stopping a measure, you will be asked whether you want or not to run the 
+post-execution hooks (if any is present). This is so because you may have 
+included safety settings in the post hook and you hence need to be sure they 
+will be executed. Note that when stopping, you either stop the current measure
+but execute the next ones or stop everything.
+
+.. note::
+    
+    After trying to properly stop a measure, you will be offered to force the
+    operation. This should have an immediate effect on the measure execution
+    but may leave some systems (the VISA library) in an undefined state.
+    
+    
+Those are the basics, but to be able to run a meaningful measure you will need
+to use some instruments. The next section will explain how those are handled in
+Ecpy and how to register one so that it can be used in a measure.
+    
