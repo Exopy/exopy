@@ -19,6 +19,6 @@ Submodules
 
 .. toctree::
 
-   app_extensions
-   app_manifest
-   app_plugin
+    app_extensions
+    app_manifest
+    app_plugin

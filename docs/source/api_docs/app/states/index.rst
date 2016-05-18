@@ -7,6 +7,6 @@ Submodules
 .. toctree::
     :maxdepth: 2
 
-   manifest
-   plugin
-   state
+    manifest
+    plugin
+    state

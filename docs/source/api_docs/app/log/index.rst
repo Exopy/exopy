@@ -5,8 +5,7 @@ Submodules
 ----------
 
 .. toctree::
-    :maxdepth: 2
 
-   manifest
-   plugin
-   tools
+    manifest
+    plugin
+    tools

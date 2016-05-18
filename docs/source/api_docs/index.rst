@@ -1,5 +1,5 @@
-ecpy package
-============
+API Documentation
+=================
 
 Subpackages
 -----------

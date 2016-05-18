@@ -27,7 +27,7 @@ Ecpy is data acquisition software.
 
     Some questions that might have occurred to others too.
 
-- :doc:`api_ref/index`
+- :doc:`api_docs/index`
 
     When all else fails, consult the API docs to find the answer you need.
     The API docs also include convenient links to the most definitive

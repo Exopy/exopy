@@ -13,10 +13,9 @@ Submodules
 
 .. toctree::
 
-   api
-   custom_entry_edition
-   entry
-   manifest
-   monitor
-   monitor_views
-   plugin
+    custom_entry_edition
+    entry
+    manifest
+    monitor
+    monitor_views
+    plugin

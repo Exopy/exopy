@@ -5,9 +5,8 @@ Submodules
 ----------
 
 .. toctree::
-    :maxdepth: 2
 
-   errors
-   manifest
-   plugin
-   widgets
+    errors
+    manifest
+    plugin
+    widgets

@@ -5,8 +5,7 @@ Submodules
 ----------
 
 .. toctree::
-    :maxdepth: 2
 
-   dependencies
-   manifest
-   plugin
+    dependencies
+    manifest
+    plugin

@@ -17,10 +17,9 @@ Submodules
 ----------
 
 .. toctree::
-    :maxdepth: 2
 
-   infos
-   manifest
-   manufacturer_aliases
-   plugin
-   user
+    infos
+    manifest
+    manufacturer_aliases
+    plugin
+    user

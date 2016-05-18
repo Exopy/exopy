@@ -207,6 +207,10 @@ but execute the next ones or stop everything.
     operation. This should have an immediate effect on the measure execution
     but may leave some systems (the VISA library) in an undefined state.
     
+.. note::
+
+    While a measure is running the application will prevent closing to avoid
+    crashing everything by clicking accidentally on the 'x' button.
     
 Those are the basics, but to be able to run a meaningful measure you will need
 to use some instruments. The next section will explain how those are handled in
