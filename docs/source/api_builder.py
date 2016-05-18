@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-# TODO update the docs
 """
-    sphinx.apidoc
-    ~~~~~~~~~~~~~
+    ecpy.api_builder
+    ~~~~~~~~~~~~~~~~
+    This is derived from the sphinx-apidoc but modified to allow generation
+    of hierarchically organized .rst for the api docs.
+
+
     Parses a directory tree looking for Python modules and packages and creates
     ReST files appropriately to create code documentation with Sphinx.  It also
     creates a modules index (named modules.<suffix>).
