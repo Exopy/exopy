@@ -45,7 +45,8 @@ enamldef ModelSelectionWidget(Container):
                    if isinstance(tr.selected_item, InstrumentModelInfos) else
                    None)
     model ::
-        tr.selected_item = change['value']
+        if change['value']:
+            tr.selected_item = change['value']
 
     constraints = [vbox(hbox(k_lab, k_val, ser), tr)]
 
@@ -60,7 +61,7 @@ enamldef ModelSelectionWidget(Container):
     QtTreeWidget: tr:
         root_node = plugin._manufacturers
         hide_root = True
-        auto_expand = False
+        auto_expand = True
         drag_drop = False
         TreeNode:
             node_for = [ManufacturersHolder]
@@ -69,6 +70,7 @@ enamldef ModelSelectionWidget(Container):
             rename_me = False
             delete = False
             delete_me = False
+            auto_open = True
         TreeNode:
             node_for = [SeriesInfos]  # Handle both series and manufacturer
             label = 'name'
@@ -77,6 +79,7 @@ enamldef ModelSelectionWidget(Container):
             rename_me = False
             delete = False
             delete_me = False
+            auto_open = True
         TreeNode:
             node_for = [InstrumentModelInfos]
             label = 'model'
@@ -84,6 +87,7 @@ enamldef ModelSelectionWidget(Container):
             rename_me = False
             delete = False
             delete_me = False
+            auto_open = True
 
 
 enamldef ModelView(Container):
@@ -204,6 +208,7 @@ enamldef ModelView(Container):
                 read_only = True
 
 
+# XXX fix bug cannot select if we pass a value for the model.
 enamldef ModelSelectionDialog(Dialog): dial:
     """Dialog allowing to choose an instrument model.
 
@@ -218,7 +223,7 @@ enamldef ModelSelectionDialog(Dialog): dial:
 
     Container:
 
-        constraints << ([vbox(hbox(sel, *dis.objects),
+        constraints << ([vbox(hbox(sel, vbox(*(list(dis.objects) + [spacer]))),
                               hbox(spacer, can, ok))] +
                         [o.width >= sel.width for o in dis.objects])
 
@@ -226,7 +231,8 @@ enamldef ModelSelectionDialog(Dialog): dial:
             kind = 'All'
             use_series = True
         Include: dis:
-            objects << [ModelView(model=model) if model else Container()]
+            objects << [ModelView(model=sel.model)
+                        if sel.model else Container()]
         PushButton: can:
             text = 'Cancel'
             clicked ::

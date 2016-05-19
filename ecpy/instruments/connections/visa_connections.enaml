@@ -327,10 +327,12 @@ enamldef VisaConnection(Connection):
 
     """
     new => (workbench, defaults):
-        from .connections import visa_connections
+        from . import visa_connections
         cls = getattr(visa_connections, self.id)
-        allowed = cls().list_defaults()
-        unknnown = set(defaults) - set(allowed)
+        obj = cls()
+        obj.initialize()
+        allowed = set(obj.gather_infos())
+        unknown = set(defaults) - allowed
         if unknown:
             msg = ('When creating %s connection had to remove unknown '
                    'arguments.')

@@ -22,6 +22,7 @@ from configobj import ConfigObj
 from ecpy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
+    from enaml.stdlib.message_box import MessageBox
     from ecpy.instruments.widgets.browsing import BrowsingDialog
     from ecpy.instruments.widgets.profile_edition import ProfileEditionDialog
 
@@ -54,7 +55,7 @@ def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
     d.show()
     process_and_sleep()
 
-    btn = nb.pages()[1].page_widget().widgets()[-2]
+    btn = nb.pages()[1].page_widget().widgets()[-3]
 
     origin = prof_plugin.profiles[:]
     with handle_dialog('reject', cls=ProfileEditionDialog):
@@ -90,7 +91,7 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     process_and_sleep()
 
     c = nb.pages()[1].page_widget()
-    btn = c.widgets()[-1]
+    btn = c.widgets()[-2]
     c.p_id = 'fp1'
 
     manu = prof_plugin._manufacturers._manufacturers['Dummy']
@@ -115,6 +116,37 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     assert prof_plugin._profiles['fp1'].model == model
     assert (ConfigObj(prof_plugin._profiles['fp1'].path)['model_id'] ==
             'Dummy.dumb.002')
+
+
+def test_browing_dialog_profiles_delete(prof_plugin, process_and_sleep):
+    """Test the browsing dialog page dedicated to explore the profiles.
+
+    """
+    d = BrowsingDialog(plugin=prof_plugin)
+    nb = d.central_widget().widgets()[0]
+    nb.selected_tab = 'profiles'
+    d.show()
+    process_and_sleep()
+
+    c = nb.pages()[1].page_widget()
+    btn = c.widgets()[-1]
+    c.p_id = 'fp1'
+
+    with handle_dialog('reject', cls=MessageBox):
+        btn.clicked = True
+
+    assert 'fp1' in prof_plugin._profiles
+
+    def handle(dial):
+        dial.buttons[0].was_clicked = True
+
+    with handle_dialog('accept', handle, cls=MessageBox):
+        btn.clicked = True
+
+    sleep(0.1)
+    process_app_events()
+
+    assert 'fp1' not in prof_plugin._profiles
 
 
 def test_browing_dialog_profiles_use(prof_plugin, process_and_sleep):
