@@ -23,7 +23,7 @@ def basic_name_formatter(name):
 
 
 def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
-                        separator='.', preformatter=None):
+                        separator='.', preformatter=None, reverse=False):
     """Make the easiest to read names from ids without duplicate.
 
     Parameters
@@ -40,6 +40,10 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
 
     preformatter : callable, optional
         Preformat ids before looking for shorter names.
+
+    reverse : bool, optional
+        If False the mapping returned map the names to the ids, otherwise it
+        maps the ids to the names.
 
     Returns
     -------
@@ -69,6 +73,11 @@ def ids_to_unique_names(ids, name_formatter=basic_name_formatter,
     names = {v[0]: k for k, v in valid_names.items()}
 
     if preformatter:
-        return OrderedDict(((names[i], ids_mapping[i]) for i in ids))
+        mapping = OrderedDict(((names[i], ids_mapping[i]) for i in ids))
     else:
-        return OrderedDict(((names[i], i) for i in ids))
+        mapping = OrderedDict(((names[i], i) for i in ids))
+
+    if reverse:
+        mapping = OrderedDict((v, k) for k, v in mapping.items())
+
+    return mapping

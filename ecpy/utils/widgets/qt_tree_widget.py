@@ -260,7 +260,7 @@ class QtTreeWidget(RawWidget):
                 self._expand_node(nid)
             if not self.hide_root:
                 nid.setExpanded(True)
-            self._expand_levels(nid, self.auto_expand, False)
+            self._expand_levels(nid, 2, self.auto_expand)
 
         ncolumns = tree.columnCount()
         if ncolumns > 1:

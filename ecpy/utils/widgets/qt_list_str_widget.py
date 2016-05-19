@@ -99,9 +99,21 @@ class QtListStrWidget(RawWidget):
                        for index in widget.selectedIndexes()]
             if indexes:
                 if self.multiselect:
+                    # HINT force an access so that the new change (which is
+                    # swallowed by enaml) so that the notifications are
+                    # properly propagated
+                    self.selected_indexes
+                    self.selected_items
+
                     self.selected_indexes = indexes
                     self.selected_items = [self.items[i] for i in indexes]
                 else:
+                    # HINT force an access so that the new change (which is
+                    # swallowed by enaml) so that the notifications are
+                    # properly propagated
+                    self.selected_index
+                    self.selected_item
+
                     new_index = indexes[0]
                     self.selected_index = new_index
                     self.selected_item = self.items[new_index]
