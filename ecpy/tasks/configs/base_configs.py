@@ -63,7 +63,7 @@ class BaseTaskConfig(Atom):
     def build_task(self):
         """This method use the user parameters to build the task object
 
-         Returns
+        Returns
         -------
         task : BaseTask
             Task object built using the user parameters. Ready to be

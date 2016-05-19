@@ -363,7 +363,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         Parameters
         ----------
-        manufacturer : id
+        manufacturer : str
             Name of the manufacturer for which to return the aliases.
 
         Returns

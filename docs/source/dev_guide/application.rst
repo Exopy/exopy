@@ -247,13 +247,13 @@ considered to be run-time dependencies.
 If your plugin introduces a new type of object which can, for example, be used
 in tasks either as a build or as a runtime dependency you need to contribute
 either a |BuildDependency| object to the 'ecpy.app.dependencies.build'
-extension point or a |RuntimeDependecyCollector| object to the
+extension point or a |RuntimeDependencyCollector| object to the
 'ecpy.app.dependencies.runtime_collect' extension point. In the case of
 runtime dependencies, the collector is not responsible for the analysis of the
 dependencies of an object this is left to an associated
-|RuntimeDependecyAnalyser|, which allow to use the same kind of dependeny in
+|RuntimeDependencyAnalyser|, which allow to use the same kind of dependeny in
 object with totally different structures and for which the same scheme of
-analysis cannot be used. |RuntimeDependecyAnalyser| can be contributed to the
+analysis cannot be used. |RuntimeDependencyAnalyser| can be contributed to the
 'ecpy.app.dependencies.runtime_analyse' extension point.
 
 After analyses dependencies are stored into dedicated container class. Those
@@ -282,7 +282,7 @@ A |BuildDependency| needs:
 - 'collect': a method collecting the build dependencies previously identified
   by the analyse method.
 
-A |RuntimeDependecyCollector| needs:
+A |RuntimeDependencyCollector| needs:
 
 - an 'id' which must be unique.
 - 'validate': a method checking that all dependencies corresponding to this

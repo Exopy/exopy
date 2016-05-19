@@ -121,7 +121,7 @@ class InterfaceableMixin(Atom):
 
         Returns
         -------
-        task :
+        task : BaseTask
             Newly built task.
 
         """

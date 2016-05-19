@@ -81,7 +81,7 @@ class TaskDatabase(Atom):
 
         This method can be used both in edition and running mode.
 
-        Parameters:
+        Parameters
         ----------
         node_path : unicode
             Path to the node holding the value to be set
@@ -134,7 +134,7 @@ class TaskDatabase(Atom):
 
         Returns
         -------
-        value : any
+        value : object
             Value stored under the entry value_name
 
         """
@@ -305,7 +305,7 @@ class TaskDatabase(Atom):
         of a task, use a try except clause instead and get_value or
         get_entries_indexes).
 
-        Parameters:
+        Parameters
         ----------
         node_path : unicode
             Path to the node from which accessible entries should be listed.
@@ -442,7 +442,7 @@ class TaskDatabase(Atom):
         database is not supposed to change during a measurement but only during
         the configuration phase
 
-        Parameters:
+        Parameters
         ----------
         parent_path : unicode
             Path to the node parent of the new one
@@ -462,7 +462,7 @@ class TaskDatabase(Atom):
     def rename_node(self, parent_path, old_name, new_name):
         """Method used to rename a node in the database
 
-        Parameters:
+        Parameters
         ----------
         parent_path : unicode
             Path to the parent of the node being renamed
@@ -498,7 +498,7 @@ class TaskDatabase(Atom):
     def delete_node(self, parent_path, node_name):
         """Method used to delete an existing node from the database
 
-        Parameters:
+        Parameters
         ----------
         parent_path : unicode
             Path to the node parent of the new one

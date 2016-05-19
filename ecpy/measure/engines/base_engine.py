@@ -65,17 +65,17 @@ class BaseEngine(Atom):
     #: Signal used to pass news about the measurement progress.
     progress = Signal()
 
-    def perform(self, task_infos):
+    def perform(self, exec_infos):
         """Execute a given task and catch any error.
 
         Parameters
         ----------
-        task_infos : TaskInfos
+        exec_infos : ExecutionInfos
             TaskInfos object describing the work to expected of the engine.
 
         Returns
         -------
-        task_infos : TaskInfos
+        exec_infos : ExecutionInfos
             Input object whose values have been updated. This is simply a
             convenience.
 

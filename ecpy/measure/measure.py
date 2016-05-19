@@ -361,7 +361,7 @@ class Measure(HasPrefAtom):
 
         Returns
         -------
-        measure : Measure|None
+        measure : Measure | None
             Measure buil from the config or None if and error occurred.
 
         errors : dict

@@ -56,9 +56,9 @@
 
 .. |BuildDependency| replace:: :py:class:`~ecpy.app.dependencies.dependencies.BuildDependency`
 
-.. |RuntimeDependecyCollector| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyCollector`
+.. |RuntimeDependencyCollector| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyCollector`
 
-.. |RuntimeDependecyAnalyser| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyAnalyser`
+.. |RuntimeDependencyAnalyser| replace:: :py:class:`~ecpy.app.dependencies.dependencies.RuntimeDependecyAnalyser`
 
 .. |Preferences| replace:: :py:class:`~ecpy.app.preferences.preferences.Preferences`
 
@@ -119,78 +119,80 @@
 
 .. |BaseSettings| replace:: :py:class:`~ecpy.instruments.settings.base_settings.BaseSettings`
 
-.. |ManufacturerAlias| replace :: :py:class:`~ecpy.instruments.manufacturer_aliases.ManufacturerAlias`
+.. |ManufacturerAlias| replace:: :py:class:`~ecpy.instruments.manufacturer_aliases.ManufacturerAlias`
 
 .. Tasks substitutions
 .. ----------------------------------------------------------------------------
 
-.. |BaseTask| replace:: :py:class:`~ecpy.tasks.base_tasks.BaseTask`
+.. |BaseTask| replace:: :py:class:`~ecpy.tasks.tasks.base_tasks.BaseTask`
 
-.. |parallel| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.parallel`
+.. |parallel| replace:: :py:attr:`~ecpy.tasks.tasks.base_tasks.SimpleTask.parallel`
 
-.. |wait| replace:: :py:attr:`~ecpy.tasks.base_tasks.SimpleTask.wait`
+.. |wait| replace:: :py:attr:`~ecpy.tasks.tasks.base_tasks.SimpleTask.wait`
 
-.. |SimpleTask| replace:: :py:class:`~ecpy.tasks.base_tasks.SimpleTask`
+.. |SimpleTask| replace:: :py:class:`~ecpy.tasks.tasks.base_tasks.SimpleTask`
 
-.. |ComplexTask| replace:: :py:class:`~ecpy.tasks.base_tasks.ComplexTask`
+.. |ComplexTask| replace:: :py:class:`~ecpy.tasks.tasks.base_tasks.ComplexTask`
 
-.. |RootTask| replace:: :py:class:`~ecpy.tasks.base_tasks.RootTask`
+.. |RootTask| replace:: :py:class:`~ecpy.tasks.tasks.base_tasks.RootTask`
 
-.. |write_in_database| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.write_in_database`
+.. |write_in_database| replace:: :py:meth:`~ecpy.tasks.tasks.base_tasks.BaseTask.write_in_database`
 
-.. |format_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_string`
+.. |format_string| replace:: :py:meth:`~ecpy.tasks.tasks.base_tasks.BaseTask.format_string`
 
-.. |format_and_eval_string| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.format_and_eval_string`
+.. |format_and_eval_string| replace:: :py:meth:`~ecpy.tasks.tasks.base_tasks.BaseTask.format_and_eval_string`
 
-.. |perform| replace:: :py:meth:`~ecpy.tasks.base_tasks.BaseTask.perform`
+.. |perform| replace:: :py:meth:`~ecpy.tasks.tasks.base_tasks.BaseTask.perform`
 
-.. |database_entries| replace:: :py:attr:`~ecpy.tasks.base_tasks.BaseTask.database_entries`
+.. |database_entries| replace:: :py:attr:`~ecpy.tasks.tasks.base_tasks.BaseTask.database_entries`
 
-.. |resources| replace:: :py:attr:`~ecpy.tasks.base_tasks.RootTask.resources`
+.. |resources| replace:: :py:attr:`~ecpy.tasks.tasks.base_tasks.RootTask.resources`
 
-.. |ResourceHolder| replace:: :py:class:`~ecpy.tasks.tools.shared_resources.ResourceHolder`
+.. |ResourceHolder| replace:: :py:class:`~ecpy.tasks.tasks.shared_resources.ResourceHolder`
 
-.. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tools.string_evaluation.EVALUATER_TOOLTIP`
+.. |EVALUATER_TOOLTIP| replace:: :py:const:`~ecpy.tasks.tasks.string_evaluation.EVALUATER_TOOLTIP`
 
-.. |BaseTaskView| replace:: :py:class:`~ecpy.tasks.base_views.BaseTaskView`
+.. |Feval| replace:: :py:class:`~ecpy.tasks.tasks.validators.Feval`
 
-.. |InstrumentTask| replace:: :py:class:`~ecpy.tasks.instr_task.InstrumentTask`
+.. |BaseTaskView| replace:: :py:class:`~ecpy.tasks.tasks.base_views.BaseTaskView`
 
-.. |InstrTaskView| replace:: :py:class:`~ecpy.tasks.instr_view.InstrTaskView`
+.. |InstrumentTask| replace:: :py:class:`~ecpy.tasks.tasks.instr_task.InstrumentTask`
 
-.. |InterfaceableTaskMixin| replace:: :py:class:`~ecpy.tasks.task_interfaces.InterfaceableTaskMixin`
+.. |InstrTaskView| replace:: :py:class:`~ecpy.tasks.tasks.instr_view.InstrTaskView`
 
-.. |Tasks| replace:: :py:class:`~ecpy.tasks.manager.declarations.Tasks`
+.. |InterfaceableTaskMixin| replace:: :py:class:`~ecpy.tasks.tasks.task_interfaces.InterfaceableTaskMixin`
 
-.. |Task| replace:: :py:class:`~ecpy.tasks.manager.declarations.Task`
+.. |Tasks| replace:: :py:class:`~ecpy.tasks.declarations.Tasks`
 
-.. |TaskInterface| replace:: :py:class:`~ecpy.tasks.task_interfaces.TaskInterface`
+.. |Task| replace:: :py:class:`~ecpy.tasks.declarations.Task`
 
-.. |IInterface| replace:: :py:class:`~ecpy.tasks.task_interfaces.IInterface`
+.. |TaskInterface| replace:: :py:class:`~ecpy.tasks.tasks.task_interfaces.TaskInterface`
 
-.. |InterfaceableInterfaceMixin| replace:: :py:class:`~ecpy.tasks.task_interfaces.InterfaceableInterfaceMixin`
+.. |IInterface| replace:: :py:class:`~ecpy.tasks.tasks.task_interfaces.IInterface`
 
-.. |Interface| replace:: :py:class:`~ecpy.tasks.manager.declarations.Interface`
+.. |InterfaceableInterfaceMixin| replace:: :py:class:`~ecpy.tasks.tasks.task_interfaces.InterfaceableInterfaceMixin`
 
-.. |Interfaces| replace:: :py:class:`~ecpy.tasks.manager.declarations.Interfaces`
+.. |Interface| replace:: :py:class:`~ecpy.tasks.declarations.Interface`
+
+.. |Interfaces| replace:: :py:class:`~ecpy.tasks.declarations.Interfaces`
 
 .. |LoopTask| replace:: :py:class:`~ecpy.tasks.tasks.logic.loop_task.LoopTask`
 
-.. |TaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.TaskFilter`
+.. |TaskFilter| replace:: :py:class:`~ecpy.tasks.filters.TaskFilter`
 
-.. |SubclassTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.SubclassTaskFilter`
+.. |SubclassTaskFilter| replace:: :py:class:`~ecpy.tasks.filters.SubclassTaskFilter`
 
-.. |MetadataTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.MetadataTaskFilter`
+.. |MetadataTaskFilter| replace:: :py:class:`~ecpy.tasks.filters.MetadataTaskFilter`
 
-.. |GroupTaskFilter| replace:: :py:class:`~ecpy.tasks.manager.filters.GroupTaskFilter`
+.. |GroupTaskFilter| replace:: :py:class:`~ecpy.tasks.filters.GroupTaskFilter`
 
-.. |PyTaskConfig| replace:: :py:class:`~ecpy.tasks.manager.configs.base_configs.PyTaskConfig`
+.. |PyTaskConfig| replace:: :py:class:`~ecpy.tasks.configs.base_configs.PyTaskConfig`
 
-.. |PyConfigView| replace:: :py:class:`~ecpy.tasks.manager.configs.base_config_views.PyConfigView`
+.. |PyConfigView| replace:: :py:class:`~ecpy.tasks.configs.base_config_views.PyConfigView`
 
-.. |TaskConfigs| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfigs`
+.. |TaskConfigs| replace:: :py:class:`~ecpy.tasks.declarations.TaskConfigs`
 
-.. |TaskConfig| replace:: :py:class:`~ecpy.tasks.manager.declarations.TaskConfig`
+.. |TaskConfig| replace:: :py:class:`~ecpy.tasks.declarations.TaskConfig`
 
 
 .. Utils substitutions

@@ -107,7 +107,7 @@ Returns
 task_cls : BaseTask|None
     Class for the requested task or None if no matching task was found.
 
-view : optional
+view : enaml.widgets.api.Container, optional
     Widget is requested. None if no matching class was found.
 
 """
@@ -256,7 +256,7 @@ widget : optional
 
 Returns:
 -------
-config or None:
+config : dict or None
     A dict is returned if the mode is 'config'.
 
 """

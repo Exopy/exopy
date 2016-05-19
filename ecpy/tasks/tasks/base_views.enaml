@@ -106,8 +106,8 @@ enamldef RootTaskView(BaseTaskView): main:
 
         Returns
         -------
-        interfaces : list[type]
-            List of interfaces classes.
+        interfaces : dict
+            Interfaces infos by interface ids.
 
         """
         if isinstance(obj, BaseTask):

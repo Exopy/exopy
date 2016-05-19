@@ -44,7 +44,7 @@ class Starter(Declarative):
 
         Returns
         -------
-        driver :
+        driver : object
             Driver instance fully initilized and ready for communication.
 
         Raises

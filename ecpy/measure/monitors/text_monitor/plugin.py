@@ -100,7 +100,7 @@ class TextMonitorPlugin(HasPreferencesPlugin):
 
         Returns
         -------
-        rule : BaseRule|None
+        rule : BaseRule | None
             New rule properly initialized.
 
         """

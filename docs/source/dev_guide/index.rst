@@ -14,6 +14,7 @@ please refer to its documentation for the specifics of the procedure.
 
 .. toctree::
     :numbered:
+    :maxdepth: 2
 
     glossary
     application

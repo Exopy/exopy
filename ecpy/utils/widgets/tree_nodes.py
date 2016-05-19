@@ -121,6 +121,7 @@ class TreeNode(Declarative):
 
         Returns
         -------
+
         - **True** if the object should be deleted with no further prompting.
         - **False** if the object should not be deleted.
         - Anything else: Caller should take its default action (which might

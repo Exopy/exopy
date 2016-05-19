@@ -237,7 +237,7 @@ class MeasurePlugin(HasPreferencesPlugin):
 
         Returns
         -------
-        obj :
+        obj : BaseEngine|BaseMeasureTool|BaseEditor
             New instance of the requested object.
 
         Raises

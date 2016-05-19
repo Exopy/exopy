@@ -97,13 +97,13 @@ can modify them and directly see the result without re-installing anything.
 
 .. note:
 
-	An extension package can also contribute new command line arguments by 
-	adding an extension to the 'ecpy_cmdline_args' entry point. Contribution 
+	An extension package can also contribute new command line arguments by
+	adding an extension to the 'ecpy_cmdline_args' entry point. Contribution
 	should be a pair (function, priority). The function will receive an
-	|ArgParser| instance and can use it to add new (optional) arguments or 
-	choices. Choices are used to allow to add acceptable values for an 
-	argument. For example, '--workspace' expect a valid workspace id and the 
+	|ArgParser| instance and can use it to add new (optional) arguments or
+	choices. Choices are used to allow to add acceptable values for an
+	argument. For example, '--workspace' expect a valid workspace id and the
 	choices are stored in the 'workspaces' choices.
-	
+
 .. _Github: https://github.com/Ecpy
-.._repository: https://github.com/Ecpy/ecpy_ext_demo
+.. _repository: https://github.com/Ecpy/ecpy_ext_demo
