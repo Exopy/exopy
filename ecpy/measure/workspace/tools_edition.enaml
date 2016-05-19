@@ -58,6 +58,7 @@ enamldef ToolSelector(Dialog): dial:
     Container:
         constraints << [vbox(hbox(list_ed, desc), hbox(spacer, cancel, ok))]
 
+        # XXX rework for better reliability
         QtListStrWidget: list_ed:
             items << list(_names)
             selected_item ::
@@ -189,6 +190,7 @@ enamldef ToolsEditor(DestroyableContainer): main:
 
     PushButton: add:
         text = 'Add'
+        # XXX fix for monitors.
         enabled << not all([id in tools.items
                             for id in  getattr(measure.plugin, _kind)])
         clicked ::

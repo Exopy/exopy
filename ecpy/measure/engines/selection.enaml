@@ -29,10 +29,16 @@ enamldef EngineSelector(Dialog): dial:
     attr plugin
 
     #: Declaration for the currently selected engine.
-    attr selected_decl
+    attr selected_decl << (
+        plugin.get_declarations('engine',
+                                [list_ed.selected_item])[list_ed.selected_item]
+                                )
 
     #: Mappping between engine user understandable names and ids.
-    attr _names << ids_to_unique_names(plugin.engines)
+    attr _names << ids_to_unique_names(plugin.engines, reverse=True)
+
+    func _to_name(engine_id):
+        return _names[engine_id]
 
     title = 'Select an engine'
 
@@ -40,13 +46,9 @@ enamldef EngineSelector(Dialog): dial:
         constraints << [hbox(list_ed, desc, vbox(ok, cancel, spacer))]
 
         QtListStrWidget: list_ed:
-            items << list(_names)
-            selected_item::
-                new_val = change['value']
-                if new_val:
-                    id_ = _names[new_val]
-                    dial.selected_decl = plugin.get_declarations('engines',
-                                                                 [id_])
+            items << plugin.engines
+            sort = True
+            to_string = _to_name
 
         MultilineField: desc:
             text << selected_decl.description if selected_decl else ''

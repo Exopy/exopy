@@ -23,7 +23,6 @@ from enaml.stdlib.message_box import question
 
 
 from ...utils.widgets.list_editor import ListEditor
-from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ..engines.selection import EngineSelector
 from .measure_edition import MeasureEditorDialog
 
