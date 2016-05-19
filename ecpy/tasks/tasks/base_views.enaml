@@ -166,6 +166,8 @@ enamldef RootTaskView(BaseTaskView): main:
             if not view.is_destroyed:
                 view.destroy()
 
+    # XXX add the root path edition widgets
+
     TaskEditor: editor:
         task = main.task
         root = main
