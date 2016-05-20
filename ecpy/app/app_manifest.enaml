@@ -42,8 +42,9 @@ def application_factory():
 
     """
     from enaml.qt.qt_application import QtApplication
-    from enaml.qt import QtGui
+    from enaml.qt import QtGui, QtCore
     import sys
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     if not QtApplication.instance():
         QtApplication()  # pragma: no cover
     app = QtApplication.instance()
