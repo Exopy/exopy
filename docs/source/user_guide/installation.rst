@@ -56,6 +56,6 @@ find the list in the setup.py script at the root of the Ecpy repository.
 Checking your installation
 --------------------------
 
-You should then be able to start ecpy using the ecpy command at the command
+You should then be able to start ecpy using the ecpy command in a command
 line or the launcher present in the Anaconda Launcher if you are using 
 Anaconda.
