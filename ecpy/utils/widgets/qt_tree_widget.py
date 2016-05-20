@@ -137,10 +137,10 @@ class QtTreeWidget(RawWidget):
         tree.customContextMenuRequested.connect(self._on_context_menu)
         tree.itemChanged.connect(self._on_nid_changed)
 
-        self._set_root_node(self.root_node, tree)
+        nid = self._set_root_node(self.root_node, tree)
         # The proxy is not yet active so we must set the selected item manually
         self._guard ^= INDEX_GUARD
-        self.selected_item = self.root_node
+        self.selected_item = self.get_object(nid)
         self._guard ^= INDEX_GUARD
         return tree
 
@@ -267,7 +267,9 @@ class QtTreeWidget(RawWidget):
             for i in range(ncolumns):
                 tree.resizeColumnToContents(i)
 
-        tree.setCurrentItem(tree.topLevelItem(0))
+        nid = tree.topLevelItem(0)
+        tree.setCurrentItem(nid)
+        return nid
 
     def _create_item(self, nid, node, obj, index=None):
         """Create  a new TreeWidgetItem as per word_wrap policy.
