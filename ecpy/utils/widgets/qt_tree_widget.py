@@ -134,6 +134,7 @@ class QtTreeWidget(RawWidget):
         tree.itemExpanded.connect(self._on_item_expanded)
         tree.itemCollapsed.connect(self._on_item_collapsed)
         tree.itemSelectionChanged.connect(self._on_tree_sel_changed)
+        tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tree.customContextMenuRequested.connect(self._on_context_menu)
         tree.itemChanged.connect(self._on_nid_changed)
 
@@ -666,8 +667,8 @@ class QtTreeWidget(RawWidget):
             self._guard ^= INDEX_GUARD
 
     def _on_context_menu(self, pos):
-        """ Handles the user requesting a context menuright clicking on a tree
-        node.
+        """ Handles the user requesting a context menu, right clicking on a
+        tree node.
 
         """
         tree = self.get_widget()

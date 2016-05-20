@@ -23,6 +23,7 @@ except ImportError:
     from io import StringIO
 import warnings
 
+from future.builtins import bytes
 from enaml.qt import QtCore, QtGui
 from atom.api import Atom, Property
 
@@ -121,7 +122,7 @@ class PyMimeData(QtCore.QMimeData):
             # We have no pickled python data defined.
             return None
 
-        io = StringIO(str(self.data(self.MIME_TYPE)))
+        io = StringIO(bytes(self.data(self.MIME_TYPE)))
 
         try:
             # Skip the type.
@@ -136,13 +137,14 @@ class PyMimeData(QtCore.QMimeData):
 
     def instance_type(self):
         """ Return the type of the instance.
+
         """
         if self._local_instance is not None:
             return self._local_instance.__class__
 
         try:
             if self.hasFormat(self.MIME_TYPE):
-                return loads(str(self.data(self.MIME_TYPE)))
+                return loads(bytes(self.data(self.MIME_TYPE)))
         except PickleError:
             pass
 
