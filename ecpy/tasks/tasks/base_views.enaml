@@ -18,8 +18,10 @@ from __future__ import (division, unicode_literals, print_function,
 from operator import attrgetter
 
 from atom.api import Event
-from enaml.widgets.api import GroupBox, Stack, StackItem
+from enaml.widgets.api import (GroupBox, Stack, StackItem, FileDialogEx,
+                               Label, Field, ToolButton)
 from enaml.core.api import d_, d_func
+from enaml.layout.api import hbox, vbox, align
 
 from ...utils.enaml_destroy_hook import add_destroy_hook
 from .task_editor import TaskEditor, FoldableTaskEditor
@@ -166,7 +168,23 @@ enamldef RootTaskView(BaseTaskView): main:
             if not view.is_destroyed:
                 view.destroy()
 
-    # XXX add the root path edition widgets
+    constraints = [vbox(hbox(p_lab, p_val, p_exp), editor),
+                   align('v_center', p_lab, p_val)]
+
+    Label: p_lab:
+        text = 'Root path'
+    Field: p_val:
+        text := task.default_path
+    ToolButton: p_exp:
+        text = 'Explore'
+        clicked ::
+            curr_path = task.default_path
+            get_dir = FileDialogEx.get_existing_directory
+            path = get_dir(title='Select a default path',
+                           current_path=curr_path)
+
+            if path:
+                task.default_path = path
 
     TaskEditor: editor:
         task = main.task

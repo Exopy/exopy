@@ -34,6 +34,42 @@ pytest_plugins = str('ecpy.testing.tasks.fixtures'),
 
 
 @pytest.mark.ui
+def test_root_path_edition(windows, task_workbench, dialog_sleep,
+                           monkeypatch):
+    """Test the behavior of the root task view.
+
+    """
+    task = RootTask()
+    view = RootTaskView(task=task,
+                        core=task_workbench.get_plugin('enaml.workbench.core'))
+
+    butt = view.widgets()[2]
+
+    def choose_path(**kwargs):
+        return 'test/path'
+    with enaml.imports():
+        from ecpy.tasks.tasks.base_views import FileDialogEx
+    monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
+                        choose_path)
+
+    butt.clicked = True
+    assert task.default_path == 'test/path'
+
+    def choose_path(**kwargs):
+        return ''
+    monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
+                        choose_path)
+
+    butt.clicked = True
+    assert task.default_path == 'test/path'
+
+    def choose_path(**kwargs):
+        return ''
+    monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
+                        choose_path)
+
+
+@pytest.mark.ui
 def test_root_view(windows, task_workbench, dialog_sleep):
     """Test the behavior of the root task view.
 
@@ -41,7 +77,7 @@ def test_root_view(windows, task_workbench, dialog_sleep):
     task = RootTask()
     view = RootTaskView(task=task,
                         core=task_workbench.get_plugin('enaml.workbench.core'))
-    editor = view.children[0]
+    editor = view.children[-1]
 
     win = show_widget(view)
     sleep(dialog_sleep)
