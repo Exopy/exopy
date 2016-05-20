@@ -17,7 +17,7 @@ from traceback import format_exc
 from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
                                Container, MultilineField, Label)
 from enaml.layout.api import hbox, vbox, spacer
-from enaml.core.api import Declarative
+from enaml.core.api import Declarative, Include
 
 from ...utils.enaml_destroy_hook import add_destroy_hook
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
@@ -35,7 +35,8 @@ enamldef ToolSelector(Dialog): dial:
     attr measure
 
     #: Declaration for the currently selected tool.
-    attr selected_decl
+    attr selected_decl << (find_decl(list_ed.selected_item)
+                           if list_ed.selected_item else None)
 
     #: Private version of kind, reflecting the real name of the members
     attr _kind = kind.replace('-', '_')+'s'
@@ -46,25 +47,20 @@ enamldef ToolSelector(Dialog): dial:
 
     title = 'Select a %s' % kind
 
+    initialized ::
+        if list_ed.selected_item:
+            dial.selected_decl = find_decl(list_ed.selected_item)
+
     func find_decl(name):
         pl = measure.plugin
         id_ = _names[name]
-        dial.selected_decl = pl.get_declarations(kind, [id_])[id_]
-
-    initialized ::
-        if list_ed.selected_item:
-            find_decl(list_ed.selected_item)
+        return pl.get_declarations(kind, [id_])[id_]
 
     Container:
         constraints << [vbox(hbox(list_ed, desc), hbox(spacer, cancel, ok))]
 
-        # XXX rework for better reliability
         QtListStrWidget: list_ed:
             items << list(_names)
-            selected_item ::
-                new = change['value']
-                if new:
-                    find_decl(new)
 
         MultilineField: desc:
             text << selected_decl.description if selected_decl else ''
@@ -117,6 +113,9 @@ enamldef ToolsEditor(DestroyableContainer): main:
     #: Currently selected tool (id)
     alias selected_id : tools.selected_item
 
+    #: Ids of tools that cannot be removed.
+    attr mandatory_tools = []
+
     #: Cache of the already created views.
     attr _cache = {}
 
@@ -124,15 +123,18 @@ enamldef ToolsEditor(DestroyableContainer): main:
     attr _kind = kind.replace('-', '_')+'s'
 
     #: Private mapping between tools ids and names.
-    attr _names = ids_to_unique_names(getattr(measure, _kind))
+    attr _names = ids_to_unique_names(getattr(measure, _kind), reverse=True)
 
-    constraints << [hbox(tools, cont, vbox(add, remove, up, down, spacer))]
+    constraints << [hbox(tools, *(list(inc.objects) +
+                                       [vbox(add, remove, up, down, spacer)]))
+                    ]
 
     func update_items(change):
         """Update the list of tools.
 
         """
-        main._names = ids_to_unique_names(getattr(measure, _kind))
+        main._names = ids_to_unique_names(getattr(measure, _kind),
+                                          reverse=True)
         tools.items = list(_names)
 
     func make_view(selected):
@@ -152,6 +154,7 @@ enamldef ToolsEditor(DestroyableContainer): main:
             cmd = 'ecpy.app.errors.signal'
             msg = 'Failed to create widget for %s %s :\n%s'
             err = format_exc()
+            tool_id = _names[selected]
             core.invoke_command(cmd,
                                 dict(kind='error',
                                      message=msg % (kind, tool_id, err))
@@ -161,7 +164,10 @@ enamldef ToolsEditor(DestroyableContainer): main:
         if not view:
             view = NonEditableTool(tool=tool)
         _cache[selected] = view
-        return view
+        return [view]
+
+    func _to_name(tool_id):
+        return _names[tool_id]
 
     initialized ::
         measure.observe(_kind, update_items)
@@ -176,21 +182,15 @@ enamldef ToolsEditor(DestroyableContainer): main:
 
     QtListStrWidget: tools:
         sort = False
-        selected_item ::
-            if change.get('oldvalue'):
-                id_ = _names.get(change['oldvalue'])
-                if id_ in _cache:
-                    _cache[id_].set_parent(None)
-            view = make_view(_names[change['value']])
-            view.set_parent(cont)
-            view.show()
+        to_string = _to_name
 
-    Container: cont:
-        pass
+    Include: inc:
+        objects << (make_view(tools.selected_item) if tools.selected_item
+                    else [])
+        destroy_old = False
 
     PushButton: add:
         text = 'Add'
-        # XXX fix for monitors.
         enabled << not all([id in tools.items
                             for id in  getattr(measure.plugin, _kind)])
         clicked ::
@@ -215,9 +215,9 @@ enamldef ToolsEditor(DestroyableContainer): main:
 
     PushButton: remove:
         text = 'Remove'
-        enabled << bool(selected_id)
+        enabled << bool(selected_id) and selected_id not in mandatory_tools
         clicked ::
-            id_ = _names[selected_id]
+            id_ = selected_id
             try:
                 measure.remove_tool(kind, id_)
             except KeyError:
@@ -267,6 +267,7 @@ enamldef ToolsEditorDockItem(DockItem): main:
                     ToolsEditor: pre_ed:
                         kind = 'pre-hook'
                         measure << main.measure
+                        mandatory_tools = ['ecpy.internal_checks']
 
             Page:
                 title = 'Monitors'

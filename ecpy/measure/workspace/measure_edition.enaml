@@ -412,6 +412,8 @@ class _MeasDockItem(DockItem):
             if tool_dock:
                 tool_dock.destroy()
             super(_MeasDockItem, self)._item_closed()
+        else:
+            self.show()
 
 
 enamldef MeasureEditorDockItem(_MeasDockItem): main:

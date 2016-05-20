@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 
+import enaml
 from atom.api import List, Subclass, Dict
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 
@@ -88,11 +89,13 @@ enamldef TextMonitorManifest(PluginManifest): man:
                 return plugin.create_monitor(default)
 
             make_view => (workbench, monitor):
-                from .monitor_views import TextMonitorEdit
+                with enaml.imports():
+                    from .monitor_views import TextMonitorEdit
                 return TextMonitorEdit(monitor=monitor)
 
             create_item => (workbench, area):
-                from .monitor_views import TextMonitorItem
+                with enaml.imports():
+                    from .monitor_views import TextMonitorItem
                 return TextMonitorItem(area, name=self.id)
 
     Extension:

@@ -135,8 +135,6 @@ class QtListStrWidget(RawWidget):
 
         if not self.multiselect:
             if self.selected_item not in items:
-                del self.selected_item
-                del self.selected_index
                 item = widget.item(0)
                 widget.setCurrentItem(item,
                                       QtGui.QItemSelectionModel.ClearAndSelect)
@@ -144,8 +142,6 @@ class QtListStrWidget(RawWidget):
                 self._post_setattr_selected_item(None, self.selected_item)
         else:
             if not any(i in items for i in self.selected_items):
-                del self.selected_items
-                del self.selected_indexes
                 item = widget.item(0)
                 widget.setCurrentItem(item,
                                       QtGui.QItemSelectionModel.ClearAndSelect)

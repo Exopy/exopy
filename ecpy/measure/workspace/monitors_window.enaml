@@ -48,20 +48,20 @@ enamldef MonitorsWindow(Window):
         Label: meas_lab:
             text = 'Measure :'
         Field: meas_val:
-            text << measure.name
+            text << measure.name if measure else ''
             read_only = True
 
         Label: id_lab:
             text = 'Id :'
         Field: id_val:
-            text << measure.id
+            text << measure.id if measure else ''
             read_only = True
 
         Label: stat_lab:
             text = 'Status'
         Field: stat_val:
-            text << measure.status
+            text << measure.status if measure else ''
             read_only = True
 
         DockArea: area:
-            pass
+            style = 'metro'

@@ -125,7 +125,7 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
 #            pre_hook_ed.widgets()[-4].clicked = True
 
     # Move up and then down
-    pre_hook_ed.selected_id = 'Dummy'
+    pre_hook_ed.selected_id = 'dummy'
     pre_hook_ed.widgets()[-2].clicked = True
     process_app_events()
     sleep(dialog_sleep)

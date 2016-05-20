@@ -221,7 +221,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
         id = 'preferences'
         point = 'ecpy.app.preferences.plugin'
         Preferences:
-            pass
+            auto_save = ['path', 'selected_engine']
 
 #    Extension:
 #        id = 'instr_user'

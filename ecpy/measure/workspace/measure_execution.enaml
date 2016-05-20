@@ -129,13 +129,16 @@ enamldef ExecutionDockItem(DockItem):
             #: Flag indicating the measure is running.
             attr running << workspace.plugin.processor.active
 
+            #: Refrence to the currently running measure
+            attr running_meas << workspace.plugin.processor.running_measure
+
             #: Flag indicating the measure is in the process of pausing.
-            attr pausing << running and\
-                workspace.plugin.processor.running_measure.status == 'PAUSING'
+            attr pausing << (running and running_meas and
+                             running_meas.status == 'PAUSING')
 
             #: Flag indicating the measure is in pause.
-            attr paused << running and\
-                workspace.plugin.processor.running_measure.status == 'PAUSED'
+            attr paused << (running and running_meas and
+                            running_meas.status == 'PAUSED')
 
             text << label_maker(running, paused)
             enabled << bool(workspace.plugin.enqueued_measures) and not pausing
@@ -150,9 +153,14 @@ enamldef ExecutionDockItem(DockItem):
                         workspace.pause_current_measure()
 
         PushButton: stop:
-            attr proc = workspace.plugin.processor
-            attr stopping << (proc.running_measure and
-                              proc.running_measure.status == 'STOPPING')
+
+            #: Refrence to the currently running measure
+            attr running_meas << workspace.plugin.processor.running_measure
+
+            #: Flag indicating that we are stopping.
+            attr stopping << (running_meas and
+                              running_meas.status == 'STOPPING')
+
             text << 'Stop' if not stopping else 'Force stop'
             enabled << workspace.plugin.processor.active
 
