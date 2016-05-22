@@ -79,7 +79,7 @@ enamldef LoopView(ComplexTaskView): view:
         i_include = view.find('interface_include')
 
         if not t.interface:
-            t.interface = i_select.interfaces[i_select.items[0]].cls()
+            t.interface = i_select.interfaces[i_select.items[0]].cls(task=task)
 
         i_include.objects = root.view_for(t.interface)
 
@@ -96,9 +96,12 @@ enamldef LoopView(ComplexTaskView): view:
             i_include.objects = []
 
             if change['value']:
-                task.interface = interfaces[change['value']].cls()
+                # HINT we explicitely passes the task to avoid the interface_id
+                # to be ill defined for a time. Which can crash the selector
+                # widget.
+                task.interface = interfaces[change['value']].cls(task=task)
 
-                i_include.objects = root.view_for(t.interface)
+                i_include.objects = root.view_for(task.interface)
 
     Label: t_lab:
         text = 'Timing'

@@ -17,7 +17,8 @@ import enaml
 from multiprocessing import Event
 
 from ecpy.testing.tasks.util import CheckTask
-from ecpy.testing.util import show_and_close_widget
+from ecpy.testing.util import (show_and_close_widget, show_widget,
+                               process_app_events)
 from ecpy.tasks.api import RootTask
 from ecpy.tasks.tasks.logic.loop_task import LoopTask
 from ecpy.tasks.tasks.logic.loop_iterable_interface\
@@ -593,3 +594,18 @@ class TestLoopTask(object):
         root = RootTaskView(core=core)
         self.task.task = BreakTask(name='Aux')
         show_and_close_widget(LoopView(task=self.task, root=root))
+
+    @pytest.mark.ui
+    def test_view_changing_interface(self, windows, task_workbench):
+        """Test the LoopTask view.
+
+        """
+        core = task_workbench.get_plugin('enaml.workbench.core')
+        root = RootTaskView(core=core)
+        view = LoopView(task=self.task, root=root)
+        show_widget(view)
+        selector = view.widgets()[2]
+        selector.selected = selector.items[1]
+        process_app_events()
+        selector.selected = selector.items[0]
+        process_app_events()
