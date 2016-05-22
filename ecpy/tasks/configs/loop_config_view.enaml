@@ -28,32 +28,34 @@ enamldef LoopConfigView(BaseConfigView): view:
 
     """
 
-    constraints << [vbox(hbox(name_label, name_field, sub),
-                         hbox(*tuple(simple.items + embed.items))),
-                    ]
+    constraints << ([vbox(hbox(name_label, name_field, sub), default)]
+                    if not config.use_subtask else
+                    [vbox(hbox(name_label, name_field, sub), desc,
+                          hbox(selector, *conf.objects))])
 
     CheckBox: sub:
         text = 'Use subtask'
         checked := config.use_subtask
+        checked ::
+            if change['value']:
+                config.subtask = selector.selected_task
+                conf.objects = [config.subview]
+            else:
+                conf.objects = []
 
-    Conditional: simple:
-        condition << not config.use_subtask
-        MultilineField:
-            text = config.task_doc
+    MultilineField: default:
+        visible << not config.use_subtask
+        text = config.task_doc
 
-    Conditional: embed:
-        condition << config.use_subtask
-        Container:
-            padding = 0
-            constraints << [vbox(desc, hbox(selector, *conf.objects))]
-
-            Label: desc:
-                text = config.task_doc
-            TaskSelector: selector:
-                hug_width = 'strong'
-                manager = config.manager
-                display_filters = False
-                selected_filter = 'Loopable'
-                selected_task >> config.subtask
-            Include: conf:
-                objects  << [config.subview] if config.subview else []
+    Label: desc:
+        visible << config.use_subtask
+        text = config.task_doc
+    TaskSelector: selector:
+        visible << config.use_subtask
+        hug_width = 'strong'
+        manager = config.manager
+        display_filters = False
+        selected_filter = 'Loopable'
+        selected_task >> config.subtask
+    Include: conf:
+        objects << [config.subview] if config.subview else []
