@@ -81,12 +81,10 @@ enamldef TaskSelector(Container): sel:
     selected_filter ::
         if selected_filter:
             tasks = manager.list_tasks(selected_filter)
-            if tasks:
-                self.tasks = tasks
-            else:
-                self.tasks = ['']
+            tasks = tasks or ['']
         else:
-            self.tasks = manager.list_tasks()
+            tasks = manager.list_tasks()
+        self.tasks = tasks
 
     #: Tasks to display in the selector.
     attr tasks = manager.list_tasks(selected_filter)
@@ -110,6 +108,6 @@ enamldef TaskSelector(Container): sel:
             selected := selected_filter
 
     QtListStrWidget: t_select:
-        items << tasks
+        items << list(_task_map)
         to_string = _to_name
         sort = True
