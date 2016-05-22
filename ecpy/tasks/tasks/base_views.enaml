@@ -63,7 +63,7 @@ enamldef ComplexTaskView(BaseTaskView): main:
         """Ensure that all children tasks are also properly displayed.
 
         """
-        self.show()
+        BaseTaskView.refresh(self)
         editor.refresh()
 
     FoldableTaskEditor: editor:
@@ -87,7 +87,7 @@ enamldef RootTaskView(BaseTaskView): main:
         """Ensure that all children tasks are also properly displayed.
 
         """
-        self.show()
+        BaseTaskView.refresh(self)
         editor.refresh()
 
     # TODO pass the future parent task so that config can do name inspections
