@@ -50,6 +50,10 @@ enamldef ModelSelectionWidget(Container):
 
     constraints = [vbox(hbox(k_lab, k_val, ser), tr)]
 
+    initialized ::
+        if model:
+            tr.selected_item = model
+
     Label: k_lab:
         text = 'Kind'
     ObjectCombo: k_val:
@@ -217,28 +221,32 @@ enamldef ModelSelectionDialog(Dialog): dial:
     alias plugin : sel.plugin
 
     #: Currently selected instrument model
-    alias model : sel.model
+    attr instr_model
 
     title = 'Select an instrument model'
+
+    initialized ::
+        if instr_model:
+            sel.model = instr_model
 
     Container:
 
         constraints << ([vbox(hbox(sel, vbox(*(list(dis.objects) + [spacer]))),
-                              hbox(spacer, can, ok))] +
-                        [o.width >= sel.width for o in dis.objects])
+                              hbox(spacer, can, ok)),
+                        contents_width >= 3*sel.width])
 
         ModelSelectionWidget: sel:
             kind = 'All'
             use_series = True
         Include: dis:
-            objects << [ModelView(model=sel.model)
-                        if sel.model else Container()]
+            objects << [ModelView(model=sel.model)] if sel.model else []
         PushButton: can:
             text = 'Cancel'
             clicked ::
                 dial.reject()
         PushButton: ok:
             text = 'Ok'
-            enabled << bool(model)
+            enabled << bool(sel.model)
             clicked::
+                dial.instr_model = sel.model
                 dial.accept()

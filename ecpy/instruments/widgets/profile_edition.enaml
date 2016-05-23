@@ -379,9 +379,9 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
         visible = not read_only
         clicked ::
             dial = ModelSelectionDialog(parent=self, plugin=plugin,
-                                        model=profile_infos.model)
+                                        instr_model=profile_infos.model)
             if dial.exec_():
-                new = dial.model
+                new = dial.instr_model
                 main.connections = [c for c in main.connections
                                     if c.declaration.id in new.connections]
                 main.settings = [s for s in main.settings
