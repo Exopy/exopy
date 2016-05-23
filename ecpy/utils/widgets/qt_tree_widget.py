@@ -141,7 +141,13 @@ class QtTreeWidget(RawWidget):
         nid = self._set_root_node(self.root_node, tree)
         # The proxy is not yet active so we must set the selected item manually
         self._guard ^= INDEX_GUARD
-        self.selected_item = self.get_object(nid)
+        if not self.selected_item:
+            self.selected_item = self.get_object(nid)
+        else:
+            new = self.selected_item
+            if id(new) in self._map:
+                # TODO handle the automatic expanding of the tree
+                tree.setCurrentItem(self._object_info(new)[2])
         self._guard ^= INDEX_GUARD
         return tree
 
@@ -268,7 +274,8 @@ class QtTreeWidget(RawWidget):
             for i in range(ncolumns):
                 tree.resizeColumnToContents(i)
 
-        nid = tree.topLevelItem(0)
+        top_nid = tree.topLevelItem(0)
+        nid = top_nid or nid
         tree.setCurrentItem(nid)
         return nid
 
