@@ -66,6 +66,7 @@ def test_model_selection_widget(windows, instr_workbench, dialog_sleep):
 
     tr.selected_item = h._manufacturers['Dummy']._models['001']
     process()
-    assert d.model
 
-    d.close()
+    d.central_widget().widgets()[-1].clicked = True
+    process_app_events()
+    assert d.instr_model

@@ -37,7 +37,7 @@ enamldef LoopConfigView(BaseConfigView): view:
         text = 'Use subtask'
         checked := config.use_subtask
         checked ::
-            if change['value']:
+            if change['value'] and selector.selected_task:
                 config.subtask = selector.selected_task
                 conf.objects = [config.subview]
             else:

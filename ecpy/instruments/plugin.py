@@ -487,7 +487,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         """Automatically update the profiles member.
 
         """
-        self.profiles = list(new)
+        self.profiles = sorted(new)
 
     def _default__manufacturers(self):
         """Delayed till this is first needed.

@@ -87,7 +87,6 @@ def test_starting_measure_no_measure_enqueued(processor):
 
     """
     processor.start_measure(None)
-    assert processor.active
     processor._thread.join()
     process_app_events()
     assert not processor.active
@@ -131,6 +130,9 @@ def test_running_full_measure(app, processor, measure_with_tools, windows,
     measure = measure_with_tools
     processor.continuous_processing = False
     processor.start_measure(measure)
+
+    process_app_events()
+    assert processor.active
 
     pre_hook = measure.pre_hooks['dummy']
     assert pre_hook.waiting.wait(5)

@@ -98,6 +98,7 @@ enamldef BrowsingDialog(Dialog): dial:
                                    'profile %s ?' % p_id)
                             res = question(p_del, title='Confirm deletion',
                                            text=msg)
+
                             if res and res.action == 'accept':
                                 ps = plugin._profiles.copy()
                                 os.remove(ps[p_id].path)

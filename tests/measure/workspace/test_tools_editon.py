@@ -97,7 +97,7 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
         process_app_events()
         sleep(dialog_sleep)
 
-    with handle_dialog(custom=add_tool_1):
+    with handle_dialog('accept', custom=add_tool_1):
         pre_hook_ed.widgets()[-4].clicked = True
 
     assert 'dummy' in measure.pre_hooks
