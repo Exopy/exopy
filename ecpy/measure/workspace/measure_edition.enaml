@@ -212,6 +212,11 @@ class _MeasEditionModel(Atom):
 
     def __init__(self, **kwargs):
         super(_MeasEditionModel, self).__init__(**kwargs)
+
+    def activate(self):
+        """Start observing once the system is properly set up.
+
+        """
         self.view.observe('selected_task', self.update_after_task_selection)
 
     def clear_state(self, ):
@@ -265,7 +270,8 @@ class _MeasEditionModel(Atom):
 
         # Update selected editor with new selected task. If the editor changed
         # this is a no-op.
-        self.selected_editor.selected_task = new_task
+        if self.selected_editor:
+            self.selected_editor.selected_task = new_task
 
     #--- Private API ----------------------------------------------------------
 
@@ -325,6 +331,8 @@ enamldef MeasEditionView(Container): ed:
                     align('v_center', lab, name)]
 
     activated ::
+        del ed.selected_task
+        _internal.activate()
         post_set_measure()
 
     Label: lab:
@@ -359,7 +367,7 @@ enamldef MeasEditionView(Container): ed:
 
         hug_height = 'ignore'
         root_node = measure.root_task
-        selected_item >> selected_task
+        selected_item >> ed.selected_task
         visible << _internal.tree_visible
         enabled << _internal.tree_enabled
 
