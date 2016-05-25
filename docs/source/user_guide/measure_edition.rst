@@ -23,10 +23,16 @@ available :
 - other editors contributed by plugins may be present for some tasks.
 
 The standard editor provide a different view for each task depending on its
-parameters and is hence the most commonly used. The execution and database 
-access editors present similar graphical user interface for all tasks and are 
-used to set common settings that would make the standard editor unusable
-if they were present on it. There use is detailed in the next sections.
+parameters and is hence the most commonly used. 
+For example, if you create a "Definition" task, it will appear in the standard 
+editor, first as a "Add first element" button, and then once you click on it 
+as two blank writing fields where you can enter a name and its definition.
+A chevron button allows you to add another definition below.
+
+The execution and database access editors present similar graphical user 
+interface for all tasks and are used to set common settings that would make 
+the standard editor unusable if they were present on it. They are available as 
+additional tabs above the tasks view. There use is detailed in the next sections.
 
 Execution editor
 ^^^^^^^^^^^^^^^^

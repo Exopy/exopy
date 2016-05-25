@@ -79,20 +79,10 @@ step of the measure. They are organized in a tree structure hence allowing more
 flexibility than simply nested loops. Information can be passed between Tasks  
 through a shared database.
 
-The tools are optional and allow to customize three parts of the execution:
-
-- pre-execution hooks are run before starting the actual measurement and can
-  be used to validate the parameters in the measure or collect the state of the
-  application.
-- monitors are active while the main part of the measure is running and can 
-  report on the progress of the measure.
-- post-execution hooks are run after the main part of the measure has been 
-  executed and can run even if the main part of measure errored.
-  
-When creating a new blank measure (using the **File/New measure** menu), the 
-panel added to the graphical interface allows you to edit the tasks. To edit
-the tools, you need to click the **Edit tools** button ; the edition of tools 
-will be described in ???.
+When creating a new blank measure (using the **File/New measure** menu), the panel 
+added to the graphical interface allows you to edit the tasks and the tools. 
+To edit the tools, you need to click the 
+**Edit tools** button ; the edition of tools will be described in ???.
 
 Each measure has a name, an id and a root directory. The name is intented to 
 describe the purpose of the measure while its id can act as a counter to 
@@ -113,6 +103,11 @@ When selecting a task, a description will appear on the right and if the task
 necessitates some parametrization the appropriate tools will be provided. Each
 task needs a name ; one is provided by default but for clarity sake it may
 be best to change it.
+
+.. warning::
+
+    It is not possible to have two Tasks with the same name at a given nesting 
+    in the hierarchy.
 
 Once the task is added to the hierarchy, you can edit its parameters. A number 
 of them can be specified as formulas following the python syntax (in this case
@@ -158,7 +153,25 @@ good reason to do so.
     You can re-edit an enqueued measure by opening a dedicated dialog using the
     button next to the measure name in the queue.
 
-Congratulations, your measure is now waiting for execution. The next section will
+The next section will shortly review aditional options to customize the measure, 
+before moving on to the execution.
+
+
+Editing the tools
+-----------------
+
+The tools are optional and allow to customize three parts of the execution:
+
+- pre-execution hooks are run before starting the actual measurement and can
+  be used to validate the parameters in the measure or collect the state of the
+  application.
+- monitors are active while the main part of the measure is running and can 
+  report on the progress of the measure.
+- post-execution hooks are run after the main part of the measure has been 
+  executed and can run even if the main part of measure failed.
+
+
+Congratulations, your measure is now waiting for execution ! The next section will 
 describe how to start it and what happens next.
 
 Running a measure
@@ -211,7 +224,8 @@ current measure and execute the next ones or stop everything.
 
     While a measure is running the application will prevent closing to avoid
     crashing everything by clicking accidentally on the 'x' button.
-    
+
+
 Those are the basics, but to be able to run a meaningful measure you will need
 to use some instruments. The next section will explain how those are handled in
 Ecpy and how to register one so that it can be used in a measure.
