@@ -383,7 +383,7 @@ class MeasureSpace(Workspace):
             Measure to perform.
 
         """
-        if self._ensure_selected_engine():
+        if not self._ensure_selected_engine():
             return
 
         self.plugin.processor.continuous_processing = False
