@@ -124,21 +124,21 @@ By default a single pre-hook is attached to the measure: the one responsible
 for running the tests of the measure, it cannot be removed.
 
 As usual you can add new tools using the add button and edit them when they are
-selected. The use of pre/post hooks being pretty straightforward it will not be
-detailed here.
+selected. The use of pre/post hooks being pretty straightforward it will not be 
+detailed here. 
 
 Monitors can prove more tricky to use. First let us define what is the role of a
-monitor (and hence what it is not supposed to do). A monitor is supposed to ask
-for notifications when some entries are updated in the database and react to
-that change in way that lets the user know what is currently going on. First
-please note that this kind of notification can be time consuming and hence it is
+monitor (and hence what it is not supposed to do). A monitor is supposed to ask for
+notifications when some entries are updated in the database and react to that
+change in way that lets the user know what is currently going on. First please 
+note that this kind of notification can be time consuming and hence it is 
 better not to observe values inside tight loops (whose each iteration is around
 30 ms). Second a monitor should strive for stability and low memory consumption
-so that the measure does not crash because of it, which is why it should not
-try to plot all the data acquired by the measure but leave this work to
+so that the measure does not crash because of it, which is why it should not 
+try to plot all the data acquired by the measure but leave this work to 
 external programs.
 
 Ecpy comes with a built-in monitor which can display the values of the database
-entries. It can perform some minimal formatting on those entries and you can
-build new ones with custom formatting. It attached by default to all measures.
+entries. It can perform some minimal formatting on those entries and you can 
+build new ones with custom formatting.
 
