@@ -155,7 +155,7 @@ instrument.
 
 Defaults
 --------
-seondary_address : int
+secondary_address : int
     Secondary address to use.
 
 """

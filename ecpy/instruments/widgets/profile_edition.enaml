@@ -399,12 +399,15 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                 name = 'connections'
                 Container:
 
-                    constraints = ([hbox(conns, *(tuple(s_conn.objects) +
-                                                  (vbox(add_c, del_c, val_c,
-                                                        spacer),)))]
-                                   if not read_only else
-                                   [hbox(conns, *(tuple(s_conn.objects) +
-                                                  (vbox(val_c, spacer),)))])
+                    constraints << ([hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(add_c, del_c, val_c, spacer))]
+                                    if not read_only else
+                                    [hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(val_c, spacer))])
 
                     QtListStrWidget: conns:
                         items << main.connections or []
@@ -456,12 +459,14 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                 name = 'settings'
                 Container:
 
-                    constraints = ([hbox(setts,
-                                         *(tuple(s_sett.objects) +
-                                           (vbox(add_s, re_s, del_s, spacer),)
-                                           ))]
-                                   if not read_only else
-                                   [hbox(setts, *s_sett.objects)])
+                    constraints << ([hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))),
+                                          vbox(add_s, re_s, del_s, spacer))]
+                                    if not read_only else
+                                    [hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))))])
 
                     QtListStrWidget: setts:
                         items << main.settings or []
