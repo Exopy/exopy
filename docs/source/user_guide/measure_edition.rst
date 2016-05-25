@@ -10,7 +10,7 @@ how to use the tools that are pre/post-execution hooks and the monitors.
 
 .. contents::
 
-Advance use of editors
+Advanced use of editors
 ----------------------
 
 Dependending on the currently selected task, different editors can be 
@@ -18,28 +18,28 @@ available :
 
 - the standard editor used to edit the tasks is always present.
 - the execution editor is also always present.
-- the task database access editor is present for the task that can have
+- the task database access editor is present for the tasks that can have
   children tasks.
 - other editors contributed by plugins may be present for some tasks.
 
 The standard editor provide a different view for each task depending on its
 parameters and is hence the most commonly used. The execution and database 
 access editors present similar graphical user interface for all tasks and are 
-used to set common settings that would be make the standard editor unusable
+used to set common settings that would make the standard editor unusable
 if they were present on it. There use is detailed in the next sections.
 
 Execution editor
 ^^^^^^^^^^^^^^^^
 
-The execution editor as its name states can be used to edit how a task will
-be executed. Three parameters are editable through it :
+The execution editor as its name states can be used to edit the way a task will
+be executed. Three parameters are editable :
 
 - can the application be stopped/paused just before executing a task ? By 
   default this is the case for all the tasks and has only a very limited 
   overhead. This is controlled by the 'Stoppable' checkbox.
 - should the task be executed in a new thread ? This setting controlled by the
   'Parallel' checkbox can be misleading in that in Python only one thread can 
-  execute python code at any time, however this constrained is released when
+  execute python code at any time. However this constrained is released when
   calling C code (typically when performing IO operations such as writing into
   a file or communicating with an instrument). So if your experiment needs to 
   set multiple instruments states before performing a measure you may gain
@@ -70,11 +70,11 @@ Database access exceptions
 
 The database access exception editor is available only on complex tasks (ie 
 tasks that have child tasks). It allows to change the visibility of the
-values stored in the database. Lets explain this.
+values stored in the database. Let us explain this more precisely.
 
 To each complex task is associated a node in the database, database which is 
 used by the tasks to store all sorts of data they may want to share. Each task 
-stores its values in the node of its parent. When a task needs to access to a 
+stores its values in the node of its parent. When a task needs to access a 
 value stored in the database by another task, it can only look into the values 
 stored in the same node it is storing its data or a higher node (the into which
 its parent task is writing). However in some cases this can be restrictive, 
@@ -88,8 +88,8 @@ Consider a measure made of two parts:
   
 The task filling the array is a child of the first loop. The task looking for
 the max on the other hand is a child a the root it is hence not allowed to 
-access the array ! So this can't work ! This is where the database access 
-editor enter the game.
+access the array ! So this cannot work ! This is where the database access 
+editor enters the game.
 
 In this editor panel, all the entries stored in the database are represented,
 each one at the level of the node in which it is stored. To add an exception
@@ -112,21 +112,21 @@ By default a single pre-hook is attached to the measure: the one responsible
 for running the tests of the measure, it cannot be removed.
 
 As usual you can add new tools using the add button and edit them when they are
-selected. The use of pre/post hooks being pretty straightforward it won't be 
+selected. The use of pre/post hooks being pretty straightforward it will not be 
 detailed here. 
 
-Monitors can prove more tricky to use. First lets define what is the role of a
-monitor (and hence it is not supposed to do). A monitor is supposed to ask for
+Monitors can prove more tricky to use. First let us define what is the role of a
+monitor (and hence what it is not supposed to do). A monitor is supposed to ask for
 notifications when some entries are updated in the database and react to that
-change in way that let the user know what is currently going on. First please 
+change in way that lets the user know what is currently going on. First please 
 note that this kind of notification can be time consuming and hence it is 
 better not to observe values inside tight loops (whose each iteration is around
-30 ms). Second a monitor shoudl strive for stability and low memory consumption
+30 ms). Second a monitor should strive for stability and low memory consumption
 so that the measure does not crash because of it, which is why it should not 
 try to plot all the data acquired by the measure but leave this work to 
 external programs.
 
-Ecpy comes with a built-in monitors which can display the value of the database
+Ecpy comes with a built-in monitor which can display the values of the database
 entries. It can perform some minimal formatting on those entries and you can 
 build new ones with custom formatting.
 
