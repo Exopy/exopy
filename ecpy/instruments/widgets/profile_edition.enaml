@@ -428,8 +428,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                   'existing': [c.declaration.id
                                                for c in connections]}
                             dial = ConnectionCreationDialog(**kw)
-                            dial.exec_()
-                            if dial.connection:
+                            if dial.exec_() and dial.connection:
                                 dial.connection.read_only = read_only
                                 main.connections = (main.connections[:] +
                                                     [dial.connection])
@@ -491,8 +490,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                   'model_infos': profile_infos.model,
                                   'existing': [s.name for s in settings]}
                             dial = SettingsCreationDialog(**kw)
-                            dial.exec_()
-                            if dial.settings:
+                            if dial.exec_() and dial.settings:
                                 dial.settings.read_only = read_only
                                 main.settings = (main.settings[:] +
                                                  [dial.settings])
