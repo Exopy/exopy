@@ -13,9 +13,11 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import enaml
+from enaml.widgets.api import MultilineField
 
+from ecpy.app.errors.widgets import BasicErrorsDisplay
 from ecpy.instruments.infos import DriverInfos
-from ecpy.testing.util import handle_dialog
+from ecpy.testing.util import handle_dialog, show_and_close_widget
 
 with enaml.imports():
     from .contributors import InstrContributor1
@@ -40,6 +42,24 @@ def test_driver_validation_error_handler(windows, instr_workbench):
     with handle_dialog('accept', check_dialog):
         core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
                                   'details': {'d': d.validate(p)}})
+
+
+def test_reporting_on_extension_errors(windows, instr_workbench):
+    """Check reporting extension errors.
+
+    """
+    plugin = instr_workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['ecpy.driver-validation']
+
+    widget = handler.report(instr_workbench)
+    assert isinstance(widget, MultilineField)
+    show_and_close_widget(widget)
+
+    handler.errors = {'test': 'msg'}
+
+    widget = handler.report(instr_workbench)
+    assert isinstance(widget, BasicErrorsDisplay)
+    show_and_close_widget(widget)
 
 
 def test_validate_runtime_dependencies_driver(instr_workbench):

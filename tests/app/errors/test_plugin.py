@@ -18,7 +18,7 @@ from enaml.workbench.api import Workbench
 from enaml.widgets.api import MultilineField
 from future.utils import python_2_unicode_compatible
 
-from ecpy.testing.util import handle_dialog, get_window
+from ecpy.testing.util import handle_dialog, get_window, show_and_close_widget
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -241,11 +241,15 @@ def test_reporting_on_extension_errors(workbench):
     plugin = workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
-    assert isinstance(handler.report(workbench), MultilineField)
+    widget = handler.report(workbench)
+    assert isinstance(widget, MultilineField)
+    show_and_close_widget(widget)
 
-    handler.errors = {'test': {}}
+    handler.errors = {'test': {'errror': 'msg'}}
 
-    assert isinstance(handler.report(workbench), HierarchicalErrorsDisplay)
+    widget = handler.report(workbench)
+    assert isinstance(widget, HierarchicalErrorsDisplay)
+    show_and_close_widget(widget)
 
 
 # =============================================================================
