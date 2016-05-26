@@ -89,10 +89,10 @@ def save_measure_as(event):
 
     """
     workbench = event.workbench
-    plugin = workbench.get_plugin('ecpy.measure')
+    workspace = workbench.get_plugin('ecpy.measure').workspace
     measure = event.parameters['measure'] or workspace.last_selected_measure
 
-    plugin.workspace.save_measure(measure, False)
+    workspace.save_measure(measure, False)
 
 
 def load_measure(event):

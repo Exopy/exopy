@@ -251,7 +251,7 @@ enamldef ToolsEditorDockItem(DockItem): main:
     # Measure whose tools are being edited.
     attr measure
 
-    title = 'Measure tools'
+    title << measure.name + ' ' + measure.id + ' tools'
     name = 'ecpy.measure.workspace.tools.monitors'
 
     Container:
