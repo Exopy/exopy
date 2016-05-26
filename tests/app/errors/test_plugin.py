@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 import enaml
 from enaml.workbench.api import Workbench
+from enaml.widgets.api import MultilineField
 from future.utils import python_2_unicode_compatible
 
 from ecpy.testing.util import handle_dialog, get_window
@@ -22,6 +23,7 @@ from ecpy.testing.util import handle_dialog, get_window
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from ecpy.app.errors.manifest import ErrorsManifest
+    from ecpy.app.errors.widgets import HierarchicalErrorsDisplay
     from ecpy.app.packages.manifest import PackagesManifest
 
 
@@ -206,7 +208,7 @@ def test_reporting_multiple_registering_errors(workbench):
 # --- Test extensions handler -------------------------------------------------
 # =============================================================================
 
-def test_reporting_single_extension_error(workbench):
+def test_handling_single_extension_error(workbench):
     """Check handling a single extension error.
 
     """
@@ -219,7 +221,7 @@ def test_reporting_single_extension_error(workbench):
         handler.handle(workbench, {})
 
 
-def test_reporting_multiple_extension_errors(workbench):
+def test_handling_multiple_extension_errors(workbench):
     """Check handling multiple extension errors.
 
     """
@@ -230,6 +232,20 @@ def test_reporting_multiple_extension_errors(workbench):
 
     with pytest.raises(Exception):
         handler.handle(workbench, {})
+
+
+def test_reporting_on_extension_errors(workbench):
+    """Check reporting extension errors.
+
+    """
+    plugin = workbench.get_plugin('ecpy.app.errors')
+    handler = plugin._errors_handlers.contributions['extensions']
+
+    assert isinstance(handler.report(workbench), MultilineField)
+
+    handler.errors = {'test': {}}
+
+    assert isinstance(handler.report(workbench), HierarchicalErrorsDisplay)
 
 
 # =============================================================================
