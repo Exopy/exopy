@@ -144,7 +144,7 @@ def test_browing_dialog_profiles_delete(prof_plugin, process_and_sleep):
     with handle_dialog('accept', handle, cls=MessageBox):
         btn.clicked = True
 
-    sleep(0.5)
+    sleep(1.0)
     process_app_events()
 
     assert 'fp1' not in prof_plugin._profiles

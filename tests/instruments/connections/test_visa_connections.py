@@ -22,7 +22,7 @@ with enaml.imports():
 try:
     from pyvisa.rname import assemble_canonical_name
 except ImportError:
-    assemble_canonical_name = lambda x: True
+    assemble_canonical_name = lambda **x: True
 
 
 def test_visa_raw(windows):
