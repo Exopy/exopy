@@ -180,7 +180,7 @@ enamldef EntryDialog(Dialog): dial:
         Label: name_lab:
             text = 'Name'
         Field: name:
-            hug_width = 'medium'
+            hug_width = 'ignore'
             text = entry.name if entry else ''
             # TODO add a validator preventing shadowing any names already there
 

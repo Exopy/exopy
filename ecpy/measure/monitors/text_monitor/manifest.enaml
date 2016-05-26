@@ -124,7 +124,8 @@ enamldef TextMonitorManifest(PluginManifest): man:
             id = 'Measure entries'
             description = 'Reject all the entries provided by the measure'
             rule_type = 'ecpy.RejectRule'
-            config = {'suffixes': ['meas_name', 'meas_id', 'meas_date']}
+            config = {'suffixes': ['meas_name', 'meas_id', 'meas_date',
+                                   'default_path']}
 
         RuleConfig:
             id = 'Loop progress'

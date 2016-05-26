@@ -43,12 +43,17 @@ enamldef CreateRuleDialog(Dialog): dial:
             tabs_movable = False
 
             Page: p_select:
-                attr rule
+                attr rule = (plugin.build_rule(qlist.selected_item) if
+                             qlist.selected_item else None)
                 title = 'Existing rules'
                 name = 'ecpy.measure.monitors.text_monitor.select_rule'
 
                 Container:
-                    constraints = [hbox(qlist, *v_select.objects)]
+                    constraints << [hbox(qlist,
+                                         vbox(*(tuple(v_select.objects) +
+                                                (spacer,)))
+                                         ),
+                                    contents_width >= 2*qlist.width]
 
                     QtListStrWidget: qlist:
                         items = plugin.rules
@@ -60,19 +65,19 @@ enamldef CreateRuleDialog(Dialog): dial:
                                     if p_select.rule else [])
 
             Page: p_build:
-                attr rule
+                attr rule = (plugin.get_rule_type(com.selected)() if
+                             com.selected else None)
                 title = 'Build rule'
                 name = 'ecpy.measure.monitors.text_monitor.create_rule'
 
                 Container:
-                    constraints << [vbox(
-                                    com, vbox(*v_build.objects),
-                                    hbox(spacer, ok, cancel))
+                    constraints << [vbox(com,
+                                         *(tuple(v_build.objects) +
+                                           (sav, hbox(spacer, ok, cancel))))
                                     ]
 
                     ObjectCombo: com:
                         items << plugin.rule_types
-                        selected = None
                         selected ::
                             p_build.rule = plugin.get_rule_type(selected)()
 
@@ -117,21 +122,24 @@ enamldef EditRulesView(Dialog): dial:
 
     title = 'Rules'
 
+    initialized ::
+        v.objects = ([plugin.get_rule_view(qlist.selected_item)]
+                     if qlist.selected_item else [])
+
     Container:
         constraints << [vbox(
-                            hbox(qlist, *(v.objects +
-                                 [vbox(add, delete, save, spacer)])),
-                            hbox(spacer, ex))]
+                            hbox(qlist, vbox(*(tuple(v.objects) + (spacer,))),
+                                 vbox(add, delete, save, spacer)),
+                            hbox(spacer, ex)),
+                        contents_width >= 3*qlist.width]
+
         QtListStrWidget: qlist:
             items << monitor.rules
             to_string = attrgetter('id')
-            selected_item = None
-            selected_item ::
-                v.objects = ([plugin.get_rule_view(qlist.selected_item)]
-                             if qlist.selected_item else [])
 
         Include: v:
-            pass
+            objects << ([plugin.get_rule_view(qlist.selected_item)]
+                        if qlist.selected_item else [])
 
         PushButton: add:
             text = 'Add'

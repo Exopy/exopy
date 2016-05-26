@@ -213,6 +213,7 @@ class TextMonitor(BaseMonitor):
         """Set the entries according to the state if one is present.
 
         """
+        super(TextMonitor, self).link_to_measure(measure)
         database = measure.root_task.database
         self.refresh_monitored_entries(database.list_all_entries(values=True))
 

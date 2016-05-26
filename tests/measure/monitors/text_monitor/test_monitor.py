@@ -92,6 +92,16 @@ def test_adding_removing_moving_entries(monitor):
         monitor.move_entries('displayed', '', ())
 
 
+def test_linking_to_measure(monitor, measure):
+    """Test that linking the monitor to a measure does start the database
+    observation.
+
+    """
+    monitor.link_to_measure(measure)
+    measure.root_task.database_entries = {'default_path': '', 'dummy': ''}
+    assert 'root/dummy' in monitor.monitored_entries
+
+
 def test_handle_database_change1(monitor):
     """ Test handling the adding of an entry to the database.
 
