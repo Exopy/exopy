@@ -1,0 +1,3 @@
+# Ignore folder content
+tests/*
+docs/*
