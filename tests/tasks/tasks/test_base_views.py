@@ -45,7 +45,8 @@ def test_root_path_edition(windows, task_workbench, dialog_sleep,
 
     butt = view.widgets()[2]
 
-    def choose_path(**kwargs):
+    @classmethod
+    def choose_path(cls, **kwargs):
         return 'test/path'
     with enaml.imports():
         from ecpy.tasks.tasks.base_views import FileDialogEx
@@ -55,7 +56,8 @@ def test_root_path_edition(windows, task_workbench, dialog_sleep,
     butt.clicked = True
     assert task.default_path == 'test/path'
 
-    def choose_path(**kwargs):
+    @classmethod
+    def choose_path(cls, **kwargs):
         return ''
     monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
                         choose_path)
@@ -63,7 +65,8 @@ def test_root_path_edition(windows, task_workbench, dialog_sleep,
     butt.clicked = True
     assert task.default_path == 'test/path'
 
-    def choose_path(**kwargs):
+    @classmethod
+    def choose_path(cls, **kwargs):
         return ''
     monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
                         choose_path)
