@@ -16,7 +16,7 @@ from traceback import format_exc
 
 from atom.api import Coerced, Bool
 from enaml.validator import Validator
-from enaml.layout.api import hbox, vbox, spacer
+from enaml.layout.api import hbox, vbox, spacer, Pos
 from enaml.core.api import Conditional, Include
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
                                Dialog, MultilineField, ObjectCombo, Form,
@@ -126,7 +126,7 @@ enamldef ConnectionValidationWindow(Window): dial:
     attr driver = profile_infos.model.drivers[0]
 
     #: Currently selected connection.
-    attr connection = editor.connections[0].declaration.id
+    attr connection = editor.connections[0]
 
     #: Currently selected settings.
     attr settings
@@ -180,7 +180,7 @@ enamldef ConnectionValidationWindow(Window): dial:
             clicked ::
                 editor.sync()
                 driver_cls, starter = plugin.get_drivers([driver.id])[0][driver.id]
-                c = profile_infos.connections[connection]
+                c = profile_infos.connections[connection.declaration.id]
                 s = profille_infos.settings[settings] if settings else {}
                 try:
                     res, msg = starter.check_infos(driver_cls, c, s)
@@ -449,9 +449,13 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                     not main._validator.visible)
                         clicked ::
                             selected = conns.selected_item
-                            d = ConnectionValidationWindow(editor=main,
+                            d = ConnectionValidationWindow(main, editor=main,
                                                            connection=selected)
                             d.show()
+                            if not read_only:
+                                geo = main.parent.parent.frame_geometry()
+                                d.set_position(Pos(geo.x + geo.width, geo.y))
+                            d.send_to_front()
                             main._validator = d
 
             Page:
@@ -530,6 +534,8 @@ enamldef ProfileEditionDialog(Dialog): dial:
     alias creation : ed.creation
 
     title = 'Edit profile %s' % profile_infos.id
+
+    always_on_top = True
 
     Container:
 
