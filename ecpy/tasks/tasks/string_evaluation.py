@@ -24,9 +24,9 @@ import cmath as cm
 
 try:
     import numpy as np
-    np_tip = ["- numpy function are available under np"]
+    NP_TIP = ["- numpy function are available under np"]
 except ImportError:  # pragma: no cover
-    np_tip = []  # pragma: no cover
+    NP_TIP = []  # pragma: no cover
 
 FORMATTER_TOOLTIP = fill(cleandoc("""In this field you can enter a text and
                         include fields which will be replaced by database
@@ -41,7 +41,7 @@ EVALUATER_TOOLTIP = '\n'.join([
     "- cos, sin, tan, acos, asin, atan, atan2",
     "- exp, log, log10, cosh, sinh, tanh, sqrt",
     "- complex math function are available under cm",
-    "- pi is available as Pi"] + np_tip)
+    "- pi is available as Pi"] + NP_TIP)
 
 
 def safe_eval(expr, local_var):

@@ -274,8 +274,10 @@ enamldef VisaTCPIP(BaseVisaConnection):
         rows.append((adv,))
         if adv.checked:
             end = 4 if resource_class == 'INSTR' else 2
-            widgets = reversed(self.widgets())
-            rows.extend(zip(widgets[0:end:2], widgets[1:end:2]))
+            widgets = self.widgets()
+            length = len(widgets)
+            rows.extend(zip(widgets[length-end:length:2],
+                            widgets[length-end+1:length:2]))
 
         return [grid(*rows, row_align='v_center')]
 

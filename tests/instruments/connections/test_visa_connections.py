@@ -41,11 +41,11 @@ def test_visa_rs232(windows):
     """
     c = VisaRS232()
     show_widget(c)
-    c.widgets()[-1].value = 1
+    c.widgets()[-1].text = '1'
     process_app_events()
     assert c.gather_infos() == {'interface_type': 'ASRL',
                                 'resource_class': 'INSTR',
-                                'board': 1}
+                                'board': '1'}
     assemble_canonical_name(**c.gather_infos())
 
 
@@ -55,15 +55,15 @@ def test_visa_GPIB(windows):
     """
     c = VisaGPIB()
     show_widget(c)
-    c.widgets()[-2].value = 1
+    c.widgets()[-2].text = '1'
     process_app_events()
     c.widgets()[-1].checked = True
     process_app_events()
     assert c.gather_infos() == {'interface_type': 'GPIB',
                                 'resource_class': 'INSTR',
-                                'board': 0,
-                                'primary_address': 1,
-                                'secondary_address': 0}
+                                'board': '0',
+                                'primary_address': '1',
+                                'secondary_address': '0'}
     assemble_canonical_name(**c.gather_infos())
 
 
@@ -84,8 +84,8 @@ def test_visa_usb(windows):
                                 'manufacturer_id': '0x00',
                                 'model_code': '0x01',
                                 'serial_number': '0x02',
-                                'usb_interface_number': 0,
-                                'board': 0}
+                                'usb_interface_number': '0',
+                                'board': '0'}
     assemble_canonical_name(**c.gather_infos())
 
 
@@ -103,7 +103,7 @@ def test_visa_tcpip_instr(windows):
                                 'resource_class': 'INSTR',
                                 'host_address': '192.168.0.10',
                                 'lan_device_name': '',
-                                'board': 0}
+                                'board': '0'}
     assemble_canonical_name(**c.gather_infos())
 
 
@@ -116,13 +116,13 @@ def test_visa_tcpip_socket(windows, process_and_sleep):
     c.resource_class = 'SOCKET'
     process_and_sleep()
     c.widgets()[-4].text = '192.168.0.10'
-    c.widgets()[-2].value = 10000
+    c.widgets()[-2].text = '10000'
     process_app_events()
     c.widgets()[-1].checked = True
     process_app_events()
     assert c.gather_infos() == {'interface_type': 'TCPIP',
                                 'resource_class': 'SOCKET',
                                 'host_address': '192.168.0.10',
-                                'port': 10000,
-                                'board': 0}
+                                'port': '10000',
+                                'board': '0'}
     assemble_canonical_name(**c.gather_infos())
