@@ -123,7 +123,7 @@ def format_error(node):
 
     """
     if isinstance(node, Leaf):
-        return str(Leaf.value)
+        return str(node.value)
     else:
         msg = 'Node %s contains the following entries :\n' % node.name
         for n in node.nodes:

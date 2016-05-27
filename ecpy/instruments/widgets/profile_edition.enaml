@@ -12,9 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from traceback import format_exc
+
 from atom.api import Coerced, Bool
 from enaml.validator import Validator
-from enaml.layout.api import hbox, vbox, spacer
+from enaml.layout.api import hbox, vbox, spacer, Pos
 from enaml.core.api import Conditional, Include
 from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
                                Dialog, MultilineField, ObjectCombo, Form,
@@ -124,7 +126,7 @@ enamldef ConnectionValidationWindow(Window): dial:
     attr driver = profile_infos.model.drivers[0]
 
     #: Currently selected connection.
-    attr connection = editor.connections[0].declaration.id
+    attr connection = editor.connections[0]
 
     #: Currently selected settings.
     attr settings
@@ -172,14 +174,19 @@ enamldef ConnectionValidationWindow(Window): dial:
                     tool_tip = 'Select the settings to use during the test.'
                     selected >> dial.settings
 
+        # TODO make this more friendly by displaying a popup
         PushButton: test:
             text = 'Test connection'
             clicked ::
                 editor.sync()
                 driver_cls, starter = plugin.get_drivers([driver.id])[0][driver.id]
-                c = profile_infos.connections[connection]
+                c = profile_infos.connections[connection.declaration.id]
                 s = profille_infos.settings[settings] if settings else {}
-                res, msg = starter.check_infos(driver_cls, c, s)
+                try:
+                    res, msg = starter.check_infos(driver_cls, c, s)
+                except Exception:
+                    res = False
+                    msg = format_exc()
                 m = ('The connection was successfully established' if res else
                      'An error occured:\n' + msg)
                 infos.text += '\n' + m
@@ -348,9 +355,9 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
         if self._validator and self._validator.visible:
             self._validator.close()
 
-    constraints = [vbox(hbox(id_lab, id_val),
-                        hbox(model_lab, model, m_choose),
-                        *nb.items)]
+    constraints << [vbox(hbox(id_lab, id_val),
+                         hbox(model_lab, model, m_choose),
+                         *nb.items)]
 
     Label: id_lab:
         text = 'Id'
@@ -372,9 +379,9 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
         visible = not read_only
         clicked ::
             dial = ModelSelectionDialog(parent=self, plugin=plugin,
-                                        model=profile_infos.model)
+                                        instr_model=profile_infos.model)
             if dial.exec_():
-                new = dial.model
+                new = dial.instr_model
                 main.connections = [c for c in main.connections
                                     if c.declaration.id in new.connections]
                 main.settings = [s for s in main.settings
@@ -392,12 +399,15 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                 name = 'connections'
                 Container:
 
-                    constraints = ([hbox(conns, *(tuple(s_conn.objects) +
-                                                  (vbox(add_c, del_c, val_c,
-                                                        spacer),)))]
-                                   if not read_only else
-                                   [hbox(conns, *(tuple(s_conn.objects) +
-                                                  (vbox(val_c, spacer),)))])
+                    constraints << ([hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(add_c, del_c, val_c, spacer))]
+                                    if not read_only else
+                                    [hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(val_c, spacer))])
 
                     QtListStrWidget: conns:
                         items << main.connections or []
@@ -418,8 +428,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                   'existing': [c.declaration.id
                                                for c in connections]}
                             dial = ConnectionCreationDialog(**kw)
-                            dial.exec_()
-                            if dial.connection:
+                            if dial.exec_() and dial.connection:
                                 dial.connection.read_only = read_only
                                 main.connections = (main.connections[:] +
                                                     [dial.connection])
@@ -439,9 +448,13 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                     not main._validator.visible)
                         clicked ::
                             selected = conns.selected_item
-                            d = ConnectionValidationWindow(editor=main,
+                            d = ConnectionValidationWindow(main, editor=main,
                                                            connection=selected)
                             d.show()
+                            if not read_only:
+                                geo = main.parent.parent.frame_geometry()
+                                d.set_position(Pos(geo.x + geo.width, geo.y))
+                            d.send_to_front()
                             main._validator = d
 
             Page:
@@ -449,12 +462,14 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                 name = 'settings'
                 Container:
 
-                    constraints = ([hbox(setts,
-                                         *(tuple(s_sett.objects) +
-                                           (vbox(add_s, re_s, del_s, spacer),)
-                                           ))]
-                                   if not read_only else
-                                   [hbox(setts, *s_sett.objects)])
+                    constraints << ([hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))),
+                                          vbox(add_s, re_s, del_s, spacer))]
+                                    if not read_only else
+                                    [hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))))])
 
                     QtListStrWidget: setts:
                         items << main.settings or []
@@ -468,14 +483,14 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                     if setts.selected_item else [Container()])
                     PushButton: add_s:
                         text = 'Add'
+                        enabled << bool(profile_infos.model.settings)
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
                                   'model_infos': profile_infos.model,
                                   'existing': [s.name for s in settings]}
                             dial = SettingsCreationDialog(**kw)
-                            dial.exec_()
-                            if dial.settings:
+                            if dial.exec_() and dial.settings:
                                 dial.settings.read_only = read_only
                                 main.settings = (main.settings[:] +
                                                  [dial.settings])
@@ -518,6 +533,8 @@ enamldef ProfileEditionDialog(Dialog): dial:
 
     title = 'Edit profile %s' % profile_infos.id
 
+    always_on_top = True
+
     Container:
 
         constraints = [vbox(ed, hbox(spacer, can, ok))]
@@ -532,6 +549,7 @@ enamldef ProfileEditionDialog(Dialog): dial:
 
         PushButton: ok:
             text = 'Ok'
+            enabled << bool(profile_infos.id and profile_infos.model)
             clicked ::
                 ed.sync()
                 dial.accept()

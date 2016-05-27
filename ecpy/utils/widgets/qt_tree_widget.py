@@ -134,13 +134,20 @@ class QtTreeWidget(RawWidget):
         tree.itemExpanded.connect(self._on_item_expanded)
         tree.itemCollapsed.connect(self._on_item_collapsed)
         tree.itemSelectionChanged.connect(self._on_tree_sel_changed)
+        tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tree.customContextMenuRequested.connect(self._on_context_menu)
         tree.itemChanged.connect(self._on_nid_changed)
 
-        self._set_root_node(self.root_node, tree)
+        nid = self._set_root_node(self.root_node, tree)
         # The proxy is not yet active so we must set the selected item manually
         self._guard ^= INDEX_GUARD
-        self.selected_item = self.root_node
+        if not self.selected_item:
+            self.selected_item = self.get_object(nid)
+        else:
+            new = self.selected_item
+            if id(new) in self._map:
+                # TODO handle the automatic expanding of the tree
+                tree.setCurrentItem(self._object_info(new)[2])
         self._guard ^= INDEX_GUARD
         return tree
 
@@ -260,14 +267,17 @@ class QtTreeWidget(RawWidget):
                 self._expand_node(nid)
             if not self.hide_root:
                 nid.setExpanded(True)
-            self._expand_levels(nid, self.auto_expand, False)
+            self._expand_levels(nid, 2, self.auto_expand)
 
         ncolumns = tree.columnCount()
         if ncolumns > 1:
             for i in range(ncolumns):
                 tree.resizeColumnToContents(i)
 
-        tree.setCurrentItem(tree.topLevelItem(0))
+        top_nid = tree.topLevelItem(0)
+        nid = top_nid or nid
+        tree.setCurrentItem(nid)
+        return nid
 
     def _create_item(self, nid, node, obj, index=None):
         """Create  a new TreeWidgetItem as per word_wrap policy.
@@ -664,8 +674,8 @@ class QtTreeWidget(RawWidget):
             self._guard ^= INDEX_GUARD
 
     def _on_context_menu(self, pos):
-        """ Handles the user requesting a context menuright clicking on a tree
-        node.
+        """ Handles the user requesting a context menu, right clicking on a
+        tree node.
 
         """
         tree = self.get_widget()

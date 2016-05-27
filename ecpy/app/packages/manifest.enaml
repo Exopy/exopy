@@ -115,7 +115,12 @@ enamldef PackagesManifest(PluginManifest):
                                           read_only=True)
 
             report => (workbench):
-                return BasicErrorsDisplay(kind='Packages', errors=errors)
+                if errors:
+                    return BasicErrorsDisplay(errors=errors,
+                                              kind='Packages')
+                else:
+                    msg = 'No package registering error occured.'
+                    return MultilineField(text=msg)
 
         ErrorHandler:
             attr errors = {}

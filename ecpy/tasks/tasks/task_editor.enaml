@@ -274,10 +274,13 @@ class TaskEditor(Container):
         return EmptyEditorButton(editor=self)
 
 
-enamldef FoldableTaskEditor(Container):
+enamldef FoldableTaskEditor(Container): fed:
     """Task editor which can be masked.
 
     """
+    #: Flag determining whether or not to show the editor
+    attr show_editor : bool = True
+
     #: Direct access to the task of the underlying editor.
     alias task: editor.task
 
@@ -287,29 +290,22 @@ enamldef FoldableTaskEditor(Container):
     alias operations : editor.operations
 
     func refresh():
-        if stack.index == 0:
-            editor.refresh()
+        self.show()
+        editor.refresh()
 
     padding = 0
 
     PushButton:
-        text = '-'
+        text << '-' if show_editor else '+'
         constraints = [height == 10]
         clicked ::
-            ind = int(not stack.index)
-            stack.index = ind
-            self.text = '+' if ind else '-'
+            fed.show_editor = not show_editor
 
-    Stack: stack:
-        size_hint_mode = 'current'
+    TaskEditor: editor:
+        visible << show_editor
+        name = 'task_editor'
 
-        StackItem:
-            TaskEditor: editor:
-                name = 'task_editor'
-
-        StackItem:
-            Container:
-                padding = 2
-                Label:
-                    text = 'Folded'
+    Label:
+        visible << not show_editor
+        text = 'Folded'
 

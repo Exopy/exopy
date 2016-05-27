@@ -361,13 +361,8 @@ class MeasureSpace(Workspace):
         Measure will be processed in their order of appearance in the queue.
 
         """
-        if not self.plugin.selected_engine:
-            dial = EngineSelector(plugin=self.plugin)
-            dial.exec_()
-            if dial.selected_decl:
-                self.plugin.selected_engine = dial.selected_decl.id
-            else:
-                return
+        if not self._ensure_selected_engine():
+            return
 
         measure = self.plugin.find_next_measure()
         self.plugin.processor.continuous_processing = True
@@ -388,6 +383,9 @@ class MeasureSpace(Workspace):
             Measure to perform.
 
         """
+        if not self._ensure_selected_engine():
+            return
+
         self.plugin.processor.continuous_processing = False
 
         self.plugin.processor.start_measure(measure)
@@ -507,3 +505,15 @@ class MeasureSpace(Workspace):
 
         """
         return self._selection_tracker.get_selected_measure()
+
+    def _ensure_selected_engine(self):
+        """Make sure an engine is selected and if not prompt the user to choose
+        one.
+
+        """
+        if not self.plugin.selected_engine:
+            dial = EngineSelector(plugin=self.plugin)
+            if dial.exec_() and dial.selected_decl:
+                self.plugin.selected_engine = dial.selected_decl.id
+
+        return bool(self.plugin.selected_engine)

@@ -44,3 +44,13 @@ def test_ids_to_unique_names2():
             sorted(('test.Dummy 1', 'dummy.Dummy 1', 'Ecpy.test.Tester',
                     'User.test.Tester')))
     assert names['User.test.Tester'] == ids[-1]
+
+
+def test_ids_to_unique_names3():
+    """Test the ids to names conversion.
+
+    """
+    ids = ('ecpy.test.tester', 'ecpy.test.dummy_1', 'ecpy.dummy.dummy_1',
+           'user.test.tester')
+    assert (sorted(list(ids_to_unique_names(ids, reverse=True))) ==
+            sorted(ids))

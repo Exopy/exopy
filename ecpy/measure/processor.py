@@ -87,7 +87,7 @@ class MeasureProcessor(Atom):
         else:
             self._state.clear('continuous_processing')
 
-        self.active = True
+        deferred_call(setattr, self, 'active', True)
         self._thread = Thread(target=self._run_measures,
                               args=(measure,))
         self._thread.daemon = True

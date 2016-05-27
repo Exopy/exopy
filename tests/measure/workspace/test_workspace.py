@@ -439,6 +439,10 @@ def test_measure_execution(workspace):
     with handle_dialog('reject'):
         workspace.start_processing_measures()
 
+    # Test not selecting an engine.
+    with handle_dialog('reject'):
+        workspace.process_single_measure(None)
+
     workspace.plugin.enqueued_measures.measures.append(
         workspace.plugin.edited_measures.measures[0])
 

@@ -49,30 +49,26 @@ enamldef BuilderView(Dialog): dial:
 
     title = 'Select the task you want to add'
 
-    func _update():
-        if selector.selected_task:
-            config, view = manager.get_config(selector.selected_task)
+    func _choose_config(selected_task):
+        if selected_task:
+            config, view = manager.get_config(selected_task)
             if config is None:
                 dial.config = None
-                conf.objects = [Label(text='No config found for this task.')]
-                return
+                return [Label(text='No config found for this task.')]
             dial.config = config
-            conf.objects = [view]
+            return [view]
         else:
             dial.config = None
-            conf.objects = []
-
-    initialized :: _update()
+            return []
 
     Container:
         constraints << [hbox(selector, vbox(*tuple(conf.objects + [spacer])),
                              vbox(ok, cancel, spacer))]
         TaskSelector: selector:
             hug_width = 'strong'
-            selected_task :: _update()
 
         Include: conf:
-            pass
+            objects << _choose_config(selector.selected_task)
 
         PushButton: ok:
             text = 'Ok'

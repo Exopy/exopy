@@ -216,10 +216,11 @@ enamldef ErrorsManifest(PluginManifest):
 
             report => (workbench):
                 if errors:
-                    return HierarchicalErrorDisplay(errors=errors,
+                    return HierarchicalErrorsDisplay(errors=errors,
                                                     kind='Extensions')
-                    msg = 'No extensions registering error occured.'
-                    return MultilineField(text=msg)
+
+                msg = 'No extensions registering error occured.'
+                return MultilineField(text=msg)
 
             func _format(infos):
                 return {infos['point']: infos['errors']}

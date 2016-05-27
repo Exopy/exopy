@@ -150,6 +150,11 @@ class MeasurePlugin(HasPreferencesPlugin):
         # before discovering the contributions (would be an issue for engine).
         super(MeasurePlugin, self).start()
 
+        # HINT : add manually the text monitor as we do not have yet
+        # preferences edition
+        if 'ecpy.text_monitor' in self.monitors:
+            self.default_monitors = ['ecpy.text_monitor']
+
         if not os.path.isdir(self.path):
             core = self.workbench.get_plugin('enaml.workbench.core')
             state = core.invoke_command('ecpy.app.states.get',

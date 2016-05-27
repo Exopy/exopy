@@ -68,6 +68,7 @@ class TextMonitorPlugin(HasPreferencesPlugin):
         # the default ones.
         self._update_rule_types(None)
         self._update_rules(None)
+
         defaults = [r for r in self.default_rules if r in self.rules]
         if defaults != self.default_rules:
             msg = ('The following rules for the TextMonitor are not defined, '
@@ -75,6 +76,9 @@ class TextMonitorPlugin(HasPreferencesPlugin):
             removed = set(self.default_rules) - set(defaults)
             logger.warning(msg, removed)
             self.default_rules = defaults
+
+        # TODO : remove once we have preferences edition.
+        self.default_rules = ['Measure entries', 'Loop progress']
 
         self._bind_observers()
 

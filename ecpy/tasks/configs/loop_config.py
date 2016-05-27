@@ -61,7 +61,7 @@ class LoopTaskConfig(PyTaskConfig):
             return self.task_class(name=self.task_name)
 
     def _post_setattr_subtask(self, old, new):
-        """handler getting the right config and config view for the subtask.
+        """Handler getting the right config and config view for the subtask.
 
         """
         if new:

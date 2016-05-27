@@ -46,11 +46,11 @@ class BaseSettings(GroupBox):
         return {'id': self.declaration.id, 'name': self.name}
 
     def _default_title(self):
-        return self.name + '(' + self.declaration.id + ')'
+        return self.name + ' (' + self.declaration.id + ')'
 
     def _post_setattr_name(self, old, new):
         if self.declaration:
-            self.title = new + '(' + self.declaration.id + ')'
+            self.title = new + ' (' + self.declaration.id + ')'
 
 
 class Settings(Declarative):

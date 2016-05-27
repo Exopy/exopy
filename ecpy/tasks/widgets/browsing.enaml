@@ -81,23 +81,25 @@ enamldef TaskSelector(Container): sel:
     selected_filter ::
         if selected_filter:
             tasks = manager.list_tasks(selected_filter)
-            if tasks:
-                self.tasks = tasks
-            else:
-                self.tasks = ['']
+            tasks = tasks or ['']
         else:
-            self.tasks = manager.list_tasks()
+            tasks = manager.list_tasks()
+        self.tasks = tasks
 
     #: Tasks to display in the selector.
     attr tasks = manager.list_tasks(selected_filter)
 
     #: Currently selected task.
-    attr selected_task = _task_map[sorted(_task_map)[0]]
+    alias selected_task : t_select.selected_item
 
     #: Mappping between user understandable names and ids.
     attr _task_map << (ids_to_unique_names(tasks, normalize_name,
-                                           preformatter=normalize_name)
+                                           preformatter=normalize_name,
+                                           reverse=True)
                        if tasks else {})
+
+    func _to_name(task_id):
+        return  _task_map[task_id]
 
     Conditional:
         condition << display_filters
@@ -106,8 +108,6 @@ enamldef TaskSelector(Container): sel:
             selected := selected_filter
 
     QtListStrWidget: t_select:
-        items << sorted(_task_map)
-        selected_item ::
-            new_val = change['value']
-            if new_val:
-                sel.selected_task = _task_map[new_val]
+        items << list(_task_map)
+        to_string = _to_name
+        sort = True

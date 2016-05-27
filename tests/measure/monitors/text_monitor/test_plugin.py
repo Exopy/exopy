@@ -45,6 +45,8 @@ def text_monitor_plugin(text_monitor_workbench):
                   'default_rules': repr(['test_format', 'unknown'])}
     set_preferences(text_monitor_workbench, conf)
     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    # Set manually as we added those without the preferences.
+    p.default_rules = ['test_format', 'unknown']
     return p
 
 
@@ -68,6 +70,18 @@ def test_lifecycle(text_monitor_plugin):
 
     assert not text_monitor_plugin.rules
     assert not text_monitor_plugin.rule_types
+
+
+def test_handling_missing_default_rule(text_monitor_workbench, caplog):
+    """Test that default rules not backed by a config are discarded.
+
+    """
+    conf = {}
+    path = 'ecpy.measure.monitors.text_monitor'
+    conf[path] = {'default_rules': repr(['test_format', 'unknown'])}
+    set_preferences(text_monitor_workbench, conf)
+    text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    assert caplog.records()
 
 
 def test_plugin_build_rule(text_monitor_plugin):

@@ -46,7 +46,7 @@ enamldef SubprocessLogPanel(DockItem):
 
     """
     attr model
-    stretch = 1
+    stretch = 0
     Container:
         QtAutoscrollHtml:
             text << model.text

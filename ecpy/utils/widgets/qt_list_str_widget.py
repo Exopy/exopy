@@ -83,7 +83,7 @@ class QtListStrWidget(RawWidget):
         # This is necessary to ensure that the first selection is correctly
         # dispatched.
         if self.items:
-            widget.setCurrentItem(widget.item(0),
+            widget.setCurrentItem(widget.item(self._map[0]),
                                   QtGui.QItemSelectionModel.ClearAndSelect)
         widget.itemSelectionChanged.connect(self.on_selection)
         return widget
@@ -99,9 +99,21 @@ class QtListStrWidget(RawWidget):
                        for index in widget.selectedIndexes()]
             if indexes:
                 if self.multiselect:
+                    # HINT force an access so that the new change (which is
+                    # swallowed by enaml) so that the notifications are
+                    # properly propagated
+                    self.selected_indexes
+                    self.selected_items
+
                     self.selected_indexes = indexes
                     self.selected_items = [self.items[i] for i in indexes]
                 else:
+                    # HINT force an access so that the new change (which is
+                    # swallowed by enaml) so that the notifications are
+                    # properly propagated
+                    self.selected_index
+                    self.selected_item
+
                     new_index = indexes[0]
                     self.selected_index = new_index
                     self.selected_item = self.items[new_index]
@@ -118,25 +130,21 @@ class QtListStrWidget(RawWidget):
             widget.clear()
         self._set_items(items, widget)
 
-        if widget is None:
+        if widget is None or not items:
             return
 
         if not self.multiselect:
             if self.selected_item not in items:
-                del self.selected_item
-                del self.selected_index
-                item = widget.item(0)
-                widget.setCurrentItem(item,
-                                      QtGui.QItemSelectionModel.ClearAndSelect)
+                self.selected_index = self._rmap[0]
+                # HINT force the notification
+                self._post_setattr_selected_index(None, self._rmap[0])
             else:
                 self._post_setattr_selected_item(None, self.selected_item)
         else:
             if not any(i in items for i in self.selected_items):
-                del self.selected_items
-                del self.selected_indexes
-                item = widget.item(0)
-                widget.setCurrentItem(item,
-                                      QtGui.QItemSelectionModel.ClearAndSelect)
+                self.selected_indexes = [self._rmap[0]]
+                # HINT force the notification
+                self._post_setattr_selected_indexes(None, [self._rmap[0]])
             else:
                 new = [i for i in self.selected_items if i in items]
                 self._post_setattr_selected_items(None, new)

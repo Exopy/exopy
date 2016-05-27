@@ -62,6 +62,8 @@ enamldef Main(Window): main:
         QtListStrWidget: l1:
             multiselect << main.multiselect
             items = [i**2 for i in range(10)]
+            selected_item::
+                print('Left, selected : ', change['value'])
 
         Field: si1:
             text << (str(l1.selected_indexes) if l1.multiselect
@@ -73,6 +75,8 @@ enamldef Main(Window): main:
 
         QtListStrWidget: l2:
             multiselect << main.multiselect
+            selected_item::
+                print('Right, selected : ', change['value'])
 
         Field: si2:
             text << (str(l2.selected_indexes) if l2.multiselect

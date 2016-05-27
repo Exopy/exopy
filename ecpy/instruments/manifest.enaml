@@ -16,6 +16,7 @@ from ast import literal_eval
 
 import enaml
 from future.builtins import str
+from enaml.widgets.api import MultilineField
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command
 from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
@@ -155,7 +156,7 @@ instrument.
 
 Defaults
 --------
-seondary_address : int
+secondary_address : int
     Secondary address to use.
 
 """
@@ -448,7 +449,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
         id = 'errors'
         point = 'ecpy.app.errors.handler'
         ErrorHandler:
-            attr errors
+            attr errors = {}
             id = 'ecpy.driver-validation'
             description = DRIVER_VALIDATION
             handle => (workbench, infos):
@@ -469,8 +470,12 @@ enamldef InstrumentManagerManifest(PluginManifest):
                                           errors=new_errors)
 
             report => (workbench):
-                return BasicErrorsDisplay(kind='Driver information validation',
-                                          errors=errors)
+                if errors:
+                    title = 'Driver information validation'
+                    return BasicErrorsDisplay(errors=errors, kind=title)
+                else:
+                    msg = 'No driver infos validation error occured.'
+                    return MultilineField(text=msg)
 
             func _format(infos):
                 """Format the validation infos for the logger.

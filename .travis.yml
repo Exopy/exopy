@@ -33,12 +33,12 @@ before_install:
 
   # Install ecpy dependencies
   - $CONDA_INSTALL pyqt future numpy
-  - $PIP_INSTALL configobj watchdog
+  - $PIP_INSTALL configobj watchdog pyvisa
 
   # Install enaml/atom/kiwisolver from sources as we need the latest bug fixes and Py2/3 compat
   - $PIP_INSTALL https://github.com/nucleic/kiwi/tarball/master
   - $PIP_INSTALL https://github.com/MatthieuDartiailh/atom/tarball/py23
-  - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml/tarball/parser23
+  - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml/tarball/python3-parsing
 
   # Intall test tools
   - $CONDA_INSTALL pytest

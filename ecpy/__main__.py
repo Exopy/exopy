@@ -35,6 +35,7 @@ with enaml.imports():
     from ecpy.app.packages.manifest import PackagesManifest
     from ecpy.app.log.manifest import LogManifest
     from ecpy.measure.manifest import MeasureManifest
+    from ecpy.measure.monitors.text_monitor.manifest import TextMonitorManifest
     from ecpy.instruments.manifest import InstrumentManagerManifest
     from ecpy.tasks.manifest import TasksManagerManifest
 
@@ -218,6 +219,7 @@ def main(cmd_line_args=None):
     workbench.register(InstrumentManagerManifest())
     workbench.register(TasksManagerManifest())
     workbench.register(MeasureManifest())
+    workbench.register(TextMonitorManifest())
 
     ui = workbench.get_plugin(u'enaml.workbench.ui')  # Create the application
 
@@ -245,7 +247,7 @@ def main(cmd_line_args=None):
 
     # Unregister all contributed packages
     workbench.unregister('ecpy.app.packages')
-
+    workbench.unregister('ecpy.measure.monitors.text_monitor')
     workbench.unregister('ecpy.measure')
     workbench.unregister('ecpy.tasks')
     workbench.unregister('ecpy.instruments')

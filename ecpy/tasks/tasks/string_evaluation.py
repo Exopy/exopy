@@ -20,8 +20,13 @@ from inspect import cleandoc
 from math import (cos, sin, tan, acos, asin, atan, sqrt, log10,
                 exp, log, cosh, sinh, tanh, atan2)
 from cmath import pi as Pi
-import numpy as np
 import cmath as cm
+
+try:
+    import numpy as np
+    NP_TIP = ["- numpy function are available under np"]
+except ImportError:  # pragma: no cover
+    NP_TIP = []  # pragma: no cover
 
 FORMATTER_TOOLTIP = fill(cleandoc("""In this field you can enter a text and
                         include fields which will be replaced by database
@@ -36,8 +41,7 @@ EVALUATER_TOOLTIP = '\n'.join([
     "- cos, sin, tan, acos, asin, atan, atan2",
     "- exp, log, log10, cosh, sinh, tanh, sqrt",
     "- complex math function are available under cm",
-    "- numpy function are avilable under np",
-    "- pi is available as Pi"])
+    "- pi is available as Pi"] + NP_TIP)
 
 
 def safe_eval(expr, local_var):

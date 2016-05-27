@@ -18,6 +18,7 @@ from enaml.core.api import Include, Conditional, Looper
 from enaml.widgets.api import (Dialog, Label, Container, ScrollArea, Notebook,
                                Page, PushButton, Form, Field)
 from enaml.layout.api import vbox, hbox, spacer
+from enaml.stdlib.message_box import question
 
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ..infos import ProfileInfos
@@ -38,17 +39,97 @@ enamldef BrowsingDialog(Dialog): dial:
 
     Container:
 
-       Notebook:
-           tabs_movable = False
-           tabs_closable = False
+        Notebook:
+            tabs_movable = False
+            tabs_closable = False
 
-           Page:
-               name = 'models'
-               title = 'Instrument models'
-               Container:
+            Page:
+                name = 'profiles'
+                title = 'Profiles'
+                Container:
+
+                    alias p_id : p_sel.selected_item
+
+                    constraints << [vbox(hbox(p_sel, *p_dis.objects),
+                                         hbox(spacer, p_add, p_ed, p_del))]
+
+                    QtListStrWidget: p_sel:
+                        items << plugin.profiles
+                    Include: p_dis:
+                         objects << [ProfileEditionWidget(
+                                         plugin=plugin,
+                                         profile_infos=plugin._profiles[p_id],
+                                         read_only=True)
+                                      if p_id else Container()]
+
+                    PushButton: p_add:
+                        text = 'Add'
+                        clicked ::
+                            i = ProfileInfos.create_blank(plugin)
+                            d = ProfileEditionDialog(plugin=plugin,
+                                                     profile_infos=i,
+                                                     creation=True)
+                            if d.exec_():
+                                folder = plugin._profiles_folders[0]
+                                i.path = os.path.join(folder,
+                                                      i.id + '.instr.ini')
+                                i.write_to_file()
+
+                    PushButton: p_ed:
+                        text = 'Edit'
+                        enabled << bool(p_id and
+                                        p_id not in plugin.used_profiles)
+                        clicked ::
+                            p = plugin._profiles[p_id].clone()
+                            d = ProfileEditionDialog(plugin=plugin,
+                                                     profile_infos=p,
+                                                     creation=False)
+                            if d.exec_():
+                                ps = plugin._profiles.copy()
+                                ps[p_id] = p
+                                p.write_to_file()
+                                plugin._profiles = ps
+
+                    PushButton: p_del:
+                        text = 'Delete'
+                        enabled << bool(p_id not in plugin.used_profiles)
+                        clicked ::
+                            msg = ('Are you sure you want to delete the '
+                                   'profile %s ?' % p_id)
+                            res = question(p_del, title='Confirm deletion',
+                                           text=msg)
+
+                            if res and res.action == 'accept':
+                                ps = plugin._profiles.copy()
+                                os.remove(ps[p_id].path)
+
+            Page:
+                name = 'profile_use'
+                title = 'Profiles use'
+                Container:
+                    ScrollArea:
+                        Form:
+                            Label:
+                                text = 'Profile'
+                                hug_width = 'strong'
+                            Label:
+                                text = 'User'
+                            Looper:
+                                iterable << list(plugin.used_profiles.items())
+                                Label:
+                                    text = loop_item[0]
+                                    hug_width = 'strong'
+                                Field:
+                                    text = loop_item[1]
+                                    read_only = True
+
+            Page:
+                name = 'models'
+                title = 'Instrument models'
+                Container:
 
                     constraints << [hbox(m_sel, vbox(*(tuple(m_dis.objects) +
-                                                            (spacer,))))]
+                                                             (spacer,))))]
 
                     ModelSelectionWidget: m_sel:
                         plugin = dial.plugin
@@ -57,70 +138,3 @@ enamldef BrowsingDialog(Dialog): dial:
                     Include: m_dis:
                         objects << [ModelView(model=m_sel.model)
                                     if m_sel.model else Container()]
-
-           Page:
-               name = 'profiles'
-               title = 'Profiles'
-               Container:
-
-                   alias p_id : p_sel.selected_item
-
-                   constraints << [vbox(hbox(p_sel, *p_dis.objects),
-                                        hbox(spacer, p_add, p_ed))]
-
-                   QtListStrWidget: p_sel:
-                       items << plugin.profiles
-                   Include: p_dis:
-                        objects << [ProfileEditionWidget(
-                                        plugin=plugin,
-                                        profile_infos=plugin._profiles[p_id],
-                                        read_only=True)
-                                     if p_id else Container()]
-
-                   PushButton: p_add:
-                       text = 'Add'
-                       clicked ::
-                           i = ProfileInfos.create_blank(plugin)
-                           d = ProfileEditionDialog(plugin=plugin,
-                                                    profile_infos=i,
-                                                    creation=True)
-                           if d.exec_():
-                               folder = plugin._profiles_folders[0]
-                               i.path = os.path.join(folder,
-                                                     i.id + '.instr.ini')
-                               i.write_to_file()
-
-                   PushButton: p_ed:
-                       text = 'Edit'
-                       enabled << bool(p_id and
-                                       p_id not in plugin.used_profiles)
-                       clicked ::
-                           p = plugin._profiles[p_id].clone()
-                           d = ProfileEditionDialog(plugin=plugin,
-                                                    profile_infos=p,
-                                                    creation=False)
-                           if d.exec_():
-                               ps = plugin._profiles.copy()
-                               ps[p_id] = p
-                               p.write_to_file()
-                               plugin._profiles = ps
-
-           Page:
-               name = 'profile_use'
-               title = 'Profiles use'
-               Container:
-                   ScrollArea:
-                       Form:
-                           Label:
-                               text = 'Profile'
-                               hug_width = 'strong'
-                           Label:
-                               text = 'User'
-                           Looper:
-                               iterable << list(plugin.used_profiles.items())
-                               Label:
-                                   text = loop_item[0]
-                                   hug_width = 'strong'
-                               Field:
-                                   text = loop_item[1]
-                                   read_only = True
