@@ -8,6 +8,10 @@ branches:
   only:
     - master
 
+env:
+  global:
+    secure: "PRb5cv0t1Zwopg2xFDMubzGiZaBLMHF5o+u63t+9A+DRjLYs7bDn/nCdyvG/n9tCIW787rr9P7KD1n4kJtg0BYd3njUasJpRhOJurY6dJqf1aGX/RNnkOQp8xuf2hTMfzUQLQRvtV+6KaA8bUaxvy3uNtDRfDV6b7OZtQAUjjRk="
+
 matrix:
   include:
     - env: PYTHON=2.7
@@ -17,7 +21,7 @@ matrix:
 before_install:
 
   # Install Miniconda
-  - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - travis_retry wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p ~/anaconda
   - export PATH=~/anaconda/bin:$PATH
@@ -25,20 +29,23 @@ before_install:
   - SRC_DIR=$(pwd)
 
   # Setup environment
-  - conda update --yes conda
+  - travis_retry conda update --yes conda
+  - conda install conda-build anaconda-client --yes -q
+  - conda config --add channels ecpy
   - conda create -n travisci --yes python=$PYTHON pip
   - source activate travisci
   - CONDA_INSTALL="conda install --yes -q"
   - PIP_INSTALL="pip install -q"
 
-  # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt future numpy
-  - $PIP_INSTALL configobj watchdog pyvisa
+  # Setup conda build output directory
+  - mkdir conda-bld-out
+  - cd conda-bld-out
+  - export CONDA_BLD_PATH=$(pwd)
+  - cd ..
 
-  # Install enaml/atom/kiwisolver from sources as we need the latest bug fixes and Py2/3 compat
-  - $PIP_INSTALL https://github.com/nucleic/kiwi/tarball/master
-  - $PIP_INSTALL https://github.com/MatthieuDartiailh/atom/tarball/py23
-  - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml/tarball/python3-parsing
+  # Install ecpy dependencies
+  - $CONDA_INSTALL pyqt future numpy configobj watchdog enaml
+  - $PIP_INSTALL pyvisa
 
   # Intall test tools
   - $CONDA_INSTALL pytest
@@ -49,10 +56,11 @@ before_install:
 
 install:
 
-    # Install ecpy (check that build script is not broken
-    - cd ${SRC_DIR}
-    - python setup.py install
-    - cd ~
+  # Install ecpy (check that build script is not broken
+  - cd ${SRC_DIR}
+  - conda build conda -q  # Package building does run only very minimal tests
+  - conda install ecpy --use-local --yes -q
+  - cd ~
 
 before_script:
 # I need a (fake) display on Travis so I need to start a X server.
@@ -60,10 +68,12 @@ before_script:
 - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1400x900x24 -ac +extension GLX +render
 
 script:
-    # Run the Ecpy test suite
-    - cd ${SRC_DIR}
-    - py.test tests --cov ecpy --cov-report xml
+  # Run the Ecpy test suite
+  - cd ${SRC_DIR}
+  - py.test tests --cov ecpy --cov-report xml
 
 after_success:
-    - cd ${SRC_DIR}
-    - codecov
+  - cd ${SRC_DIR}
+  - codecov
+  - cd $CONDA_BLD_PATH
+  - if [[ $TRAVIS_SECURE_ENV_VARS ]]; then python ../continuous-integration/anaconda-push.py; fi
