@@ -10,7 +10,7 @@ branches:
 
 env:
   global:
-    secure: "PRb5cv0t1Zwopg2xFDMubzGiZaBLMHF5o+u63t+9A+DRjLYs7bDn/nCdyvG/n9tCIW787rr9P7KD1n4kJtg0BYd3njUasJpRhOJurY6dJqf1aGX/RNnkOQp8xuf2hTMfzUQLQRvtV+6KaA8bUaxvy3uNtDRfDV6b7OZtQAUjjRk="
+    secure: "KbxZXwF51qTGVz53pYCd6jfgwIL3cjr9RqW4QKV7M6JnwbytBB8E66x747UO/KFQStL6DKKnkp5OoEWRMq9LL97VnM1GuIKOe39IpANIgSZDnO22pWoSM85KNQEFFl04bLTbarR41XFc704oxpVb7bd2t15cyBL1SUDlSHhauv4="
 
 matrix:
   include:
