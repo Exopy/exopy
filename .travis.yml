@@ -75,8 +75,8 @@ script:
 after_success:
   - cd ${SRC_DIR}
   - codecov
-  - cd $CONDA_BLD_PATH
-  - source deactivate
   - export PACK="$(conda build conda --output)"
   - conda convert $PACK -p 'all' --quiet -o $CONDA_BLD_PATH 
+  - cd $CONDA_BLD_PATH
+  - source deactivate
   - if [[ $TRAVIS_SECURE_ENV_VARS ]]; then python ../continuous-integration/anaconda-push.py; fi
