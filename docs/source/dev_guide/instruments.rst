@@ -143,8 +143,8 @@ will be accessed if Driver does not provide a value for a specific field :
 - 'settings': Ids and default values for the supported settings (the
   meaningful default values should be documented by the settings).
 
-We then declare our driver using a |Driver| object. A |Driver| two additional
-attributes compared to the one mentionned for |Drivers| :
+We then declare our driver using a |Driver| object. A |Driver| has two
+additional attributes compared to the one mentionned for |Drivers| :
 
 - 'driver': this is the path ('.' separated) to the module defining the driver.
   The actual name of the driver is specified after a colon (':'). As mentioned
@@ -163,6 +163,11 @@ have been added.
     consistent. So do not use abbreviated names and always start the name by a
     capital letter. Look at existing code and contact the maintainers in cases
     of doubt.
+
+.. note ::
+
+    A driver is identified by its origin package, its architecture and the
+    class name. <origin_package>.<architecture>.<class_name>
 
 
 .. _reg_user:
