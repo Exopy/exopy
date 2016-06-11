@@ -189,9 +189,10 @@ enamldef ConnectionValidationWindow(Window): dial:
                     msg = format_exc()
                 m = ('The connection was successfully established' if res else
                      'An error occured:\n' + msg)
-                infos.text += '\n' + m
+                infos.text += m + '\n'
 
         MultilineField: infos:
+            read_only = True
             Menu:
                 context_menu = True
                 Action:
@@ -427,7 +428,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                   'model_infos': profile_infos.model,
                                   'existing': [c.declaration.id
                                                for c in connections]}
-                            dial = ConnectionCreationDialog(**kw)
+                            dial = ConnectionCreationDialog(main, **kw)
                             if dial.exec_() and dial.connection:
                                 dial.connection.read_only = read_only
                                 main.connections = (main.connections[:] +
