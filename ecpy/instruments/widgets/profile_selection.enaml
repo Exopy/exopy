@@ -59,7 +59,10 @@ enamldef ProfileSelectionWidget(Container): pw:
 
     #: Private list of valid drivers.
     attr _drivers << (filter_drivers(infos.model.drivers)
-                      if infos is not SENTINEL else [])
+                      if infos is not SENTINEL else []):
+    _drivers ::
+        if driver not in [d.id for d in _drivers]:
+            pw.driver = _drivers[0].id if _drivers else None
 
     func matching_connections(p_infos, d_id):
         """Determine the allowed connections based on the selected driver.
@@ -89,7 +92,7 @@ enamldef ProfileSelectionWidget(Container): pw:
         pl.refresh_items()
         if not pw.profile and pl.items:
             pw.profile = pl.items[0]
-        if driver not in {d.id for d in _drivers}:
+        if driver not in {d.id for d in _drivers} and _drivers:
             pw.driver = _drivers[0].id
 
     constraints = [hbox(pl, pf), pf.top == contents_top]
@@ -98,9 +101,6 @@ enamldef ProfileSelectionWidget(Container): pw:
         items << (sorted(filter_profiles(plugin._profiles.copy()))
                   if plugin else [])
         selected_item := profile
-        selected_item ::
-            if driver not in [d.id for d in _drivers]:
-                pw.driver = _drivers[0].id if _drivers else None
 
     Form: pf:
 
