@@ -78,6 +78,8 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
     measure_workbench.register(TasksManagerManifest())
     plugin = measure_workbench.get_plugin('ecpy.measure')
 
+    for m_e in ('meas_name', 'meas_id', 'meas_date'):
+        assert m_e in measure.root_task.database_entries
     measure.add_tool('pre-hook', 'dummy')
     measure.root_task.default_path = 'test'
     measure.pre_hooks['dummy'].fail_check = True

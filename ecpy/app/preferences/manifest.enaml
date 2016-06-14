@@ -54,9 +54,11 @@ enamldef AppDirSelectionDialog(Dialog): dial:
     """Simple dialog prompting the user to choose a directory for the app.
 
     """
+    #: Currently seleted path
     attr path
+
+    #: Default path located in the user directory.
     attr user_path = path
-    attr _valid
 
     title = 'Choose the directory in which to store application settings'
 
@@ -100,7 +102,7 @@ def check_app_folder(workbench, cmd_args):
         path = ''
         try:
             # Explicit casting to detect encoding issues.
-            path = str(os.path.expanduser('~/ecpy'))
+            path = str(os.path.expanduser(os.path.join('~', 'ecpy')))
         except Exception:
             # Silently ignore issues on Python 2 when userpath contains
             # non-ascii characters.

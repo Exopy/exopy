@@ -32,15 +32,24 @@ class Pair(Atom):
     """Base model to represent a key/value pair of a dictionary.
 
     """
+    #: Key of the edited dictionary pair
     key = Value('')
+
+    #: Value of the edited dictionary pair
     value = Value('')
 
+    #: Method to call when either key or value is updated.
     refresh_method = Callable()
 
-    def _post_setattr_key(self, old, new):
-        self.refresh_method()
+    def __init__(self, **kwargs):
+        super(Pair, self).__init__(**kwargs)
+        self.observe('key', self._refresh)
+        self.observe('value', self._refresh)
 
-    def _post_setattr_value(self, old, new):
+    def _refresh(self, change):
+        """Refresh the underlying dict when a value is modified.
+
+        """
         self.refresh_method()
 
 
