@@ -59,7 +59,7 @@ enamldef ProfileSelectionWidget(Container): pw:
 
     #: Private list of valid drivers.
     attr _drivers << (filter_drivers(infos.model.drivers)
-                      if infos is not SENTINEL else []):
+                      if infos is not SENTINEL else [])
     _drivers ::
         if driver not in [d.id for d in _drivers]:
             pw.driver = _drivers[0].id if _drivers else None
