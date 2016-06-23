@@ -18,6 +18,10 @@ from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 from ..preferences.api import Preferences
 
 
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
 enamldef IconManagerManifest(PluginManifest):
     """Manifest of the icon manager plugin providing icon to the GUI.
 
@@ -25,12 +29,28 @@ enamldef IconManagerManifest(PluginManifest):
     #: Id of the plugin.
     id = 'ecpy.app.icons'
 
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
     ExtensionPoint:
-        id = 'ecpy.app.icons.icon_theme'
-        description = 'Point to which plugin can contribute icon themes'
+        id = 'icon_theme'
+        description = 'Point to which plugin can contribute icon themes.'
+
+    ExtensionPoint:
+        id = 'icon_theme_extension'
+        description = ('Point to which plugin can contribute icon theme '
+                       'extensions.')
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
 
     Extension:
-        pass
+
+        point = 'ecpy.app.preferences.plugin_preference'
+        Preferences:
+            pass
 
     Extension:
 
@@ -41,10 +61,10 @@ enamldef IconManagerManifest(PluginManifest):
             id = 'ecpy.FontAwesome'
 
             get_icon => (manager, icon_id):
-                pass
+                pass  # TODO implement
 
         IconTheme:
             id = 'ecpy.ElusiveIcon'
 
             get_icon => (manager, icon_id):
-                pass
+                pass # TODO implement

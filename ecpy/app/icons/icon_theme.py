@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode, Dict
+from atom.api import Unicode, Dict, List
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -26,7 +26,7 @@ class IconTheme(Declarative):
     -
 
     """
-    #:
+    #: Unique id of the icon theme.
     id = d_(Unicode())
 
     @d_func
@@ -50,10 +50,8 @@ class IconTheme(Declarative):
             Icon matching the id or None if no icon match the provided id.
 
         """
-        if not self._icons:
-            for c in self.children:
-                if isinstance(c, Icon):
-                    self._icons[c.id] = c
+        if not self._icons and self.children:
+            self._refresh_children_icons()
 
         if icon_id in self._icons:
             return self._icons[icon_id].get_icon(manager, self)
@@ -66,21 +64,42 @@ class IconTheme(Declarative):
     #: Map of id: icon as declared as children to this theme.
     _icons = Dict()
 
+    def _refresh_children_icons(self):
+        """Refresh the mapping of the icons contributed as children.
+
+        """
+        for c in self.children:
+            if isinstance(c, Icon):
+                self._icons[c.id] = c
+
 
 class IconThemeExtension(Declarative):
+    """Declarative object used to contribute new icons to an existing theme.
+
     """
-    """
-    pass
+    #: Unicsue id of the extension.
+    id = d_(Unicode())
+
+    #: Id of the icon theme to which to contribute the children Icon objects.
+    theme = d_(Unicode())
+
+    # --- Private API ---------------------------------------------------------
+
+    #: Private list of contributed icons.
+    _icons = List()
 
 
 class Icon(Declarative):
+    """Declarative object used to contribute an icon.
+
     """
-    """
-    #:
+    #: Unique id describing the icon. It should provide a clear description
+    #: of the icon purpose.
     id = d_(Unicode())
 
     @d_func
     def get_icon(self, manager, theme):
+        """Generate the corresponding enaml icon object.
+
         """
-        """
-        pass
+        raise NotImplementedError()
