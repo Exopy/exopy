@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
 
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 
@@ -61,10 +62,26 @@ enamldef IconManagerManifest(PluginManifest):
             id = 'ecpy.FontAwesome'
 
             get_icon => (manager, icon_id):
-                pass  # TODO implement
+                # HINT make sure qtpy does not select qt5 when enaml use qt4
+                os.environs['QT_API'] = 'pyqt'
+                from qtawesome import icon
+                try:
+                    icon = icon('fa.' + icon_id)
+                except Exception:
+                    icon = None
+
+                return icon
 
         IconTheme:
             id = 'ecpy.ElusiveIcon'
 
             get_icon => (manager, icon_id):
-                pass # TODO implement
+                # HINT make sure qtpy does not select qt5 when enaml use qt4
+                os.environs['QT_API'] = 'pyqt'
+                from qtawesome import icon
+                try:
+                    icon = icon('fa.' + icon_id)
+                except Exception:
+                    icon = None
+
+                return icon

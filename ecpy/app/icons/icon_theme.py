@@ -83,6 +83,15 @@ class IconThemeExtension(Declarative):
     #: Id of the icon theme to which to contribute the children Icon objects.
     theme = d_(Unicode())
 
+    def icons(self):
+        """List the associated icons.
+
+        """
+        if not self._icons:
+            self._icons = [c for c in self.children if isinstance(c, Icon)]
+
+        return self._icons
+
     # --- Private API ---------------------------------------------------------
 
     #: Private list of contributed icons.
