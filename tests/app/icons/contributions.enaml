@@ -1,0 +1,110 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Extension objects to the icon plugin.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import enaml.icon
+from atom.api import Unicode
+
+from enaml.workbench.api import Extension, PluginManifest
+from ecpy.app.icons.icon_theme import IconTheme, IconThemeExtension, Icon
+
+
+class DumbIcon(enaml.icon.Icon):
+    """Dumb class for testing.
+
+    """
+    id = Unicode()
+
+
+enamldef DummyTheme(IconTheme):
+    """Dummy theme used for testing purposes.
+
+    """
+    id = 'dummy'
+    attr throw : bool = False
+
+    Icon:
+        id = 'dumb1'
+        get_icon => (manager, theme):
+            if throw:
+                raise Exception()
+            return DumbIcon(id=self.id)
+
+
+enamldef DummyThemeExtension(IconThemeExtension):
+    """Dummy theme extension for testing purposes.
+
+    """
+    id = 'dummy_ext'
+    theme = 'dummy'
+    Icon:
+        id = 'dumb2'
+        get_icon => (manager, theme):
+            return DumbIcon(id=self.id)
+
+
+enamldef ThemeContributor(PluginManifest):
+    """Dummy plugin contributing an icon theme.
+
+    """
+    id = 'dummy.icon_theme'
+
+    Extension:
+        id = 'icon_theme'
+        point = 'ecpy.app.icons.icon_theme'
+        DummyTheme:
+            pass
+
+
+enamldef ThemeContributor2(PluginManifest):
+    """Dummy plugin contributing an icon theme.
+
+    """
+    id = 'dummy.icon_theme2'
+
+    Extension:
+        id = 'icon_theme'
+        point = 'ecpy.app.icons.icon_theme'
+        DummyTheme:
+            id = 'dummy2'
+
+
+enamldef ThemeExtensionContributor(PluginManifest):
+    """Dummy plugin extending an icon theme.
+
+    """
+    id = 'dummy.theme_extension'
+
+    Extension:
+        id = 'theme_extension'
+        point = 'ecpy.app.icons.icon_theme_extension'
+        DummyThemeExtension:
+            pass
+
+
+enamldef ThemeExtensionContributor2(PluginManifest):
+    """Dummy plugin extending an icon theme.
+
+    """
+    id = 'dummy.theme_extension2'
+
+    Extension:
+        id = 'theme_extension'
+        point = 'ecpy.app.icons.icon_theme_extension'
+        IconThemeExtension:
+            id = 'dummy_ext2'
+            theme = 'dummy'
+            Icon:
+                id = 'dumb2'
+                get_icon => (manager, theme):
+                    return DumbIcon(id=self.id)

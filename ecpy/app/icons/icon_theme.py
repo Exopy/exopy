@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,8 +19,9 @@ from enaml.core.api import Declarative, d_, d_func
 class IconTheme(Declarative):
     """Declaration of an icon theme.
 
-    An icon theme should provide the following icons :
-    -
+    An icon theme should provide the following icons  as far as the main
+    application is concerned:
+    - folder-open
     -
     -
     -

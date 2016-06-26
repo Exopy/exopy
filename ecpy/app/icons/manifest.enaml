@@ -14,9 +14,23 @@ from __future__ import (division, unicode_literals, print_function,
 
 import os
 
+import enaml.icon
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 
 from ..preferences.api import Preferences
+from .icon_theme import IconTheme
+
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def icons_plugin_factory():
+    """ Factory function for the LogPlugin.
+
+    """
+    from .plugin import IconManagerPlugin
+    return IconManagerPlugin()
 
 
 # =============================================================================
@@ -29,6 +43,7 @@ enamldef IconManagerManifest(PluginManifest):
     """
     #: Id of the plugin.
     id = 'ecpy.app.icons'
+    factory = icons_plugin_factory
 
     # =========================================================================
     # --- Extension points ----------------------------------------------------
@@ -49,12 +64,14 @@ enamldef IconManagerManifest(PluginManifest):
 
     Extension:
 
-        point = 'ecpy.app.preferences.plugin_preference'
+        id = 'preferences'
+        point = 'ecpy.app.preferences.plugin'
         Preferences:
             pass
 
     Extension:
 
+        id = 'themes'
         point = 'ecpy.app.icons.icon_theme'
         description = 'Add the default icon themes based on qtawesome.'
 
@@ -63,10 +80,10 @@ enamldef IconManagerManifest(PluginManifest):
 
             get_icon => (manager, icon_id):
                 # HINT make sure qtpy does not select qt5 when enaml use qt4
-                os.environs['QT_API'] = 'pyqt'
-                from qtawesome import icon
+                os.environ['QT_API'] = 'pyqt'
+                from qtawesome import icon as qicon
                 try:
-                    icon = icon('fa.' + icon_id)
+                    icon = enaml.icon.Icon(_tkdata=qicon('fa.' + icon_id))
                 except Exception:
                     icon = None
 
@@ -77,10 +94,10 @@ enamldef IconManagerManifest(PluginManifest):
 
             get_icon => (manager, icon_id):
                 # HINT make sure qtpy does not select qt5 when enaml use qt4
-                os.environs['QT_API'] = 'pyqt'
-                from qtawesome import icon
+                os.environ['QT_API'] = 'pyqt'
+                from qtawesome import icon as qicon
                 try:
-                    icon = icon('fa.' + icon_id)
+                    icon = enaml.icon.Icon(_tkdata=qicon('ei.' + icon_id))
                 except Exception:
                     icon = None
 

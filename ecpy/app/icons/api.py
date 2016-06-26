@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from icon_theme import IconTheme, Icon
+from .icon_theme import IconTheme, Icon
 
 
 def get_icon(workbench, icon_id):

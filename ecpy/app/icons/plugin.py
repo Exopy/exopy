@@ -47,7 +47,7 @@ class IconManagerPlugin(HasPreferencesPlugin):
         """
         super(IconManagerPlugin, self).start()
 
-        checker = make_extension_validator(IconTheme, ('get_icon',), ())
+        checker = make_extension_validator(IconTheme, (), ())
         self._icon_themes = ExtensionsCollector(workbench=self.workbench,
                                                 point=ICON_THEME_POINT,
                                                 ext_class=IconTheme,
@@ -101,10 +101,21 @@ class IconManagerPlugin(HasPreferencesPlugin):
                 msg = msg % (self.current_theme, icon_id)
 
         if msg:
+            fallback = self._icon_themes.contributions[self.fallback_theme]
+            try:
+                icon = fallback.get_icon(self, icon_id)
+            except Exception:
+                msg += ('Fallback theme %s failed to provide icon %s and '
+                        'raised:\n%s')
+                msg = msg % (self.fallback_theme, icon_id, format_exc())
+            else:
+                if icon is None:
+                    msg += ('Fallback theme %s failed to provide icon %s '
+                            'without errors.')
+                    msg = msg % (self.fallback_theme, icon_id)
+
             logger = logging.getLogger(__name__)
             logger.warn(msg)
-            fallback = self._icon_themes.contributions[self.fallback_theme]
-            icon = fallback.get_icon(self, icon_id)
 
         return icon
 
@@ -127,7 +138,7 @@ class IconManagerPlugin(HasPreferencesPlugin):
 
         # Assign all contributed icons from all extensions.
         if change is None:
-            for k, v in self._icon_theme_extensions:
+            for k, v in self._icon_theme_extensions.contributions.items():
                 if v.theme == selected:
                     selected.insert_children(None, v.icons())
 
