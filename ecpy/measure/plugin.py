@@ -150,7 +150,7 @@ class MeasurePlugin(HasPreferencesPlugin):
         # before discovering the contributions (would be an issue for engine).
         super(MeasurePlugin, self).start()
 
-        # XXXX this should not be needed as the preferences should be empty
+        # XXX this should not be needed as the preferences should be empty
         # HINT : add manually the text monitor as we do not have yet
         # preferences edition
         if 'ecpy.text_monitor' in self.monitors:

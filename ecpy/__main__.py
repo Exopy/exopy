@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import sys
+import threading
 from pkg_resources import iter_entry_points
 from operator import itemgetter
 from traceback import format_exc
@@ -39,6 +40,32 @@ with enaml.imports():
     from ecpy.measure.monitors.text_monitor.manifest import TextMonitorManifest
     from ecpy.instruments.manifest import InstrumentManagerManifest
     from ecpy.tasks.manifest import TasksManagerManifest
+
+
+def setup_thread_excepthook():
+    """
+    Workaround for `sys.excepthook` thread bug from:
+    http://bugs.python.org/issue1230540
+
+    Call once from the main thread before creating any threads.
+    """
+
+    init_original = threading.Thread.__init__
+
+    def init(self, *args, **kwargs):
+
+        init_original(self, *args, **kwargs)
+        run_original = self.run
+
+        def run_with_except_hook(*args2, **kwargs2):
+            try:
+                run_original(*args2, **kwargs2)
+            except Exception:
+                sys.excepthook(*sys.exc_info())
+
+        self.run = run_with_except_hook
+
+    threading.Thread.__init__ = init
 
 
 class ArgParser(Atom):
@@ -207,6 +234,9 @@ def main(cmd_line_args=None):
         details = format_exc()
         display_startup_error_dialog(text, content, details)
 
+    # Patch Thread to use sys.excepthook
+    setup_thread_excepthook()
+
     workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(UIManifest())
@@ -231,11 +261,16 @@ def main(cmd_line_args=None):
     except Exception as e:
         text = 'Error starting plugins'
         content = ('The following error occurred when executing plugins '
-                   'apllication start code :\n {}'.format(e))
+                   'application start ups :\n {}'.format(e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
 
     core = workbench.get_plugin('enaml.workbench.core')
+
+    # Install global except hook.
+    core.invoke_command('ecpy.app.errors.install_excepthook', {})
+
+    # Select workspace
     core.invoke_command('enaml.workbench.ui.select_workspace',
                         {'workspace': args.workspace}, workbench)
 

@@ -94,6 +94,12 @@ and reported.
 """
 
 
+INSTALL_EXCEPTHOOK_DESCRIPTION =\
+"""Setup a sys.excepthook providing nicer user experience.
+
+"""
+
+
 ERROR_DESCRIPTION =\
 """Generic error handler, log and warn user (popup window).
 
@@ -151,6 +157,10 @@ enamldef ErrorsManifest(PluginManifest):
             id = 'ecpy.app.errors.exit_error_gathering'
             description = EXIT_ERROR_GATHERING_DESCRIPTION
             handler = make_handler(PLUGIN_ID, 'exit_error_gathering')
+        Command:
+            id = 'ecpy.app.errors.install_excepthook'
+            description = INSTALL_EXCEPTHOOK_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'install_excepthook')
 
     Extension:
         id = 'menus'

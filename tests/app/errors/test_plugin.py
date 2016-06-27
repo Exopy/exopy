@@ -21,6 +21,8 @@ from ecpy.testing.util import handle_dialog, get_window, show_and_close_widget
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
+    from enaml.workbench.ui.ui_manifest import UIManifest
+    from ecpy.app.app_manifest import AppManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.widgets import HierarchicalErrorsDisplay
     from ecpy.app.packages.manifest import PackagesManifest
@@ -142,6 +144,28 @@ def test_report_command(err_workbench, windows):
 
     with handle_dialog():
         core.invoke_command('ecpy.app.errors.report', dict(kind='stupid'))
+
+
+@pytest.mark.ui
+def test_install_excepthook(err_workbench, windows):
+    """Test the installation and use of the sys.excepthook.
+
+    """
+    import sys
+    old_hook = sys.excepthook
+
+    err_workbench.register(UIManifest())
+    err_workbench.register(AppManifest())
+    core = err_workbench.get_plugin('enaml.workbench.core')
+    core.invoke_command('ecpy.app.errors.install_excepthook')
+
+    new_hook = sys.excepthook
+    sys.excepthook = old_hook
+
+    assert old_hook is not new_hook
+
+    with handle_dialog():
+        new_hook(Exception, 'Test', '')
 
 
 # =============================================================================

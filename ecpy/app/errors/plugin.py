@@ -17,6 +17,7 @@ from collections import defaultdict
 from inspect import cleandoc
 from pprint import pformat
 from traceback import format_exc
+from textwrap import fill
 
 import enaml
 from atom.api import List, Typed, Int
@@ -27,6 +28,7 @@ from .errors import ErrorHandler
 from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
 
 with enaml.imports():
+    from enaml.stdlib.message_box import warning
     from .widgets import ErrorsDialog, UnknownErrorWidget
 
 
@@ -157,6 +159,30 @@ class ErrorsPlugin(Plugin):
             if errors:
                 dial = ErrorsDialog(errors=errors)
                 deferred_call(dial.exec_)
+
+    def install_excepthook(self):
+        """Setup a global sys.excepthook for a nicer user experience.
+
+        The error message suggest to the user to restart the app. In the future
+        adding an automatic bug report system here would make sense.
+
+        """
+        def exception_handler(cls, value, traceback):
+            """Log the error and signal to the user that it should restart the
+            app.
+
+            """
+            msg = 'An uncaugt execption occured :\n%s : %s\nTraceback:\n%s'
+            logger.error(msg % (cls.__name__, value, traceback))
+
+            ui = self.workbench.get_plugin('enaml.workbench.ui')
+            msg = ('An uncaught exception occured. This should not happen '
+                   'and can have a number of side effects. It is hence '
+                   'advised to save your work and restart the application.')
+            warning(ui.window, 'Consider restart', fill(msg))
+
+        import sys
+        sys.excepthook = exception_handler
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
