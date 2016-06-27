@@ -110,9 +110,9 @@ class InstrumentTask(SimpleTask):
         else:
             profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
             d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
-            self.driver = starter.initialize(d_cls,
-                                             profile['connections'][c_id],
-                                             profile['settings'][s_id])
+            self.driver = starter.start(d_cls,
+                                        profile['connections'][c_id],
+                                        profile['settings'][s_id])
             # HINT allow something dangerous as the same instrument can be
             # accessed using multiple settings.
             # User should be careful about this (and should be warned)
@@ -130,13 +130,13 @@ class InstrumentTask(SimpleTask):
             p_id, d_id, c_id, s_id = self.selected_instrument
             profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
             d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
-            driver = starter.initialize(d_cls,
-                                        profile['connections'][c_id],
-                                        profile['settings'][s_id])
+            driver = starter.start(d_cls,
+                                   profile['connections'][c_id],
+                                   profile['settings'][s_id])
         except Exception:
             driver = None
 
         yield driver
 
         if driver:
-            starter.finalize(driver)
+            starter.stop(driver)

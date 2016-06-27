@@ -28,7 +28,7 @@ class Starter(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def initialize(self, driver_cls, connection, settings):
+    def start(self, driver_cls, connection, settings):
         """Fully initialize a driver and open the communication channel.
 
         Parameters
@@ -94,7 +94,7 @@ class Starter(Declarative):
         raise NotImplementedError()
 
     @d_func
-    def finalize(self, driver):
+    def stop(self, driver):
         """Close the communication with the instrument.
 
         Parameters

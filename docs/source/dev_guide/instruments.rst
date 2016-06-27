@@ -203,9 +203,9 @@ A |Starter| must declare :
 - an 'id' which should be unique and is the one used when declaring a driver.
 - a 'description' detailing with what kind of driver this starter should be
   used.
-- an 'initialize' declarative function in charge of starting a driver. The
+- a 'start' declarative function in charge of starting a driver. The
   driver returned should be ready for communication.
-- a 'finalize' declarative function responsible for cleanly closing the
+- a 'stop' declarative function responsible for cleanly closing the
   communication.
 - a 'check_infos' declarative function used to test that a combination of
   (driver, connection, settings) does allow to open a connection. This method
