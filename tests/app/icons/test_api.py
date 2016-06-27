@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from ecpy.app.icons.api import get_icon
 
 
-def test_get_icon(icon_workbench):
+def test_get_icon(app, icon_workbench):
     """Test getting an icon using the helper function.
 
     """

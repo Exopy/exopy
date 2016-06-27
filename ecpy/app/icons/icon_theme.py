@@ -69,7 +69,8 @@ class IconTheme(Declarative):
         """Refresh the mapping of the icons contributed as children.
 
         """
-        for c in self.children:
+        # HINT when reparenting enaml does not properly update the children
+        for c in [c for c in self.children if c.parent is self]:
             if isinstance(c, Icon):
                 self._icons[c.id] = c
 

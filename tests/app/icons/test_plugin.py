@@ -13,15 +13,15 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import enaml
-from enaml.widgets.api import Window
 
-from ecpy.testing.util import set_preferences
+from ecpy.testing.util import set_preferences, process_app_events
 with enaml.imports():
     from .contributions import (ThemeContributor, ThemeExtensionContributor,
-                                ThemeContributor2, ThemeExtensionContributor2)
+                                ThemeContributor2, ThemeExtensionContributor2,
+                                TestIconWindow)
 
 
-def test_lifecyle(icon_workbench, caplog):
+def test_lifecyle(app, icon_workbench, caplog):
     """Test the life cycle of the icon plugin.
 
     """
@@ -56,9 +56,9 @@ def test_lifecyle(icon_workbench, caplog):
     # Test adding new contributed icons when a new extension is registered for
     # the current theme.
     icon_workbench.register(ThemeExtensionContributor2())
-    assert pl.get_icon('dumb2') is not None
+    assert pl.get_icon('dumb3') is not None
     icon_workbench.unregister('dummy.theme_extension2')
-    assert pl.get_icon('dumb2') is None
+    assert pl.get_icon('dumb3') is None
 
     icon_workbench.unregister('ecpy.app.icons')
 
@@ -90,11 +90,11 @@ def test_get_icon_handling_errors(icon_workbench, caplog):
     theme = pl._icon_themes.contributions['dummy']
     theme.throw = True
     assert not caplog.records()
-    assert pl.get_icon('dumb')
+    assert pl.get_icon('dumb1') is None
     assert len(caplog.records()) == 1
-    assert 'Icon' in caplog.text
-    assert 'Fallback' in caplog.text
-    assert 'raised' in caplog.text
+    assert 'Icon' in caplog.text()
+    assert 'Fallback' in caplog.text()
+    assert 'raised' in caplog.text()
 
 
 def test_fontawesome(icon_workbench, windows, process_and_sleep):
@@ -103,8 +103,10 @@ def test_fontawesome(icon_workbench, windows, process_and_sleep):
     """
     pl = icon_workbench.get_plugin('ecpy.app.icons')
     pl.current_theme = 'ecpy.FontAwesome'
-    w = Window(icon=pl.get_icon('folder-open'))
+    assert pl.get_icon('folder-open')
+    w = TestIconWindow(btn_icon=pl.get_icon('folder-open'))
     w.show()
+    process_app_events()
     process_and_sleep()
 
 
@@ -113,6 +115,8 @@ def test_elusiveicon(icon_workbench, windows, process_and_sleep):
     """
     pl = icon_workbench.get_plugin('ecpy.app.icons')
     pl.current_theme = 'ecpy.ElusiveIcon'
-    w = Window(icon=pl.get_icon('folder-open'))
+    assert pl.get_icon('folder-open')
+    w = TestIconWindow(btn_icon=pl.get_icon('folder-open'))
     w.show()
+    process_app_events()
     process_and_sleep()

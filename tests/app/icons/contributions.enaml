@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import enaml.icon
+from enaml.widgets.api import Window, Container, PushButton
 from atom.api import Unicode
 
 from enaml.workbench.api import Extension, PluginManifest
@@ -105,6 +106,17 @@ enamldef ThemeExtensionContributor2(PluginManifest):
             id = 'dummy_ext2'
             theme = 'dummy'
             Icon:
-                id = 'dumb2'
+                id = 'dumb3'
                 get_icon => (manager, theme):
                     return DumbIcon(id=self.id)
+
+
+enamldef TestIconWindow(Window):
+    """Window for testing displaying an icon.
+
+    """
+    alias btn_icon : btn.icon
+
+    Container:
+        PushButton: btn:
+            text = 'Icon'

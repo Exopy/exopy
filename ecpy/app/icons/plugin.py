@@ -139,22 +139,31 @@ class IconManagerPlugin(HasPreferencesPlugin):
         # Assign all contributed icons from all extensions.
         if change is None:
             for k, v in self._icon_theme_extensions.contributions.items():
-                if v.theme == selected:
+                if v.theme == selected.id:
                     selected.insert_children(None, v.icons())
 
         # Only update icons provided by new extensions.
         else:
-            for k, v in change['value'].items():
-                if v.theme == self.current_theme:
+            added = set(change['value']) - set(change.get('oldvalue', {}))
+            removed = set(change.get('oldvalue', {})) - set(change['value'])
+            ext = dict(change['value'])
+            ext.update(change.get('oldvalue', {}))
+            for k in added:
+                v = ext[k]
+                if v.theme == selected.id:
                     selected.insert_children(None, v.icons())
-            for k, v in change.get('oldvalue', {}).items():
-                if v.theme == self.current_theme:
-                    v.insert_children(None, self.icons())
+            for k in removed:
+                v = ext[k]
+                if v.theme == selected.id:
+                    v.insert_children(None, v.icons())
+
+        del selected._icons
 
     def _post_setattr_current_theme(self, old, new):
         """Add the extension icons to the theme.
 
         """
+        del self._current_theme
         if self._icon_theme_extensions:
             self._add_extensions_to_selected_theme()
 
