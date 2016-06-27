@@ -27,6 +27,7 @@ requirements:
     - future
     - watchdog
     - configobj
+    - qtawesome
 
 test:
   commands:
