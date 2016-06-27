@@ -16,7 +16,6 @@ import pytest
 from pprint import pformat
 
 import enaml
-from enaml.workbench.api import Workbench
 
 from ecpy.testing.util import ErrorDialogException
 
@@ -29,6 +28,7 @@ with enaml.imports():
     from ecpy.app.app_manifest import AppManifest
     from ecpy.app.preferences.manifest import PreferencesManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
+    from ecpy.app.icons.manifest import IconManagerManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.app.states.manifest import StateManifest
@@ -42,7 +42,7 @@ pytests_plugin = str('ecpy.testing.fixtures'),
 
 
 @pytest.yield_fixture
-def measure_workbench(monkeypatch, app_dir):
+def measure_workbench(workbench, monkeypatch, app_dir):
     """Setup the workbench in such a way that the measure plugin can be tested.
 
     """
@@ -55,10 +55,10 @@ def measure_workbench(monkeypatch, app_dir):
                 raise ErrorDialogException(msg + pformat(self._delayed))
 
     monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
-    workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(AppManifest())
     workbench.register(PreferencesManifest())
+    workbench.register(IconManagerManifest())
     workbench.register(ErrorsManifest())
     workbench.register(DependenciesManifest())
     workbench.register(StateManifest())
@@ -67,7 +67,7 @@ def measure_workbench(monkeypatch, app_dir):
     yield workbench
 
     for m_id in ('ecpy.measure', 'ecpy.app.dependencies', 'ecpy.app.errors',
-                 'ecpy.app.preferences', 'ecpy.app'):
+                 'ecpy.app.icons', 'ecpy.app.preferences', 'ecpy.app'):
         try:
             workbench.unregister(m_id)
         except ValueError:

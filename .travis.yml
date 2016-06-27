@@ -44,7 +44,7 @@ before_install:
   - cd ..
 
   # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt future numpy configobj watchdog enaml
+  - $CONDA_INSTALL pyqt future numpy configobj watchdog enaml qtawesome
   - $PIP_INSTALL pyvisa
 
   # Intall test tools

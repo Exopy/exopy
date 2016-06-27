@@ -16,7 +16,6 @@ import pytest
 from pprint import pformat
 
 import enaml
-from enaml.workbench.api import Workbench
 
 from ecpy.tasks.api import RootTask
 
@@ -27,17 +26,19 @@ with enaml.imports():
     from ecpy.app.preferences.manifest import PreferencesManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
     from ecpy.app.states.manifest import StateManifest
+    from ecpy.app.icons.manifest import IconManagerManifest
     from ecpy.app.errors.manifest import ErrorsManifest
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.tasks.manifest import TasksManagerManifest
     from ecpy.tasks.tasks.base_views import RootTaskView
 
+    from ..windows import ContainerTestingWindow
 
 pytests_plugin = str('ecpy.testing.fixtures'),
 
 
 @pytest.yield_fixture
-def task_workbench(monkeypatch, app_dir):
+def task_workbench(workbench, monkeypatch, app_dir):
     """Setup the workbench in such a way that the task manager can be tested.
 
     """
@@ -50,10 +51,11 @@ def task_workbench(monkeypatch, app_dir):
                             pformat(self._delayed))
 
     monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
-    workbench = Workbench()
+
     workbench.register(CoreManifest())
     workbench.register(AppManifest())
     workbench.register(PreferencesManifest())
+    workbench.register(IconManagerManifest())
     workbench.register(ErrorsManifest())
     workbench.register(StateManifest())
     workbench.register(DependenciesManifest())
@@ -62,7 +64,7 @@ def task_workbench(monkeypatch, app_dir):
     yield workbench
 
     for m_id in ('ecpy.tasks', 'ecpy.app.dependencies', 'ecpy.app.errors',
-                 'ecpy.app.preferences', 'ecpy.app'):
+                 'ecpy.app.icons', 'ecpy.app.preferences', 'ecpy.app'):
         try:
             workbench.unregister(m_id)
         except Exception:
@@ -76,4 +78,7 @@ def root_view(task_workbench):
     """
     c = task_workbench.get_plugin('enaml.workbench.core')
     task = RootTask()
-    return RootTaskView(task=task, core=c)
+    view = RootTaskView(task=task, core=c)
+    w = ContainerTestingWindow(workbench=task_workbench)
+    view.set_parent(w)
+    return view

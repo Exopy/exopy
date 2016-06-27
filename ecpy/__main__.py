@@ -32,6 +32,7 @@ with enaml.imports():
     from ecpy.app.states.manifest import StateManifest
     from ecpy.app.dependencies.manifest import DependenciesManifest
     from ecpy.app.errors.manifest import ErrorsManifest
+    from ecpy.app.icons.manifest import IconManagerManifest
     from ecpy.app.packages.manifest import PackagesManifest
     from ecpy.app.log.manifest import LogManifest
     from ecpy.measure.manifest import MeasureManifest
@@ -213,6 +214,7 @@ def main(cmd_line_args=None):
     workbench.register(StateManifest())
     workbench.register(ErrorsManifest())
     workbench.register(PreferencesManifest())
+    workbench.register(IconManagerManifest())
     workbench.register(LogManifest())
     workbench.register(PackagesManifest())
     workbench.register(DependenciesManifest())
@@ -251,6 +253,7 @@ def main(cmd_line_args=None):
     workbench.unregister('ecpy.measure')
     workbench.unregister('ecpy.tasks')
     workbench.unregister('ecpy.instruments')
+    workbench.unregister('ecpy.app.icons')
     workbench.unregister('ecpy.app.preferences')
     workbench.unregister('ecpy.app.states')
     workbench.unregister('ecpy.app.dependencies')

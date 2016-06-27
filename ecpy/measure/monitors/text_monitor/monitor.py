@@ -187,7 +187,7 @@ class TextMonitor(BaseMonitor):
         """Rebuild all rules and dispatch entries according to the state.
 
         """
-        # Request all the rules class from the plugin.
+        # Identify all the rules.
         rules_config = [conf for name, conf in state.items()
                         if name.startswith('rule_')]
 

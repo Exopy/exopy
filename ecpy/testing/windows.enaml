@@ -21,6 +21,7 @@ enamldef ContainerTestingWindow(Window):
     """Window used to test a container.
 
     """
+    attr workbench
     attr widget
 
     Container:
@@ -32,6 +33,7 @@ enamldef PageTestingWindow(Window):
     """Window used to test a page.
 
     """
+    attr workbench
     attr widget
 
     Container:
@@ -44,6 +46,7 @@ enamldef DockItemTestingWindow(Window):
     """Window used to test a dock item.
 
     """
+    attr workbench
     attr widget
     widget ::
         set_layout()

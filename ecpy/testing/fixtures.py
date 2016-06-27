@@ -22,6 +22,7 @@ import pytest
 from configobj import ConfigObj
 from future.builtins import str as text
 from enaml.qt.qt_application import QtApplication
+from enaml.workbench.api import Workbench
 
 
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
@@ -164,3 +165,12 @@ def process_and_sleep(windows, dialog_sleep):
         sleep(dialog_sleep)
 
     return p
+
+
+@pytest.fixture
+def workbench():
+    """Create a workbench instance.
+
+    """
+    workbench = Workbench()
+    return workbench

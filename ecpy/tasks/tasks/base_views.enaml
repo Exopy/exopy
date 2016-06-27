@@ -23,6 +23,7 @@ from enaml.widgets.api import (GroupBox, Stack, StackItem, FileDialogEx,
 from enaml.core.api import d_, d_func
 from enaml.layout.api import hbox, vbox, align
 
+from ...app.icons.api import get_icon
 from ...utils.enaml_destroy_hook import add_destroy_hook
 from .task_editor import TaskEditor, FoldableTaskEditor
 from .base_tasks import BaseTask
@@ -176,7 +177,7 @@ enamldef RootTaskView(BaseTaskView): main:
     Field: p_val:
         text := task.default_path
     ToolButton: p_exp:
-        text = 'Explore'
+        icon = get_icon(core.workbench, 'folder-open')
         clicked ::
             curr_path = task.default_path
             get_dir = FileDialogEx.get_existing_directory

@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 import enaml
-from enaml.workbench.api import Workbench
 from enaml.widgets.api import MultilineField
 from future.utils import python_2_unicode_compatible
 
@@ -32,11 +31,10 @@ ERRORS_ID = 'ecpy.app.errors'
 
 
 @pytest.fixture
-def workbench():
+def err_workbench(workbench):
     """Create a workbench and register basic manifests.
 
     """
-    workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(ErrorsManifest())
     workbench.register(PackagesManifest())
@@ -60,11 +58,11 @@ class FailedFormat(object):
 # =============================================================================
 
 
-def test_life_cycle(workbench):
+def test_life_cycle(err_workbench):
     """Test basic behavior of ErrorsPlugin.
 
     """
-    plugin = workbench.get_plugin(ERRORS_ID)
+    plugin = err_workbench.get_plugin(ERRORS_ID)
 
     assert len(plugin.errors) == 4
 
@@ -78,11 +76,11 @@ def test_life_cycle(workbench):
 
 
 @pytest.mark.ui
-def test_signal_command_with_unknown(workbench, windows):
+def test_signal_command_with_unknown(err_workbench, windows):
     """Test the signal command with a stupid kind of error.
 
     """
-    core = workbench.get_plugin('enaml.workbench.core')
+    core = err_workbench.get_plugin('enaml.workbench.core')
 
     with handle_dialog():
         core.invoke_command('ecpy.app.errors.signal',
@@ -97,11 +95,11 @@ def test_signal_command_with_unknown(workbench, windows):
 
 
 @pytest.mark.ui
-def test_handling_error_in_handlers(workbench, windows):
+def test_handling_error_in_handlers(err_workbench, windows):
     """Test handling an error occuring in a specilaized handler.
 
     """
-    plugin = workbench.get_plugin(ERRORS_ID)
+    plugin = err_workbench.get_plugin(ERRORS_ID)
 
     def check_dialog(dial):
         assert 'error' in dial.errors
@@ -115,11 +113,11 @@ def test_handling_error_in_handlers(workbench, windows):
 
 
 @pytest.mark.ui
-def test_gathering_mode(workbench, windows):
+def test_gathering_mode(err_workbench, windows):
     """Test gathering multiple errors.
 
     """
-    core = workbench.get_plugin('enaml.workbench.core')
+    core = err_workbench.get_plugin('enaml.workbench.core')
     core.invoke_command('ecpy.app.errors.enter_error_gathering')
 
     core.invoke_command('ecpy.app.errors.signal',
@@ -131,11 +129,11 @@ def test_gathering_mode(workbench, windows):
 
 
 @pytest.mark.ui
-def test_report_command(workbench, windows):
+def test_report_command(err_workbench, windows):
     """Test generating an application errors report.
 
     """
-    core = workbench.get_plugin('enaml.workbench.core')
+    core = err_workbench.get_plugin('enaml.workbench.core')
     with handle_dialog():
         core.invoke_command('ecpy.app.errors.report')
 
@@ -150,104 +148,104 @@ def test_report_command(workbench, windows):
 # --- Test error handler ------------------------------------------------------
 # =============================================================================
 
-def test_reporting_single_error(workbench):
+def test_reporting_single_error(err_workbench):
     """Check handling a single error.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['error']
 
-    assert handler.handle(workbench, {'message': 'test'})
+    assert handler.handle(err_workbench, {'message': 'test'})
 
-    assert 'No message' in handler.handle(workbench, {}).text
+    assert 'No message' in handler.handle(err_workbench, {}).text
 
 
-def test_reporting_multiple_errors(workbench):
+def test_reporting_multiple_errors(err_workbench):
     """Check handling multiple errors.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['error']
 
-    assert handler.handle(workbench, [{'message': 'test'}])
+    assert handler.handle(err_workbench, [{'message': 'test'}])
 
-    assert 'No message' in handler.handle(workbench, {}).text
+    assert 'No message' in handler.handle(err_workbench, {}).text
 
 
 # =============================================================================
 # --- Test registering handler ------------------------------------------------
 # =============================================================================
 
-def test_reporting_single_registering_error(workbench):
+def test_reporting_single_registering_error(err_workbench):
     """Check handling a single registering error.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['registering']
 
-    assert handler.handle(workbench, {'id': 'test', 'message': 'test'})
+    assert handler.handle(err_workbench, {'id': 'test', 'message': 'test'})
 
     with pytest.raises(Exception):
-        handler.handle(workbench, {})
+        handler.handle(err_workbench, {})
 
 
-def test_reporting_multiple_registering_errors(workbench):
+def test_reporting_multiple_registering_errors(err_workbench):
     """Check handling multiple package errors.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['registering']
 
-    assert handler.handle(workbench, [{'id': 'test', 'message': 'test'}])
+    assert handler.handle(err_workbench, [{'id': 'test', 'message': 'test'}])
 
     with pytest.raises(Exception):
-        handler.handle(workbench, {})
+        handler.handle(err_workbench, {})
 
 
 # =============================================================================
 # --- Test extensions handler -------------------------------------------------
 # =============================================================================
 
-def test_handling_single_extension_error(workbench):
+def test_handling_single_extension_error(err_workbench):
     """Check handling a single extension error.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
-    assert handler.handle(workbench, {'point': 'test', 'errors': {}})
+    assert handler.handle(err_workbench, {'point': 'test', 'errors': {}})
 
     with pytest.raises(Exception):
-        handler.handle(workbench, {})
+        handler.handle(err_workbench, {})
 
 
-def test_handling_multiple_extension_errors(workbench):
+def test_handling_multiple_extension_errors(err_workbench):
     """Check handling multiple extension errors.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
-    assert handler.handle(workbench, [{'point': 'test', 'errors': {}}])
+    assert handler.handle(err_workbench, [{'point': 'test', 'errors': {}}])
 
     with pytest.raises(Exception):
-        handler.handle(workbench, {})
+        handler.handle(err_workbench, {})
 
 
-def test_reporting_on_extension_errors(workbench):
+def test_reporting_on_extension_errors(err_workbench):
     """Check reporting extension errors.
 
     """
-    plugin = workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('ecpy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
-    widget = handler.report(workbench)
+    widget = handler.report(err_workbench)
     assert isinstance(widget, MultilineField)
     show_and_close_widget(widget)
 
     handler.errors = {'test': {'errror': 'msg'}}
 
-    widget = handler.report(workbench)
+    widget = handler.report(err_workbench)
     assert isinstance(widget, HierarchicalErrorsDisplay)
     show_and_close_widget(widget)
 
