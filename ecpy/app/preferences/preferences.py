@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""State plugin definition.
+"""Declarative class for defining hnadling of preferences.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -56,5 +56,6 @@ class Preferences(Declarative):
             View used to edit the preferences. It should have a model
             attribute. The model members must correspond to the tagged members
             the plugin, their values will be used to update the preferences.
+
         """
         pass

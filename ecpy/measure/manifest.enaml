@@ -223,6 +223,7 @@ enamldef MeasureManifest(PluginManifest): manifest:
         Preferences:
             auto_save = ['path', 'selected_engine']
 
+# XXX Needs to be activated !!!!
 #    Extension:
 #        id = 'instr_user'
 #        point = 'excpy.instr_manager.users'

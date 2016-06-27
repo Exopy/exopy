@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 import enaml
-from enaml.workbench.api import Workbench
 from configobj import ConfigObj
 from future.utils import python_2_unicode_compatible
 
@@ -39,11 +38,10 @@ RELEASE = 'ecpy.app.dependencies.release_runtimes'
 # =============================================================================
 
 @pytest.yield_fixture
-def dep_workbench():
+def dep_workbench(workbench):
     """Setup the workbench to test dependencies related capabilities.
 
     """
-    workbench = Workbench()
     workbench.register(CoreManifest())
     workbench.register(DependenciesManifest())
     workbench.register(BuildDep())
