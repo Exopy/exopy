@@ -149,13 +149,13 @@ enamldef InstrContributor1(PluginManifest):
         Starter:
             id = 'false_starter'
             description = 'False starter'
-            initialize => (driver, connection, settings):
+            start => (driver, connection, settings):
                 pass
             check_infos => (driver, connection, settings):
                 return True, ''
             reset => (driver):
                 pass
-            finalize => (driver):
+            stop => (driver):
                 pass
 
     Extension:
@@ -215,13 +215,13 @@ enamldef InstrContributor2(PluginManifest):
         Starter:
             id = 'false_starter_bis'
             description = 'False starter'
-            initialize => (driver, connection, settings):
+            start => (driver, connection, settings):
                 pass
             check_infos => (driver, connection, settings):
                 pass
             reset => (driver):
                 pass
-            finalize => (driver):
+            stop => (driver):
                 pass
 
     Extension:

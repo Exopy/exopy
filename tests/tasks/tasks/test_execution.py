@@ -499,7 +499,7 @@ class TestTaskExecution(object):
             """
 
             def stop(self, driver):
-                driver.stop()
+                driver.finalize()
 
         class FalseFile(object):
             """False file which cannot be closed.

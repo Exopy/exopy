@@ -35,7 +35,7 @@ class FalseStarter(object):
     def check_infos(self, driver_cls, connection, settings):
         return self.should_pass, 'Message'
 
-    def initialize(self, driver_cls, connection, settings):
+    def start(self, driver_cls, connection, settings):
         return object()
 
     def stop(self, driver):
