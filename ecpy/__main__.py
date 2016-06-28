@@ -53,15 +53,20 @@ def setup_thread_excepthook():
     init_original = threading.Thread.__init__
 
     def init(self, *args, **kwargs):
+        """Modify the run method to use sys.excepthook.
 
+        """
         init_original(self, *args, **kwargs)
         run_original = self.run
 
         def run_with_except_hook(*args2, **kwargs2):
+            """Call sys.excepthook if any error occurs in the thread.
+
+            """
             try:
                 run_original(*args2, **kwargs2)
-            except Exception:
-                sys.excepthook(*sys.exc_info())
+            except Exception:  # pragma: no cover
+                sys.excepthook(*sys.exc_info())  # pragma: no cover
 
         self.run = run_with_except_hook
 
