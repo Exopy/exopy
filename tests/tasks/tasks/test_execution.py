@@ -396,8 +396,8 @@ class TestTaskExecution(object):
                 driver.clear_cache()
                 driver.owner = ''
 
-            def finalize(self, driver):
-                driver.finalize()
+            def stop(self, driver):
+                driver.stop()
 
         def pause(task, value):
             """Post a method restarting execution on event loop and pause.
@@ -498,7 +498,7 @@ class TestTaskExecution(object):
 
             """
 
-            def finalize(self, driver):
+            def stop(self, driver):
                 driver.finalize()
 
         class FalseFile(object):

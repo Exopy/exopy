@@ -157,7 +157,13 @@ def test_running_main(app, app_dir, windows, monkeypatch):
 
     monkeypatch.setattr(UIPlugin, '_release_application', no_release)
     monkeypatch.setattr(UIPlugin, 'start_application', wait_for_window)
-    main([])
+
+    import sys
+    old = sys.excepthook
+    try:
+        main([])
+    finally:
+        sys.excepthook = old
 
 
 def test_running_main_asking_for_help(app):

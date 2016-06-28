@@ -126,8 +126,8 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         self._users.start()
 
         checker = make_extension_validator(Starter,
-                                           ('initialize', 'check_infos',
-                                            'finalize', 'reset'),
+                                           ('start', 'check_infos',
+                                            'stop', 'reset'),
                                            ('id', 'description'))
         self._starters = ExtensionsCollector(workbench=self.workbench,
                                              point=STARTERS_POINT,

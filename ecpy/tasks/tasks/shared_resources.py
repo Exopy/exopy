@@ -198,7 +198,7 @@ class InstrsResource(ResourceHolder):
         for instr_profile in self:
             try:
                 driver, starter = self[instr_profile]
-                starter.finalize(driver)
+                starter.stop(driver)
             except Exception:
                 log = logging.getLogger(__name__)
                 mes = 'Failed to close connection to instr : %s'

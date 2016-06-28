@@ -35,11 +35,11 @@ class FalseStarter(object):
     def check_infos(self, driver_cls, connection, settings):
         return self.should_pass, 'Message'
 
-    def initialize(self, driver_cls, connection, settings):
+    def start(self, driver_cls, connection, settings):
         return object()
 
-    def finalize(self, driver):
-        FalseStarter.finalize_called = True
+    def stop(self, driver):
+        FalseStarter.stop_called = True
 
 
 class TestInstrumentTask(object):
@@ -169,7 +169,7 @@ class TestInstrumentTask(object):
         with self.task.test_driver() as d:
             assert d is not None
 
-        assert FalseStarter.finalize_called
+        assert FalseStarter.stop_called
 
         self.task.selected_instrument = ()
         with self.task.test_driver() as d:
