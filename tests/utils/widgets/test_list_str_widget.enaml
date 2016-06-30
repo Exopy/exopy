@@ -55,19 +55,15 @@ enamldef Main(Window): main:
 
     Container:
         constraints = [vbox(hbox(m, spacer),
-                            hbox(vbox(l1, si1, so1),
+                            hbox(vbox(l1, so1),
                                  vbox(ll, l, r, rr, cl, spacer),
-                                 vbox(l2, si2, so2)))]
+                                 vbox(l2, so2)))]
 
         QtListStrWidget: l1:
             multiselect << main.multiselect
             items = [i**2 for i in range(10)]
             selected_item::
                 print('Left, selected : ', change['value'])
-
-        Field: si1:
-            text << (str(l1.selected_indexes) if l1.multiselect
-                     else str(l1.selected_index))
 
         Field: so1:
             text << (str(l1.selected_items) if l1.multiselect
@@ -77,10 +73,6 @@ enamldef Main(Window): main:
             multiselect << main.multiselect
             selected_item::
                 print('Right, selected : ', change['value'])
-
-        Field: si2:
-            text << (str(l2.selected_indexes) if l2.multiselect
-                     else str(l2.selected_index))
 
         Field: so2:
             text << (str(l2.selected_items) if l2.multiselect
@@ -97,28 +89,28 @@ enamldef Main(Window): main:
             clicked ::
                 if l2.items:
                     if multiselect:
-                        l1.items.extend([l2.items[i]
-                                         for i in l2.selected_indexes])
-                        for i in sorted(l2.selected_indexes, reverse=True):
-                            del l2.items[i]
+                        l1.items = l1.items + l2.selected_items
+                        l2.items = [i for i in l2.items
+                                    if i not in l2.selected_items]
                     else:
-                        l1.items.append(l2.items.pop(l2.selected_index))
-                    l1.refresh_items()
-                    l2.refresh_items()
+                        index = l2.items.index(l2.selected_item)
+                        l1.items.append(l2.items.pop(index))
+                        l1.refresh_items()
+                        l2.refresh_items()
 
         PushButton: r:
             text = '>'
             clicked ::
                 if l1.items:
                     if multiselect:
-                        l2.items.extend([l1.items[i]
-                                         for i in l1.selected_indexes])
-                        for i in sorted(l1.selected_indexes, reverse=True):
-                            del l1.items[i]
+                        l2.items = l2.items + l1.selected_items
+                        l1.items = [i for i in l1.items
+                                    if i not in l1.selected_items]
                     else:
-                        l2.items.append(l1.items.pop(l1.selected_index))
-                    l1.refresh_items()
-                    l2.refresh_items()
+                        index = l1.items.index(l1.selected_item)
+                        l2.items.append(l1.items.pop(index))
+                        l1.refresh_items()
+                        l2.refresh_items()
 
         PushButton: rr:
             text = '>>'
