@@ -85,11 +85,12 @@ enamldef TextMonitorEdit(Container): main:
             e = [e for e in monitor.undisplayed_entries
                  if e == undisp.selected_item]
             if e:
-                index = undisp.selected_index
+                index = undisp.items.index(undisp.selected_item)
                 monitor.move_entries('undisplayed', 'displayed', e)
-                if index >= len(disp.items):
-                    index -= 1
-                undisp.selected_index = index
+                if undisp.items:
+                    if index >= len(undisp.items):
+                        index -= 1
+                    undisp.selected_item = undisp.items[index]
 
 
     PushButton: hide_all:
@@ -106,11 +107,12 @@ enamldef TextMonitorEdit(Container): main:
             e = [e for e in monitor.displayed_entries
                     if e == disp.selected_item]
             if e:
-                index = disp.selected_index
+                index = disp.items.index(disp.selected_item)
                 monitor.move_entries('displayed', 'undisplayed', e)
-                if index >= len(disp.items):
-                    index -= 1
-                disp.selected_index = index
+                if disp.items:
+                    if index >= len(disp.items):
+                        index -= 1
+                    disp.selected_item = disp.items[index]
 
     CheckBox: show_hidden:
         text = 'Show hidden entries'

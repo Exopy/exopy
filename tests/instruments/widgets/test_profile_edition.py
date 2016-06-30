@@ -23,7 +23,8 @@ with enaml.imports():
     from ecpy.instruments.widgets.profile_edition\
         import (SetValidator, ConnectionCreationDialog,
                 ConnectionValidationWindow, SettingsCreationDialog,
-                RenameSettingsPopup, ProfileEditionDialog)
+                RenameSettingsPopup, ProfileEditionDialog,
+                clean_name, trim_description)
 
 
 # HINT the QtListStrWidget has some issues of display in test mode
@@ -54,6 +55,21 @@ def test_set_validator():
     assert v.validate('bc') and v.valid
 
 
+def test_clean_name():
+    """Test cleaning a name.
+
+    """
+    assert clean_name('a_b') == 'a b'
+
+
+def test_trim_description():
+    """Test triming the description (connection or settings).
+
+    """
+    desc = """test\n\nDefaults\n-------\n\n details"""
+    assert trim_description(desc) == 'test'
+
+
 def test_connection_creation_dialog(prof_plugin, model_infos,
                                     process_and_sleep):
     """Test the dialog dedicated to create new connections.
@@ -68,7 +84,7 @@ def test_connection_creation_dialog(prof_plugin, model_infos,
     assert len(d._connections) == 2
 
     ws = d.central_widget().widgets()
-    ws[0].selected_index = 1
+    ws[0].selected_item = ws[0].items[1]
     process_and_sleep()
     assert d.connection.declaration.id == 'false_connection3'
 
@@ -108,7 +124,7 @@ def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
     assert len(d._settings) == 3
 
     ws = d.central_widget().widgets()
-    ws[0].selected_index = 1
+    ws[0].selected_item = ws[0].items[1]
     process_and_sleep()
 
     ok = ws[-1]

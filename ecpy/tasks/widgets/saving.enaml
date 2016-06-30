@@ -38,7 +38,7 @@ class TemplateSaverModel(Atom):
     #: Reference to the task manager.
     manager = ForwardTyped(task_manager)
 
-    #: Currently selected folder in which to save the
+    #: Currently selected folder in which to save the template.
     folder = Unicode()
 
     #: File in which to save the template.
@@ -136,7 +136,7 @@ enamldef TemplateSaverDialog(Dialog): dial:
 
         QtListStrWidget: li:
             items << list(manager.templates)
-            selected_item := _model.folder
+            selected_item >> _model.filename
 
         Field: name:
             text := _model.filename

@@ -58,4 +58,5 @@ enamldef LoopConfigView(BaseConfigView): view:
         selected_filter = 'Loopable'
         selected_task >> config.subtask
     Include: conf:
-        objects << [config.subview] if config.subview else []
+        objects << ([config.subview] if config.use_subtask and config.subview
+                    else [])
