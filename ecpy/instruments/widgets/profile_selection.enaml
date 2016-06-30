@@ -25,6 +25,31 @@ from ...utils.transformers import ids_to_unique_names
 SENTINEL = object()
 
 
+def matching_connections(infos, d_id):
+        """Determine the allowed connections based on the selected driver.
+
+        """
+        if infos is SENTINEL or not d_id:
+            return []
+
+        d_map = {d.id : d for d in infos.model.drivers}
+        driver_connections = d_map[d_id].connections
+        return [c for c in infos.connections if c in driver_connections]
+
+
+def matching_settings(infos, d_id):
+    """Determine the allowed settings based on the selected driver.
+
+    """
+    if infos is SENTINEL or not d_id:
+        return []
+
+    d_map = {d.id : d for d in infos.model.drivers}
+    driver_settings = d_map[d_id].settings
+    return [s for s in infos.settings
+            if infos.settings[s]['id'] in driver_settings]
+
+
 enamldef ProfileSelectionWidget(Container): pw:
     """A widget to select a profile and what connection and settings to use.
 
@@ -47,6 +72,13 @@ enamldef ProfileSelectionWidget(Container): pw:
 
     #: Infos of the currently selected profile.
     attr infos << plugin._profiles[profile] if profile else SENTINEL
+    infos ::
+        if infos is not SENTINEL:
+            pw._drivers = filter_drivers(infos.model.drivers)
+            if driver not in [d.id for d in _drivers]:
+                pw.driver = _drivers[0].id if _drivers else None
+            cc.items = matching_connections(infos, driver)
+            sc.items = matching_settings(infos, driver)
 
     #: Currently selected driver (id)
     attr driver
@@ -58,49 +90,20 @@ enamldef ProfileSelectionWidget(Container): pw:
     attr settings
 
     #: Private list of valid drivers.
-    attr _drivers << (filter_drivers(infos.model.drivers)
-                      if infos is not SENTINEL else [])
-    _drivers ::
-        if driver not in [d.id for d in _drivers]:
-            pw.driver = _drivers[0].id if _drivers else None
-
-    func matching_connections(p_infos, d_id):
-        """Determine the allowed connections based on the selected driver.
-
-        """
-        if p_infos is SENTINEL or not d_id:
-            return []
-
-        d_map = {d.id : d for d in infos.model.drivers}
-        driver_connections = d_map[d_id].connections
-        return [c for c in infos.connections if c in driver_connections]
-
-    func matching_settings(p_infos, d_id):
-        """Determine the allowed settings based on the selected driver.
-
-        """
-        if p_infos is SENTINEL or not d_id:
-            return []
-
-        d_map = {d.id : d for d in infos.model.drivers}
-        driver_settings = d_map[d_id].settings
-        return [s for s in infos.settings
-                if infos.settings[s]['id'] in driver_settings]
+    attr _drivers = []
 
     initialized ::
         pl.items = sorted(filter_profiles(plugin._profiles.copy()))
         pl.refresh_items()
         if not pw.profile and pl.items:
             pw.profile = pl.items[0]
-        if driver not in {d.id for d in _drivers} and _drivers:
-            pw.driver = _drivers[0].id
 
     constraints = [hbox(pl, pf), pf.top == contents_top]
 
     QtListStrWidget: pl:
         items << (sorted(filter_profiles(plugin._profiles.copy()))
                   if plugin else [])
-        selected_item := profile
+        selected_item := pw.profile
 
     Form: pf:
 
@@ -131,23 +134,21 @@ enamldef ProfileSelectionWidget(Container): pw:
             text = 'Connections'
         ObjectCombo: cc:
             enabled << bool(driver)
-            items << (matching_connections(infos, driver) if driver else [])
             items ::
                 if self.selected not in change['value']:
                     self.selected = None
             selected := connection
 
-        Conditional:
-            condition << bool(infos is not SENTINEL and infos.settings)
-            Label:
-                text = 'Settings'
-            ObjectCombo: sc:
-                enabled << bool(driver)
-                items << (matching_settings(infos, driver) if driver else [])
-                items ::
-                    if self.selected not in change['value']:
-                        self.selected = None
-                selected := settings
+        Label: sc_lab:
+            text = 'Settings'
+            visible << bool(infos is not SENTINEL and infos.settings)
+        ObjectCombo: sc:
+            visible << sc_lab.visible
+            enabled << bool(driver)
+            items ::
+                if self.selected not in change['value']:
+                    self.selected = None
+            selected := settings
 
 
 
