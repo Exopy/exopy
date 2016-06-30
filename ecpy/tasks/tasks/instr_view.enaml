@@ -103,7 +103,7 @@ enamldef InstrTaskView(BaseTaskView):
 
         padding = 0
         constraints = [hbox(i_val, i_sel)]
-        hug_width = 'medium'
+        hug_width = 'weak'
 
         Field: i_val:
             attr selected << task.selected_instrument
