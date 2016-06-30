@@ -27,14 +27,11 @@ class InternalChecksHook(BasePreExecutionHook):
 
         """
         # Short names
-        hook_id = self.declaration.id
         meas = self.measure
         task = meas.root_task
 
         # Running the checks
-        task.run_time = meas.dependencies.get_runtime_dependencies(hook_id)
         check, errors = task.check(**kwargs)
-        task.run_time.clear()
 
         # Check that no measure with the same name and id is saved in
         # the default path used by the root_task.
