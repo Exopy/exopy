@@ -164,8 +164,11 @@ def test_install_excepthook(err_workbench, windows):
 
     assert old_hook is not new_hook
 
-    with handle_dialog():
-        new_hook(Exception, 'Test', '')
+    try:
+        raise Exception()
+    except Exception:
+        with handle_dialog():
+            new_hook(*sys.exc_info())
 
 
 # =============================================================================
