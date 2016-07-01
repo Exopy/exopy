@@ -109,6 +109,7 @@ enamldef InstrTaskView(BaseTaskView):
             attr selected << task.selected_instrument
             text << selected[0] if selected else ''
             tool_tip << make_selected_instrument_tooltip(selected)
+            read_only = True
         ToolButton: i_sel:
             # TODO move to a search icon
             button_style = 'text_only'

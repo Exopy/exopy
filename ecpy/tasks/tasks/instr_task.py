@@ -68,7 +68,9 @@ class InstrumentTask(SimpleTask):
         if run_time and d_id in run_time[DRIVER_DEPENDENCY_ID]:
             d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
         else:
-            traceback[err_path] = 'Failed to get the specified driver.'
+            msg = ('Failed to get the specified driver : %s. Collected drivers'
+                   ' are %s.')
+            traceback[err_path] = msg % (d_id, run_time[DRIVER_DEPENDENCY_ID])
             return False, traceback
 
         if profile:
@@ -81,7 +83,7 @@ class InstrumentTask(SimpleTask):
                                        'the %s settings') % s_id
                 return False, traceback
 
-            if kwargs.get('test_instr'):
+            if kwargs.get('test_instr', True):
                 s = profile['settings'].get(s_id, {})
                 res, msg = starter.check_infos(d_cls,
                                                profile['connections'][c_id], s
