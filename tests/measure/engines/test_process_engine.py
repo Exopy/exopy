@@ -496,6 +496,13 @@ def test_shutdown(process_engine, exec_infos, sync_server):
         sleep(0.01)
 
 
+def test_shutdown_unused_engine(process_engine):
+    """Test shuting the engine before it was ever used.
+
+    """
+    process_engine.shutdown()
+
+
 @pytest.mark.timeout(30)
 def test_force_shutdown(process_engine, exec_infos, sync_server):
     """Test forcing the shutdown of the engine.
