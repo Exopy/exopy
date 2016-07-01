@@ -203,6 +203,11 @@ A |Starter| must declare :
 - an 'id' which should be unique and is the one used when declaring a driver.
 - a 'description' detailing with what kind of driver this starter should be
   used.
+- a 'starter' which should an instance of a subclass of |BaseStarter| and
+  implement the following methods.
+
+Methods of |BaseStarter| :
+
 - a 'start' declarative function in charge of starting a driver. The
   driver returned should be ready for communication.
 - a 'stop' declarative function responsible for cleanly closing the

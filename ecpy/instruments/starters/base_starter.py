@@ -12,22 +12,15 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Unicode
-from enaml.core.api import Declarative, d_, d_func
+from atom.api import Atom, Unicode, Typed
+from enaml.core.api import Declarative, d_
 
 
-class Starter(Declarative):
-    """Object responsible initializind/finalizing a driver of a certain type.
+class BaseStarter(Atom):
+    """Base class for instrument starter.
 
     """
-    #: Unique id identifying this starter.
-    #: The usual format is top_level_package_name.starter_name
-    id = d_(Unicode())
 
-    #: Description of the starter action.
-    description = d_(Unicode())
-
-    @d_func
     def start(self, driver_cls, connection, settings):
         """Fully initialize a driver and open the communication channel.
 
@@ -55,7 +48,6 @@ class Starter(Declarative):
         """
         raise NotImplementedError()
 
-    @d_func
     def check_infos(self, driver_cls, connection, settings):
         """Check that the provided information and settings allow to open
         the communication.
@@ -83,7 +75,6 @@ class Starter(Declarative):
         """
         raise NotImplementedError()
 
-    @d_func
     def reset(self, driver):
         """Reset the instrument state after a possible alteration by the user.
 
@@ -93,7 +84,6 @@ class Starter(Declarative):
         """
         raise NotImplementedError()
 
-    @d_func
     def stop(self, driver):
         """Close the communication with the instrument.
 
@@ -104,3 +94,20 @@ class Starter(Declarative):
 
         """
         raise NotImplementedError()
+
+
+class Starter(Declarative):
+    """Object responsible initializind/finalizing a driver of a certain type.
+
+    """
+    #: Unique id identifying this starter.
+    #: The usual format is top_level_package_name.starter_name
+    id = d_(Unicode())
+
+    #: Description of the starter action.
+    description = d_(Unicode())
+
+    #: Starter instance to use for managing associate instruments.
+    #: Note that the class must be defined in a python file not enaml file
+    #:  to be pickeable.
+    starter = d_(Typed(BaseStarter))

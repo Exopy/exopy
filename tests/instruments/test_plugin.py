@@ -20,8 +20,9 @@ import enaml
 import pytest
 from configobj import ConfigObj
 
+from ecpy.instruments.starter import Starter, BaseStarter
 from ecpy.instruments.user import InstrUser
-from ecpy.instruments.plugin import validate_user
+from ecpy.instruments.plugin import validate_user, validate_starter
 from ecpy.instruments.infos import DriverInfos
 from ecpy.testing.util import handle_dialog, process_app_events
 
@@ -49,6 +50,30 @@ def test_validate_user():
     assert res
 
     # Other positive cases are tested test_plugin_lifecycle
+
+
+def test_validate_starter():
+    """Test the validate instrument starter function.
+
+    """
+    st = Starter()
+
+    res, msg = validate_starter(st)
+    assert not res and 'id' in msg
+
+    st.id = 'test'
+    res, msg = validate_starter(st)
+    assert not res and 'description' in msg
+
+    st.description = 'dummy deesc'
+    res, msg = validate_starter(st)
+    assert not res and 'instance' in msg
+
+    st.starter = BaseStarter()
+    res, msg = validate_starter(st)
+    assert not res and 'implement' in msg
+
+    # Positive cases are tested test_plugin_lifecycle
 
 
 def test_plugin_lifecycle(instr_workbench):

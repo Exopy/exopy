@@ -27,7 +27,7 @@ from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   DeclaratorsCollector,
                                   make_extension_validator)
 from .user import InstrUser
-from .starters.base_starter import Starter
+from .starters.base_starter import Starter, BaseStarter
 from .drivers.driver_decl import Driver, Drivers
 from .connections.base_connection import Connection
 from .settings.base_settings import Settings
@@ -65,6 +65,32 @@ def validate_user(user):
             return False, msg
 
     return True, ''
+
+
+def validate_starter(starter):
+    """Validate a starter declaration by checking for members and provided
+    starter.
+
+    """
+    if not starter.id:
+        return False, 'Starter must provide an id.'
+    if not starter.description:
+        return False, 'Starter must provide a description.'
+    if not starter.starter:
+        # The member validation ensures we get the right type
+        return False, 'Starter must provide a BaseStarter subclass instance.'
+
+    def get_function(cls, method_name):
+        """Get the function corresponding to a method.
+
+        """
+        meth = getattr(cls, m_name)
+        return getattr(meth, 'im_func', meth)
+
+    st = type(starter.starter)
+    for m_name in ('start', 'stop', 'check_infos', 'reset'):
+        if get_function(st, m_name) is get_function(BaseStarter, m_name):
+            return False, 'BaseStarter subclass should implement %s' % m_name
 
 
 # TODO add a way to specify default values for settings from the preferences
@@ -125,14 +151,10 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
                                           validate_ext=validate_user)
         self._users.start()
 
-        checker = make_extension_validator(Starter,
-                                           ('start', 'check_infos',
-                                            'stop', 'reset'),
-                                           ('id', 'description'))
         self._starters = ExtensionsCollector(workbench=self.workbench,
                                              point=STARTERS_POINT,
                                              ext_class=Starter,
-                                             validate_ext=checker)
+                                             validate_ext=validate_starter)
         self._starters.start()
 
         checker = make_extension_validator(Connection, ('new',),
@@ -263,7 +285,8 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         knowns = {d_id: ds[d_id] for d_id in drivers if d_id in ds}
         missing = list(set(drivers) - set(knowns))
 
-        return {d_id: (infos.cls, self._starters.contributions[infos.starter])
+        return {d_id: (infos.cls,
+                       self._starters.contributions[infos.starter].starter)
                 for d_id, infos in knowns.items()}, missing
 
     def get_profiles(self, user_id, profiles, try_release=True, partial=False):

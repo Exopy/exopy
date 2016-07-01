@@ -53,3 +53,20 @@ class FalseDriver6(object):
 
     """
     pass
+
+
+class DummyStarter(object):
+    """Dummy starter for testing purposes.
+
+    """
+    def start(driver, connection, settings):
+        pass
+
+    def check_infos(driver, connection, settings):
+        return True, ''
+
+    def reset(driver):
+        pass
+
+    def stop(driver):
+        pass

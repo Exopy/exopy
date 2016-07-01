@@ -21,6 +21,7 @@ from ecpy.instruments.api import (Driver, Connection, Settings, Starter,
                                   BaseConnection, BaseSettings,
                                   Drivers)
 
+from .false_driver import DummyStarter
 
 class TestConnection(BaseConnection):
 
@@ -149,14 +150,7 @@ enamldef InstrContributor1(PluginManifest):
         Starter:
             id = 'false_starter'
             description = 'False starter'
-            start => (driver, connection, settings):
-                pass
-            check_infos => (driver, connection, settings):
-                return True, ''
-            reset => (driver):
-                pass
-            stop => (driver):
-                pass
+            starter =
 
     Extension:
         id = 'users'
