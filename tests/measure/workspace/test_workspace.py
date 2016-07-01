@@ -189,6 +189,12 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     m = workspace.plugin.edited_measures.measures[2]
     assert m.path == text(f)
 
+    # Test loading a measure in an existing dock_item
+    panel = workspace.dock_area.find('meas_0')
+    panel.measure.name = '__dummy__'
+    workspace.load_measure('file', panel)
+    assert panel.measure.name != '__dummy__'
+
     # Test handling loading error.
     @classmethod
     def r(cls, measure_plugin, path, build_dep=None):

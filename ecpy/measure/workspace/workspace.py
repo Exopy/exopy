@@ -229,6 +229,8 @@ class MeasureSpace(Workspace):
 
         if dock_item is None:
             self._insert_new_edition_panel(measure)
+        else:
+            dock_item.measure = measure
 
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):

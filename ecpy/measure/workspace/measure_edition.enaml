@@ -323,7 +323,6 @@ enamldef MeasEditionView(Container): ed:
             ed.selected_task = measure.root_task
             tree.root_node = measure.root_task
             tree.selected_item = measure.root_task
-            editors.selected_tab = _internal.valid_editors[0].declaration.id
 
     constraints << [vbox(hbox(lab, name, id_lab, id_val, edition),
                          hbox(tree, nb),
