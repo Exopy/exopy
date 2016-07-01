@@ -169,8 +169,8 @@ enamldef TextMonitorItem(BaseMonitorItem):
 
     Form: form:
         Looper:
-            iterable << sorted(monitor.displayed_entries,
-                               key=attrgetter('path'))
+            iterable << (sorted(monitor.displayed_entries,
+                                key=attrgetter('path')) if monitor else [])
             Label:
                 hug_width = 'strong'
                 text << loop_item.name
