@@ -24,14 +24,19 @@ def test_spy():
 
     """
     q = Queue()
+    # Set up the database
     data = TaskDatabase()
+    data.set_value('test', 0)
+    data.set_value('test2', 2)
+    data.prepare_to_run()
+
     spy = MeasureSpy(queue=q, observed_database=data,
                      observed_entries=('test',))
 
-    data.notifier(('test', 1))
+    data.set_data('test', 1)
     assert q.get()
 
-    data.notifier(('test2', 1))
+    data.set_data('test2', 1)
     assert q.empty()
 
     spy.close()
