@@ -263,7 +263,7 @@ class MeasureSpace(Workspace):
             else:
                 msg = ('The following runtime dependencies of the measure {}, '
                        'are  not currently available. Some tests may be '
-                       'skipped as a  result but will be run before executing '
+                       'skipped as a result but will be run before executing '
                        'the measure.\n Missing dependencies from :\n{}')
                 msg.format(measure.name,
                            '\n'.join(('-'+id for id in errors)))
