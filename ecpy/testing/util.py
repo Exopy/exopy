@@ -83,7 +83,8 @@ def close_all_windows():
 
 
 @contextmanager
-def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
+def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
+                  skip_answer=False):
     """Automatically close a dialog opened during the context.
 
     Parameters
@@ -100,6 +101,10 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100):
 
     time : float, optional
         Time to wait before handling the dialog in ms.
+
+    skip_answer : bool, optional
+        Skip answering to the dialog. If this is True the handler should handle
+        the answer itself.
 
     """
     def close_dialog():

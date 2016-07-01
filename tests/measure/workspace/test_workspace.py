@@ -23,6 +23,7 @@ from ecpy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
+    from enaml.stdlib.message_box import MessageBox
     from ecpy.app.log.manifest import LogManifest
     from ecpy.tasks.manifest import TasksManagerManifest
     from ecpy.testing.measure.contributions import Flags
@@ -368,10 +369,43 @@ def test_force_enqueueing(workspace):
 
     """
     m = workspace.plugin.edited_measures.measures[0]
-    with handle_dialog():
+
+    def handle_error_report(dial):
+        def answer_question(dial):
+            dial.buttons[0].was_clicked = True
+
+        with handle_dialog('accept', answer_question, cls=MessageBox):
+            dial.central_widget().widgets()[-1].clicked = True
+
+    with handle_dialog(custom=handle_error_report, skip_answer=True):
         workspace.enqueue_measure(m)
 
     assert workspace.plugin.enqueued_measures.measures
+
+    # Make sure runtimes are always released.
+    m = workspace.plugin.workbench.get_manifest('test.measure')
+    assert not m.find('runtime_dummy1').collected
+    assert not m.find('runtime_dummy2').collected
+
+
+@pytest.mark.timeout(10)
+def test_force_enqueueing_abort(workspace):
+    """Test enqueueing a measure not passing the checks, but aborting.
+
+    """
+    m = workspace.plugin.edited_measures.measures[0]
+
+    def handle_error_report(dial):
+        def answer_question(dial):
+            dial.buttons[1].was_clicked = True
+
+        with handle_dialog('reject', answer_question, cls=MessageBox):
+            dial.central_widget().widgets()[-1].clicked = True
+
+    with handle_dialog(custom=handle_error_report, skip_answer=True):
+        workspace.enqueue_measure(m)
+
+    assert not workspace.plugin.enqueued_measures.measures
 
     # Make sure runtimes are always released.
     m = workspace.plugin.workbench.get_manifest('test.measure')

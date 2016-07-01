@@ -289,7 +289,7 @@ class MeasureSpace(Workspace):
                     return False
         else:
             measure.dependencies.reset()
-            dial = ChecksDisplay(errors=errors, is_warning=True)
+            dial = ChecksDisplay(errors=errors, is_warning=False)
             dial.exec_()
             if not dial.result:
                 measure.dependencies.reset()
