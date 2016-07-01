@@ -92,6 +92,8 @@ def validate_starter(starter):
         if get_function(st, m_name) is get_function(BaseStarter, m_name):
             return False, 'BaseStarter subclass should implement %s' % m_name
 
+    return True, ''
+
 
 # TODO add a way to specify default values for settings from the preferences
 class InstrumentManagerPlugin(HasPreferencesPlugin):
@@ -441,6 +443,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         """
         setattr(self, name, list(getattr(self, '_'+name).contributions))
+        if name == 'starters':
+            for id_, s in getattr(self, '_'+name).contributions.items():
+                s.starter.id = id_
 
     def _refresh_profiles(self):
         """List of profiles living in the profiles folders.

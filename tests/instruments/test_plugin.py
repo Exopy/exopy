@@ -20,7 +20,7 @@ import enaml
 import pytest
 from configobj import ConfigObj
 
-from ecpy.instruments.starter import Starter, BaseStarter
+from ecpy.instruments.api import Starter, BaseStarter
 from ecpy.instruments.user import InstrUser
 from ecpy.instruments.plugin import validate_user, validate_starter
 from ecpy.instruments.infos import DriverInfos

@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from ecpy.instruments.api import BaseStarter
+
 
 class FalseDriver(object):
     """False driver to test the declarator.
@@ -55,7 +57,7 @@ class FalseDriver6(object):
     pass
 
 
-class DummyStarter(object):
+class DummyStarter(BaseStarter):
     """Dummy starter for testing purposes.
 
     """

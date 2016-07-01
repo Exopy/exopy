@@ -20,6 +20,8 @@ class BaseStarter(Atom):
     """Base class for instrument starter.
 
     """
+    #: Id of the starter set by the declaration.
+    id = Unicode()
 
     def start(self, driver_cls, connection, settings):
         """Fully initialize a driver and open the communication channel.
