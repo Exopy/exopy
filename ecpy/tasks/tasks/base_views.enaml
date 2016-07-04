@@ -19,7 +19,7 @@ from operator import attrgetter
 
 from atom.api import Event
 from enaml.widgets.api import (GroupBox, Stack, StackItem, FileDialogEx,
-                               Label, Field, ToolButton)
+                               Label, Field, ToolButton, CheckBox)
 from enaml.core.api import d_, d_func
 from enaml.layout.api import hbox, vbox, align
 
@@ -169,7 +169,7 @@ enamldef RootTaskView(BaseTaskView): main:
             if not view.is_destroyed:
                 view.destroy()
 
-    constraints = [vbox(hbox(p_lab, p_val, p_exp), editor),
+    constraints = [vbox(hbox(p_lab, p_val, p_exp, prof), editor),
                    align('v_center', p_lab, p_val)]
 
     Label: p_lab:
@@ -186,7 +186,7 @@ enamldef RootTaskView(BaseTaskView): main:
 
             if path:
                 task.default_path = path
-    CheckBox:
+    CheckBox: prof:
         text = 'Profile'
         checked := task.should_profile
         tool_tip = 'Profile the execution of the task and dump the result.'
