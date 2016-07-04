@@ -186,6 +186,10 @@ enamldef RootTaskView(BaseTaskView): main:
 
             if path:
                 task.default_path = path
+    CheckBox:
+        text = 'Profile'
+        checked := task.should_profile
+        tool_tip = 'Profile the execution of the task and dump the result.'
 
     TaskEditor: editor:
         task = main.task

@@ -136,6 +136,7 @@ class TestLoopTask(object):
         self.task.interface = iterable_interface
         self.root.update_preferences_from_members()
         prefs = self.root.preferences
+        assert prefs['children_0'].sections[1] == 'task'
         del prefs['children_0']['task']
         deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
                               'ecpy.LoopTask': LoopTask,
