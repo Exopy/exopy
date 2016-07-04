@@ -141,3 +141,45 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
     process_app_events()
     sleep(dialog_sleep)
     assert 'dummy' not in measure.pre_hooks
+
+
+def test_ending_with_no_tools(measure, windows, dialog_sleep):
+    """Test adding/moving/removing tools.
+
+    """
+    for m in list(measure.monitors):
+        measure.remove_tool('monitor', m)
+    item = ToolsEditorDockItem(measure=measure)
+    window = DockItemTestingWindow(widget=item)
+
+    window.show()
+    window.maximize()
+    process_app_events()
+    sleep(dialog_sleep)
+
+    nb = item.dock_widget().widgets()[0]
+    mon_ed = nb.pages()[1].page_widget().widgets()[0]
+
+    # Add a tool
+    def add_tool_1(dial):
+        widgets = dial.central_widget().widgets()
+        widgets[0].selected_item = 'Dummy'
+        process_app_events()
+        sleep(dialog_sleep)
+
+    with handle_dialog('accept', custom=add_tool_1):
+        mon_ed.widgets()[-4].clicked = True
+
+    assert 'dummy' in measure.monitors
+
+    # Move up and then down
+    mon_ed.selected_id = 'dummy'
+    assert not mon_ed.widgets()[-2].enabled
+
+    assert not mon_ed.widgets()[-1].enabled
+
+    # Remove dummy
+    mon_ed.widgets()[-3].clicked = True
+    process_app_events()
+    sleep(dialog_sleep)
+    assert 'dummy' not in measure.monitors
