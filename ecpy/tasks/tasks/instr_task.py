@@ -112,9 +112,10 @@ class InstrumentTask(SimpleTask):
         else:
             profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
             d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            # Profile do not always contain a settings.
             self.driver = starter.start(d_cls,
                                         profile['connections'][c_id],
-                                        profile['settings'][s_id])
+                                        profile['settings'].get(s_id, {}))
             # HINT allow something dangerous as the same instrument can be
             # accessed using multiple settings.
             # User should be careful about this (and should be warned)

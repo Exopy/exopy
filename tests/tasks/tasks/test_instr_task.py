@@ -162,6 +162,14 @@ class TestInstrumentTask(object):
         self.task.start_driver()
         assert d is not self.task.driver
 
+    def test_instr_task_start_driver3(self):
+        """Test starting a driver whose profile contains no settings.
+
+        """
+        self.task.selected_instrument = ('p', 'd', 'c2', None)
+        self.task.start_driver()
+        assert self.task.driver
+
     def test_instr_task_test_driver(self):
         """Test getting a temporary access to a driver.
 
