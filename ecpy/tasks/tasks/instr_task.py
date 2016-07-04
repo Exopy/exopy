@@ -98,6 +98,7 @@ class InstrumentTask(SimpleTask):
         """Always start the driver.
 
         """
+        super(InstrumentTask, self).prepare()
         self.start_driver()
 
     def start_driver(self):

@@ -143,6 +143,14 @@ class TestInstrumentTask(object):
         assert self.err_path in tb
         assert 'Message' in tb[self.err_path]
 
+    def test_instr_task_prepare(self):
+        """Test preparing the task.
+
+        """
+        self.task.prepare()
+        assert self.task.driver
+        assert self.task.perform_
+
     def test_instr_task_start_driver1(self):
         """Test starting a driver.
 
