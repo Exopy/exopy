@@ -151,10 +151,11 @@ class TestTaskExecution(object):
         root = self.root
         root.add_child_task(0, ExceptionTask())
         root.check()
-        root.perform()
+        assert root.perform() is False
 
         assert not root.should_pause.is_set()
         assert root.should_stop.is_set()
+        assert root.errors
 
     @pytest.mark.timeout(10)
     def test_root_perform_simple(self):

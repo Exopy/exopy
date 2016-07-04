@@ -109,6 +109,7 @@ def smooth_crash(function_to_decorate):
             log.exception(msg % obj.name)
             obj.root.should_stop.set()
             obj.root.errors['unhandled'] = msg % obj.name + '\n' + format_exc()
+            return False
 
     update_wrapper(decorator, function_to_decorate)
     return decorator
