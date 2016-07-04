@@ -13,13 +13,15 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from operator import attrgetter
+from collections import Iterable
 
 from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
                                PopupView, Field, RadioButton,
                                ObjectCombo, PushButton, Menu, Action)
-from enaml.core.api import Looper, Conditional
+from enaml.core.api import Looper, Conditional, Include
 from enaml.layout.api import vbox, hbox, spacer
 
+from ....utils.atom_util import tagged_members
 from ....tasks.api import ComplexTask, SimpleTask
 from ....tasks.tasks.task_editor import FoldableTaskEditor
 from ..base_editor import BaseEditor
@@ -277,7 +279,10 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
     attr task
 
     #: Reference to the root editor managing the cache.
-    alias root : ed.root
+    attr root
+
+    #: Should the children be shown
+    attr show_children : bool = True
 
     #: Reference to the model driving the whole execution property edition.
     attr _model
@@ -287,7 +292,37 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
 
         """
         self.show()
-        ed.refresh()
+        for ed in tag.objects:
+            ed.set_parent(main)
+            ed.refresh()
+
+    func populate_tagged_children(change=None):
+        """Refresh the editors for the included tagged children.
+
+        """
+        if isinstance(change, dict) and 'oldvalue' in change:
+            if isinstance(change['oldvalue'], Iterable):
+                removed = set(change['oldvalue']) - set(change['value'])
+                for t in removed:
+                    root.discard_view(t)
+            else:
+                root.discard_view(change['oldvalue'])
+        elif change is not None:
+            if change.collapsed:
+                for c in change.collapsed:
+                    for _, t in c.removed:
+                        root.discard_view(t)
+            else:
+                for _, t in change.removed:
+                    root.discard_view(t)
+
+        views = []
+        for child in task.gather_children():
+            v = root.view_for(child)
+            v.visible = main.show_children
+            views.append(v)
+
+        tag.objects = views
 
     title = task.name if task else ''
 
@@ -295,11 +330,18 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
         """Setup the constraints for the children.
 
         """
-        children = self.widgets()
-        constraints = [vbox(*children)]
+        children = self.visible_widgets()
+        constraints = [vbox(*(tuple(children) + (spacer,)))]
         for child in children:
             constraints.append(child.left == contents_left)
         return constraints
+
+    initialized ::
+        for m in tagged_members(task, 'child'):
+            task.observe(m, self.populate_tagged_children)
+        for m in tagged_members(task, 'child_notifier'):
+            task.observe(m, self.populate_tagged_children)
+        populate_tagged_children()
 
     # The root task does not have that kind of settings
     Conditional:
@@ -308,9 +350,20 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
             task = main.task
             _model = main._model
 
-    FoldableTaskEditor: ed:
-        task = main.task
-        operations = {}
+    PushButton:
+        text << '-' if c_tag.visible else '+'
+        constraints = [height == 10]
+        clicked ::
+            main.show_children = not show_children
+
+    Container: c_tag:
+        padding = 0
+        visible << show_children
+        visible ::
+            for o in tag.objects:
+                o.visible = visible
+        Include: tag:
+            pass
 
 
 enamldef ExecutionEditor(BaseEditor): editor:
@@ -365,8 +418,16 @@ enamldef ExecutionEditor(BaseEditor): editor:
 
         if task:
             view = view_for(task)
+            # HINT this is needed because otherwise we try to relayout tasks
+            # that should not be relaid out because there are not diplayed
+            # anymore and should be the layout parent of the displayed task.
+            # (RootTask for a complex one).
+            # This is Qt specific
+            if view.proxy_is_active:
+                view.proxy.layout_container = None
             view.set_parent(scroll)
             view.refresh()
+            view.show()
 
     selected_task ::
         set_view_for(change['value'])
@@ -385,7 +446,8 @@ enamldef ExecutionEditor(BaseEditor): editor:
             if not view.is_destroyed:
                 view.destroy()
 
-    Container:
+    Container: cont:
+        padding = 2
         ScrollArea: scroll:
             pass
 

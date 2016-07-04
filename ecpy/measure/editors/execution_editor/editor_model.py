@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from collections import Counter
+from collections import Counter, Iterable
 
 from atom.api import Atom, Value, Typed, List
 
@@ -61,8 +61,10 @@ class ExecutionEditorModel(Atom):
 
         """
         if isinstance(task, ComplexTask):
+            for m in tagged_members(task, 'child'):
+                task.observe(m, self._child_observer)
             for m in tagged_members(task, 'child_notifier'):
-                task.observe(m, self._children_observer)
+                task.observe(m, self._child_notifier_observer)
             for child in task.gather_children():
                 self._bind_observers(child, counter)
 
@@ -88,7 +90,10 @@ class ExecutionEditorModel(Atom):
 
         """
         if isinstance(task, ComplexTask):
-            task.unobserve('children_changed', self._children_observer)
+            for m in tagged_members(task, 'child'):
+                task.unobserve(m, self._child_observer)
+            for m in tagged_members(task, 'child_notifier'):
+                task.unobserve(m, self._child_notifier_observer)
             for child in task.gather_children():
                 self._unbind_observers(child, counter)
 
@@ -148,13 +153,36 @@ class ExecutionEditorModel(Atom):
 
             self._update_pools()
 
-    def _children_observer(self, change):
+    def _child_observer(self, change):
+        """Observe rtracking a member tagged with child.
+
+        """
+        counter = Counter()
+        value = change['value']
+        if isinstance(value, Iterable):
+            for c in value:
+                self._bind_observers(c, counter)
+        elif value:
+            self._bind_observers(value, counter)
+
+        if 'oldvalue' in change:
+            value = change['oldvalue']
+            if isinstance(value, Iterable):
+                for c in value:
+                    self._unbind_observers(c, counter)
+            elif value:
+                self._unbind_observers(value, counter)
+
+        self._counter.update(counter)
+        self._update_pools()
+
+    def _child_notifier_observer(self, change):
         """Keep track of children addition and removal.
 
         """
         if change.collapsed:
             for c in change.collapsed:
-                self._children_observer(c)
+                self._child_notifier_observer(c)
 
         counter = Counter()
 
