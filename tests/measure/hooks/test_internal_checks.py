@@ -50,7 +50,7 @@ def test_attempt_to_overwrite(fake_meas, tmpdir):
 
 
 def test_fail_build_collection(fake_meas, tmpdir, monkeypatch):
-    """Test ruuning the checks on a measure whose build dep cannot be collected
+    """Test running the checks on a measure whose build dep cannot be collected
 
     """
     fake_meas.name = 'test'
