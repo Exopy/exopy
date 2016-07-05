@@ -252,7 +252,7 @@ def make_wait(perform, wait, no_wait):
 
             """
             all_threads = obj.root.resources['active_threads']
-            while obj.root.active_threads_counter.count > 1:
+            while True:
                 threads = []
                 # Get all the threads we should be waiting upon.
                 with all_threads.locked():
@@ -261,7 +261,7 @@ def make_wait(perform, wait, no_wait):
 
                 # If there is none break. Use any as threads is an iterator.
                 if not any(threads):
-                    break  # pragma: no cover
+                    break
 
                 # Else join them.
                 for thread in threads:
@@ -287,7 +287,7 @@ def make_wait(perform, wait, no_wait):
             with all_threads.locked():
                 pools = [k for k in all_threads if k not in no_wait]
 
-            while obj.root.active_threads_counter.count > 1:
+            while True:
                 # Get all the threads we should be waiting upon.
                 threads = []
                 with all_threads.locked():
@@ -296,7 +296,7 @@ def make_wait(perform, wait, no_wait):
 
                 # If there is None break. Use any as threads is an iterator.
                 if not any(threads):
-                    break  # pragma: no cover
+                    break
 
                 # Else join them.
                 for thread in threads:
@@ -319,7 +319,7 @@ def make_wait(perform, wait, no_wait):
             """
             all_threads = obj.root.resources['active_threads']
 
-            while obj.root.active_threads_counter.count > 1:
+            while True:
                 threads = []
                 with all_threads.locked():
                     # Get all the threads we should be waiting upon.
@@ -328,7 +328,7 @@ def make_wait(perform, wait, no_wait):
 
                 # If there is none break. Use any as threads is an iterator.
                 if not any(threads):
-                    break  # pragma: no cover
+                    break
 
                 # Else join them.
                 for thread in threads:
