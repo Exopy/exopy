@@ -61,14 +61,14 @@ class DummyStarter(BaseStarter):
     """Dummy starter for testing purposes.
 
     """
-    def start(driver, connection, settings):
+    def start(self, driver, connection, settings):
         pass
 
-    def check_infos(driver, connection, settings):
+    def check_infos(self, driver, connection, settings):
         return True, ''
 
-    def reset(driver):
+    def reset(self, driver):
         pass
 
-    def stop(driver):
+    def stop(self, driver):
         pass
