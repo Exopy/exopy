@@ -166,6 +166,7 @@ enamldef _BaseExecutionEditor(Container):
                 _set_parallel(task, 'pool', change['value'])
             answer ::
                 _set_parallel(task, 'pool', change['value'])
+            tool_tip = 'Right-click to declare a new pool.'
 
             Menu:
                 context_menu = True
