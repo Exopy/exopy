@@ -25,6 +25,7 @@ from ..app.api import AppClosing
 from ..app.preferences.api import Preferences
 from ..app.errors.api import ErrorHandler
 from ..app.errors.widgets import HierarchicalErrorsDisplay
+from ..instruments.api import InstrUser
 
 from .engines.process_engine import ProcessEngine
 from .editors.api import Editor
@@ -223,12 +224,12 @@ enamldef MeasureManifest(PluginManifest): manifest:
         Preferences:
             auto_save = ['path', 'selected_engine']
 
-# XXX Needs to be activated !!!!
-#    Extension:
-#        id = 'instr_user'
-#        point = 'excpy.instr_manager.users'
-#        InstrUser:
-#            default_policy = 'unreleasable'
+    Extension:
+        id = 'users'
+        point = 'ecpy.instruments.users'
+        InstrUser:
+            id = 'ecpy.measure'
+            policy = 'unreleasable'
 
     Extension:
         id = 'err_handlers'

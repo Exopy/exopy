@@ -447,6 +447,8 @@ class Measure(HasPrefAtom):
         workbench = self.plugin.workbench
 
         self._write_infos_in_task()
+        self.root_task.run_time = \
+            self.dependencies.get_runtime_dependencies('main')
 
         msg = 'Running checks for pre-measure hook %s for measure %s'
         for id, hook in self.pre_hooks.items():
@@ -467,6 +469,8 @@ class Measure(HasPrefAtom):
                 if errors:
                     full_report[id] = errors
                 result = result and check
+
+        self.root_task.run_time.clear()
 
         return result, full_report
 

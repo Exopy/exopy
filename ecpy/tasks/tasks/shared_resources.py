@@ -175,13 +175,13 @@ class ThreadPoolResource(ResourceHolder):
 
         """
         for _, pool in self.items():
-            for thread in pool:
+            for dispatcher in pool:
                 try:
-                    thread.join()
+                    dispatcher.stop()
                 except Exception:
                     log = logging.getLogger(__name__)
                     mes = 'Failed to join thread %s from pool %s'
-                    log.exception(mes, thread, pool)
+                    log.exception(mes, dispatcher, pool)
 
 
 class InstrsResource(ResourceHolder):

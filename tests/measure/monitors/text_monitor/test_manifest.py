@@ -16,6 +16,8 @@ import enaml
 
 from ecpy.measure.monitors.text_monitor.monitor import TextMonitor
 with enaml.imports():
+    from ecpy.testing.util import show_and_close_widget
+    from ecpy.testing.windows import DockItemTestingWindow
     from ecpy.measure.monitors.text_monitor.monitor_views\
         import TextMonitorEdit, TextMonitorItem
 
@@ -36,3 +38,4 @@ def test_text_monitor_declration_functions(text_monitor_workbench):
     assert isinstance(edit_view, TextMonitorEdit)
     item = decl.create_item(text_monitor_workbench, None)
     assert isinstance(item, TextMonitorItem)
+    show_and_close_widget(DockItemTestingWindow(widget=item))

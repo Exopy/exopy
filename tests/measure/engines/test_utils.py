@@ -24,18 +24,23 @@ def test_spy():
 
     """
     q = Queue()
+    # Set up the database
     data = TaskDatabase()
+    data.set_value('root', 'test', 0)
+    data.set_value('root', 'test2', 2)
+    data.prepare_to_run()
+
     spy = MeasureSpy(queue=q, observed_database=data,
-                     observed_entries=('test',))
+                     observed_entries=('root/test',))
 
-    data.notifier(('test', 1))
-    assert q.get()
+    data.set_value('root', 'test', 1)
+    assert q.get(2)
 
-    data.notifier(('test2', 1))
+    data.set_value('root', 'test2', 1)
     assert q.empty()
 
     spy.close()
-    assert q.get() == ('', '')
+    assert q.get(2) == ('', '')
 
 
 def test_monitor_thread():

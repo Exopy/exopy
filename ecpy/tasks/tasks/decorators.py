@@ -18,8 +18,10 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 from functools import update_wrapper
 from time import sleep
-from threading import Thread, current_thread
+from threading import Thread, Event, current_thread
 from traceback import format_exc
+
+from atom.api import Atom, Value, Callable, Unicode
 
 
 def handle_stop_pause(root):
@@ -109,9 +111,92 @@ def smooth_crash(function_to_decorate):
             log.exception(msg % obj.name)
             obj.root.should_stop.set()
             obj.root.errors['unhandled'] = msg % obj.name + '\n' + format_exc()
+            return False
 
     update_wrapper(decorator, function_to_decorate)
     return decorator
+
+
+class ThreadDispatcher(Atom):
+    """Dispatch calling a function to a thread.
+
+    """
+
+    #: Flag set when the thread is ready to accept new jobs.
+    inactive = Value(factory=Event)
+
+    def __init__(self, perform, pool):
+        self._func = smooth_crash(perform)
+        self._pool = pool
+        self.inactive.set()
+
+    def dispatch(self, *args, **kwargs):
+        """Dispatch the work to the background thread.
+
+        """
+        if self._thread is None:
+            pools = args[0].root.resources['threads']
+            with pools.safe_access(self._pool) as threads:
+                threads.append(self)
+            self._thread = Thread(group=None,
+                                  target=self._background_loop)
+            self._thread.start()
+
+        self.inactive.wait()
+        self._args_kwargs = args, kwargs
+        self._new_args.set()
+        pools = args[0].root.resources['active_threads']
+        with pools.safe_access(self._pool) as threads:
+            threads.append(self)
+        args[0].root.active_threads_counter.increment()
+
+    def stop(self):
+        """Stop the background thread.
+
+        """
+        if self._thread is None:
+            return
+
+        while self._new_args.is_set():
+            sleep(1e-3)
+        self.inactive.wait()
+        self._args_kwargs = (None, None)
+        self._new_args.set()
+        self._thread.join()
+        del self._thread
+        self.inactive.set()
+
+    # --- Private API ---------------------------------------------------------
+
+    #: Thread to which the work is dispatched.
+    _thread = Value()
+
+    #: Flag set when the new arguments are available..
+    _new_args = Value(factory=Event)
+
+    #: Arguments and keywords arguments for the next dispatch.
+    _args_kwargs = Value()
+
+    #: Reference to the function to call on each dispatch.
+    _func = Callable()
+
+    #: Pool id to which this dispatcher belongs.
+    _pool = Unicode()
+
+    def _background_loop(self):
+        """Background function executed by the thread.
+
+        """
+        while True:
+            self._new_args.wait()
+            self.inactive.clear()
+            args, kwargs = self._args_kwargs
+            if args is None:
+                break
+            self._func(*args, **kwargs)
+            self._new_args.clear()
+            self.inactive.set()
+            args[0].root.active_threads_counter.decrement()
 
 
 def make_parallel(perform, pool):
@@ -129,33 +214,10 @@ def make_parallel(perform, pool):
         Name of the execution pool to which the created thread belongs.
 
     """
+    dispatcher = ThreadDispatcher(perform, pool)
+
     def wrapper(*args, **kwargs):
-        """Wrap function to run wrapped function in a new thread.
-
-        """
-        obj = args[0]
-        root = obj.root
-        safe_perform = smooth_crash(perform)
-
-        def thread_perform(task, *args, **kwargs):
-            """Target for the thread running the code in parallel.
-
-            """
-            safe_perform(task, *args, **kwargs)
-            task.root.active_threads_counter.decrement()
-
-        thread = Thread(group=None,
-                        target=thread_perform,
-                        args=args,
-                        kwargs=kwargs)
-
-        pools = obj.root.resources['threads']
-
-        with pools.safe_access(pool) as threads:
-            threads.append(thread)
-
-        root.active_threads_counter.increment()
-        thread.start()
+        return dispatcher.dispatch(*args, **kwargs)
 
     update_wrapper(wrapper, perform)
     return wrapper
@@ -189,7 +251,7 @@ def make_wait(perform, wait, no_wait):
             """Wrap function to wait upon specified pools.
 
             """
-            all_threads = obj.root.resources['threads']
+            all_threads = obj.root.resources['active_threads']
             while True:
                 threads = []
                 # Get all the threads we should be waiting upon.
@@ -203,14 +265,14 @@ def make_wait(perform, wait, no_wait):
 
                 # Else join them.
                 for thread in threads:
-                    thread.join()
+                    thread.inactive.wait()
 
                 # Make sure nobody modify the pools and update them by removing
                 # the references to the dead threads.
                 with all_threads.locked():
                     for w in wait:
                         all_threads[w] = [t for t in all_threads[w]
-                                          if t.is_alive()]
+                                          if not t.inactive.is_set()]
 
                 # Start over till no thread remain in the pools in wait.
 
@@ -221,7 +283,7 @@ def make_wait(perform, wait, no_wait):
             """Wrap function not waiting on specified pools.
 
             """
-            all_threads = obj.root.resources['threads']
+            all_threads = obj.root.resources['active_threads']
             with all_threads.locked():
                 pools = [k for k in all_threads if k not in no_wait]
 
@@ -238,24 +300,25 @@ def make_wait(perform, wait, no_wait):
 
                 # Else join them.
                 for thread in threads:
-                    thread.join()
+                    thread.inactive.wait()
 
                 # Make sure nobody modify the pools and update them by removing
                 # the references to the dead threads.
                 with all_threads.locked():
                     for p in pools:
                         all_threads[p] = [t for t in all_threads[p]
-                                          if t.is_alive()]
+                                          if not t.inactive.is_set()]
 
                 # Start over till no thread remain in the pool in wait.
 
             return perform(obj, *args, **kwargs)
     else:
         def wrapper(obj, *args, **kwargs):
-            """Wrap funxtion waiting on all pool threads.
+            """Wrap function waiting on all pool threads.
 
             """
-            all_threads = obj.root.resources['threads']
+            all_threads = obj.root.resources['active_threads']
+
             while True:
                 threads = []
                 with all_threads.locked():
@@ -269,14 +332,14 @@ def make_wait(perform, wait, no_wait):
 
                 # Else join them.
                 for thread in threads:
-                    thread.join()
+                    thread.inactive.wait()
 
                 # Make sure nobody modify the pools and update them by removing
                 # the references to the dead threads.
                 with all_threads.locked():
                     for p in all_threads:
                         all_threads[p] = [t for t in all_threads[p]
-                                          if t.is_alive()]
+                                          if not t.inactive.is_set()]
             return perform(obj, *args, **kwargs)
 
     update_wrapper(wrapper, perform)

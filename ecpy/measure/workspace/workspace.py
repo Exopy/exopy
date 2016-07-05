@@ -229,6 +229,8 @@ class MeasureSpace(Workspace):
 
         if dock_item is None:
             self._insert_new_edition_panel(measure)
+        else:
+            dock_item.measure = measure
 
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
@@ -261,7 +263,7 @@ class MeasureSpace(Workspace):
             else:
                 msg = ('The following runtime dependencies of the measure {}, '
                        'are  not currently available. Some tests may be '
-                       'skipped as a  result but will be run before executing '
+                       'skipped as a result but will be run before executing '
                        'the measure.\n Missing dependencies from :\n{}')
                 msg.format(measure.name,
                            '\n'.join(('-'+id for id in errors)))
@@ -287,7 +289,7 @@ class MeasureSpace(Workspace):
                     return False
         else:
             measure.dependencies.reset()
-            dial = ChecksDisplay(errors=errors, is_warning=True)
+            dial = ChecksDisplay(errors=errors, is_warning=False)
             dial.exec_()
             if not dial.result:
                 measure.dependencies.reset()

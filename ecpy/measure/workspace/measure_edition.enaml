@@ -323,7 +323,6 @@ enamldef MeasEditionView(Container): ed:
             ed.selected_task = measure.root_task
             tree.root_node = measure.root_task
             tree.selected_item = measure.root_task
-            editors.selected_tab = _internal.valid_editors[0].declaration.id
 
     constraints << [vbox(hbox(lab, name, id_lab, id_val, edition),
                          hbox(tree, nb),
@@ -370,6 +369,7 @@ enamldef MeasEditionView(Container): ed:
         selected_item >> ed.selected_task
         visible << _internal.tree_visible
         enabled << _internal.tree_enabled
+        auto_expand = True
 
         TaskTreeNode:
             node_for = [ComplexTask]
@@ -377,6 +377,7 @@ enamldef MeasEditionView(Container): ed:
             children_changed = 'children_changed'
             add = [BaseTask]
             move = [BaseTask]
+            auto_open = True
             insert_child => (obj, index, child):
                 obj.add_child_task(index, child)
             delete_child => (obj, index):

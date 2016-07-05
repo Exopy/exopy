@@ -33,6 +33,7 @@ with enaml.imports():
     from ecpy.app.errors.plugin import ErrorsPlugin
     from ecpy.app.states.manifest import StateManifest
     from ecpy.measure.manifest import MeasureManifest
+    from ecpy.measure.monitors.text_monitor.manifest import TextMonitorManifest
 
 with enaml.imports():
     from .contributions import MeasureTestManifest
@@ -63,10 +64,12 @@ def measure_workbench(workbench, monkeypatch, app_dir):
     workbench.register(DependenciesManifest())
     workbench.register(StateManifest())
     workbench.register(MeasureManifest())
+    workbench.register(TextMonitorManifest())
 
     yield workbench
 
-    for m_id in ('ecpy.measure', 'ecpy.app.dependencies', 'ecpy.app.errors',
+    for m_id in ('ecpy.measure.monitors.text_monitor', 'ecpy.measure',
+                 'ecpy.app.dependencies', 'ecpy.app.errors',
                  'ecpy.app.icons', 'ecpy.app.preferences', 'ecpy.app'):
         try:
             workbench.unregister(m_id)

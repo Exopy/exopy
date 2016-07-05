@@ -27,14 +27,11 @@ class InternalChecksHook(BasePreExecutionHook):
 
         """
         # Short names
-        hook_id = self.declaration.id
         meas = self.measure
         task = meas.root_task
 
         # Running the checks
-        task.run_time = meas.dependencies.get_runtime_dependencies(hook_id)
         check, errors = task.check(**kwargs)
-        task.run_time.clear()
 
         # Check that no measure with the same name and id is saved in
         # the default path used by the root_task.
@@ -44,7 +41,7 @@ class InternalChecksHook(BasePreExecutionHook):
             msg = ('A measure file with the same name and id has already '
                    'been saved in %s, increments the id of your measure '
                    'to avoid overwriting it.')
-            errors['internal'] = msg % task.default_path
+            errors['duplicate'] = msg % task.default_path
 
         # Check that we can access all the build dependencies.
         b_deps = meas.dependencies.get_build_dependencies()

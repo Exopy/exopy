@@ -63,6 +63,7 @@ def start_logging(workbench, cmd_args):
 
     # Add day rotating handler to the root logger.
     handler = DayRotatingTimeHandler(os.path.join(log_dir, 'ecpy.log'))
+    handler.setLevel(logging.DEBUG)
     aux = '%(asctime)s | %(processName)s | %(levelname)s | %(message)s'
     formatter = logging.Formatter(aux)
     handler.setFormatter(formatter)

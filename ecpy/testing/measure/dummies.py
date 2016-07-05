@@ -187,6 +187,8 @@ class DummyPreHook(DummyHook, BasePreExecutionHook):
         the kwargs.
 
         """
+        if self.measure.dependencies._runtime_map.get('main'):
+            assert self.measure.root_task.run_time
         if self.fail_check or 'fail' in kwargs:
             return False, 'pre'
 

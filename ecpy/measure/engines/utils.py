@@ -53,7 +53,7 @@ class MeasureSpy(Atom):
 
         """
         if change[0] in self.observed_entries:
-            self.queue.put_nowait(change)
+            self.queue.put(change)
 
     def close(self):
         """Put a dummy object signaling that no more updates will be sent.

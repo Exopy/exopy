@@ -19,6 +19,7 @@ import enaml
 
 from ecpy.utils.container_change import ContainerChange
 from ecpy.tasks.api import RootTask, ComplexTask, SimpleTask
+from ecpy.tasks.tasks.logic.loop_task import LoopTask
 from ecpy.measure.editors.api import Editor
 from ecpy.measure.editors.execution_editor.editor_model import\
      ExecutionEditorModel
@@ -95,6 +96,33 @@ def test_model_observe_wait(task):
     assert 'test3' not in model.pools
 
 
+def test_model_observe_child_member(task):
+    """Test that replacing a child does trigger the expected behavior.
+
+    """
+    model = ExecutionEditorModel(root=task)
+    assert model.pools == ['test']
+
+    c = LoopTask(name='comp2', parallel={'activated': True,
+                                         'pool': 'test2'})
+    task.add_child_task(2, c)
+    assert 'test2' in model.pools
+
+    c.children = [SimpleTask(name='simp3', parallel={'activated': True,
+                                                     'pool': 'test3'})]
+    assert 'test3' in model.pools
+
+    c.children = []
+    assert sorted(model.pools) == sorted(['test', 'test2'])
+
+    c.task = SimpleTask(name='simp3', parallel={'activated': True,
+                                                'pool': 'test4'})
+    assert 'test4' in model.pools
+
+    c.task = None
+    assert sorted(model.pools) == sorted(['test', 'test2'])
+
+
 def test_model_observe_child_adding_removing(task):
     """Test that adding removing a child does trigger the expected behavior.
 
@@ -112,7 +140,7 @@ def test_model_observe_child_adding_removing(task):
     assert 'test3' in model.pools
 
     task.move_child_task(2, 0)
-    assert sorted(model.pools) == ['test', 'test2', 'test3']
+    assert sorted(model.pools) == sorted(['test', 'test2', 'test3'])
 
     task.remove_child_task(0)
     assert model.pools == ['test']
@@ -122,7 +150,8 @@ def test_model_observe_child_adding_removing(task):
     assert 'test2' not in model.pools
 
     # For coverage
-    model._children_observer(ContainerChange(collapsed=[ContainerChange()]))
+    notification = ContainerChange(collapsed=[ContainerChange()])
+    model._child_notifier_observer(notification)
 
 
 def test_execution_editor_widget(windows, task, dialog_sleep):

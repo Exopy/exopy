@@ -25,6 +25,7 @@ from textwrap import fill
 from copy import deepcopy
 from traceback import format_exc
 from types import MethodType
+from cProfile import Profile
 
 from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
@@ -658,7 +659,7 @@ class ComplexTask(BaseTask):
     children = List().tag(child=100)
 
     #: Signal emitted when the list of children change, the payload will be a
-    # ContainerChange instance.
+    #: ContainerChange instance.
     #: The tag 'child_notifier' is used to mark that a member emmit
     #: notifications about modification of another 'child' member. This allow
     #: editors to correctly track all of those.
@@ -861,30 +862,26 @@ class ComplexTask(BaseTask):
         """
 
         self.preferences.clear()
-        members = self.members()
-        for name in members:
+        for name, member in tagged_members(self, 'pref').items():
             # Register preferences.
-            meta = members[name].metadata
-            if meta and 'pref' in meta:
-                val = getattr(self, name)
-                self.preferences[name] = member_to_pref(self, members[name],
-                                                        val)
+            val = getattr(self, name)
+            self.preferences[name] = member_to_pref(self, member, val)
 
-            # Find all tagged children.
-            elif meta and 'child' in meta:
-                child = getattr(self, name)
-                if child:
-                    if isinstance(child, list):
-                        for i, aux in enumerate(child):
-                            child_id = name + '_{}'.format(i)
-                            self.preferences[child_id] = {}
-                            aux.preferences = \
-                                self.preferences[child_id]
-                            aux.register_preferences()
-                    else:
-                        self.preferences[name] = {}
-                        child.preferences = self.preferences[name]
-                        child.register_preferences()
+        # Find all tagged children.
+        for name in tagged_members(self, 'child'):
+            child = getattr(self, name)
+            if child:
+                if isinstance(child, Iterable):
+                    for i, aux in enumerate(child):
+                        child_id = name + '_{}'.format(i)
+                        self.preferences[child_id] = {}
+                        aux.preferences = \
+                            self.preferences[child_id]
+                        aux.register_preferences()
+                else:
+                    self.preferences[name] = {}
+                    child.preferences = self.preferences[name]
+                    child.register_preferences()
 
     def update_preferences_from_members(self):
         """Update the values stored in the preference system.
@@ -1034,6 +1031,9 @@ class RootTask(ComplexTask):
     #: Path to which log infos, preferences, etc should be written by default.
     default_path = Unicode('').tag(pref=True)
 
+    #: Should the execution be profiled.
+    should_profile = Bool().tag(pref=True)
+
     #: Dict storing data needed at execution time (ex: drivers classes)
     run_time = Dict()
 
@@ -1060,8 +1060,8 @@ class RootTask(ComplexTask):
     #: be stored in SharedDict subclass.
     #: By default three kind of resources exists:
     #:
-    #: - threads : currently running threads grouped by pool.
-    #:   ({pool: [threads, releaser]})
+    #: - threads : used threads grouped by pool.
+    #: - active_threads : currently active threads.
     #: - instrs : used instruments referenced by profiles.
     #: - files : currently opened files by path.
     #:
@@ -1121,7 +1121,11 @@ class RootTask(ComplexTask):
 
         self.prepare()
 
+        pr = Profile() if self.should_profile else None
+
         try:
+            if pr:
+                pr.enable()
             for child in self.children:
                 child.perform_()
         except Exception:
@@ -1132,6 +1136,13 @@ class RootTask(ComplexTask):
             result = False
             self.errors['unhandled'] = msg + format_exc()
         finally:
+            if pr:
+                pr.disable()
+                meas_name = self.get_from_database('meas_name')
+                meas_id = self.get_from_database('meas_id')
+                path = os.path.join(self.default_path,
+                                    meas_name + '_' + meas_id + '.prof')
+                pr.dump_stats(path)
             self.release_resources()
 
         if self.should_stop.is_set():
@@ -1234,5 +1245,6 @@ class RootTask(ComplexTask):
 
         """
         return {'threads': ThreadPoolResource(),
+                'active_threads': ThreadPoolResource(),
                 'instrs': InstrsResource(),
                 'files': FilesResource()}

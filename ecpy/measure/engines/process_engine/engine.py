@@ -293,17 +293,20 @@ class ProcessEngine(BaseEngine):
         """
         logger.debug('Cleaning up')
 
-        if process:
+        if process and self._process:
             self._process_stop.set()
             self._process.join()
             logger.debug('Subprocess joined')
-        self._pipe.close()
+        if self._pipe:
+            self._pipe.close()
 
-        self._log_thread.join()
-        logger.debug('Log thread joined')
+        if self._log_thread:
+            self._log_thread.join()
+            logger.debug('Log thread joined')
 
-        self._monitor_thread.join()
-        logger.debug('Monitor thread joined')
+        if self._monitor_thread:
+            self._monitor_thread.join()
+            logger.debug('Monitor thread joined')
 
         if self._pause_thread:
             self._pause_thread.join()

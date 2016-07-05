@@ -130,8 +130,16 @@ def test_running_checks(measure_workbench, measure):
 
     # This is necessary for the internal checks.
     measure_workbench.register(TasksManagerManifest())
+
+    # Collect run time dependencies.
     res, msg, errors = measure.dependencies.collect_runtimes()
     assert res
+
+    # Fake the presence of run time dependencies to check that they are well
+    # passed to the root task.
+    measure.dependencies._runtime_map['main'] = {'dummy': (1, 2, 3)}
+    measure.dependencies._runtime_dependencies['dummy'] = {1: None, 2: None,
+                                                           3: None}
 
     # Check that the internal hook does run the root_task tests.
     res, errors = measure.run_checks()

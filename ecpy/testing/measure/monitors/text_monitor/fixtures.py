@@ -13,23 +13,14 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import pytest
-import enaml
-
-with enaml.imports():
-    from ecpy.measure.monitors.text_monitor.manifest import TextMonitorManifest
 
 
 pytest_plugins = str('ecpy.testing.measure.fixtures'),
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def text_monitor_workbench(windows, measure_workbench):
     """Register the text monitor manifest.
 
     """
-    m = TextMonitorManifest()
-    measure_workbench.register(m)
-
-    yield measure_workbench
-
-    measure_workbench.unregister(m.id)
+    return measure_workbench

@@ -231,14 +231,16 @@ enamldef ToolsEditor(DestroyableContainer): main:
 
     PushButton: up:
         text = 'Move up'
-        enabled << bool(selected_id) and selected_id != tools.items[0]
+        enabled << (bool(tools.items) and bool(selected_id) and
+                    selected_id != tools.items[0])
         clicked ::
             ind = tools.items.index(selected_id)
             measure.move_tool(kind, ind, ind-1)
 
     PushButton: down:
         text = 'Move down'
-        enabled << bool(selected_id) and selected_id != tools.items[-1]
+        enabled << (bool(tools.items) and bool(selected_id) and
+                    selected_id != tools.items[-1])
         clicked ::
             ind = tools.items.index(selected_id)
             measure.move_tool(kind, ind, ind+1)

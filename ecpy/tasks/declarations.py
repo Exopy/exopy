@@ -142,8 +142,9 @@ class Task(Declarator):
             traceback[err_id] = msg.format(task, t_path)
             return
 
-        infos = TaskInfos(metadata=self.metadata, instruments=self.instruments,
+        infos = TaskInfos(metadata=self.metadata,
                           dependencies=self.dependencies)
+        infos.instruments = self.instruments
 
         # Get the task class.
         t_cls = import_and_get(t_path, task, traceback, task_id)

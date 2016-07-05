@@ -12,11 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import pytest
+import os
 import threading
 from multiprocessing import Event
 from time import sleep
 
+import pytest
 from atom.api import Unicode, set_default
 from enaml.application import deferred_call
 
@@ -39,6 +40,8 @@ class TestTaskExecution(object):
         root.paused = Event()
         root.resumed = Event()
         root.default_path = 'toto'
+        root.write_in_database('meas_name', 'M')
+        root.write_in_database('meas_id', '001')
         self.root = root
 
     def test_check_simple_task(self, tmpdir):
@@ -151,10 +154,11 @@ class TestTaskExecution(object):
         root = self.root
         root.add_child_task(0, ExceptionTask())
         root.check()
-        root.perform()
+        assert root.perform() is False
 
         assert not root.should_pause.is_set()
         assert root.should_stop.is_set()
+        assert root.errors
 
     @pytest.mark.timeout(10)
     def test_root_perform_simple(self):
@@ -170,6 +174,29 @@ class TestTaskExecution(object):
         assert not root.should_pause.is_set()
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
+
+    @pytest.mark.timeout(10)
+    def test_root_perform_profile(self, tmpdir):
+        """Test running a simple task.
+
+        """
+        self.root.default_path = str(tmpdir)
+        root = self.root
+        aux = CheckTask(name='test')
+        root.add_child_task(0, aux)
+        root.check()
+        root.should_profile = True
+        root.perform()
+
+        assert not root.should_pause.is_set()
+        assert not root.should_stop.is_set()
+        assert aux.perform_called == 1
+
+        meas_name = self.root.get_from_database('meas_name')
+        meas_id = self.root.get_from_database('meas_id')
+        path = os.path.join(self.root.default_path,
+                            meas_name + '_' + meas_id + '.prof')
+        assert os.path.isfile(path)
 
     @pytest.mark.timeout(10)
     def test_root_perform_complex(self):
@@ -264,7 +291,7 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.resources['threads']['test']
+        assert not root.resources['active_threads']['test']
 
     @pytest.mark.timeout(10)
     def test_root_perform_wait_single(self):
@@ -297,8 +324,8 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.resources['threads']['test']
-        assert root.resources['threads']['aux']
+        assert not root.resources['active_threads']['test']
+        assert root.resources['active_threads']['aux']
 
     @pytest.mark.timeout(10)
     def test_root_perform_no_wait_single(self):
@@ -331,8 +358,8 @@ class TestTaskExecution(object):
         assert par.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert not root.resources['threads']['test']
-        assert root.resources['threads']['aux']
+        assert not root.resources['active_threads']['test']
+        assert root.resources['active_threads']['aux']
 
     @pytest.mark.timeout(10)
     def test_stop(self):
@@ -473,13 +500,13 @@ class TestTaskExecution(object):
         """Test the handling of issues in cleaning ressources in root.
 
         """
-        class FalseThread(object):
+        class FalseThreadDispatcher(object):
             """False thread which cannot be joined.
 
             """
             called = 0
 
-            def join(self):
+            def stop(self):
                 self.called += 1
                 raise Exception()
 
@@ -512,7 +539,7 @@ class TestTaskExecution(object):
                 raise Exception()
 
         root = self.root
-        thread = FalseThread()
+        thread = FalseThreadDispatcher()
         root.resources['threads']['test'] = [thread]
         instr = FalseInstr()
         root.resources['instrs']['a'] = instr, FalseStarter()

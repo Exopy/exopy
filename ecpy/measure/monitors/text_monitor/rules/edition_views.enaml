@@ -153,7 +153,7 @@ enamldef EditRulesView(Dialog): dial:
         PushButton: delete:
             text = 'Remove'
             clicked ::
-                del monitor.rules[qlist.selected_index]
+                del monitor.rules[monitor.rules.index(qlist.selected_item)]
                 monitor.refresh_monitored_entries()
                 qlist.refresh_items()
 

@@ -48,6 +48,26 @@ class SetValidator(Validator):
         return res
 
 
+def clean_name(name):
+    """Clean a name connection.
+
+    """
+    return name.replace('_', ' ')
+
+
+def trim_description(desc):
+    """Trim a connection or settings description.
+
+    The Defaults section useful to developper is suppressed.
+
+    """
+    if 'Default' in desc:
+        desc = desc.split('Default', 1)[0].replace('\n', ' ')
+        return desc.strip()
+    else:
+        return desc
+
+
 enamldef ConnectionCreationDialog(Dialog): dial:
     """Dialog allowing the user to select the connection to add to the profile.
 
@@ -66,7 +86,8 @@ enamldef ConnectionCreationDialog(Dialog): dial:
 
     #: Not yet existing connections
     attr _connections = ids_to_unique_names([c for c in model_infos.connections
-                                             if c not in existing])
+                                             if c not in existing],
+                                             clean_name)
 
     func create_connection():
         """Create the connection editor corresponding to selected connection.
@@ -95,7 +116,8 @@ enamldef ConnectionCreationDialog(Dialog): dial:
             text << connection.declaration.id if connection else ''
 
         MultilineField: desc:
-            text << connection.declaration.description if connection  else ''
+            text << (trim_description(connection.declaration.description)
+                     if connection  else '')
 
         PushButton: can:
             text = 'Cancel'
@@ -249,7 +271,8 @@ enamldef SettingsCreationDialog(Dialog): dial:
             text << settings.declaration.id if settings else ''
 
         MultilineField: desc:
-            text << settings.declaration.description if settings  else ''
+            text << (trim_description(settings.declaration.description)
+                     if settings  else '')
 
         Label: n_lab:
             text = 'Name'
@@ -441,7 +464,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             s = main.connections[:]
-                            del s[conns.selected_index]
+                            del s[conns.items.index(conns.selected_item)]
                             main.connections = s
                     PushButton: val_c:
                         text = 'Validate'
@@ -514,7 +537,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             s = main.settings[:]
-                            del s[setts.selected_index]
+                            del s[setts.items.index(setts.selected_item)]
                             main.settings = s
 
 

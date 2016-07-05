@@ -12,9 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from textwrap import fill
+
 from enaml.core.api import Conditional
 from enaml.widgets.api import Dialog, PushButton, Container
 from enaml.layout.api import hbox, vbox, spacer
+from enaml.stdlib.message_box import question
 
 from ...app.errors.widgets import HierarchicalErrorsDisplay
 
@@ -33,7 +36,7 @@ enamldef ChecksDisplay(Dialog): dial:
 
     Container:
 
-        constraints = [vbox(hier, hbox(spacer, cls, *enq.items))]
+        constraints = [vbox(hier, hbox(spacer, cls, enq))]
 
         HierarchicalErrorsDisplay: hier:
             kind = 'Errors' if not is_warning else 'Warnings'
@@ -43,9 +46,18 @@ enamldef ChecksDisplay(Dialog): dial:
             clicked ::
                 dial.reject()
 
-        Conditional: enq:
-            condition = is_warning
-            PushButton:
-                text = 'Enqueue'
-                clicked ::
+        PushButton: enq:
+            text = 'Enqueue' if is_warning else 'Force enqueue'
+            clicked ::
+                accept = is_warning
+                if not is_warning:
+                    msg = ('Checks generally fail when a measure is '
+                           'incorrectly parametrized. Be sure to have a good '
+                           'reason to enqueue the measure nonetheless')
+                    btn = question(dial, 'Confirm forced enqueuing',fill(msg))
+                    accept = btn and btn.action == 'accept'
+
+                if accept:
                     dial.accept()
+                else:
+                    dial.reject()

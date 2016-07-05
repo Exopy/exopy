@@ -44,6 +44,15 @@ def plugin():
     return MeasurePlugin
 
 
+def schedule_and_block(func, args=(), kwargs={}, priority=100):
+    """Schedule a function call on the main thread and wait for it to complete.
+
+    """
+    sheduled = schedule(func, args, kwargs, priority=100)
+    while sheduled.pending():
+        sleep(0.05)
+
+
 class MeasureProcessor(Atom):
     """Object reponsible for a measure execution.
 
@@ -196,7 +205,8 @@ class MeasureProcessor(Atom):
         # If the engine does not exist, create one.
         plugin = self.plugin
         if not self.engine:
-            self.engine = plugin.create('engine', plugin.selected_engine)
+            engine = plugin.create('engine', plugin.selected_engine)
+            schedule_and_block(setattr, (self, 'engine', engine))
 
         # Mark that we started processing measures.
         self._state.set('processing')
@@ -467,6 +477,8 @@ class MeasureProcessor(Atom):
                 with enaml.imports():
                     from .workspace.monitors_window import MonitorsWindow
                 self.monitors_window = MonitorsWindow(ui_plugin.window)
+            else:
+                self.monitors_window.send_to_front()
 
             self.monitors_window.measure = measure
 
@@ -491,9 +503,8 @@ class MeasureProcessor(Atom):
                     try:
                         dock_item = decl.create_item(workbench, dock_area)
                     except Exception:
-                        logger.error('Failed to create widget for monitor %s',
-                                     decl.id)
-                        logger.debug(format_exc())
+                        msg = 'Failed to create widget for monitor %s :\n %s'
+                        logger.error(msg, decl.id, format_exc())
                         continue
 
                     if dock_item is not None:
@@ -512,9 +523,7 @@ class MeasureProcessor(Atom):
                 dock_area.update_layout(ops)
 
         # Executed in the main thread to avoid GUI update issues.
-        sheduled = schedule(start_monitors, (self, measure), priority=100)
-        while sheduled.pending():
-            sleep(0.05)
+        schedule_and_block(start_monitors, (self, measure), priority=100)
 
     def _stop_monitors(self, measure):
         """Disconnect the monitors from the engine and stop them.
@@ -535,10 +544,8 @@ class MeasureProcessor(Atom):
                 monitor.stop()
 
         # Executed in the main thread to avoid GUI update issues.
-        sheduled = schedule(stop_monitors, (self.engine, measure),
-                            priority=100)
-        while sheduled.pending():
-            sleep(0.05)
+        schedule_and_block(stop_monitors, (self.engine, measure),
+                           priority=100)
 
     def _check_for_pause_or_stop(self):
         """Check if a pause or stop request is pending and process it.
@@ -616,7 +623,9 @@ class MeasureProcessor(Atom):
             if clear:
                 processor.running_measure = None
 
-        deferred_call(set_state, self, status, infos, measure, clear)
+        # Executed in the main thread to avoid GUI update issues.
+        schedule_and_block(set_state, (self, status, infos, measure, clear),
+                           priority=100)
 
     def _stop_engine(self):
         """Stop the engine.

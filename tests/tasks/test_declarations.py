@@ -60,6 +60,21 @@ def test_register_task_decl1(collector, task_decl):
     assert infos.metadata['group'] == 'test'
 
 
+def test_regsitering_a_task_with_instruments(collector, task_decl):
+    """Test registering a task supporting instruments.
+
+    """
+    parent = Tasks(group='test', path='ecpy.tasks.tasks')
+    parent.insert_children(None, [task_decl])
+    task_decl.task = 'base_tasks:RootTask'
+    task_decl.view = 'base_views:RootTaskView'
+    task_decl.dependencies = ['dummy.dep']
+    task_decl.instruments = ['DummyInstrument']
+    parent.register(collector, {})
+    infos = collector.contributions['ecpy.RootTask']
+    assert len(infos.dependencies) == 3
+
+
 def test_register_task_decl_extend1(collector, task_decl):
     """Test extending a task.
 

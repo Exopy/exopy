@@ -48,10 +48,12 @@ class TaskDatabase(Atom):
       may not be so (dict, list, etc)
 
     """
-    #: Signal used to notify a value changed in the database. The update is
-    #: passed as a tuple ('added', path, value) for creation, as
-    #: ('renamed', old, new, value) in case of renaming, ('removed', old) in
-    #: case of deletion or as a list of such tuples.
+    #: Signal used to notify a value changed in the database.
+    #: In edition mode the update is passed as a tuple ('added', path, value)
+    #: for creation, as ('renamed', old, new, value) in case of renaming,
+    #: ('removed', old) in case of deletion or as a list of such tuples.
+    #: In running mode, a 2-tuple (path, value) is sent as entries cannot be
+    #: renamed or removed.
     notifier = Signal()
 
     #: Signal emitted to notify that access exceptions has changed. The update
@@ -106,7 +108,7 @@ class TaskDatabase(Atom):
             index = self._entry_index_map[full_path]
             with self._lock:
                 self._flat_database[index] = value
-                self.notifier(('added', node_path + '/' + value_name, value))
+                self.notifier((node_path + '/' + value_name, value))
         else:
             node = self.go_to_path(node_path)
             if value_name not in node.data:

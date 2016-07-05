@@ -48,7 +48,8 @@ enamldef ModelSelectionWidget(Container):
         if change['value']:
             tr.selected_item = change['value']
 
-    constraints = [vbox(hbox(k_lab, k_val, ser), tr)]
+    constraints = [vbox(hbox(k_lab, k_val, spacer, ser), tr),
+                   align('v_center', k_lab, k_val)]
 
     initialized ::
         if model:
@@ -212,7 +213,6 @@ enamldef ModelView(Container):
                 read_only = True
 
 
-# XXX fix bug cannot select if we pass a value for the model.
 enamldef ModelSelectionDialog(Dialog): dial:
     """Dialog allowing to choose an instrument model.
 
@@ -233,7 +233,7 @@ enamldef ModelSelectionDialog(Dialog): dial:
 
         constraints << ([vbox(hbox(sel, vbox(*(list(dis.objects) + [spacer]))),
                               hbox(spacer, can, ok)),
-                        contents_width >= 3*sel.width])
+                        contents_width >= 2*sel.width])
 
         ModelSelectionWidget: sel:
             kind = 'All'

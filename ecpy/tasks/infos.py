@@ -59,6 +59,9 @@ class ObjectDependentInfos(Atom):
                     yield ii_id, ii
 
     def _post_setattr_instruments(self, old, new):
+        """Update the dependencies each time the instruments member is set.
+
+        """
         if new:
             self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
                                       INSTR_RUNTIME_PROFILES_ID))

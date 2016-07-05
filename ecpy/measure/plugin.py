@@ -84,7 +84,7 @@ class MeasurePlugin(HasPreferencesPlugin):
     monitors = List()
 
     #: Default monitors to use for new measures.
-    default_monitors = List().tag(pref=True)
+    default_monitors = List(default=['ecpy.text_monitor']).tag(pref=True)
 
     #: Always show monitors on measure startup.
     auto_show_monitors = Bool(True).tag(pref=True)
@@ -150,17 +150,21 @@ class MeasurePlugin(HasPreferencesPlugin):
         # before discovering the contributions (would be an issue for engine).
         super(MeasurePlugin, self).start()
 
-        # XXX this should not be needed as the preferences should be empty
-        # HINT : add manually the text monitor as we do not have yet
-        # preferences edition
-        if 'ecpy.text_monitor' in self.monitors:
-            self.default_monitors = ['ecpy.text_monitor']
+        state = core.invoke_command('ecpy.app.states.get',
+                                    {'state_id': 'ecpy.app.directory'})
+
+        m_dir = os.path.join(state.app_directory, 'measure')
+        # Create measure subfolder if it does not exist.
+        if not os.path.isdir(m_dir):
+            os.mkdir(m_dir)
+
+        s_dir = os.path.join(m_dir, 'saved_measures')
+        # Create profiles subfolder if it does not exist.
+        if not os.path.isdir(s_dir):
+            os.mkdir(s_dir)
 
         if not os.path.isdir(self.path):
-            core = self.workbench.get_plugin('enaml.workbench.core')
-            state = core.invoke_command('ecpy.app.states.get',
-                                        {'state_id': 'ecpy.app.directory'})
-            self.path = state.app_directory
+            self.path = s_dir
 
         cmd = 'ecpy.app.errors.signal'
         for contrib in ('pre_hooks', 'monitors', 'post_hooks'):
@@ -168,7 +172,7 @@ class MeasurePlugin(HasPreferencesPlugin):
             avai_default = [d for d in default
                             if d in getattr(self, contrib)]
             if default != avai_default:
-                msg = 'The following {}s have not been found : {}'
+                msg = 'The following {} have not been found : {}'
                 missing = set(default) - set(avai_default)
                 core.invoke_command(cmd, dict(kind='error',
                                               message=msg.format(contrib,

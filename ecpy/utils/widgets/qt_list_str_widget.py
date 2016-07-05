@@ -23,15 +23,13 @@ INDEX_GUARD = 0x1
 
 
 class QtListStrWidget(RawWidget):
-    """A List widget for Enaml.
+    """A list widget for Enaml displaying objects as strings.
+
+    Objects that are not string should be convertible to str and hashable.
 
     """
     #: The list of str being viewed
     items = d_(List())
-
-    #: The list of index of the currently selected str
-    selected_index = d_(Int(0))
-    selected_indexes = d_(List(Int(), [0]))
 
     #: The list of the currently selected str
     selected_item = d_(Value())
@@ -50,6 +48,15 @@ class QtListStrWidget(RawWidget):
     hug_width = set_default(str('strong'))
     hug_height = set_default(str('ignore'))
 
+    def initialize(self):
+        """Ensures that the selected members always have meaningful values.
+
+        """
+        self._build_mapping(self.items)
+        if self.items:
+            self._do_default_selection()
+        super(QtListStrWidget, self).initialize()
+
     def refresh_items(self):
         """Refresh the items displayed in the list.
 
@@ -57,7 +64,7 @@ class QtListStrWidget(RawWidget):
         notified.
 
         """
-        self.set_items(self.items)
+        self._post_setattr_items([], self.items)
 
     def clear_selection(self):
         """Make no item be selected.
@@ -66,25 +73,34 @@ class QtListStrWidget(RawWidget):
         # HINT : this only gives a visual hint to the user the selected value
         # is not updated.
         widget = self.get_widget()
-        widget.clearSelection()
+        if widget is not None:
+            widget.clearSelection()
 
     def create_widget(self, parent):
         """ Create the QListView widget.
 
         """
-        # Create the list model and accompanying controls:
+        # Create the list widget.
         widget = QtGui.QListWidget(parent)
-        self._set_items(self.items, widget)
+
+        # Populate the widget.
+        self._set_widget_items(widget)
+
+        # Set the selection mode.
         if self.multiselect:
             mode = QtGui.QAbstractItemView.ExtendedSelection
+            selected = [self.selected_item]
         else:
             mode = QtGui.QAbstractItemView.SingleSelection
+            selected = self.selected_items
         widget.setSelectionMode(mode)
-        # This is necessary to ensure that the first selection is correctly
-        # dispatched.
+
+        self.proxy.widget = widget  # Anticipated so that selection works
+
+        # Make sure the widget selection reflects the members.
         if self.items:
-            widget.setCurrentItem(widget.item(self._map[0]),
-                                  QtGui.QItemSelectionModel.ClearAndSelect)
+            self._select_on_widget(selected, widget)
+
         widget.itemSelectionChanged.connect(self.on_selection)
         return widget
 
@@ -95,71 +111,15 @@ class QtListStrWidget(RawWidget):
         if not self._guard & INDEX_GUARD:
             self._guard ^= INDEX_GUARD
             widget = self.get_widget()
-            indexes = [self._rmap[index.row()]
-                       for index in widget.selectedIndexes()]
-            if indexes:
+            selected = [self._rmap[index.row()]
+                        for index in widget.selectedIndexes()]
+            if selected:
                 if self.multiselect:
-                    # HINT force an access so that the new change (which is
-                    # swallowed by enaml) so that the notifications are
-                    # properly propagated
-                    self.selected_indexes
-                    self.selected_items
-
-                    self.selected_indexes = indexes
-                    self.selected_items = [self.items[i] for i in indexes]
+                    self.selected_items = selected
                 else:
-                    # HINT force an access so that the new change (which is
-                    # swallowed by enaml) so that the notifications are
-                    # properly propagated
-                    self.selected_index
-                    self.selected_item
-
-                    new_index = indexes[0]
-                    self.selected_index = new_index
-                    self.selected_item = self.items[new_index]
+                    self.selected_item = selected[0]
 
             self._guard ^= INDEX_GUARD
-
-    def set_items(self, items):
-        """Populates the widget list.
-
-        """
-        widget = self.get_widget()
-        if widget is not None:
-            widget.clearSelection()
-            widget.clear()
-        self._set_items(items, widget)
-
-        if widget is None or not items:
-            return
-
-        if not self.multiselect:
-            if self.selected_item not in items:
-                self.selected_index = self._rmap[0]
-                # HINT force the notification
-                self._post_setattr_selected_index(None, self._rmap[0])
-            else:
-                self._post_setattr_selected_item(None, self.selected_item)
-        else:
-            if not any(i in items for i in self.selected_items):
-                self.selected_indexes = [self._rmap[0]]
-                # HINT force the notification
-                self._post_setattr_selected_indexes(None, [self._rmap[0]])
-            else:
-                new = [i for i in self.selected_items if i in items]
-                self._post_setattr_selected_items(None, new)
-
-    def set_multiselect(self, multiselect):
-        """Set the multiselect mode.
-
-        """
-        widget = self.get_widget()
-        if multiselect:
-            mode = QtGui.QAbstractItemView.ExtendedSelection
-        else:
-            mode = QtGui.QAbstractItemView.SingleSelection
-
-        widget.setSelectionMode(mode)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
@@ -168,54 +128,45 @@ class QtListStrWidget(RawWidget):
     #: Guard bit field.
     _guard = Int(0)
 
-    #: Mapping between user list index and widget list index
+    #: Mapping between user list objects and widget list indexes.
     _map = Dict()
 
-    #: Mapping between the widget list index and the user list index
+    #: Mapping between the widget list indexes and the user list objects.
     _rmap = Dict()
+
+    #: String representation of the objects in the widget order.
+    _items = List()
 
     def _post_setattr_items(self, old, new):
         """Update the widget content when the items changes.
 
         """
-        self.set_items(new)
+        self._build_mapping(new)
+        self._set_widget_items(self.get_widget())
+        if new:
+            self._do_default_selection()
 
     def _post_setattr_multiselect(self, old, new):
         """Update the widget selection mode.
 
         """
-        self.set_multiselect(new)
+        widget = self.get_widget()
+        if widget is None:
+            return
 
-    def _post_setattr_selected_index(self, old, new):
-        """Update the widget when the selected index is changed externally.
+        if new:
+            mode = QtGui.QAbstractItemView.ExtendedSelection
+            if self.items:
+                self.selected_items = [self.selected_item]
+        else:
+            mode = QtGui.QAbstractItemView.SingleSelection
+            if self.items:
+                self.selected_item = self.selected_items[0]
 
-        """
-        if not self._guard & INDEX_GUARD and self.items:
-            self._guard ^= INDEX_GUARD
-            index = self._map[new]
-            self.selected_item = self.items[new]
-            widget = self.get_widget()
-            if widget is not None:
-                widget.setCurrentItem(widget.item(index),
-                                      QtGui.QItemSelectionModel.ClearAndSelect)
-            self._guard ^= INDEX_GUARD
-
-    def _post_setattr_selected_indexes(self, old, new):
-        """Update the widget when the selected indexes are changed externally.
-
-        """
-        if not self._guard & INDEX_GUARD and self.items:
-            self._guard ^= INDEX_GUARD
-            self.selected_items = [self.items[i] for i in new]
-            widget = self.get_widget()
-            if widget is not None:
-                widget.setCurrentItem(widget.item(0),
-                                      QtGui.QItemSelectionModel.Clear)
-                imap = self._map
-                for i in new:
-                    widget.setCurrentItem(widget.item(imap[i]),
-                                          QtGui.QItemSelectionModel.Select)
-            self._guard ^= INDEX_GUARD
+        widget.setSelectionMode(mode)
+        if self.items:
+            self._select_on_widget(self.selected_items if new
+                                   else [self.selected_item])
 
     def _post_setattr_selected_item(self, old, new):
         """Update the widget when the selected item is changed externally.
@@ -223,12 +174,7 @@ class QtListStrWidget(RawWidget):
         """
         if not self._guard & INDEX_GUARD and self.items:
             self._guard ^= INDEX_GUARD
-            index = self.items.index(new)
-            self.selected_index = index
-            widget = self.get_widget()
-            if widget is not None:
-                widget.setCurrentItem(widget.item(self._map[index]),
-                                      QtGui.QItemSelectionModel.ClearAndSelect)
+            self._select_on_widget([new])
             self._guard ^= INDEX_GUARD
 
     def _post_setattr_selected_items(self, old, new):
@@ -237,41 +183,63 @@ class QtListStrWidget(RawWidget):
         """
         if not self._guard & INDEX_GUARD and self.items:
             self._guard ^= INDEX_GUARD
-            indexes = [self.items.index(o) for o in new]
-            self.selected_indexes = indexes
-            widget = self.get_widget()
-            if widget is not None:
-                widget.setCurrentItem(widget.item(0),
-                                      QtGui.QItemSelectionModel.Clear)
-                imap = self._map
-                for i in indexes:
-                    widget.setCurrentItem(widget.item(imap[i]),
-                                          QtGui.QItemSelectionModel.Select)
+            self._select_on_widget(new)
             self._guard ^= INDEX_GUARD
 
-    def _default_selected_item(self):
-        """Useful when this is accessed during initialization.
+    def _build_mapping(self, items):
+        """Build the mapping between user objects and widget indexes.
 
         """
-        return self.items[0] if self.items else None
+        items_map = {self.to_string(o): o for o in items}
+        items = sorted(items_map) if self.sort else list(items_map)
 
-    def _default_selected_items(self):
-        """Useful when this is accessed during initialization.
+        self._rmap = {i: items_map[item] for i, item in enumerate(items)}
+        self._map = {v: k for k, v in self._rmap.items()}
+        self._items = items
 
-        """
-        return [self.items[0]] if self.items else [None]
-
-    def _set_items(self, items, widget):
+    def _set_widget_items(self, widget):
         """Set the list items sorting if necessary.
 
         """
-        items = [self.to_string(o) for o in items]
-        s_index = list(range(len(items)))
-        if self.sort:
-            s_index.sort(key=items.__getitem__)
-
-        self._rmap = {i: j for i, j in enumerate(s_index)}
-        self._map = {j: i for i, j in enumerate(s_index)}
         if widget is not None:
-            for i in s_index:
-                widget.addItem(items[i])
+            widget.clearSelection()
+            widget.clear()
+            for i in self._items:
+                widget.addItem(i)
+
+    def _do_default_selection(self):
+        """Determine the items that should be selected.
+
+        This method also ensures that the widget state reflects the member
+        values.
+
+        """
+        items = self.items
+        if not self.multiselect:
+            if self.selected_item not in items:
+                self.selected_item = self._rmap[0]
+            else:
+                self._post_setattr_selected_item(None, self.selected_item)
+        else:
+            if not any(i in items for i in self.selected_items):
+                self.selected_items = [self._rmap[0]]
+            else:
+                items_selected = [i for i in self.selected_items if i in items]
+                if len(items_selected) == len(self.selected_item):
+                    self._post_setattr_selected_items(None, items)
+                else:
+                    self.selected_items = items_selected
+
+    def _select_on_widget(self, items, widget=None):
+        """Seclect the specified items on the widget.
+
+        """
+        if widget is None:
+            widget = self.get_widget()
+        if widget is not None:
+            widget.setCurrentItem(widget.item(0),
+                                  QtGui.QItemSelectionModel.Clear)
+            item_map = self._map
+            for n in items:
+                widget.setCurrentItem(widget.item(item_map[n]),
+                                      QtGui.QItemSelectionModel.Select)

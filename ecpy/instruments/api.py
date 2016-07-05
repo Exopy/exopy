@@ -15,12 +15,12 @@ from __future__ import (division, unicode_literals, print_function,
 from .user import InstrUser
 
 from .drivers.driver_decl import Driver, Drivers
-from .starters.base_starter import Starter
+from .starters.base_starter import BaseStarter, Starter
 from .starters.exceptions import InstrIOError
 from .connections.base_connection import BaseConnection, Connection
 from .settings.base_settings import BaseSettings, Settings
 from .manufacturer_aliases import ManufacturerAlias
 
 __all__ = ['Driver', 'Drivers', 'InstrUser', 'BaseConnection', 'Connection',
-           'Settings', 'BaseSettings', 'Starter', 'ManufacturerAlias',
-           'InstrIOError']
+           'Settings', 'BaseSettings', 'Starter', 'BaseStarter',
+           'ManufacturerAlias', 'InstrIOError']

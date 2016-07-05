@@ -111,6 +111,8 @@
 
 .. |Starter| replace:: :py:class:`~ecpy.instruments.starters.base_starter.Starter`
 
+.. |BaseStarter| replace:: :py:class:`~ecpy.instruments.starters.base_starter.BaseStarter`
+
 .. |Connection| replace:: :py:class:`~ecpy.instruments.connections.base_connection.Connection`
 
 .. |BaseConnection| replace:: :py:class:`~ecpy.instruments.connections.base_connection.BaseConnection`

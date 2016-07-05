@@ -143,6 +143,14 @@ class TestInstrumentTask(object):
         assert self.err_path in tb
         assert 'Message' in tb[self.err_path]
 
+    def test_instr_task_prepare(self):
+        """Test preparing the task.
+
+        """
+        self.task.prepare()
+        assert self.task.driver
+        assert self.task.perform_
+
     def test_instr_task_start_driver1(self):
         """Test starting a driver.
 
@@ -161,6 +169,14 @@ class TestInstrumentTask(object):
         self.task.selected_instrument = ('p', 'd', 'c2', 's')
         self.task.start_driver()
         assert d is not self.task.driver
+
+    def test_instr_task_start_driver3(self):
+        """Test starting a driver whose profile contains no settings.
+
+        """
+        self.task.selected_instrument = ('p', 'd', 'c2', None)
+        self.task.start_driver()
+        assert self.task.driver
 
     def test_instr_task_test_driver(self):
         """Test getting a temporary access to a driver.

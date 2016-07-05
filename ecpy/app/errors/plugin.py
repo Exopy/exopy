@@ -16,7 +16,7 @@ import logging
 from collections import defaultdict
 from inspect import cleandoc
 from pprint import pformat
-from traceback import format_exc
+from traceback import format_exc, format_tb
 from textwrap import fill
 
 import enaml
@@ -173,7 +173,8 @@ class ErrorsPlugin(Plugin):
 
             """
             msg = 'An uncaugt execption occured :\n%s : %s\nTraceback:\n%s'
-            logger.error(msg % (cls.__name__, value, traceback))
+            logger.error(msg % (cls.__name__, value,
+                         ''.join(format_tb(traceback))))
 
             ui = self.workbench.get_plugin('enaml.workbench.ui')
             msg = ('An uncaught exception occured. This should not happen '

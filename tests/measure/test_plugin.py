@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+
 import pytest
 import enaml
 
@@ -32,10 +34,13 @@ def test_lifecycle(measure_workbench, app_dir):
     """
     plugin = measure_workbench.get_plugin('ecpy.measure')
 
-    # XXX check that the default path is set to app_dir
+    assert plugin.path == os.path.join(app_dir, 'measure', 'saved_measures')
+    assert os.path.isdir(plugin.path)
 
     assert plugin.engines
     assert plugin.pre_hooks
+    assert plugin.monitors
+    assert plugin.default_monitors == ['ecpy.text_monitor']
 
     measure_workbench.register(MeasureTestManifest())
 
