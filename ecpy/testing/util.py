@@ -16,10 +16,13 @@ import os
 from time import sleep
 from contextlib import contextmanager
 
+import enaml
 from configobj import ConfigObj
 from enaml.application import timed_call
 from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window, Dialog
+with enaml.imports():
+    from enaml.stdlib.message_box import MessageBox
 
 
 APP_PREFERENCES = os.path.join('app', 'preferences')
@@ -128,6 +131,22 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
     timed_call(time, close_dialog)
     yield
     process_app_events()
+
+
+@contextmanager
+def handle_question(answer):
+    """Handle question dialog.
+
+    """
+    def answer_question(dial):
+        """Mark the right button as clicked.
+
+        """
+        dial.buttons[0 if answer == 'yes' else 1].was_clicked = True
+
+    with handle_dialog('accept' if answer == 'yes' else 'reject',
+                       custom=answer_question, cls=MessageBox):
+        yield
 
 
 def show_widget(widget):
