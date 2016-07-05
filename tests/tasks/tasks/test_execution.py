@@ -40,6 +40,8 @@ class TestTaskExecution(object):
         root.paused = Event()
         root.resumed = Event()
         root.default_path = 'toto'
+        root.write_in_database('meas_name', 'M')
+        root.write_in_database('meas_id', '001')
         self.root = root
 
     def test_check_simple_task(self, tmpdir):
@@ -174,10 +176,11 @@ class TestTaskExecution(object):
         assert aux.perform_called == 1
 
     @pytest.mark.timeout(10)
-    def test_root_perform_profile(self):
+    def test_root_perform_profile(self, tmpdir):
         """Test running a simple task.
 
         """
+        self.root.default_path = str(tmpdir)
         root = self.root
         aux = CheckTask(name='test')
         root.add_child_task(0, aux)
@@ -189,9 +192,9 @@ class TestTaskExecution(object):
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
 
-        meas_name = self.get_from_database('meas_name')
-        meas_id = self.get_from_database('meas_id')
-        path = os.path.join(self.default_path,
+        meas_name = self.root.get_from_database('meas_name')
+        meas_id = self.root.get_from_database('meas_id')
+        path = os.path.join(self.root.default_path,
                             meas_name + '_' + meas_id + '.prof')
         assert os.path.isfile(path)
 
