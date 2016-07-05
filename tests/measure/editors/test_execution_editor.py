@@ -113,7 +113,7 @@ def test_model_observe_child_member(task):
     assert 'test3' in model.pools
 
     c.children = []
-    assert model.pools == ['test', 'test2']
+    assert sorted(model.pools) == sorted(['test', 'test2'])
 
     c.task = SimpleTask(name='simp3', parallel={'activated': True,
                                                 'pool': 'test4'})
@@ -140,7 +140,7 @@ def test_model_observe_child_adding_removing(task):
     assert 'test3' in model.pools
 
     task.move_child_task(2, 0)
-    assert sorted(model.pools) == ['test', 'test2', 'test3']
+    assert sorted(model.pools) == sorted(['test', 'test2', 'test3'])
 
     task.remove_child_task(0)
     assert model.pools == ['test']
