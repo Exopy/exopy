@@ -55,7 +55,34 @@ def processor(windows, measure_workbench, measure):
     measure_workbench.register(TasksManagerManifest())
     plugin = measure_workbench.get_plugin('ecpy.measure')
     plugin.selected_engine = 'dummy'
+
     return plugin.processor
+
+
+def process_and_assert(test_func, args=(), kwargs={}, time=0.01, count=1000):
+    """Process events and check test_func value.
+
+    """
+    process_app_events()
+    counter = 0
+    while not test_func(*args, **kwargs):
+        sleep(time)
+        process_app_events()
+        if counter > count:
+            assert False
+        counter += 1
+    process_app_events()
+
+
+def process_and_join_thread(thread, timeout=0.1):
+    """Process application events and join a thread.
+
+    """
+    def test_func():
+        thread.join(timeout)
+        return not thread.is_alive()
+
+    process_and_assert(test_func)
 
 
 def wait_and_process(waiting_function):
@@ -87,8 +114,7 @@ def test_starting_measure_no_measure_enqueued(processor):
 
     """
     processor.start_measure(None)
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert not processor.active
 
 
@@ -112,6 +138,8 @@ def test_starting_measure_thread_not_dying(processor, measure):
     core = processor.plugin.workbench.get_plugin('enaml.workbench.core')
     core.invoke_command('ecpy.app.errors.enter_error_gathering')
     processor.start_measure(None)
+    sleep(0.1)
+    process_app_events()
     with pytest.raises(ErrorDialogException):
         core.invoke_command('ecpy.app.errors.exit_error_gathering')
 
@@ -131,12 +159,10 @@ def test_running_full_measure(app, processor, measure_with_tools, windows,
     processor.continuous_processing = False
     processor.start_measure(measure)
 
-    process_app_events()
-    assert processor.active
+    process_and_assert(getattr, (processor, 'active'))
 
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
-    process_app_events()
+    process_and_assert(pre_hook.waiting.wait, (5,))
     assert measure is processor.running_measure
     assert measure.status == 'RUNNING'
     assert tmpdir.listdir()
@@ -160,8 +186,7 @@ def test_running_full_measure(app, processor, measure_with_tools, windows,
 
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure.status == 'COMPLETED'
     m = processor.plugin.workbench.get_manifest('test.measure')
     assert not m.find('runtime_dummy1').collected
@@ -179,8 +204,9 @@ def test_running_measure_whose_runtime_are_unavailable(processor, monkeypatch,
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
     processor.start_measure(measure_with_tools)
 
-    processor._thread.join()
-    process_app_events()
+    process_and_assert(getattr, (processor, 'active'))
+
+    process_and_join_thread(processor._thread)
     assert measure_with_tools.status == 'SKIPPED'
 
 
@@ -192,8 +218,9 @@ def test_running_measure_failing_checks(processor, measure_with_tools):
     measure_with_tools.pre_hooks['dummy'].fail_check = True
     processor.start_measure(measure_with_tools)
 
-    processor._thread.join()
-    process_app_events()
+    process_and_assert(getattr, (processor, 'active'))
+
+    process_and_join_thread(processor._thread)
     assert measure_with_tools.status == 'FAILED'
     assert 'checks' in measure_with_tools.infos
     m = processor.plugin.workbench.get_manifest('test.measure')
@@ -209,13 +236,14 @@ def test_running_measure_failing_pre_hooks(processor, measure_with_tools):
     measure_with_tools.pre_hooks['dummy'].fail_run = True
     processor.start_measure(measure_with_tools)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure_with_tools.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
     pre_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure_with_tools.status == 'FAILED'
     assert 'pre-execution' in measure_with_tools.infos
     m = processor.plugin.workbench.get_manifest('test.measure')
@@ -233,8 +261,10 @@ def test_running_measure_failing_main_task(processor, measure_with_tools):
     processor.engine.fail_perform = True
     processor.start_measure(measure_with_tools)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
     pre_hook.go_on.set()
 
@@ -247,8 +277,7 @@ def test_running_measure_failing_main_task(processor, measure_with_tools):
 
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
 
     assert measure.status == 'FAILED'
     assert 'main task' in measure_with_tools.infos
@@ -265,8 +294,11 @@ def test_running_measure_failing_post_hooks(processor, measure_with_tools):
     measure = measure_with_tools
     measure_with_tools.post_hooks['dummy'].fail_run = True
     processor.start_measure(measure_with_tools)
+
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     pre_hook.go_on.set()
@@ -280,8 +312,8 @@ def test_running_measure_failing_post_hooks(processor, measure_with_tools):
 
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
+
     assert measure_with_tools.status == 'FAILED'
     assert 'post-execution' in measure_with_tools.infos
     m = processor.plugin.workbench.get_manifest('test.measure')
@@ -298,8 +330,11 @@ def test_running_forced_enqueued_measure(processor, measure_with_tools):
     measure.forced_enqueued = True
     measure.pre_hooks['dummy'].fail_check = True
     processor.start_measure(measure_with_tools)
+
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     pre_hook.go_on.set()
@@ -313,8 +348,7 @@ def test_running_forced_enqueued_measure(processor, measure_with_tools):
 
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
 
 
 @pytest.mark.parametrize('mode', ['between hooks', 'after hooks'])
@@ -332,16 +366,17 @@ def test_stopping_measure_while_preprocessing(mode, processor,
         measure.move_tool('pre-hook', 0, 1)
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
     processor.stop_measure(no_post_exec=True)
     assert pre_hook.stop_called
 
     pre_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure.status == 'INTERRUPTED'
     m = processor.plugin.workbench.get_manifest('test.measure')
     assert not m.find('runtime_dummy1').collected
@@ -358,8 +393,10 @@ def test_stopping_measure_while_running_main(processor, measure_with_tools):
     measure = measure_with_tools
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     pre_hook.go_on.set()
@@ -374,8 +411,7 @@ def test_stopping_measure_while_running_main(processor, measure_with_tools):
 
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure.status == 'INTERRUPTED'
     m = processor.plugin.workbench.get_manifest('test.measure')
     assert not m.find('runtime_dummy1').collected
@@ -392,8 +428,10 @@ def test_stopping_measure_while_postprocessing(processor, measure_with_tools):
     measure.post_hooks['dummy2'].fail_run = True
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     pre_hook.go_on.set()
@@ -409,8 +447,7 @@ def test_stopping_measure_while_postprocessing(processor, measure_with_tools):
     assert post_hook.stop_called
     post_hook.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure.status == 'INTERRUPTED'
     m = processor.plugin.workbench.get_manifest('test.measure')
     assert not m.find('runtime_dummy1').collected
@@ -430,8 +467,10 @@ def test_stopping_processing(processor, measure_with_tools):
     measure = measure_with_tools
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     pre_hook.go_on.set()
@@ -467,8 +506,10 @@ def test_stopping_processing_in_hook(processor, measure_with_tools):
     measure = measure_with_tools
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     processor.stop_processing(no_post_exec=True)
@@ -503,8 +544,10 @@ def test_stopping_processing_while_in_pause(processor, measure_with_tools):
     measure = measure_with_tools
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     pre_hook = measure.pre_hooks['dummy']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     processor.pause_measure()
@@ -540,11 +583,13 @@ def test_pausing_measure(processor, measure_with_tools):
     measure.add_tool('post-hook', 'dummy2')
     processor.start_measure(measure)
 
+    process_and_assert(getattr, (processor, 'active'))
+
     def wait_on_state_paused(timeout):
         return processor._state.wait(timeout, 'paused')
 
     pre_hook = measure.pre_hooks['dummy2']
-    assert pre_hook.waiting.wait(5)
+    process_and_assert(pre_hook.waiting.wait, (5,))
     process_app_events()
 
     # Pause inside a pre_hook.
@@ -621,8 +666,7 @@ def test_pausing_measure(processor, measure_with_tools):
     wait_and_process(post_hook2.waiting.wait)
     post_hook2.go_on.set()
 
-    processor._thread.join()
-    process_app_events()
+    process_and_join_thread(processor._thread)
     assert measure.status == 'COMPLETED'
     m = processor.plugin.workbench.get_manifest('test.measure')
     assert not m.find('runtime_dummy1').collected
