@@ -2,7 +2,24 @@ Ecpy Changelog
 ==============
 
 
-0.1.0 
------
+0.1.0.a3
+--------
+
+- add plugin app.icon to handle the use of icons
+- turn instruments starters into a standard class to be able to serialize them
+- add a global sys.excepthook to get nicer messages
+- keep threads alive for task in parallel to get more reproducible timing
+- add the possibility to profile the execution of a root task
+- lots of bugfixes
+
+
+0.1.0.a2
+--------
+
+- fix a number of bugs in profile selection
+- add measure entries to the RootTask
+
+0.1.0.a1
+--------
 
 - First numbered version
