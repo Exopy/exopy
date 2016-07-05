@@ -120,7 +120,7 @@ def test_model_observe_child_member(task):
     assert 'test4' in model.pools
 
     c.task = None
-    assert model.pools == ['test', 'test2']
+    assert sorted(model.pools) == sorted(['test', 'test2'])
 
 
 def test_model_observe_child_adding_removing(task):
