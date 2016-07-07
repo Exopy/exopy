@@ -12,9 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ast import literal_eval
 from traceback import format_exc
-from atom.api import Atom, ForwardTyped, Typed, Tuple, Dict, Property, Constant
+from atom.api import (Atom, ForwardTyped, Typed, Unicode, Dict, Property,
+                      Constant)
 
 from ...utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
@@ -130,7 +130,7 @@ class InterfaceableMixin(Atom):
 
         if 'interface' in config:
             iclass = config['interface'].pop('interface_id')
-            inter_class = dependencies[DEP_TYPE][literal_eval(iclass)]
+            inter_class = dependencies[DEP_TYPE][iclass]
             new.interface = inter_class.build_from_config(config['interface'],
                                                           dependencies)
 
@@ -284,9 +284,9 @@ class BaseInterface(HasPrefAtom):
     #: Identifier for the build dependency collector
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 
-    #: Name of the class of the interface and anchor (ie task or interface with
-    #: this interface is used with). Used for persistence purposes.
-    interface_id = Tuple().tag(pref=True)
+    #: Id of the interface preceded by the ids of all its anchors separated by
+    # ':'. Used for persistence purposes.
+    interface_id = Unicode().tag(pref=True)
 
     #: Dict of database entries added by the interface.
     database_entries = Dict()
@@ -380,8 +380,9 @@ class TaskInterface(BaseInterface):
         """Update the interface anchor when the task is set.
 
         """
-        self.interface_id = ((type(self).__name__, (new.task_id,)) if new
-                             else ())
+        pack, _ = self.__module__.split('.', 1)
+        i_id = pack + '.' + type(self).__name__
+        self.interface_id = new.task_id + ':' + i_id if new else i_id
 
 
 class IInterface(BaseInterface):
@@ -405,11 +406,11 @@ class IInterface(BaseInterface):
         """Reset the task property and update the interface anchor.
 
         """
+        pack, _ = self.__module__.split('.', 1)
+        i_id = pack + '.' + type(self).__name__
         if new:
-            self.interface_id = (type(self).__name__,
-                                 self.parent.interface_id[1] +
-                                 (self.parent.interface_id[0],))
+            self.interface_id = self.parent.interface_id + ':' + i_id
         else:
-            self.interface_id = (type(self).__name__,)
+            self.interface_id = i_id
         task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
         task_member.reset(self)

@@ -413,7 +413,7 @@ def test_register_interface_decl_path_1(int_decl, collector):
     task, i = int_decl
     i.interface = 'foo.tt'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.foo.tt' in tb
+    assert 'ecpy.LoopTask:foo.tt'
 
 
 def test_register_interface_decl_path2(int_decl, collector):
@@ -424,7 +424,7 @@ def test_register_interface_decl_path2(int_decl, collector):
     task, i = int_decl
     i.views = 'foo:bar:foo'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface' in tb
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_duplicate1(int_decl, collector):
@@ -433,20 +433,20 @@ def test_register_interface_decl_duplicate1(int_decl, collector):
     """
     tb = {}
     task, i = int_decl
-    infos = TaskInfos(interfaces={i.interface.rsplit(':', 1)[1]: None})
+    infos = TaskInfos(interfaces={'ecpy.IterableLoopInterface': None})
     collector.contributions[task.id] = infos
     i.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface_duplicate1' in tb
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_duplicate1' in tb
 
 
 def test_register_interface_decl_duplicate2(int_decl, collector):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'ecpy.LoopTask.IterableLoopInterface': ''}
+    tb = {'ecpy.LoopTask:ecpy.IterableLoopInterface': ''}
     task, i = int_decl
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface_duplicate1' in tb
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_duplicate1' in tb
 
 
 def test_register_interface_decl_cls1(int_decl, collector):
@@ -457,8 +457,8 @@ def test_register_interface_decl_cls1(int_decl, collector):
     task, i = int_decl
     i.interface = 'foo.bar:baz'
     task.register(collector, tb)
-    assert ('ecpy.LoopTask.baz' in tb and
-            'ImportError' in tb['ecpy.LoopTask.baz'])
+    assert ('ecpy.LoopTask:ecpy.baz' in tb and
+            'ImportError' in tb['ecpy.LoopTask:ecpy.baz'])
 
 
 def test_register_interface_decl_cls1_bis(collector):
@@ -473,8 +473,8 @@ def test_register_interface_decl_cls1_bis(collector):
     task.insert_children(None, [i])
     i.interface = 'ecpy.testing.broken_module:Test'
     task.register(collector, tb)
-    assert ('ecpy.LoopTask.Test' in tb and
-            'NameError' in tb['ecpy.LoopTask.Test'])
+    assert ('ecpy.LoopTask:ecpy.Test' in tb and
+            'NameError' in tb['ecpy.LoopTask:ecpy.Test'])
 
 
 def test_register_interface_decl_cls2(int_decl, collector):
@@ -485,7 +485,7 @@ def test_register_interface_decl_cls2(int_decl, collector):
     task, i = int_decl
     i.interface = 'loop_iterable_interface:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.baz' in tb
+    assert 'ecpy.LoopTask:ecpy.baz' in tb
 
 
 def test_register_interface_decl_cls3(collector, int_decl):
@@ -496,8 +496,8 @@ def test_register_interface_decl_cls3(collector, int_decl):
     task, i = int_decl
     i.interface = 'loop_task:LoopTask'
     task.register(collector, tb)
-    assert ('ecpy.LoopTask.LoopTask' in tb and
-            'subclass' in tb['ecpy.LoopTask.LoopTask'])
+    assert ('ecpy.LoopTask:ecpy.LoopTask' in tb and
+            'subclass' in tb['ecpy.LoopTask:ecpy.LoopTask'])
 
 
 def test_register_interface_decl_view1(int_decl, collector):
@@ -508,7 +508,7 @@ def test_register_interface_decl_view1(int_decl, collector):
     task, i = int_decl
     i.views = 'foo.bar:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface' in tb
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_view1_bis(int_decl, collector):
@@ -522,9 +522,9 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
                   views=['_dumy__:Test', 'ecpy.testing.broken_enaml:Task'])
     task.insert_children(None, [i])
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface_1' in tb
-    assert ('AttributeError' in tb['ecpy.LoopTask.IterableLoopInterface_1'] or
-            'NameError' in tb['ecpy.LoopTask.IterableLoopInterface_1'])
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_1' in tb
+    assert ('AttributeError' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface_1'] or
+            'NameError' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface_1'])
 
 def test_register_interface_decl_view2(int_decl, collector):
     """Test handling view issues : undefined in module.
@@ -534,7 +534,7 @@ def test_register_interface_decl_view2(int_decl, collector):
     task, i = int_decl
     i.views = 'views.loop_iterable_view:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface' in tb
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_children1(int_decl, collector):
@@ -545,8 +545,8 @@ def test_register_interface_decl_children1(int_decl, collector):
     task, i = int_decl
     i.insert_children(None, [Task()])
     task.register(collector, tb)
-    assert 'ecpy.LoopTask.IterableLoopInterface' in tb and\
-        'Interface' in tb['ecpy.LoopTask.IterableLoopInterface']
+    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb and\
+        'Interface' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface']
 
 
 def test_register_interface_decl_children2(int_decl, collector):
@@ -564,7 +564,8 @@ def test_register_interface_decl_children2(int_decl, collector):
 
     tb = {}
     task.register(collector, tb)
-    assert 'ecpy.Task.Test' in tb and 'Interface' in tb['ecpy.Task.Test']
+    assert ('ecpy.Task:Test' in tb and
+            'Interface' in tb['ecpy.Task:Test'])
 
 
 def test_unregister_interface_decl(int_decl, collector):
@@ -664,7 +665,7 @@ def test_nested_interfaces_register(nested_int_decl, collector):
     task.register(collector, {})
 
     interfaces = collector.contributions['ecpy.LoopTask'].interfaces
-    assert interfaces['IterableLoopInterface'].interfaces
+    assert interfaces['ecpy.IterableLoopInterface'].interfaces
     interface.parent.unregister(collector)
 
 

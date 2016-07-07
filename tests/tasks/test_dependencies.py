@@ -126,7 +126,7 @@ def test_analysing_interface_dependencies(monkeypatch, task_workbench,
 
     """
     runtime = {'test'}
-    interface = ('LinspaceLoopInterface', 'ecpy.LoopTask')
+    interface = 'ecpy.LoopTask:ecpy.LinspaceLoopInterface'
     plugin = task_workbench.get_plugin('ecpy.tasks')
     monkeypatch.setattr(plugin.get_interface_infos(interface), 'dependencies',
                         runtime)
@@ -144,11 +144,11 @@ def test_analysing_interface_dependencies(monkeypatch, task_workbench,
     dep.clear()
     run = interface_dep_collector.analyse(task_workbench,
                                           {'interface_id':
-                                              ('__dummy__', 'LoopTask')},
+                                              'LoopTask:__dummy__'},
                                           getitem, dep, errors)
     assert not run
     assert not dep
-    assert str(('__dummy__', 'LoopTask')) in errors
+    assert 'LoopTask:__dummy__' in errors
 
 
 def test_validating_interface_dependencies(task_workbench,
@@ -157,12 +157,12 @@ def test_validating_interface_dependencies(task_workbench,
 
     """
     errors = {}
-    interface_dep_collector.validate(task_workbench,
-                                     {('LinspaceLoopInterface',
-                                       'ecpy.LoopTask'),
-                                      ('__dummy__', 'LoopTask')}, errors)
-    assert ('LinspaceLoopInterface', 'ecpy.LoopTask') not in errors
-    assert ('__dummy__', 'LoopTask') in errors
+    interface_dep_collector.validate(
+        task_workbench,
+        {'ecpy.LoopTask:ecpy.LinspaceLoopInterface',
+         'LoopTask:__dummy__'}, errors)
+    assert 'ecpy.LoopTask:ecpy.LinspaceLoopInterface' not in errors
+    assert 'LoopTask:__dummy__' in errors
 
 
 def test_collecting_interface_dependencies(task_workbench,
@@ -170,12 +170,12 @@ def test_collecting_interface_dependencies(task_workbench,
     """Test collecting the dependencies found in an interface.
 
     """
-    dependencies = dict.fromkeys([('LinspaceLoopInterface', 'ecpy.LoopTask'),
-                                  ('__dummy__', 'LoopTask')])
+    dependencies = dict.fromkeys(['ecpy.LoopTask:ecpy.LinspaceLoopInterface',
+                                  'LoopTask:__dummy__'])
     errors = {}
     interface_dep_collector.collect(task_workbench, dependencies, errors)
-    assert ('LinspaceLoopInterface', 'ecpy.LoopTask') in dependencies
-    assert ('__dummy__', 'LoopTask') in errors
+    assert 'ecpy.LoopTask:ecpy.LinspaceLoopInterface' in dependencies
+    assert 'LoopTask:__dummy__' in errors
 
 
 def test_analysing_instr_task_dependencies(monkeypatch, task_workbench,

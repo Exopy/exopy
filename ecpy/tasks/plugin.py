@@ -215,11 +215,11 @@ class TaskManagerPlugin(HasPreferencesPlugin):
 
         Parameters
         ----------
-        interface : tuple[unicode|tuple|list]
-            - Name of the task class for which to return the actual class.
-            - Name of the task to which this interface is linked and names of
-              the intermediate interfaces if any (going from the most general
-              ones to the more specialised ones).
+        interface : unicode
+            Id of the task this interface is linked to followed by the ids
+            of the intermediate interfaces if any and finally id of the
+            interface itself. All ids should be separated by ':'
+            ex 'ecpy.LoopTask:ecpy.IterableLoopInterface'
 
         views : bool, optional
             Whether or not to return the views assoicated with the interface.
@@ -232,9 +232,9 @@ class TaskManagerPlugin(HasPreferencesPlugin):
 
         """
         lookup_dict = self._tasks.contributions
-        interface_cls_name, interface_anchor = interface
-        if not isinstance(interface_anchor, (list, tuple)):
-            interface_anchor = [interface_anchor]
+        ids = interface.split(':')
+        interface_id = ids.pop(-1)
+        interface_anchor = ids
 
         try:
             for anchor in interface_anchor:
@@ -242,12 +242,12 @@ class TaskManagerPlugin(HasPreferencesPlugin):
         except KeyError:
             logger = logging.getLogger(__name__)
             msg = 'Looking for {} (anchor {}) failed to found {}'
-            logger.debug(msg.format(interface_cls_name, interface_anchor,
+            logger.debug(msg.format(interface_id, interface_anchor,
                                     anchor))
             return None
 
-        if interface_cls_name in lookup_dict:
-            return lookup_dict[interface_cls_name]
+        if interface_id in lookup_dict:
+            return lookup_dict[interface_id]
         else:
             return None
 

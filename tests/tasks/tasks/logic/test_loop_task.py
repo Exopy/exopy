@@ -142,7 +142,7 @@ class TestLoopTask(object):
                               'ecpy.LoopTask': LoopTask,
                               'ecpy.CheckTask': CheckTask},
                 'ecpy.tasks.interface':
-                    {('IterableLoopInterface', ('ecpy.LoopTask',)):
+                    {'ecpy.LoopTask:ecpy.IterableLoopInterface':
                         IterableLoopInterface}
                 }
         new = RootTask.build_from_config(prefs, deps)

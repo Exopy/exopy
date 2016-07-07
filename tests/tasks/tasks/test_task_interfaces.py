@@ -172,7 +172,8 @@ class TestInterfaceableTaskMixin(object):
         self.mixin.interface = i1
         assert i1.task is self.mixin
         assert self.mixin.database_entries == {'test': 2.0, 'itest': 1.0}
-        assert i1.interface_id[1] == (self.mixin.task_id,)
+        assert i1.interface_id == (self.mixin.task_id +
+                                   ':tests.' + i1.__class__.__name__)
 
         self.mixin.interface = i2
         assert i2.task is self.mixin
@@ -308,7 +309,7 @@ class TestInterfaceableTaskMixin(object):
         self.root.update_preferences_from_members()
         deps = {'ecpy.task': {'tests.Mixin': Mixin, 'ecpy.RootTask': RootTask},
                 'ecpy.tasks.interface':
-                    {('InterfaceTest', ('tests.Mixin',)): InterfaceTest}}
+                    {'tests.Mixin:tests.InterfaceTest': InterfaceTest}}
         bis = RootTask.build_from_config(self.root.preferences, deps)
 
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest'
@@ -343,8 +344,8 @@ class TestInterfaceableInterfaceMixin(object):
         self.mixin.interface = i1
         assert i1.parent is self.mixin
         assert i1.task is self.mixin.task
-        assert i1.interface_id[1] ==\
-            (self.mixin.interface_id[1] + (self.mixin.interface_id[0],))
+        assert i1.interface_id == (self.mixin.interface_id +
+                                   ':tests.' + i1.__class__.__name__)
         assert self.mixin.task.database_entries == {'test': 2.0, 'itest': 1.0}
 
         self.mixin.interface = i2
@@ -458,7 +459,7 @@ class TestInterfaceableInterfaceMixin(object):
         aux.add_child_task(0, mixin)
         deps = {'ecpy.task': {'tests.Mixin': Mixin, 'ecpy.RootTask': RootTask},
                 'ecpy.tasks.interface':
-                    {('InterfaceTest3', ('tests.Mixin',)): InterfaceTest3}}
+                    {'tests.Mixin:tests.InterfaceTest3': InterfaceTest3}}
         bis = RootTask.build_from_config(aux.preferences, deps)
         assert type(bis.children[0].interface).__name__ == 'InterfaceTest3'
 
@@ -471,9 +472,9 @@ class TestInterfaceableInterfaceMixin(object):
         self.root.update_preferences_from_members()
         deps = {'ecpy.task': {'tests.Mixin': Mixin, 'ecpy.RootTask': RootTask},
                 'ecpy.tasks.interface':
-                    {('InterfaceTest3', ('tests.Mixin',)): InterfaceTest3,
-                     ('IIinterfaceTest1',
-                      ('tests.Mixin', 'InterfaceTest3')): IIinterfaceTest1
+                    {'tests.Mixin:tests.InterfaceTest3': InterfaceTest3,
+                     'tests.Mixin:tests.InterfaceTest3:tests.IIinterfaceTest1':
+                         IIinterfaceTest1
                      }
                 }
         bis = RootTask.build_from_config(self.root.preferences, deps)

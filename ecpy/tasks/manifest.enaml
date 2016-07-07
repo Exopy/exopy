@@ -441,8 +441,6 @@ enamldef TasksManagerManifest(PluginManifest):
                 manager = workbench.get_plugin('ecpy.tasks')
 
                 interface_anchor = getter(obj, 'interface_id')
-                if not isinstance(interface_anchor, tuple):
-                    interface_anchor = literal_eval(interface_anchor)
 
                 i_infos = manager.get_interface_infos(interface_anchor)
                 if i_infos is None:

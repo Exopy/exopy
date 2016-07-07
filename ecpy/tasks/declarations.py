@@ -278,7 +278,7 @@ class Interface(Declarator):
     #: Name of the task/interfaces to which this interface contribute. If this
     #: interface contributes to a task then the task id is enough, if it
     #: contributes to an interface a list with the ids of the tasks and all
-    #: intermediate interfaces should be provided.
+    #: intermediate interfaces id should be provided.
     #: When declared as a child of a Task/Interface the names are inferred from
     #: the parents.
     extended = d_(List())
@@ -291,7 +291,7 @@ class Interface(Declarator):
     #: related dependencies as those are handled in a different fashion).
     dependencies = d_(List())
 
-    #: Id of the interface computed from the parents ids and the task name.
+    #: Id of the interface computed from the parents ids and the interface name
     id = Property(cached=True)
 
     def register(self, collector, traceback):
@@ -306,7 +306,7 @@ class Interface(Declarator):
         elif isinstance(self.parent, Interface):
             parent = self.parent
             self.extended = (parent.extended +
-                             [parent.interface.rsplit(':', 1)[-1]])
+                             [parent.id.rsplit(':', 1)[-1]])
         else:
             msg = 'No task/interface declared for {}'
             traceback[self.interface] = msg.format(self.interface)
@@ -322,18 +322,26 @@ class Interface(Declarator):
             collector._delayed.append(self)
             return
 
+        i_id = self.id
+        # Simplified id not including the anchors
+        s_id = i_id.rsplit(':', 1)[1]
+
         # If the interface only specifies a name update the matching infos.
-        if ':' not in self.interface and '.' not in self.interface:
-            if self.interface not in parent_infos.interfaces:
+        if ':' not in self.interface:
+            if s_id not in parent_infos.interfaces:
+                if self.views:
+                    msg = 'Incorrect %s (%s), path must be of the form %s'
+                    msg = msg % ('interface', self.interface, 'a.b.c:Class')
+                    traceback[i_id] = msg
                 collector._delayed.append(self)
                 return
-            infos = parent_infos.interfaces[self.interface]
+            infos = parent_infos.interfaces[s_id]
             infos.instruments.update(self.instruments)
             infos.dependencies.update(self.dependencies)
 
             check = check_children(self)
             if check:
-                traceback[self.id] = check
+                traceback[i_id] = check
                 return
 
             for i in self.children:
@@ -356,20 +364,19 @@ class Interface(Declarator):
                 raise ValueError()
 
         except ValueError:
+            # If interface does not contain ':' it is assumed to be an
+            # extension.
             msg = 'Incorrect %s (%s), path must be of the form a.b.c:Class'
-            if self.interface.count(':') == 1:
-                msg = msg % ('views', self.views)
-            else:
-                msg = msg % ('interface', self.interface)
+            msg = msg % ('views', self.views)
 
-            traceback[self.id] = msg
+            traceback[i_id] = msg
             return
 
         # Check that the interface does not already exists.
-        if interface in parent_infos.interfaces or self.id in traceback:
+        if s_id in parent_infos.interfaces or i_id in traceback:
             i = 1
             while True:
-                err_id = '%s_duplicate%d' % (self.id, i)
+                err_id = '%s_duplicate%d' % (i_id, i)
                 if err_id not in traceback:
                     break
 
@@ -382,7 +389,7 @@ class Interface(Declarator):
                                dependencies=self.dependencies)
 
         # Get the interface class.
-        i_cls = import_and_get(i_path, interface, traceback, self.id)
+        i_cls = import_and_get(i_path, interface, traceback, i_id)
         if i_cls is None:
             return
 
@@ -390,16 +397,16 @@ class Interface(Declarator):
             infos.cls = i_cls
         except TypeError:
             msg = '{} should a subclass of BaseInterface.\n{}'
-            traceback[self.id] = msg.format(i_cls, format_exc())
+            traceback[i_id] = msg.format(i_cls, format_exc())
             return
 
         # Get the views.
         store = []
-        v_id = self.id
+        v_id = i_id
         counter = 1
         for v_path, view in views:
             if v_id in traceback:
-                v_id = self.id + '_%d' % counter
+                v_id = i_id + '_%d' % counter
                 counter += 1
             view = import_and_get(v_path, view, traceback, v_id)
             if view is not None:
@@ -412,10 +419,10 @@ class Interface(Declarator):
         # Check children type.
         check = check_children(self)
         if check:
-            traceback[self.id] = check
+            traceback[i_id] = check
             return
 
-        parent_infos.interfaces[interface] = infos
+        parent_infos.interfaces[s_id] = infos
 
         for i in self.children:
             i.register(collector, traceback)
@@ -438,7 +445,7 @@ class Interface(Declarator):
             for i in self.children:
                 i.unregister(collector)
 
-            interface = self.interface.split(':')[-1]
+            interface = self.id.rsplit(':', 1)[-1]
             if ':' not in self.interface:
                 if interface in parent_infos.interfaces:
                     infos = parent_infos.interfaces[interface]
@@ -475,9 +482,18 @@ class Interface(Declarator):
         and the class name.
 
         """
-        i_name = (self.interface.rsplit(':', 1)[1] if ':' in self.interface
-                  else self.interface)
-        return '.'.join(self.extended + [i_name])
+        if ':' in self.interface:
+            path = self.get_path()
+            i_path, interface = (path + '.' + self.interface
+                                 if path else self.interface).split(':')
+
+            # Build the interface name by assembling the package name and the
+            # class name
+            i_name = i_path.split('.', 1)[0] + '.' + interface
+        else:
+            i_name = self.interface
+
+        return ':'.join(self.extended + [i_name])
 
 
 class TaskConfigs(GroupDeclarator):

@@ -170,7 +170,7 @@ def test_get_tasks(task_workbench):
     assert t[1] == ['']
 
 
-LINSPACE_INTERFACE = 'LinspaceLoopInterface', ('ecpy.LoopTask')
+LINSPACE_INTERFACE = 'ecpy.LoopTask:ecpy.LinspaceLoopInterface'
 
 
 def test_get_interface_infos(task_workbench):
@@ -185,8 +185,8 @@ def test_get_interface_infos(task_workbench):
         import LinspaceLoopInterface
     assert t.cls is LinspaceLoopInterface
 
-    assert core.invoke_command(cmd, dict(interface=('', ''))) is None
-    assert (core.invoke_command(cmd, dict(interface=('', 'ecpy.LoopTask')))
+    assert core.invoke_command(cmd, dict(interface=':')) is None
+    assert (core.invoke_command(cmd, dict(interface='ecpy.LoopTask:'))
             is None)
 
 
@@ -203,7 +203,7 @@ def test_get_interface(task_workbench):
     assert t[0] is LinspaceLoopInterface
     assert len(t[1]) == 1
 
-    assert core.invoke_command(cmd, dict(interface=('', ''))) is None
+    assert core.invoke_command(cmd, dict(interface=':')) is None
 
 
 def test_get_interfaces(task_workbench):
@@ -213,9 +213,9 @@ def test_get_interfaces(task_workbench):
     core = task_workbench.get_plugin('enaml.workbench.core')
     cmd = 'ecpy.tasks.get_interfaces'
     t = core.invoke_command(cmd, dict(interfaces=[LINSPACE_INTERFACE,
-                                                  ('', '')]))
+                                                  ':']))
     assert len(t[0]) == 1
-    assert t[1] == [('', '')]
+    assert t[1] == [':']
 
 
 def test_get_config_from_name(task_workbench):
