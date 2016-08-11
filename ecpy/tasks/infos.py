@@ -58,17 +58,6 @@ class ObjectDependentInfos(Atom):
                 for ii_id, ii in i.walk_interfaces(d):
                     yield ii_id, ii
 
-    def _post_setattr_instruments(self, old, new):
-        """Update the dependencies each time the instruments member is set.
-
-        """
-        if new:
-            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
-        else:
-            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
-
 
 class TaskInfos(ObjectDependentInfos):
     """An object used to store informations about a task.
@@ -83,6 +72,17 @@ class TaskInfos(ObjectDependentInfos):
     #: Metadata associated with this task such as group, looping capabilities,
     #: etc
     metadata = Dict()
+
+    def _post_setattr_instruments(self, old, new):
+        """Update the dependencies each time the instruments member is set.
+
+        """
+        if new:
+            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
+        else:
+            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
 
 
 class InterfaceInfos(ObjectDependentInfos):

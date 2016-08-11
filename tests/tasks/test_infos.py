@@ -12,14 +12,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.tasks.infos import ObjectDependentInfos
+from ecpy.tasks.infos import ObjectDependentInfos, TaskInfos
 
 
 def test_dependencies_handling():
     """Check that dependencies are correctly updated when instruments are.
 
     """
-    infos = ObjectDependentInfos(dependencies=['test'])
+    infos = TaskInfos(dependencies=['test'])
 
     infos.instruments = ['e']
 
