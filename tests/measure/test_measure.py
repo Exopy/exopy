@@ -102,7 +102,14 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
         raise CommandError()
 
     from enaml.workbench.core.core_plugin import CorePlugin
+    old = CorePlugin.invoke_command
     monkeypatch.setattr(CorePlugin, 'invoke_command', generate_err)
+
+    loaded, errors = Measure.load(plugin, path)
+    assert loaded is None
+    assert 'main task' in errors and 'CommandError' in errors['main task']
+
+    CorePlugin.invoke_command = old
 
     class CreationError(Exception):
         pass
@@ -115,7 +122,6 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
 
     loaded, errors = Measure.load(plugin, path)
     assert loaded is None
-    assert 'main task' in errors and 'CommandError' in errors['main task']
     assert 'pre-hook' in errors and 'dummy' in errors['pre-hook']
     assert 'CreationError' in errors['pre-hook']['dummy']
 

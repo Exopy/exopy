@@ -391,6 +391,7 @@ class Measure(HasPrefAtom):
         except Exception:
             msg = 'Building %s, failed to restore task : %s'
             errors['main task'] = msg % (config.get('name'), format_exc())
+            return None, errors
 
         for kind in ('monitor', 'pre-hook', 'post-hook'):
             saved = config.get(kind.replace('-', '_')+'s', {})
