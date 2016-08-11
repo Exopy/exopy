@@ -41,7 +41,7 @@ enamldef MeasView(GroupBox): widget:
         if meas.status == 'READY':
             return [vbox(hbox(widgets[0], widgets[1], spacer),
                          hbox(widgets[2], spacer, widgets[3]))]
-        elif meas.status not in ('READY', 'RUNNING'):
+        elif meas.status in ('COMPLETED', 'INTERRUPTED', 'FAILED'):
             return [vbox(hbox(widgets[0], widgets[1], spacer),
                          widgets[2])]
         else:
@@ -73,8 +73,8 @@ enamldef MeasView(GroupBox): widget:
                 model.plugin.workspace.process_single_measure(model)
 
     Conditional: cd2:
-        condition << bool(model.status not in ('READY', 'RUNNING',
-                                               'EDITING'))
+        condition << bool(model.status in ('COMPLETED', 'INTERRUPTED',
+                                           'FAILED'))
         PushButton:
             text = 'Re-enqueue'
             clicked::
