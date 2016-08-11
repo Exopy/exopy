@@ -4,6 +4,8 @@ omit =
     *ecpy/version.py
     */ecpy/utils/widgets/*
     */__init__.py
+plugins =
+    enaml_coverage_plugin
 
 [report]
 # Regexes for lines to exclude from consideration
