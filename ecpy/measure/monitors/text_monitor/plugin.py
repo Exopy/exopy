@@ -36,7 +36,8 @@ class TextMonitorPlugin(HasPreferencesPlugin):
     """
 
     # List of rules which should be created automatically for new monitors.
-    default_rules = List().tag(pref=True)
+    default_rules = List(default=['Measure entries', 'Loop progress',
+                                  'Instrument ids']).tag(pref=True)
 
     # List of available rule types.
     rule_types = List()
@@ -76,9 +77,6 @@ class TextMonitorPlugin(HasPreferencesPlugin):
             removed = set(self.default_rules) - set(defaults)
             logger.warning(msg, removed)
             self.default_rules = defaults
-
-        # TODO : remove once we have preferences edition.
-        self.default_rules = ['Measure entries', 'Loop progress']
 
         self._bind_observers()
 

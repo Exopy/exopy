@@ -128,6 +128,12 @@ enamldef TextMonitorManifest(PluginManifest): man:
                                    'default_path']}
 
         RuleConfig:
+            id = 'Instrument ids'
+            description = 'Reject the instrument names entries'
+            rule_type = 'ecpy.RejectRule'
+            config = {'suffixes': ['instrument']}
+
+        RuleConfig:
             id = 'Loop progress'
             description = ('Format the index and number of point of LoopTask '
                            'in a progression {index}/{number}')
