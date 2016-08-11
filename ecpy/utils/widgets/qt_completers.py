@@ -114,7 +114,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
 
         self.insert_text(completion)
 
-    def on_focus_lost(self):
+    def on_focus_gained(self):
         """Mark the entries for refreshing when the widget loses focus.
 
         """
@@ -201,11 +201,11 @@ class QtLineCompleter(RawWidget):
         if self._completer:
             self._completer._update_entries(new)
 
-    def focus_lost(self):
+    def focus_gained(self):
         """Notify the completer the focus was lost.
 
         """
-        self._completer.on_focus_lost()
+        self._completer.on_focus_gained()
 
 
 class QCompletableTexEdit(QtGui.QTextEdit):
@@ -279,11 +279,11 @@ class QtTextCompleter(RawWidget):
             self.text = value
             self._no_update = False
 
-    def focus_lost(self):
+    def focus_gained(self):
         """Notify the completer the focus was lost.
 
         """
-        self._completer.on_focus_lost()
+        self._completer.on_focus_gained()
 
     def _post_setattr_text(self, old, new):
         """Updates the editor when the object changes externally to the editor.
