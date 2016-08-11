@@ -138,6 +138,13 @@ def build_root(event):
             path = view.path
         config, _ = load_template(path)
 
+    else:
+        msg = 'Invalid mode (%s) for build_root. Valid ones are : %s'
+        raise ValueError(msg % (mode, ('from config', 'from template')))
+
     if config:
         build_dep = event.parameters.get('build_dep', event.workbench)
         return build_task_from_config(config, build_dep, True)
+
+    else:
+        raise RuntimeError('No config for building')
