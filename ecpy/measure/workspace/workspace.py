@@ -169,7 +169,8 @@ class MeasureSpace(Workspace):
         """
         if not auto or not measure.path:
             get_file = FileDialogEx.get_save_file_name
-            path = measure.path or self.plugin.path
+            path = (measure.path or
+                    self.plugin.path + measure.name + '.meas.ini')
             full_path = get_file(parent=self.content,
                                  current_path=path,
                                  name_filters=[u'*.meas.ini'])
@@ -265,8 +266,8 @@ class MeasureSpace(Workspace):
                        'are  not currently available. Some tests may be '
                        'skipped as a result but will be run before executing '
                        'the measure.\n Missing dependencies from :\n{}')
-                msg.format(measure.name,
-                           '\n'.join(('-'+id for id in errors)))
+                msg = msg.format(measure.name,
+                                 '\n'.join(('- '+id for id in errors)))
                 # TODO : log as debug and display in popup
                 logger.info(msg)
 
