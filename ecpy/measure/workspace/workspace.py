@@ -178,7 +178,7 @@ class MeasureSpace(Workspace):
             elif not full_path.endswith('.meas.ini'):
                 full_path += '.meas.ini'
 
-            self.plugin.path = full_path
+            self.plugin.path = os.path.dirname(full_path)
 
         else:
             full_path = measure.path
@@ -220,7 +220,7 @@ class MeasureSpace(Workspace):
                 return
 
             self.plugin.edited_measures.add(measure)
-            self.plugin.path = full_path
+            self.plugin.path = os.path.dirname(full_path)
 
         elif mode == 'template':
             # TODO create brand new measure using defaults from plugin and
