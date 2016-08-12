@@ -49,6 +49,10 @@ enamldef StandardEditor(BaseEditor): main:
             # This is Qt specific
             if view.proxy_is_active:
                 view.proxy.layout_container = None
+            # HINT force the refreshing of the parent, this handles the case
+            # of moving selection back and forth between 2 tasks at the same
+            # depth
+            view.set_parent(None)
             view.set_parent(scroll)
             # HINT attempt at fixing the issue in which a task widget is
             # displayed before being given a parent.
