@@ -12,8 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import os
+import logging
 from ast import literal_eval
 from textwrap import fill
+from traceback import format_exc
 
 import enaml
 from atom.api import (List, Dict, ForwardTyped, Property, Value)
@@ -71,8 +74,12 @@ class TextMonitor(BaseMonitor):
         key, value = news
         values = self._database_values
         values[key] = value
-        for updater in self.updaters[key]:
-            updater(values)
+        try:
+            for updater in self.updaters[key]:
+                updater(values)
+        except Exception:
+            msg = 'Failed to process new value of %s :\n%s'
+            logging.getLogger(__name__).warn(msg % (key, format_exc()))
 
     def refresh_monitored_entries(self, entries=None):
         """Rebuild entries based on the rules and database entries.
@@ -95,12 +102,17 @@ class TextMonitor(BaseMonitor):
         self.custom_entries = custom
 
         for entry, value in entries.items():
-            self.handle_database_change(('added', entry, value))
+            self.handle_database_entries_change(('added', entry, value))
 
-    def handle_database_change(self, news):
+    def handle_database_entries_change(self, news):
         """Generate new entries for added values and clean removed values.
 
         """
+        # Unwrap multiple notifications.
+        if isinstance(news[0], tuple):
+            for n in news:
+                self.handle_database_entries_change(n)
+
         # Handle the addition of a new entry to the database
         if news[0] == 'added':
 
@@ -149,6 +161,90 @@ class TextMonitor(BaseMonitor):
 
             if path in self._database_values:
                 del self._database_values[path]
+
+        # Handle the case of a database entry being renamed.
+        elif news[0] == 'renamed':
+
+            _, old, new, value = news
+            old_path, old_entry_name = old.rsplit('/', 1)
+            new_path, new_entry_name = new.rsplit('/', 1)
+            suffix = os.path.commonprefix((old_entry_name[::-1],
+                                           new_entry_name[::-1]))[::-1]
+            old_task_name = old_entry_name[:-len(suffix)]
+            new_task_name = new_entry_name[:-len(suffix)]
+            for entries in ('displayed_entries', 'undisplayed_entries',
+                            'hidden_entries'):
+                for entry in getattr(self, entries):
+                    if entry.path == old:
+                        entry.path = new
+                        entry.name = new_entry_name
+                    elif old_task_name in entry.name:
+                        entry.name = (new_task_name +
+                                      entry.name[len(old_task_name):])
+
+                    if old in entry.depend_on:
+                        new_dep = entry.depend_on[:]
+                        new_dep[new_dep.index(old)] = new
+                        entry.depend_on = new_dep
+
+            if old in self.monitored_entries:
+                ind = self.monitored_entries.index(old)
+                new_entries = self.monitored_entries[:]
+                new_entries[ind] = new
+                self.monitored_entries = new_entries
+
+            if old in self.updaters:
+                self.updaters[new] = self.updaters[old]
+                del self.updaters[old]
+
+            if old in self._database_values:
+                del self._database_values[old]
+                self._database_values[new] = value
+
+    def handle_database_nodes_change(self, news):
+        """Update the paths when a node is renamed.
+
+        """
+        # Unwrap multiple notifications.
+        if isinstance(news[0], tuple):
+            for n in news:
+                self.handle_database_nodes_change(n)
+
+        if news[0] == 'renamed':
+
+            _, path, old, new = news
+            old_path = path + '/' + old
+            new_path = path + '/' + new
+            for entries in ('displayed_entries', 'undisplayed_entries',
+                            'hidden_entries'):
+                for entry in getattr(self, entries):
+                    if entry.path.startswith(old_path):
+                        entry.path = new_path + entry.path[len(old_path):]
+
+                    new_depend_on = []
+                    for p in entry.depend_on:
+                        if p.startswith(old_path):
+                            new_depend_on.append(new_path + p[len(old_path):])
+                        else:
+                            new_depend_on.append(p)
+                    entry.depend_on = new_depend_on
+
+            new_monitored = []
+            for e in self.monitored_entries:
+                if e.startswith(old_path):
+                    new_monitored.append(new_path + e[len(old_path):])
+                else:
+                    new_monitored.append(e)
+            self.monitored_entries = new_monitored
+
+            for attr in ('updaters', '_database_values'):
+                new_val = {}
+                for k, v in getattr(self, attr).items():
+                    if k.startswith(old_path):
+                        new_val[new_path + k[len(old_path):]] = v
+                    else:
+                        new_val[k] = v
+                setattr(self, attr, new_val)
 
     def get_state(self):
         """Write the state of the monitor in a dictionary.
