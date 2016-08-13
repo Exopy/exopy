@@ -65,7 +65,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
             msg = 'Parent of QtCompleter must QLineEdit or QTextEdit, not {}'
             raise ValueError(msg.format(parent))
 
-        self.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.setCaseSensitivity(QtCore.Qt.CaseSensitive)
         self.setModel(QtGui.QStringListModel(entries, self))
 
         self.activated[str].connect(self.complete_text)
