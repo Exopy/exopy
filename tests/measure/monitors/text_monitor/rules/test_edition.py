@@ -123,7 +123,7 @@ def test_rule_edition_dialog(text_monitor_workbench, dialog_sleep):
     """
     p = text_monitor_workbench.get_plugin(PLUGIN_ID)
     m = p.create_monitor(False)
-    m.handle_database_change(('added', 'root/test_f', 0))
+    m.handle_database_entries_change(('added', 'root/test_f', 0))
 
     d = EditRulesView(monitor=m)
     d.show()

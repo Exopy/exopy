@@ -481,9 +481,14 @@ class Measure(HasPrefAtom):
         """
         database = self.root_task.database
         for monitor in self.monitors.values():
-            if not database.has_observer('notifier',
-                                         monitor.handle_database_change):
-                database.observe('notifier', monitor.handle_database_change)
+            test = database.has_observer
+            if not test('notifier', monitor.handle_database_entries_change):
+                database.observe('notifier',
+                                 monitor.handle_database_entries_change)
+            if not test('nodes_notifier',
+                        monitor.handle_database_nodes_change):
+                database.observe('nodes_notifier',
+                                 monitor.handle_database_nodes_change)
 
     def enter_running_state(self):
         """Make the measure ready to run.
@@ -492,8 +497,13 @@ class Measure(HasPrefAtom):
         database = self.root_task.database
         for monitor in self.monitors.values():
             if database.has_observer('notifier',
-                                     monitor.handle_database_change):
-                database.unobserve('notifier', monitor.handle_database_change)
+                                     monitor.handle_database_entries_change):
+                database.unobserve('notifier',
+                                   monitor.handle_database_entries_change)
+            if database.has_observer('nodes_notifier',
+                                     monitor.handle_database_nodes_change):
+                database.unobserve('nodes_notifier',
+                                   monitor.handle_database_nodes_change)
 
     def add_tool(self, kind, id, tool=None):
         """Add a tool to the measure.

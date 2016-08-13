@@ -34,9 +34,9 @@ def monitor(text_monitor_workbench):
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
     m = p.create_monitor(False)
-    m.handle_database_change(('added', 'root/test', 0))
-    m.handle_database_change(('added', 'root/simp/test', 0))
-    m.handle_database_change(('added', 'root/comp/test', 0))
+    m.handle_database_entries_change(('added', 'root/test', 0))
+    m.handle_database_entries_change(('added', 'root/simp/test', 0))
+    m.handle_database_entries_change(('added', 'root/comp/test', 0))
     return m
 
 
