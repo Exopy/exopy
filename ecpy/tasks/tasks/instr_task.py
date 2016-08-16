@@ -105,6 +105,7 @@ class InstrumentTask(SimpleTask):
 
         """
         super(InstrumentTask, self).prepare()
+        self.write_in_database('instrument', self.selected_instrument[0])
         self.start_driver()
 
     def start_driver(self):
