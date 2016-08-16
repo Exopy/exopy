@@ -13,10 +13,8 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
-import logging
 from ast import literal_eval
 from textwrap import fill
-from traceback import format_exc
 
 import enaml
 from atom.api import (List, Dict, ForwardTyped, Property, Value)
@@ -74,12 +72,9 @@ class TextMonitor(BaseMonitor):
         key, value = news
         values = self._database_values
         values[key] = value
-        try:
+        if key in self.updaters:
             for updater in self.updaters[key]:
                 updater(values)
-        except Exception:
-            msg = 'Failed to process new value of %s (%s):\n%s'
-            logging.getLogger(__name__).warn(msg % (key, value, format_exc()))
 
     def refresh_monitored_entries(self, entries=None):
         """Rebuild entries based on the rules and database entries.
