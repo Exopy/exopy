@@ -204,8 +204,8 @@ enamldef ExecutionDockItem(DockItem):
         PushButton: clean:
             text = 'Clean'
             tool_tip = 'Remove all measure which have already been processed'
-            enabled << (bool(workspace.plugin.enqueued_measures.measures) and
-                        not workspace.plugin.processor.active)
+            enabled << (not workspace.plugin.processor.active and
+                        bool(workspace.plugin.enqueued_measures.measures))
             clicked ::
                 workspace.remove_processed_measures()
 
@@ -215,8 +215,8 @@ enamldef ExecutionDockItem(DockItem):
 
             func set_enabled(change):
                 clean.enabled = \
-                    (bool(workspace.plugin.enqueued_measures.measures) and
-                     not workspace.plugin.processor.active)
+                    (not workspace.plugin.processor.active and
+                     bool(workspace.plugin.enqueued_measures.measures))
 
         PushButton: mon:
             text = 'Show monitors'
