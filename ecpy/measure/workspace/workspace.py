@@ -301,7 +301,10 @@ class MeasureSpace(Workspace):
                             '.meas.ini')
         path = os.path.join(measure.root_task.default_path,
                             default_filename)
+
+        old_path = measure.path
         measure.save(path)
+        measure.path = old_path
         b_deps = measure.dependencies.get_build_dependencies()
 
         meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)
