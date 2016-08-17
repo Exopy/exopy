@@ -377,7 +377,7 @@ def test_process_news(monitor, database, capturelog):
     monitor.updaters = {}
     monitor.process_news(('root/test_index', 2))
     process_app_events()
-    assert capturelog.records()
+    # Should simply pass silently
 
 
 def test_clear_state(monitor, database):
