@@ -161,8 +161,8 @@ class TextMonitor(BaseMonitor):
         elif news[0] == 'renamed':
 
             _, old, new, value = news
-            old_path, old_entry_name = old.rsplit('/', 1)
-            new_path, new_entry_name = new.rsplit('/', 1)
+            _, old_entry_name = old.rsplit('/', 1)
+            _, new_entry_name = new.rsplit('/', 1)
             suffix = os.path.commonprefix((old_entry_name[::-1],
                                            new_entry_name[::-1]))[::-1]
             old_task_name = old_entry_name[:-len(suffix)]
