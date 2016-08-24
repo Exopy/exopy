@@ -316,7 +316,7 @@ class MeasureProcessor(Atom):
             # Assemble the task infos for the engine to run the main task.
             deps = measure.dependencies
             infos = ExecutionInfos(
-                id=meas_id+'.main',
+                id=meas_id+'-main',
                 task=measure.root_task,
                 build_deps=deps.get_build_dependencies().dependencies,
                 runtime_deps=deps.get_runtime_dependencies('main'),
@@ -473,10 +473,9 @@ class MeasureProcessor(Atom):
             """
             workbench = self.plugin.workbench
             if not self.monitors_window:
-                ui_plugin = workbench.get_plugin('enaml.workbench.ui')
                 with enaml.imports():
                     from .workspace.monitors_window import MonitorsWindow
-                self.monitors_window = MonitorsWindow(ui_plugin.window)
+                self.monitors_window = MonitorsWindow()
             else:
                 self.monitors_window.send_to_front()
 

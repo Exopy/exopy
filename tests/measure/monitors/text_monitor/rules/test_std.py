@@ -45,9 +45,9 @@ def monitor(plugin):
 
     """
     m = plugin.create_monitor(False)
-    m.handle_database_change(('added', 'root/test_value', 0))
-    m.handle_database_change(('added', 'root/test_index', 0))
-    m.handle_database_change(('added', 'root/test_number', 0))
+    m.handle_database_entries_change(('added', 'root/test_value', 0))
+    m.handle_database_entries_change(('added', 'root/test_index', 0))
+    m.handle_database_entries_change(('added', 'root/test_number', 0))
     return m
 
 
@@ -84,11 +84,13 @@ def test_format_rule(monitor):
 
     f.hide_entries = False
 
-    monitor.handle_database_change(('added', 'root/simp/test_index', 0))
+    monitor.handle_database_entries_change(('added', 'root/simp/test_index',
+                                            0))
     f.try_apply('root/simp/test_index', monitor)
     assert len(monitor.displayed_entries) == 3
 
-    monitor.handle_database_change(('added', 'root/simp/test_number', 0))
+    monitor.handle_database_entries_change(('added', 'root/simp/test_number',
+                                            0))
     f.try_apply('root/simp/test_number', monitor)
     assert len(monitor.displayed_entries) == 5
     assert len(monitor.hidden_entries) == 2

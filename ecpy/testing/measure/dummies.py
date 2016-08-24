@@ -232,12 +232,18 @@ class DummyMonitor(BaseMonitor):
         """
         pass
 
-    def handle_database_change(self, news):
+    def handle_database_entries_change(self, news):
         """Add all entries to the monitored ones.
 
         """
         if news[0] == 'added':
             self.monitored_entries = self.monitored_entries + [news[1]]
+
+    def handle_database_nodes_change(self, news):
+        """Simply ignore nodes updates.
+
+        """
+        pass
 
     def process_news(self, news):
         self.received_news.append(news)

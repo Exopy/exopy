@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from contextlib import contextmanager
 
-from atom.api import (Tuple, Value, set_default)
+from atom.api import (Tuple, Value)
 
 from .base_tasks import SimpleTask
 
@@ -34,7 +34,13 @@ class InstrumentTask(SimpleTask):
     #: Instance of instrument driver.
     driver = Value()
 
-    database_entries = set_default({'instrument': ''})
+    # HINT done this way so that classes overriding this one does not
+    # forget to preserve it.
+    def __init__(self, **kwargs):
+        super(InstrumentTask, self).__init__(**kwargs)
+        de = self.database_entries.copy()
+        de['instrument'] = ''
+        self.database_entries = de
 
     def check(self, *args, **kwargs):
         """Chech that the provided informations allows to establish the
@@ -99,6 +105,7 @@ class InstrumentTask(SimpleTask):
 
         """
         super(InstrumentTask, self).prepare()
+        self.write_in_database('instrument', self.selected_instrument[0])
         self.start_driver()
 
     def start_driver(self):

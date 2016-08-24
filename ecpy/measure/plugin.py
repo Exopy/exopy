@@ -53,7 +53,7 @@ class MeasurePlugin(HasPreferencesPlugin):
     #: Reference to the workspace if any.
     workspace = ForwardTyped(_workspace)
 
-    #: Reference to the last path used to load a measure
+    #: Reference to the last directory from/in which a measure was loaded/saved
     path = Unicode().tag(pref=True)
 
     #: Currently edited measures.
@@ -159,7 +159,7 @@ class MeasurePlugin(HasPreferencesPlugin):
             os.mkdir(m_dir)
 
         s_dir = os.path.join(m_dir, 'saved_measures')
-        # Create profiles subfolder if it does not exist.
+        # Create saved_measures subfolder if it does not exist.
         if not os.path.isdir(s_dir):
             os.mkdir(s_dir)
 

@@ -89,7 +89,7 @@ enamldef LoopView(ComplexTaskView): view:
         attr interfaces = root.get_interfaces_for(task)
         items << sorted(interfaces)
         to_string = format_name
-        selected << (task.interface.interface_id[0]
+        selected << (task.interface.interface_id.split(':')[-1]
                      if task.interface else items[0])
         selected ::
             i_include = view.find('interface_include')

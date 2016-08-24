@@ -24,7 +24,7 @@ class IterableLoopInterface(TaskInterface):
 
     """
     #: Iterable on which to iterate.
-    iterable = Unicode('0.0').tag(pref=True, feval=Feval(types=Iterable))
+    iterable = Unicode('range(10)').tag(pref=True, feval=Feval(types=Iterable))
 
     def check(self, *args, **kwargs):
         """Check that the iterable member evaluation does yield an iterable.

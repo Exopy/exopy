@@ -27,6 +27,8 @@ tested nonetheless.
     - pytest-capturelog
     - pytest-cov
     - pytest-timeout
+    - enaml_coverage_plugin
+      (https://github.com/MatthieuDartiailh/enaml_coverage_plugin)
 
 .. contents::
 

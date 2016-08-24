@@ -169,7 +169,8 @@ class MeasureSpace(Workspace):
         """
         if not auto or not measure.path:
             get_file = FileDialogEx.get_save_file_name
-            path = measure.path or self.plugin.path
+            path = (measure.path or
+                    self.plugin.path + measure.name + '.meas.ini')
             full_path = get_file(parent=self.content,
                                  current_path=path,
                                  name_filters=[u'*.meas.ini'])
@@ -178,7 +179,7 @@ class MeasureSpace(Workspace):
             elif not full_path.endswith('.meas.ini'):
                 full_path += '.meas.ini'
 
-            self.plugin.path = full_path
+            self.plugin.path = os.path.dirname(full_path)
 
         else:
             full_path = measure.path
@@ -220,7 +221,7 @@ class MeasureSpace(Workspace):
                 return
 
             self.plugin.edited_measures.add(measure)
-            self.plugin.path = full_path
+            self.plugin.path = os.path.dirname(full_path)
 
         elif mode == 'template':
             # TODO create brand new measure using defaults from plugin and
@@ -265,8 +266,8 @@ class MeasureSpace(Workspace):
                        'are  not currently available. Some tests may be '
                        'skipped as a result but will be run before executing '
                        'the measure.\n Missing dependencies from :\n{}')
-                msg.format(measure.name,
-                           '\n'.join(('-'+id for id in errors)))
+                msg = msg.format(measure.name,
+                                 '\n'.join(('- '+id for id in errors)))
                 # TODO : log as debug and display in popup
                 logger.info(msg)
 
@@ -300,7 +301,10 @@ class MeasureSpace(Workspace):
                             '.meas.ini')
         path = os.path.join(measure.root_task.default_path,
                             default_filename)
+
+        old_path = measure.path
         measure.save(path)
+        measure.path = old_path
         b_deps = measure.dependencies.get_build_dependencies()
 
         meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)

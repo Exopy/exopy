@@ -57,7 +57,7 @@ class BaseMonitor(BaseMeasureTool):
         """
         raise NotImplementedError()
 
-    def handle_database_change(self, news):
+    def handle_database_entries_change(self, news):
         """Handle a modification of the database entries.
 
         Parameters
@@ -66,6 +66,20 @@ class BaseMonitor(BaseMeasureTool):
             Modification passed as a tuple ('added', path, value) for creation,
             as ('renamed', old, new, value) in case of renaming,
             ('removed', old) in case of deletion or as a list of such tuples.
+
+        """
+        raise NotImplementedError()
+
+    def handle_database_node_change(self, news):
+        """Handle a modification of the database nodes.
+
+        Parameters
+        ----------
+        news : tuple|list
+            Modification passed as a tuple ('added', path, name, node) for
+            creation or as ('renamed', path, old, new) in case of renaming of
+            the related node, as ('removed', path, old) in case of deletion or
+            as a list of such tuples.
 
         """
         raise NotImplementedError()
@@ -90,8 +104,10 @@ class BaseMonitor(BaseMeasureTool):
         """
         super(BaseMonitor, self).link_to_measure(measure)
         if measure.root_task:
-            measure.root_task.database.observe('notifier',
-                                               self.handle_database_change)
+            database = measure.root_task.database
+            database.observe('notifier', self.handle_database_entries_change)
+            database.observe('nodes_notifier',
+                             self.handle_database_nodes_change)
 
     def unlink_from_measure(self):
         """Stop observing the main task database.
@@ -99,8 +115,10 @@ class BaseMonitor(BaseMeasureTool):
         """
         meas = self.measure
         if meas.root_task:
-            meas.root_task.database.observe('notifier',
-                                            self.handle_database_change)
+            database = meas.root_task.database
+            database.unobserve('notifier', self.handle_database_entries_change)
+            database.unobserve('nodes_notifier',
+                               self.handle_database_nodes_change)
         super(BaseMonitor, self).unlink_from_measure()
 
 

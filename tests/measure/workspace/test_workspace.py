@@ -242,8 +242,12 @@ def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
 
     # Fail remove temp file. Seen in coverage.
     monkeypatch.setattr(os, 'remove', r)
+    old_path = m.path
 
     assert workspace.enqueue_measure(m)
+
+    # Make sure we do not alter the saving path
+    assert m.path == old_path
 
     # Make sure runtimes are always released.
     m = workspace.plugin.workbench.get_manifest('test.measure')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -28,7 +28,7 @@ MINOR = 1
 MICRO = 0
 
 # The status indicate if this is a development or pre-release version
-STATUS = 'a3'
+STATUS = 'b1'
 
 #: A namedtuple of the version info for the current release.
 version_info = namedtuple('version_info', 'major minor micro status')

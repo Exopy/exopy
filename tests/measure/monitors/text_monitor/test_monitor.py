@@ -18,6 +18,7 @@ from operator import attrgetter
 import pytest
 import enaml
 
+from ecpy.tasks.tasks.database import TaskDatabase
 from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
 from ecpy.measure.monitors.text_monitor.rules.std_rules import (FormatRule,
                                                                 RejectRule)
@@ -38,6 +39,14 @@ def monitor(text_monitor_workbench):
     """
     p = text_monitor_workbench.get_plugin('ecpy.measure')
     return p.create('monitor', 'ecpy.text_monitor', False)
+
+
+@pytest.fixture
+def database():
+    """Database used to generate events.
+
+    """
+    return TaskDatabase()
 
 
 def test_create_default_entry(monitor):
@@ -102,31 +111,33 @@ def test_linking_to_measure(monitor, measure):
     assert 'root/dummy' in monitor.monitored_entries
 
 
-def test_handle_database_change1(monitor):
+def test_handle_database_change1(monitor, database):
     """ Test handling the adding of an entry to the database.
 
     """
-    monitor.handle_database_change(('added', 'test/entry_test', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'entry_test', 1)
 
-    assert monitor.monitored_entries == ['test/entry_test']
+    assert monitor.monitored_entries == ['root/entry_test']
     assert len(monitor.displayed_entries) == 1
     assert not monitor.undisplayed_entries
     assert not monitor.hidden_entries
     entry = monitor.displayed_entries[0]
-    assert entry.path == 'test/entry_test'
+    assert entry.path == 'root/entry_test'
     assert entry.name == 'entry_test'
-    assert entry.formatting == '{test/entry_test}'
-    assert entry.depend_on == ['test/entry_test']
-    assert monitor._database_values == {'test/entry_test': 1}
-    assert 'test/entry_test' in monitor.updaters
+    assert entry.formatting == '{root/entry_test}'
+    assert entry.depend_on == ['root/entry_test']
+    assert monitor._database_values == {'root/entry_test': 1}
+    assert 'root/entry_test' in monitor.updaters
 
 
-def test_handle_database_change2(monitor):
+def test_handle_database_change2(monitor, database):
     """ Test handling the adding of an entry subject to a reject rule.
 
     """
     monitor.rules.append(RejectRule(id='Test', suffixes=['test']))
-    monitor.handle_database_change(('added', 'root/make_test', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'make_test', 1)
 
     assert monitor.monitored_entries == []
     assert not monitor.displayed_entries
@@ -137,7 +148,7 @@ def test_handle_database_change2(monitor):
     assert not monitor.updaters
 
 
-def test_handle_database_change3(app, monitor):
+def test_handle_database_change3(app, monitor, database):
     """ Test handling the adding of entries subject to a format rule.
 
     """
@@ -145,7 +156,8 @@ def test_handle_database_change3(app, monitor):
                       new_entry_suffix='progress',
                       new_entry_formatting='{index}/{loop}')
     monitor.rules.append(rule)
-    monitor.handle_database_change(('added', 'root/test_loop', 10))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test_loop', 10)
 
     assert monitor.monitored_entries == ['root/test_loop']
     assert len(monitor.displayed_entries) == 1
@@ -155,7 +167,7 @@ def test_handle_database_change3(app, monitor):
     assert monitor._database_values == {'root/test_loop': 10}
     assert 'root/test_loop' in monitor.updaters
 
-    monitor.handle_database_change(('added', 'root/test2_index', 1))
+    database.set_value('root', 'test2_index', 1)
 
     assert (monitor.monitored_entries == ['root/test_loop',
                                           'root/test2_index'])
@@ -165,7 +177,7 @@ def test_handle_database_change3(app, monitor):
     assert (monitor._database_values == {'root/test_loop': 10,
                                          'root/test2_index': 1})
 
-    monitor.handle_database_change(('added', 'root/test_index', 1))
+    database.set_value('root', 'test_index', 1)
 
     assert (monitor.monitored_entries == ['root/test_loop',
                                           'root/test2_index',
@@ -192,7 +204,7 @@ def test_handle_database_change3(app, monitor):
     assert entry.value == '1/10'
 
     rule.hide_entries = False
-    monitor.handle_database_change(('added', 'root/test2_loop', 10))
+    database.set_value('root', 'test2_loop', 10)
     assert (monitor.monitored_entries == ['root/test_loop',
                                           'root/test2_index',
                                           'root/test_index',
@@ -208,7 +220,7 @@ def test_handle_database_change3(app, monitor):
     assert len(monitor.updaters['root/test2_index']) == 2
 
 
-def test_handle_database_change4(monitor):
+def test_handle_database_change4(monitor, database):
     """ Test handling the adding/removing an entry linked to a custom one.
 
     """
@@ -219,7 +231,8 @@ def test_handle_database_change4(monitor):
     entry.depend_on = ['root/test']
     monitor.custom_entries.append(entry)
 
-    monitor.handle_database_change(('added', 'root/aux', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'aux', 1)
 
     assert monitor.monitored_entries == ['root/aux']
     assert len(monitor.displayed_entries) == 1
@@ -227,7 +240,7 @@ def test_handle_database_change4(monitor):
     assert not monitor.hidden_entries
     assert monitor._database_values == {'root/aux': 1}
 
-    monitor.handle_database_change(('added', 'root/test', 2))
+    database.set_value('root', 'test', 2)
 
     assert monitor.monitored_entries == ['root/aux', 'root/test']
     assert len(monitor.displayed_entries) == 3
@@ -236,11 +249,11 @@ def test_handle_database_change4(monitor):
     assert monitor._database_values == {'root/aux': 1, 'root/test': 2}
     assert len(monitor.updaters['root/test']) == 2
 
-    monitor.handle_database_change(('added', 'root/new', 2))
+    database.set_value('root', 'new', 2)
 
     assert len(monitor.displayed_entries) == 4
 
-    monitor.handle_database_change(('removed', 'root/test',))
+    database.delete_value('root', 'test')
     assert monitor.monitored_entries == ['root/aux', 'root/new']
     assert len(monitor.displayed_entries) == 2
     assert not monitor.undisplayed_entries
@@ -250,7 +263,70 @@ def test_handle_database_change4(monitor):
     assert 'root/test' not in monitor.updaters
 
 
-def test_refresh_monitored_entries(monitor):
+def test_handle_database_change5(monitor, database):
+    """Test handling entries being renamed.
+
+    """
+    rule = FormatRule(id='Test', suffixes=['loop', 'index'],
+                      new_entry_suffix='progress',
+                      new_entry_formatting='{index}/{loop}')
+    monitor.rules.append(rule)
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test_loop', 10)
+    database.set_value('root', 'test_index', 10)
+
+    old_updaters = monitor.updaters.copy()
+
+    database.rename_values('root', ['test_loop', 'test_index'],
+                           ['new_loop', 'new_index'])
+
+    progress_entry = monitor.displayed_entries[0]
+    assert progress_entry.name == 'new_progress'
+    assert (sorted(progress_entry.depend_on) ==
+            sorted(['root/new_index', 'root/new_loop']))
+
+    assert len(monitor.hidden_entries) == 2
+    for e in monitor.hidden_entries:
+        assert e.name in ('new_index', 'new_loop')
+        assert e.path in ('root/new_index', 'root/new_loop')
+        assert e.depend_on[0] in ('root/new_index', 'root/new_loop')
+
+    assert len(monitor.updaters) == 2
+    assert (monitor.updaters['root/new_index'] is
+            old_updaters['root/test_index'])
+    assert (monitor.updaters['root/new_loop'] is
+            old_updaters['root/test_loop'])
+
+    assert len(monitor._database_values) == 2
+    assert 'root/new_index' in monitor._database_values
+    assert 'root/new_loop' in monitor._database_values
+
+
+def test_handle_database_change6(monitor, database):
+    """Test handling node being renamed.
+
+    """
+    database.create_node('root', 'test')
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.observe('nodes_notifier', monitor.handle_database_nodes_change)
+    database.set_value('root', 'value', 1)
+    database.set_value('root/test', 'test_loop', 10)
+    old_updater = monitor.updaters['root/test/test_loop']
+
+    database.rename_node('root', 'test', 'new')
+
+    assert 'root/new/test_loop' in [e.path for e in monitor.displayed_entries]
+    assert (sorted(monitor.monitored_entries) ==
+            sorted(['root/new/test_loop', 'root/value']))
+    assert monitor.updaters['root/new/test_loop'] is old_updater
+    assert 'root/new/test_loop' in monitor._database_values
+
+    monitor.handle_database_nodes_change([('renamed', 'root', 'new', 'old')])
+    assert (sorted(monitor.monitored_entries) ==
+            sorted(['root/old/test_loop', 'root/value']))
+
+
+def test_refresh_monitored_entries(monitor, database):
     """ Test refreshing entries (with a custom entry).
 
     """
@@ -261,7 +337,8 @@ def test_refresh_monitored_entries(monitor):
     entry.depend_on = ['root/test']
     monitor.custom_entries.append(entry)
 
-    monitor.handle_database_change(('added', 'root/test', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test', 1)
     monitor.refresh_monitored_entries({'root/test': 2})
 
     assert monitor.monitored_entries == ['root/test']
@@ -278,7 +355,7 @@ def test_refresh_monitored_entries(monitor):
     assert not monitor.hidden_entries
 
 
-def test_process_news(monitor):
+def test_process_news(monitor, database, capturelog):
     """ Test processing news coming from a database.
 
     """
@@ -287,8 +364,9 @@ def test_process_news(monitor):
                       new_entry_formatting='{index}/{loop}',
                       hide_entries=False)
     monitor.rules.append(rule)
-    monitor.handle_database_change(('added', 'root/test_loop', 10))
-    monitor.handle_database_change(('added', 'root/test_index', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test_loop', 10)
+    database.set_value('root', 'test_index', 1)
 
     monitor.process_news(('root/test_index', 2))
     process_app_events()
@@ -296,8 +374,13 @@ def test_process_news(monitor):
     assert monitor.displayed_entries[1].value == '2'
     assert monitor.displayed_entries[2].value == '2/10'
 
+    monitor.updaters = {}
+    monitor.process_news(('root/test_index', 2))
+    process_app_events()
+    # Should simply pass silently
 
-def test_clear_state(monitor):
+
+def test_clear_state(monitor, database):
     """Test clearing the monitor state.
 
     """
@@ -305,9 +388,10 @@ def test_clear_state(monitor):
                       new_entry_suffix='progress',
                       new_entry_formatting='{index}/{loop}')
     monitor.rules.append(rule)
-    monitor.handle_database_change(('added', 'root/test_loop', 10))
-    monitor.handle_database_change(('added', 'root/test2_index', 1))
-    monitor.handle_database_change(('added', 'root/test_index', 1))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test_loop', 10)
+    database.set_value('root', 'test_index', 1)
+    database.set_value('root', 'test2_index', 1)
 
     monitor._clear_state()
     assert not monitor.displayed_entries
@@ -318,7 +402,7 @@ def test_clear_state(monitor):
     assert not monitor.monitored_entries
 
 
-def test_get_set_state(monitor, monkeypatch, measure):
+def test_get_set_state(monitor, monkeypatch, measure, database):
     """ Test get_state.
 
     """
@@ -336,10 +420,11 @@ def test_get_set_state(monitor, monkeypatch, measure):
 
     monitor.rules.append(monitor._plugin.build_rule('Measure entries'))
 
-    monitor.handle_database_change(('added', 'root/test_loop', 10))
-    monitor.handle_database_change(('added', 'root/test2_index', 1))
-    monitor.handle_database_change(('added', 'root/test_index', 1))
-    monitor.handle_database_change(('added', 'root/test2_loop', 10))
+    database.observe('notifier', monitor.handle_database_entries_change)
+    database.set_value('root', 'test_loop', 10)
+    database.set_value('root', 'test_index', 1)
+    database.set_value('root', 'test2_index', 1)
+    database.set_value('root', 'test2_loop', 10)
 
     state = monitor.get_state()
 
@@ -420,10 +505,10 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
     m.custom_entries.append(MonitoredEntry(name='dummy', path='dummy',
                                            formatting='2*{root/test}',
                                            depend_on=['root/test']))
-    m.handle_database_change(('added', 'root/test', 0))
-    m.handle_database_change(('added', 'root/simp/t_test2', 0))
-    m.handle_database_change(('added', 'root/comp/t_index', 0))
-    m.handle_database_change(('added', 'root/comp/t_number', 0))
+    m.handle_database_entries_change(('added', 'root/test', 0))
+    m.handle_database_entries_change(('added', 'root/simp/t_test2', 0))
+    m.handle_database_entries_change(('added', 'root/comp/t_index', 0))
+    m.handle_database_entries_change(('added', 'root/comp/t_number', 0))
     assert len(m.displayed_entries) == 4
     assert len(m.hidden_entries) == 2
 
@@ -527,9 +612,9 @@ def test_text_monitor_item(text_monitor_workbench, monitor, dialog_sleep):
 
     """
     # Check only displayed entries are indeed shown.
-    monitor.handle_database_change(('added', 'root/test', 0))
-    monitor.handle_database_change(('added', 'root/simp/test', 0))
-    monitor.handle_database_change(('added', 'root/comp/index', 0))
+    monitor.handle_database_entries_change(('added', 'root/test', 0))
+    monitor.handle_database_entries_change(('added', 'root/simp/test', 0))
+    monitor.handle_database_entries_change(('added', 'root/comp/index', 0))
     monitor.move_entries('displayed', 'undisplayed',
                          [monitor.displayed_entries[0]])
     w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor,

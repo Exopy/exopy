@@ -150,7 +150,8 @@ enamldef HierarchicalErrorsDisplay(Container): main:
     #: Kind of the errors.
     alias kind : lis_lab.text
 
-    constraints = [hbox(vbox(lis_lab, tr), txt)]
+    constraints = [hbox(vbox(lis_lab, tr), txt),
+                   txt.width >= 2*tr.width]
 
     Label: lis_lab:
         pass

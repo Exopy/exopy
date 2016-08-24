@@ -87,8 +87,12 @@ Adding a monitor requires to :
   - stop: Called when the execution is over. Perform some clean up.
   - refresh_monitored_entries: Assume that the entries of the database are the
     one passed and determine which ones to monitor.
-  - handle_database_change: React to the addition/deletion of an entry from the
-    database of the task hierarchy (happen only during edition time).
+  - handle_database_entries_change: React to the addition/deletion/renaming of
+    an entry from the database of the task hierarchy (happen only during
+    edition time).
+  - handle_database_nodes_change: React to the addition/deletion/renaming of
+    a node in the database of the task hierarchy (happen only during
+    edition time). Usually only renaming matters.
   - process_news: During execution, react to the update of an entry.
 
   Additionally the database entries to observe should be stored using their
