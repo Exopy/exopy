@@ -226,6 +226,22 @@ def test_handling_all_tools_combinations(workspace):
     assert len(m.post_hooks) == 1
 
 
+def assert_dependencies_released(workspace, measure):
+    """Make sure that after an enqueueing attempt all dependencies are
+    released and all cache are clean.
+
+    """
+    # Make sure runtimes are always released.
+    runtim_holder = workspace.plugin.workbench.get_manifest('test.measure')
+    assert not runtim_holder.find('runtime_dummy1').collected
+    assert not runtim_holder.find('runtime_dummy2').collected
+
+    # Check build depepndencies have been cleaned so that they are not re-used
+    for c in ('_build_analysis', '_build_dependencies', '_runtime_analysis',
+              '_runtime_dependencies', '_runtime_map'):
+        assert not getattr(measure.dependencies, c)
+
+
 @pytest.mark.timeout(10)
 def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
     """Test enqueue a measure and re-enqueue it.
@@ -249,10 +265,8 @@ def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
     # Make sure we do not alter the saving path
     assert m.path == old_path
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
     # Check enqueued, status
     assert workspace.plugin.enqueued_measures.measures
@@ -284,10 +298,8 @@ def test_enqueueing_fail_runtime(workspace, monkeypatch):
 
     assert not workspace.plugin.enqueued_measures.measures
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
     w = workspace.plugin.workbench
     d = w.get_manifest('test.measure')
@@ -305,10 +317,8 @@ def test_enqueueing_fail_checks(workspace):
 
     assert not workspace.plugin.enqueued_measures.measures
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
 
 @pytest.mark.timeout(10)
@@ -330,10 +340,8 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir):
     with handle_dialog('reject'):
         workspace.enqueue_measure(m)
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
     assert not workspace.plugin.enqueued_measures.measures
 
@@ -359,10 +367,8 @@ def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir):
     with handle_dialog():
         assert workspace.enqueue_measure(m)
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
     assert witness
 
@@ -386,10 +392,8 @@ def test_force_enqueueing(workspace):
 
     assert workspace.plugin.enqueued_measures.measures
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
 
 @pytest.mark.timeout(10)
@@ -411,10 +415,8 @@ def test_force_enqueueing_abort(workspace):
 
     assert not workspace.plugin.enqueued_measures.measures
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
 
 @pytest.mark.timeout(10)
@@ -437,10 +439,8 @@ def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir):
     with handle_dialog():
         workspace.enqueue_measure(m)
 
-    # Make sure runtimes are always released.
-    m = workspace.plugin.workbench.get_manifest('test.measure')
-    assert not m.find('runtime_dummy1').collected
-    assert not m.find('runtime_dummy2').collected
+    # Check dependencies are cleaned up
+    assert_dependencies_released(workspace, m)
 
     assert not workspace.plugin.enqueued_measures.measures
 

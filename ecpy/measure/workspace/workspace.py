@@ -245,7 +245,7 @@ class MeasureSpace(Workspace):
         Returns
         -------
         bool
-            True is the measure was successfully enqueued, False otherwise.
+            True if the measure was successfully enqueued, False otherwise.
 
         """
         # Reset the forced enqueued flag
@@ -258,6 +258,7 @@ class MeasureSpace(Workspace):
             if 'Failed' in msg:
                 dial = ChecksDisplay(errors=errors, title=msg)
                 dial.exec_()
+                measure.dependencies.reset()
                 return False
 
             # If some runtime are missing let the user know about it.
@@ -308,6 +309,10 @@ class MeasureSpace(Workspace):
         b_deps = measure.dependencies.get_build_dependencies()
 
         meas, errors = Measure.load(self.plugin, path, b_deps.dependencies)
+
+        # Clean dependencies cache as at next enqueueing dependencies may have
+        # changed
+        measure.dependencies.reset()
 
         # Provide a nice error message.
         if not meas:
