@@ -104,6 +104,7 @@ class Task(Declarator):
             infos = collector.contributions[task_id]
             infos.instruments.update(self.instruments)
             infos.dependencies.update(self.dependencies)
+            infos.metadata.update(self.metadata)
 
             check = check_children(self)
             if check:
