@@ -110,7 +110,7 @@ longer needed.
 Parameters
 ----------
 kind : {'build', 'runtime'}
-    Kind of dependency to validate.
+    Kind of dependency to collect.
 
 dependencies : dict
     Dictionary of dependencies sorted by id. This is typically the
