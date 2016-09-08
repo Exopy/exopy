@@ -257,6 +257,7 @@ enamldef FieldFieldCompleterEditor(Container):
     function and to declare an evaluator_tooltip.
 
     """
+    #: Reference to the object holding the completion information.
     attr model
     constraints = [hbox(k, v)]
     padding = 1
