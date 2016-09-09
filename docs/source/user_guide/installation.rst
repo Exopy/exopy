@@ -32,7 +32,7 @@ or::
 .. note::
 
     The -c option select the ecpy channel on <http://anaconda.org> as Ecpy is 
-    not of the standard Python stack.
+    not part of the standard Python stack.
 
 Installing from source
 ----------------------
