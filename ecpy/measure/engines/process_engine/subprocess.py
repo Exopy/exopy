@@ -16,7 +16,9 @@ import os
 import logging
 import logging.config
 import sys
+from traceback import format_exc
 from multiprocessing import Process
+from time import sleep
 
 from ....app.log.tools import (StreamToLogRedirector, DayRotatingTimeHandler)
 from ....tasks.api import build_task_from_config
@@ -125,8 +127,14 @@ class TaskProcess(Process):
                     break
 
                 # Get the measure.
-                name, config, build, runtime, entries, database, checks =\
-                    self.pipe.recv()
+                try:
+                    name, config, build, runtime, entries, database, checks =\
+                        self.pipe.recv()
+                except Exception:
+                    logger.error('Failed to receive measure infos :\n' +
+                                 format_exc())
+                    sleep(1)
+                    return
                 self.pipe.send(True)
 
                 # Build it by using the given build dependencies.
