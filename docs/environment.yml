@@ -1,20 +1,20 @@
-name: rtd
-channels: !!python/tuple
-- !!python/unicode 'ecpy'
-- !!python/unicode 'defaults'
+channels:
+- ecpy
+- defaults
+
 dependencies:
 - alabaster=0.7.9=py35_0
 - babel=2.3.4=py35_0
 - cairo=1.12.18=6
 - configobj=5.0.6=py35_0
 - docutils=0.12=py35_2
-- ecpy::argh=0.26.1=py_0
-- ecpy::atom=0.3.10.post50=py35_50
-- ecpy::enaml=0.9.8.post72=py35_72
-- ecpy::enaml-pygments=0.9.8.post72=py_72
-- ecpy::kiwisolver=0.1.3.post21=py35_21
-- ecpy::pathtools=0.1.2=py_0
-- ecpy::watchdog=0.8.3=py35_0
+- argh=0.26.1=py_0
+- atom=0.3.10.post50=py35_50
+- enaml=0.9.8.post72=py35_72
+- enaml-pygments=0.9.8.post72=py_72
+- kiwisolver=0.1.3.post21=py35_21
+- pathtools=0.1.2=py_0
+- watchdog=0.8.3=py35_0
 - fontconfig=2.11.1=6
 - freetype=2.5.5=1
 - future=0.15.2=py35_0
@@ -54,5 +54,3 @@ dependencies:
 - xz=5.2.2=0
 - yaml=0.1.6=0
 - zlib=1.2.8=3
-prefix: /home/marul/anaconda2/envs/rtd
-
