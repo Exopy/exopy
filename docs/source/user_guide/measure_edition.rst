@@ -13,7 +13,7 @@ how to use the tools that are pre/post-execution hooks and the monitors.
 .. measure_edition_editors:
 
 Advanced use of editors
-----------------------
+-----------------------
 
 Dependending on the currently selected task, different editors can be
 available :

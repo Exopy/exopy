@@ -28,6 +28,7 @@ requirements:
     - watchdog
     - configobj
     - qtawesome
+    - numpy
 
 test:
   commands:
