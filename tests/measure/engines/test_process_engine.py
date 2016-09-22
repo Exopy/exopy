@@ -354,7 +354,17 @@ def test_handling_unexpected_closing_of_pipe2(process_engine, exec_infos,
 
 
 def build_subprocess_infos(self, exec_infos):
-    return ()
+    exec_infos.task.update_preferences_from_members()
+    config = exec_infos.task.preferences
+
+    return (exec_infos.id, config,
+            exec_infos.build_deps,
+            exec_infos.runtime_deps,
+            exec_infos.observed_entries,
+            # Fail when trying to write the database and subprocess die
+            (),
+            exec_infos.checks
+            )
 
 
 @pytest.mark.timeout(10)
@@ -376,6 +386,89 @@ def test_handling_unexpected_exception_in_sub_process(process_engine,
     assert 'engine' in t.value.errors
     assert 'dead' in t.value.errors['engine']
     assert process_engine.status == 'Stopped'
+
+
+def unserializable_infos(self, exec_infos):
+    exec_infos.task.update_preferences_from_members()
+    config = exec_infos.task.preferences
+
+    def f():
+        pass
+
+    return (exec_infos.id, config,
+            exec_infos.build_deps,
+            exec_infos.runtime_deps,
+            exec_infos.observed_entries,
+            {'f': f},
+            exec_infos.checks
+            )
+
+
+@pytest.mark.timeout(10)
+def test_handling_pickling_error_in_sending_meas_infos(process_engine,
+                                                       exec_infos,
+                                                       monkeypatch):
+    """Test handling a failed serialization of measure infos.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
+                        unserializable_infos)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'send' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+
+
+class B(object):
+
+    def __getstate__(self):
+        return (1,)
+
+    def __setstate__(self, state):
+        print('restore')
+        raise Exception()
+
+
+def undeserializable_infos(self, exec_infos):
+    exec_infos.task.update_preferences_from_members()
+    config = exec_infos.task.preferences
+
+    return (exec_infos.id, config,
+            exec_infos.build_deps,
+            exec_infos.runtime_deps,
+            exec_infos.observed_entries,
+            {'f': B()},
+            exec_infos.checks
+            )
+
+
+@pytest.mark.timeout(10)
+def test_handling_unpickling_error_in_sending_meas_infos(process_engine,
+                                                         exec_infos,
+                                                         monkeypatch,
+                                                         caplog):
+    """Test handling a failed deserialization of measure infos.
+
+    """
+    from ecpy.measure.engines.process_engine import engine
+
+    monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
+                        undeserializable_infos)
+    t = ExecThread(process_engine, exec_infos)
+    exec_infos.task.children[0].check_flag = False
+    t.start()
+    t.join()
+    assert not t.value.success
+    assert 'engine' in t.value.errors
+    assert 'dead' in t.value.errors['engine']
+    assert process_engine.status == 'Stopped'
+    assert 'ERROR' in caplog.text()
 
 
 @pytest.mark.timeout(60)

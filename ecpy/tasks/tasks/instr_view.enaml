@@ -37,6 +37,16 @@ enamldef InstrTaskView(BaseTaskView):
         """Function passed to the ecpy.instrument.select_profile command
         to limit the displayed profiles.
 
+        Parameters
+        ----------
+        profiles : dict
+            Profiles to filter (id: infos)
+
+        Returns
+        -------
+        filtered : list
+            Ids of the allowed drivers.
+
         """
         w = self.root.core.workbench
         plugin = w.get_plugin('ecpy.tasks')
@@ -52,6 +62,16 @@ enamldef InstrTaskView(BaseTaskView):
 
     func filter_drivers(drivers):
         """Filter the drivers that one can choose after selecting the profile.
+
+        Parameters
+        ----------
+        drivers : list
+            List of driver infos to filter.
+
+        Returns
+        -------
+        filtered : list
+            Filtered list of infos objects.
 
         """
         w = self.root.core.workbench

@@ -1,6 +1,20 @@
 Ecpy Changelog
 ==============
 
+0.1.0.b2
+--------
+
+- always clean measure dependencies after enqueuing
+- add some safeties around pickling
+
+
+0.1.0.b1
+--------
+
+- fix in LoopTask interface selection
+- add a rule to TextMonitor to reject instrument entries
+- fix a number of glitches (completion)
+
 
 0.1.0.a3
 --------

@@ -16,6 +16,8 @@ import logging
 from threading import Thread
 from queue import Empty  # This is allowed thanks to the future package
 from multiprocessing.queues import Queue
+from traceback import format_exc
+from pickle import dumps
 
 from atom.api import Atom, Coerced, Typed
 
@@ -53,7 +55,14 @@ class MeasureSpy(Atom):
 
         """
         if change[0] in self.observed_entries:
-            self.queue.put(change)
+            try:
+                # Ensure pickling is ok at the cost of a small overhead
+                dumps(change)
+                self.queue.put(change)
+            except Exception:
+                logger = logging.getLogger(__name__)
+                logger.error('Failed to enqueue %s :\n%s' % (change,
+                                                             format_exc()))
 
     def close(self):
         """Put a dummy object signaling that no more updates will be sent.
@@ -90,3 +99,7 @@ class ThreadMeasureMonitor(Thread):
 
             except Empty:  # pragma: no cover
                 continue
+            except Exception:
+                logger = logging.getLogger(__name__)
+                logger.error('Failed to received enqueued object :\n' +
+                             format_exc())

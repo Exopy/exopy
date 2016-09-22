@@ -45,7 +45,10 @@ enamldef SubprocessLogPanel(DockItem):
     """Log panel used to display the message coming from the subprocess.
 
     """
+    #: Refrence to the GUI log model driving this panel
     attr model
+
+    closable = False
     stretch = 0
     Container:
         QtAutoscrollHtml:

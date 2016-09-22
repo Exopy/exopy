@@ -13,13 +13,16 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from multiprocessing import Queue
+from pickle import dumps
+
+import pytest
 
 from ecpy.tasks.tasks.database import TaskDatabase
 from ecpy.measure.engines.api import BaseEngine
 from ecpy.measure.engines.utils import MeasureSpy, ThreadMeasureMonitor
 
 
-def test_spy():
+def test_spy(capturelog):
     """Test the measure spy working.
 
     """
@@ -33,8 +36,19 @@ def test_spy():
     spy = MeasureSpy(queue=q, observed_database=data,
                      observed_entries=('root/test',))
 
+    class A(object):
+
+        def __getstate__(self):
+            raise Exception()
+
+    with pytest.raises(Exception):
+        dumps(A())
+
     data.set_value('root', 'test', 1)
-    assert q.get(2)
+    assert q.get(2) == ('root/test', 1)
+
+    data.set_value('root', 'test', A())
+    assert capturelog.records()
 
     data.set_value('root', 'test2', 1)
     assert q.empty()
@@ -43,7 +57,17 @@ def test_spy():
     assert q.get(2) == ('', '')
 
 
-def test_monitor_thread():
+class B(object):
+
+    def __getstate__(self):
+        return (1,)
+
+    def __setstate__(self, state):
+        print('restore')
+        raise Exception()
+
+
+def test_monitor_thread(capturelog):
     """Test the monitor thread rerouting news to engine signal.
 
     """
@@ -60,9 +84,12 @@ def test_monitor_thread():
     e = E()
     m = ThreadMeasureMonitor(e, q)
     m.start()
+
+    q.put(B())
     q.put('test')
     q.put(('', ''))
     q.put((None, None))
     m.join()
 
+    assert capturelog.records()
     assert e.test == 'test'

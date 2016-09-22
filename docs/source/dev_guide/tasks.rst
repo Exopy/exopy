@@ -40,7 +40,7 @@ according to whether or not it can have children tasks attached to it.
 The task parameters should be declared using the appropriate member and tagged
 with 'pref' in order to be correctly saved. If the default way of
 saving/restoring (repr/literal_eval) is enough simply use True as a value
-otherwise you can specify the function to use to serailize/desarialize should
+otherwise you can specify the function to use to serialize/desarialize should
 be passed as a tuple/list.
 
 If a parameter value can depend on values stored in the database, it should be
@@ -438,7 +438,7 @@ it is bound.
 
 Let's say we need to declare an interface named *MyInterface*. This interface
 is linked to *MyTask*. The name of our extension package (see :doc:`glossary`)
-is named 'my_ecpy_plugin'.
+is 'my_ecpy_plugin'.
 Let's look at the example below:
 
 .. code-block:: enaml
@@ -575,7 +575,7 @@ task.
 Minimal methods to implement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All task configurer needs to inherit from |PyTaskConfig|, which defines the
+All task configurers need to inherit from |PyTaskConfig|, which defines the
 expected interface of all configurers. When creating a new configurer two
 methods need to be overwritten :
 

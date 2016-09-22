@@ -16,6 +16,8 @@ import logging
 from multiprocessing import Pipe, Queue, Event
 from threading import Thread
 from threading import Event as tEvent
+from traceback import format_exc
+from pprint import pformat
 
 from atom.api import Typed, Value, Bool
 
@@ -100,8 +102,22 @@ class ProcessEngine(BaseEngine):
             self._process.start()
 
         # Send the measure.
-        self._pipe.send(self._build_subprocess_args(exec_infos))
-        logger.debug('Task {} sent'.format(exec_infos.id))
+        args = self._build_subprocess_args(exec_infos)
+        try:
+            self._pipe.send(args)
+        except Exception:
+            msg = ('Failed to send infos to subprocess :\n-infos : \n%s\n'
+                   '-errors :\n%s')
+            logger.error(msg % (pformat(args), format_exc()))
+            self._log_queue.put(None)
+            self._monitor_queue.put((None, None))
+            self._cleanup(process=True)
+            exec_infos.success = False
+            exec_infos.errors['engine'] = msg
+            self.status = 'Stopped'
+            return exec_infos
+        else:
+            logger.debug('Task {} sent'.format(exec_infos.id))
 
         # Check that the engine did receive the task.
         while not self._pipe.poll(2):
