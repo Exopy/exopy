@@ -21,9 +21,7 @@ requirements:
     - python.app       [osx]
     - enaml >0.9.8
     - atom >0.3.10
-    - pyqt4
     - kiwisolver >0.1.3
-    - ply
     - future
     - watchdog
     - configobj
