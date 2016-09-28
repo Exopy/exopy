@@ -21,8 +21,8 @@ Tools
 -----
 
 Tools allow to customize what happens before and after the execution of the
-task hierarchy when a task is run, they can also be used to report to the user
-the progress of the measure.
+task hierarchy when a measure is run, they can also be used to report 
+the progress of the measure to the user.
 
 .. note::
 
@@ -34,11 +34,11 @@ Pre_execution hooks
 A pre-execution hook is run before the tasks attached to a measure. Actually a
 pre-hook can have two purposes :
 
-- extend the checks performed by the tasks. Some checks might requires to
-  compare state of different tasks which is not possible from within the check
-  method of task, on the contrary a pre-hook have access to the whole tree and
-  is free to walk it.
-- perform some custom actions before the task hierarchy is executed. It can for
+- to extend the checks performed by the tasks. Some checks might require to
+  compare the states of different tasks. While this is not possible from within the check
+  method of one task, on the contrary a pre-hook have access to the whole tree and
+  is free to scan it.
+- to perform some custom actions before the task hierarchy is executed. It can for
   example run some initialisation procedure or query the state of some other
   part of the application before running the core of the measure.
 
@@ -55,8 +55,8 @@ Adding a pre-hook requires to :
   - list_runtimes: let the measure know the runtime dependencies (such as
     instrument drivers) if any.
 
-  Additionally if any entry is contributed to the task hierarchy they should
-  be added when the tool is linked (or later during edition of the tool).
+Additionally if any entry is contributed to the task hierarchy they should
+be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PreExecutionHook| to the
   'ecpy.measure.pre-execution' extension point. The declaration should
@@ -113,9 +113,9 @@ Adding a monitor requires to :
 Post-execution hooks
 ^^^^^^^^^^^^^^^^^^^^
 
-A post-execution hook is run after the tasks attached to a measure, and this no
-matter the execution succeeded or not (save if the user stopped the measure and
-asked not to run them). They are hence perfectly fitted to run clean up.
+A post-execution hook is run after the tasks attached to a measure, no
+matter whether the execution succeeded or not (except if the user stopped the measure and
+asked not to run it). They are hence perfectly fitted to run clean up.
 
 Adding a post-hook requires to :
 
