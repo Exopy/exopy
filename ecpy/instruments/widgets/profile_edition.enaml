@@ -349,11 +349,11 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
     attr creation : bool = False
 
     #: Connections editors opened.
-    attr connections : list = [plugin.create_connection(k, v)
+    attr connections : list = [plugin.create_connection(k, v, read_only)
                                for k, v in profile_infos.connections.items()]
 
     #: Settings editors opened.
-    attr settings : list = [plugin.create_settings(v['id'], v)
+    attr settings : list = [plugin.create_settings(v['id'], v, read_only)
                             for v in profile_infos.settings.values()]
 
     #: Prevent edition while allowing to navigate the notebooks.

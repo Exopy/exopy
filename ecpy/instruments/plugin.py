@@ -226,7 +226,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
                         'settings'):
             getattr(self, '_'+contrib).stop()
 
-    def create_connection(self, connection_id, infos):
+    def create_connection(self, connection_id, infos, read_only=False):
         """Create a connection and initialize it.
 
         Parameters
@@ -237,6 +237,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         infos : dict
             Dictionarry to use to initialize the state of the connection.
 
+        read_only : bool    
+            Should the connection be created as read-only.
+            
         Returns
         -------
         connection : BaseConnection
@@ -244,9 +247,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         """
         c_decl = self._connections.contributions[connection_id]
-        return c_decl.new(self.workbench, infos)
+        return c_decl.new(self.workbench, infos, read_only)
 
-    def create_settings(self, settings_id, infos):
+    def create_settings(self, settings_id, infos, read_only=False):
         """Create a settings and initialize it.
 
         Parameters
@@ -255,8 +258,11 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             Id of the the settings to instantiate.
 
         infos : dict
-            Dictionarry to use to initialize the state of the settings.
+            Dictionary to use to initialize the state of the settings.
 
+        read_only : bool   
+            Should the settings be created as read-only.
+            
         Returns
         -------
         connection : BaseSettings
@@ -264,7 +270,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         """
         s_decl = self._settings.contributions[settings_id]
-        return s_decl.new(self.workbench, infos)
+        return s_decl.new(self.workbench, infos, read_only)
 
     def get_drivers(self, drivers):
         """Query drivers class and the associated starters.

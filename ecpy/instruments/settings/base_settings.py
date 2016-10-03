@@ -67,7 +67,7 @@ class Settings(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def new(self, workbench, defaults):
+    def new(self, workbench, defaults, read_only):
         """Create a new setting and instantiate it properly.
 
         Defaults should be used to update the created setting.
