@@ -264,6 +264,7 @@ enamldef FieldFieldCompleterEditor(Container):
 
     Field: k:
         text := model.key
+        hug_width='strong'
     QtLineCompleter: v:
         text := model.value
         entries << model.entries if hasattr(model, 'entries') else []
