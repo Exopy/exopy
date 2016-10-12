@@ -237,9 +237,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         infos : dict
             Dictionarry to use to initialize the state of the connection.
 
-        read_only : bool    
+        read_only : bool
             Should the connection be created as read-only.
-            
+
         Returns
         -------
         connection : BaseConnection
@@ -260,9 +260,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         infos : dict
             Dictionary to use to initialize the state of the settings.
 
-        read_only : bool   
+        read_only : bool
             Should the settings be created as read-only.
-            
+
         Returns
         -------
         connection : BaseSettings
