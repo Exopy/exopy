@@ -54,7 +54,7 @@ class Connection(Declarative):
     description = d_(Unicode())
 
     @d_func
-    def new(self, workbench, defaults):
+    def new(self, workbench, defaults, read_only):
         """Create a new connection and instantiate it properly.
 
         Defaults should be used to update the created connection.

@@ -235,7 +235,9 @@ To do so, you must contribute a |Connection| object to the
   when declaring a driver.
 - an 'new' declarative function which should create a new widget (inheriting
   from |BaseConnection|) used to edit the connection data. The 'defaults'
-  dictionary should be used to properly initialize the widget.
+  dictionary should be used to properly initialize the widget. The 'read_only'
+  attributes should be set after creation to avoid trouble (hence you should
+  use << when reading this attribute value in the view).
 
 
 Registering a settings
@@ -251,7 +253,9 @@ architecture of driver. To declare a new settings, you must contribute a
   when declaring a driver.
 - an 'new' declarative function which should create a new widget (inheriting
   from |BaseSettings|) used to edit the settings data. The 'defaults'
-  dictionary should be used to properly initialize the widget.
+  dictionary should be used to properly initialize the widget. The 'read_only'
+  attributes should be set after creation to avoid trouble (hence you should
+  use << when reading this attribute value in the view).
 
 
 .. _decl_alias:
