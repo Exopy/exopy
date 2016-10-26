@@ -145,6 +145,11 @@ class QtListStrWidget(RawWidget):
         self._set_widget_items(self.get_widget())
         if new:
             self._do_default_selection()
+        else:
+            if self.multiselect:
+                self.selected_items = []
+            else:
+                self.selected_item = None
 
     def _post_setattr_multiselect(self, old, new):
         """Update the widget selection mode.
