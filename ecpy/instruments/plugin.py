@@ -247,7 +247,11 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         """
         c_decl = self._connections.contributions[connection_id]
-        return c_decl.new(self.workbench, infos, read_only)
+        conn = c_decl.new(self.workbench, infos, read_only)
+        if conn.declaration is None:
+            conn.declaration = c_decl
+        return conn
+
 
     def create_settings(self, settings_id, infos, read_only=False):
         """Create a settings and initialize it.
@@ -270,7 +274,10 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
 
         """
         s_decl = self._settings.contributions[settings_id]
-        return s_decl.new(self.workbench, infos, read_only)
+        sett = s_decl.new(self.workbench, infos, read_only)
+        if sett.declaration is None:
+            sett.declaration = s_decl
+        return sett
 
     def get_drivers(self, drivers):
         """Query drivers class and the associated starters.

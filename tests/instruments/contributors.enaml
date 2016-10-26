@@ -104,8 +104,7 @@ enamldef InstrContributor1(PluginManifest):
             id = 'false_connection'
             description = 'False connection 1'
             new => (workbench, defaults, read_only):
-                return TestConnection(declaration=self,
-                                      defaults=defaults,
+                return TestConnection(defaults=defaults,
                                       read_only=read_only)
         Connection:
             id = 'false_connection2'
@@ -129,8 +128,7 @@ enamldef InstrContributor1(PluginManifest):
             id = 'false_settings'
             description = 'False settings 1'
             new => (workbench, defaults, read_only):
-                return TestSettings(declaration=self,
-                                    defaults=defaults,
+                return TestSettings(defaults=defaults,
                                     name=defaults.get('name', 'empty'),
                                     read_only=read_only)
         Settings:
