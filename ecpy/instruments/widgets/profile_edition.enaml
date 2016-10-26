@@ -332,6 +332,20 @@ enamldef RenameSettingsPopup(PopupView): pop:
 _DestroyableContainer = add_destroy_hook(Container)
 
 
+class _Include(Include):
+    """Re-implemented include to show widget after parenting.
+
+    When destroy_old is False the widget is hidden when un-parented and need
+    to be shwon again when re-parented.
+
+    """
+    def _observe_objects(self, change):
+        super(_Include, self)._observe_objects(change)
+        if self.is_initialized and change['value']:
+            for o in self.objects:
+                o.show()
+
+
 enamldef ProfileEditionWidget(_DestroyableContainer): main:
     """Widget dedicated to editing a profile.
 
@@ -437,14 +451,14 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         items << main.connections or []
                         sort = True
                         to_string = lambda c: c.title
-                    Include: s_conn:
+                    _Include: s_conn:
                         destroy_old = False
-                        objects << ([conns.selected_item] if conns.selected_item
-                                    else [Container()])
+                        objects << ([conns.selected_item]
+                                    if conns.selected_item else [Container()])
                     PushButton: add_c:
                         text = 'Add'
-                        enabled << (set(connections) !=
-                                    set(profile_infos.model.connections))
+                        enabled << (len(set(connections)) !=
+                                    len(set(profile_infos.model.connections)))
                         visible = not read_only
                         clicked ::
                             kw = {'plugin': plugin,
@@ -501,7 +515,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                           else None)
                         sort = True
                         to_string = lambda s: s.name
-                    Include: s_sett:
+                    _Include: s_sett:
                         destroy_old = False
                         objects << ([setts.selected_item]
                                     if setts.selected_item else [Container()])
