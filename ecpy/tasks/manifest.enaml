@@ -60,7 +60,7 @@ more details.
 
 
 CONFIGS_DESC =\
-"""Configs are used a new task need to be inserted into a task hierarchy at
+"""Configs are used when a new task needs to be inserted into a task hierarchy at
 runtime. They provide a way for the user to parametrize the task before
 inserting it into the hierarchy. See declarations.py for more infos about how
 to declare a new config.

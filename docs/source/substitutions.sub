@@ -79,7 +79,7 @@
 
 .. |BaseToolDeclaration| replace:: :py:class:`~ecpy.measure.base_tool.BaseToolDeclaration`
 
-.. |BasePreHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePreHook`
+.. |BasePreExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePreExecutionHook`
 
 .. |PreExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PreExecutionHook`
 
@@ -87,7 +87,7 @@
 
 .. |Monitor| replace:: :py:class:`~ecpy.measure.monitors.base_monitor.BaseMonitor`
 
-.. |BasePostHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePostHook`
+.. |BasePostExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.BasePostExecutionHook`
 
 .. |PostExecutionHook| replace:: :py:class:`~ecpy.measure.hooks.base_hooks.PostExecutionHook`
 
