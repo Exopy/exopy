@@ -33,7 +33,7 @@ enamldef MeasView(GroupBox): widget:
     #: Refrence to the measure driving this view.
     attr model
 
-    title << model.name
+    title << model.name + '-' + model.id
 
     layout_constraints => ():
         meas = widget.model
