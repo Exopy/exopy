@@ -56,7 +56,8 @@ def test_loop_config(app, task_workbench):
 
 
 @pytest.mark.ui
-def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep):
+def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
+                                  monkeypatch):
     """Test the loop config.
 
     """
@@ -80,8 +81,14 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep):
     process_app_events()
     sleep(dialog_sleep)
 
-    config.subconfig.task_name = ''
-    assert not config.ready
+    def dummy(self):
+        self.ready = False
+
+    monkeypatch.setattr(type(config.subconfig), 'check_parameters',
+                        dummy)
+    config.task_name = 'Bis'
+    assert config.subconfig.task_name == 'Bis'  # Check sync
+    assert not config.ready  # Result from the monkeypatch
     process_app_events()
     sleep(dialog_sleep)
 
@@ -93,5 +100,5 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep):
     config.use_subtask = True
     config.subtask = 'ecpy.ContinueTask'
     task = config.build_task()
-    assert task.name == 'Test'
+    assert task.name == 'Bis'
     assert type(task.task).__name__ == 'ContinueTask'
