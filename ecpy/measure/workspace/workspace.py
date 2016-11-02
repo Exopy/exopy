@@ -169,8 +169,8 @@ class MeasureSpace(Workspace):
         """
         if not auto or not measure.path:
             get_file = FileDialogEx.get_save_file_name
-            path = (measure.path or
-                    self.plugin.path + measure.name + '.meas.ini')
+            path = os.path.join((measure.path or self.plugin.path),
+                                measure.name + '.meas.ini')
             full_path = get_file(parent=self.content,
                                  current_path=path,
                                  name_filters=[u'*.meas.ini'])
