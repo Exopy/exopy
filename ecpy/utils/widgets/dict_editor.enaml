@@ -244,6 +244,7 @@ enamldef FieldFieldEditor(Container):
 
     Field: k:
         text := model.key
+        hug_width='strong'
     Field: v:
         text := model.value
 
