@@ -182,16 +182,16 @@ enamldef ExecutionDockItem(DockItem):
                 Action:
                     text = 'Skip post execution'
                     triggered ::
+                        should_process_all()
                         workspace.stop_current_measure(no_post_exec=True,
                                                        force=stopping)
-                        should_process_all()
 
 
                 Action:
                     text = 'Run post execution'
                     triggered ::
-                        workspace.stop_current_measure(force=stopping)
                         should_process_all()
+                        workspace.stop_current_measure(force=stopping)
 
         CheckBox: proc_all:
             text = 'Process all'
