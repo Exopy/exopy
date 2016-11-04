@@ -208,6 +208,8 @@ template DictEditor(Content):
     """
     Container: main:
         attr mapping
+        mapping ::
+            self._model.regenerate_pairs()
         attr operations
         attr attributes : dict = {}
         attributes ::
