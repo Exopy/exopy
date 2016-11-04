@@ -29,7 +29,7 @@ enamldef CopyAction(Action):
     text = 'Copy'
     visible << action_context['copyable']
     triggered::
-        CLIPBOARD.instance = copy.deepcopy(action_context['data'][2])
+        CLIPBOARD.instance = deepcopy(action_context['data'][2])
 
 
 # --- Cuts the current tree node object into the paste buffer -----------------
