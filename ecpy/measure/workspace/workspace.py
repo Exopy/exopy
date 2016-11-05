@@ -43,6 +43,9 @@ LOG_ID = 'ecpy.measure.workspace'
 logger = logging.getLogger(__name__)
 
 
+LAYOUT = None
+
+
 class MeasureSpace(Workspace):
     """Workspace dedicated tot measure edition and execution.
 
@@ -86,21 +89,26 @@ class MeasureSpace(Workspace):
         if not plugin.edited_measures.measures:
             self.new_measure()
         else:
-            for measure in plugin.edited_measures.measures:
-                self._insert_new_edition_panel(measure)
+            self._insert_new_edition_panels(plugin.edited_measures.measures,
+                                            False)
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
-            id = plugin.selected_engine
-            engine = plugin.get_declarations('engine', [id])[id]
+            id_ = plugin.selected_engine
+            engine = plugin.get_declarations('engine', [id_])[id_]
             deferred_call(engine.contribute_to_workspace, self)
 
         plugin.observe('selected_engine', self._update_engine_contribution)
 
         self._selection_tracker.start(plugin.edited_measures.measures[0])
 
-        # TODO implement layout reloading so that we can easily switch between
-        # workspaces.
+        if LAYOUT is not None:
+            # HINT : this way all items are referenced by the layout
+            #        which avoid spurious warnings and crashes
+            self.dock_area.layout = LAYOUT
+
+            # TODO : This does not preserve truly the layout as the engine
+            #        can modify it
 
     def stop(self):
         """Stop the workspace and clean.
@@ -130,8 +138,8 @@ class MeasureSpace(Workspace):
 
         self._selection_tracker.stop()
 
-        # TODO implement layout saving so that we can easily switch between
-        # workspaces.
+        global LAYOUT
+        LAYOUT = self.dock_area.save_layout()
 
     def new_measure(self, dock_item=None):
         """Create a new edited measure using the default tools.
@@ -152,7 +160,7 @@ class MeasureSpace(Workspace):
         self.plugin.edited_measures.add(measure)
 
         if dock_item is None:
-            self._insert_new_edition_panel(measure)
+            self._insert_new_edition_panels((measure,))
 
     def save_measure(self, measure, auto=True):
         """ Save a measure in a file.
@@ -229,7 +237,7 @@ class MeasureSpace(Workspace):
             raise NotImplementedError()
 
         if dock_item is None:
-            self._insert_new_edition_panel(measure)
+            self._insert_new_edition_panels((measure,))
         else:
             dock_item.measure = measure
 
@@ -465,7 +473,7 @@ class MeasureSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    def _insert_new_edition_panel(self, measure):
+    def _insert_new_edition_panels(self, measures, update=True):
         """Handle inserting a new MeasureEditorDockItem in the content.
 
         """
@@ -474,26 +482,31 @@ class MeasureSpace(Workspace):
         test = re.compile('meas\_([0-9]+)$')
         measure_items = [i for i in items if test.match(i.name)]
 
-        if not measure_items:
-            name = template % 0
-            op = InsertItem(item=name, target='meas_exec')
-        else:
-            indexes = [int(test.match(i.name).group(1))
-                       for i in measure_items]
-            indexes.sort()
-
-            if len(indexes) <= max(indexes):
-                ind = [i for i, x in enumerate(indexes) if i != x][0]
+        ops = []
+        for measure in measures:
+            if not measure_items:
+                name = template % 0
+                ops.append(InsertItem(item=name, target='meas_exec'))
             else:
-                ind = len(measure_items)
+                indexes = [int(test.match(i.name).group(1))
+                           for i in measure_items]
+                indexes.sort()
 
-            name = template % ind
-            op = InsertTab(item=name, target=template % indexes[0])
+                if len(indexes) <= max(indexes):
+                    ind = [i for i, x in enumerate(indexes) if i != x][0]
+                else:
+                    ind = len(measure_items)
 
-        MeasureEditorDockItem(self.dock_area, workspace=self,
-                              measure=measure, name=name)
+                name = template % ind
+                ops.append(InsertTab(item=name, target=template % indexes[0]))
 
-        deferred_call(self.dock_area.update_layout, op)
+            measure_items.append(MeasureEditorDockItem(self.dock_area,
+                                                       workspace=self,
+                                                       measure=measure,
+                                                       name=name))
+
+        if update:
+            deferred_call(self.dock_area.update_layout, ops)
 
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect
