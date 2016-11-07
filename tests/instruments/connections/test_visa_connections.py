@@ -102,7 +102,7 @@ def test_visa_tcpip_instr(windows):
     assert c.gather_infos() == {'interface_type': 'TCPIP',
                                 'resource_class': 'INSTR',
                                 'host_address': '192.168.0.10',
-                                'lan_device_name': '',
+                                'lan_device_name': 'inst0',
                                 'board': '0'}
     assemble_canonical_name(**c.gather_infos())
 
