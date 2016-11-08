@@ -44,7 +44,7 @@ pre-hook can have two purposes :
 
 Adding a pre-hook requires to :
 
-- implement the logic by subclassing |BasePreexecutionHook|. The methods that can be
+- implement the logic by subclassing |BasePreExecutionHook|. The methods that can be
   overridden are :
 
   - check: make sure that the measure is in a proper state to be executed.
@@ -132,6 +132,8 @@ Adding a post-hook requires to :
   - list_runtimes: let the measure know the runtime dependencies (such as
     instrument drivers) if any.
 
+  Additionally if any entry is contributed to the task hierarchy they should
+  be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PostExecutionHook| to the
   'ecpy.measure.post-execution' extension point. The declaration should
