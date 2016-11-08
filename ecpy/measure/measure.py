@@ -57,7 +57,7 @@ class MeasureDependencies(Atom):
         result : bool
             Boolean indicating whether or not the collection succeeded. Note
             that even if the collection failed, some dependencies may have been
-            collected (other being unavailable) and must hance be released.
+            collected (other being unavailable) and must hence be released.
 
         msg : unicode
             String explaning why the operation failed if it failed.

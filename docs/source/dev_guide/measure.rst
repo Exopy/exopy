@@ -44,13 +44,13 @@ pre-hook can have two purposes :
 
 Adding a pre-hook requires to :
 
-- implement the logic by subclassing |BasePreHook|. The methods that can be
+- implement the logic by subclassing |BasePreExecutionHook|. The methods that can be
   overridden are :
 
   - check: make sure that the measure is in a proper state to be executed.
   - run: execute any custom logic. If any task is to be executed it should be
     executed by passing to the active engine.
-  - pause/resume/stop: to implement is the run method execution can take a
+  - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
   - list_runtimes: let the measure know the runtime dependencies (such as
     instrument drivers) if any.
@@ -119,7 +119,7 @@ asked not to run them). They are hence perfectly fitted to run clean up.
 
 Adding a post-hook requires to :
 
-- implement the logic by subclassing |BasePostHook|. The methods that can be
+- implement the logic by subclassing |BasePostExecutionHook|. The methods that can be
   overridden are :
 
   - check: make sure that the measure is in a proper state to be executed.
@@ -127,7 +127,7 @@ Adding a post-hook requires to :
     executed by passing to the active engine. The post hook can inspect the
     measure it belongs to to identify whether the execution finished correctly
     ('task_execution_result' member).
-  - pause/resume/stop: to implement is the run method execution can take a
+  - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
   - list_runtimes: let the measure know the runtime dependencies (such as
     instrument drivers) if any.

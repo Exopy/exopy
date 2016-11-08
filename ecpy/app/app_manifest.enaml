@@ -37,7 +37,7 @@ def app_plugin_factory():
 def application_factory():
     """Factory function for the QtApplication used by Ecpy.
 
-    Simply set the application icon and on Windows make sure the appllication
+    Simply set the application icon and on Windows make sure the application
     is not seen as a simple python interpreter.
 
     """
