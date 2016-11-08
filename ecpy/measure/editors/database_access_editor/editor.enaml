@@ -154,8 +154,23 @@ enamldef DatabaseAccessEditor(BaseEditor): main:
             else:
                 node = database_model.nodes[task.path + '/' + task.name]
             view = view_for(node)
+            # HINT this is needed because otherwise we try to relayout tasks
+            # that should not be relaid out because there are not diplayed
+            # anymore and should be the layout parent of the displayed task.
+            # (RootTask for a complex one).
+            # This is Qt specific
+            if view.proxy_is_active:
+                view.proxy.layout_container = None
+            # HINT force the refreshing of the parent, this handles the case
+            # of moving selection back and forth between 2 tasks at the same
+            # depth
+            view.set_parent(None)
             view.set_parent(scroll)
+            # HINT attempt at fixing the issue in which a task widget is
+            # displayed before being given a parent.
+            sleep(0.001)
             view.refresh()
+            view.show()
 
     selected_task ::
         set_view_for(change['value'])
