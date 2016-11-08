@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from collections import defaultdict
 from threading import RLock, Lock
 
-from atom.api import Atom, Instance, Value, Int
+from atom.api import Atom, Instance, Value, Int, set_default
 
 
 class SharedCounter(Atom):
@@ -143,6 +143,9 @@ class ResourceHolder(SharedDict):
     """Base class for storing resources and handling releases and restting.
 
     """
+    #: Priority determining in which order resources will be released.
+    #: Smallest values will be released earlier.
+    priority = Int(100)
 
     def release(self):
         """Release the resources held by this container.
@@ -167,6 +170,9 @@ class ThreadPoolResource(ResourceHolder):
     """Resource holder specialized to handle threads grouped in pools.
 
     """
+    # Should always be released first. As execution may not yet be complete.
+    priority = set_default(-1)
+
     def __init__(self, default=list):
         super(ThreadPoolResource, self).__init__(default)
 

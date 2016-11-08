@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Thread safe object to use in tasks.
+"""test execution of tasks.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -500,6 +500,8 @@ class TestTaskExecution(object):
         """Test the handling of issues in cleaning ressources in root.
 
         """
+        release_order = []
+
         class FalseThreadDispatcher(object):
             """False thread which cannot be joined.
 
@@ -507,6 +509,7 @@ class TestTaskExecution(object):
             called = 0
 
             def stop(self):
+                release_order.append(self)
                 self.called += 1
                 raise Exception()
 
@@ -518,6 +521,7 @@ class TestTaskExecution(object):
 
             def finalize(self):
                 self.called += 1
+                release_order.append(self)
                 raise Exception()
 
         class FalseStarter(object):
@@ -536,6 +540,7 @@ class TestTaskExecution(object):
 
             def close(self):
                 self.called += 1
+                release_order.append(self)
                 raise Exception()
 
         root = self.root
@@ -551,3 +556,5 @@ class TestTaskExecution(object):
         assert thread.called == 1
         assert instr.called == 1
         assert stream.called == 1
+        assert (release_order == [thread, instr, stream] or
+                release_order == [thread, stream, instr])
