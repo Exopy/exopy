@@ -48,6 +48,8 @@ class LinspaceLoopInterface(TaskInterface):
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         step = task.format_and_eval_string(self.step)
+        if 'value' in task.database_entries:
+            task.write_in_database('value', start)
 
         try:
             num = int(abs((stop - start)/step)) + 1

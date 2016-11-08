@@ -183,6 +183,7 @@ class TestLoopTask(object):
         assert test
         assert not traceback
         assert self.task.get_from_database('Test_point_number') == 11
+        assert self.task.get_from_database('Test_value') == 1.0
 
     def test_check_linspace_interface2(self, linspace_interface):
         """Test handling a wrong start.
