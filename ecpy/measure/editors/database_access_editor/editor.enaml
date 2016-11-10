@@ -16,6 +16,8 @@ limitations.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 from enaml.widgets.api import (Container, GroupBox, ScrollArea, Menu, Action,
                                Label, FlowArea, FlowItem)
 from enaml.core.api import Looper, Conditional

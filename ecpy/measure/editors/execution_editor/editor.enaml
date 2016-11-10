@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import attrgetter
 from collections import Iterable
+from time import sleep
 
 from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
                                PopupView, Field, RadioButton,

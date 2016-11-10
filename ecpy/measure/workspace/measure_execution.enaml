@@ -109,7 +109,7 @@ enamldef ExecutionDockItem(DockItem):
         queue = workspace.plugin.enqueued_measures
         status = ('READY', 'COMPLETED', 'SKIPPED', 'INTERRUPTED', 'FAILED')
         if (queue.measures[old].status not in status or
-            queue.measure[new].status not in status):
+            queue.measures[new].status not in status):
             information(self, title="Can't move measure",
                         text=('Can only move measures whose status is one of:'
                               '\n READY, COMPLETED, INTERRUPTED, FAILED,'
