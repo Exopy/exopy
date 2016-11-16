@@ -12,9 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import pytest
+from time import sleep
 from pprint import pformat
 
+import pytest
 import enaml
 
 from ecpy.tasks.api import RootTask
@@ -69,6 +70,10 @@ def task_workbench(workbench, monkeypatch, app_dir):
             workbench.unregister(m_id)
         except Exception:
             pass
+
+        # Give some time to the os to release resources linked to file
+        # monitoring.
+        sleep(0.01)
 
 
 @pytest.fixture
