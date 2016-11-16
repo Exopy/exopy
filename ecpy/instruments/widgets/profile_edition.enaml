@@ -335,7 +335,7 @@ _DestroyableContainer = add_destroy_hook(Container)
 class _Include(Include):
     """Re-implemented include to show widget after parenting.
 
-    When destroy_old is False the widget is hidden when un-parented and need
+    When destroy_old is False the widget is hidden when un-parented and needs
     to be shwon again when re-parented.
 
     """

@@ -112,20 +112,18 @@ enamldef ExecutionDockItem(DockItem):
             queue.measures[new].status not in status):
             information(self, title="Can't move measure",
                         text=('Can only move measures whose status is one of:'
-                              '\n READY, COMPLETED, INTERRUPTED, FAILED,'
-                              'SKIPPED'))
+                              '\n ' + ', '.join(status)))
         else:
             queue.move(old, new)
 
     func remove_measure(index):
         queue = workspace.plugin.enqueued_measures
         measure = queue.measures[index]
-        if measure.status not in ('READY', 'COMPLETED', 'INTERRUPTED',
-                                  'SKIPPED', 'FAILED'):
+        status = ('READY', 'COMPLETED', 'INTERRUPTED', 'SKIPPED', 'FAILED')
+        if measure.status not in status:
             information(self, title="Can't delete measure",
                         text=('Can only delete measures whose status is one '
-                              'of:\n READY, COMPLETED, INTERRUPTED, FAILED,'
-                              ' SKIPPED'))
+                              'of:\n ' + ', '.join(status)))
         else:
             queue.remove(measure)
 

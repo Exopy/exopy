@@ -33,7 +33,6 @@ enamldef MeasureContent(Container): main:
                 workspace._selection_tracker.enqueue(change['value'])
 
     DockArea:
-        # Sizes are exppressed in pixels
         # 'meas_0' is included here to avoid some nasty bug.
         layout = VSplitLayout('meas_0', 'meas_exec', 'main_log')
 

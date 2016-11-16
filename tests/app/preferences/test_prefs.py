@@ -102,7 +102,7 @@ class TestPreferencesPlugin(object):
         # test directory creation.
         app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
         app_dir = str(tmpdir.join('ecpy'))
-        conf = ConfigObj()
+        conf = ConfigObj(encoding='utf8')
         conf.filename = app_pref
         conf['app_path'] = app_dir
         conf.write()
@@ -128,7 +128,7 @@ class TestPreferencesPlugin(object):
         # Add a app_directory.ini file.
         app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
         if not os.path.isfile(app_pref):
-            conf = ConfigObj()
+            conf = ConfigObj(encoding='utf8')
             conf.filename = app_pref
             conf['app_path'] = app_dir
             conf.write()

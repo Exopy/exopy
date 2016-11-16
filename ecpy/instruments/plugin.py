@@ -252,7 +252,6 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             conn.declaration = c_decl
         return conn
 
-
     def create_settings(self, settings_id, infos, read_only=False):
         """Create a settings and initialize it.
 

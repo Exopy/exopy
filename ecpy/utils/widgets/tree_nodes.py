@@ -28,6 +28,15 @@ class TreeNode(Declarative):
     right clicking a node. It will be passed a 'context' describing the node
     being right-clicked.
 
+    The context will be a dictionary with the following keys :
+    - 'copyable': bool, can the node be copied
+    - 'cutable': bool, can the node be cut
+    - 'pasteable': bool, can node be pasted here
+    - 'renamable': bool, can the node be renamed
+    - 'deletable': bool, can the node be deleted
+    - 'not_root': bool, is the node the root node of the tree
+    - 'data': tuple, (tree, TreeNode instance, object, id of the node)
+
     """
 
     #: List of object classes and/or interfaces that the node applies to

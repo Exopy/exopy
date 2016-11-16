@@ -44,10 +44,11 @@ enamldef SaveAction(Action):
 
     """
     #: Context holding the informations about on which task this action was
-    #: invoked
+    #: invoked. See ecpy.utils.widgets.tree_node for a more complete
+    #: description.
     attr action_context
 
-    #: Reference to the core plugin of the plugin.
+    #: Reference to the measure workspace.
     attr workspace
 
     text = 'Save template'
@@ -72,7 +73,14 @@ enamldef TaskCopyAction(Action):
     """ Copies the current task object to the paste buffer.
 
     """
+    #: Context holding the informations about on which task this action was
+    #: invoked. See ecpy.utils.widgets.tree_node for a more complete
+    #: description.
     attr action_context
+
+    #: Reference to the measure workspace.
+    attr workspace
+
     text = 'Copy'
     visible << action_context['copyable']
     triggered::
@@ -122,6 +130,7 @@ enamldef SimpleMenu(Menu): menu:
     CutAction:
         action_context << context
     TaskCopyAction:
+        workspace = menu.workspace
         action_context << context
     PasteAction:
         action_context << context
@@ -177,6 +186,7 @@ enamldef ComplexMenu(Menu): menu:
     CutAction:
         action_context << context
     TaskCopyAction:
+        workspace = menu.workspace
         action_context << context
     PasteAction:
         action_context << context

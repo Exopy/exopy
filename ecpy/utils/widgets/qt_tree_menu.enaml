@@ -8,6 +8,17 @@
 # -----------------------------------------------------------------------------
 """Standard menu for the tree widget.
 
+The action context will be set by the tree widget to a dictionary with the
+following keys:
+
+- 'copyable': bool, can the node be copied
+- 'cutable': bool, can the node be cut
+- 'pasteable': bool, can node be pasted here
+- 'renamable': bool, can the node be renamed
+- 'deletable': bool, can the node be deleted
+- 'not_root': bool, is the node the root node of the tree
+- 'data': tuple, (tree, TreeNode instance, object, id of the node)
+
 """
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
