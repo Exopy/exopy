@@ -187,6 +187,10 @@ def test_update_members_from_pref():
     aux.update_members_from_preferences(pref)
     assert aux.atom is None
 
+    pref = {'enum': 'c'}
+    with pytest.raises(ValueError):
+        aux.update_members_from_preferences(pref)
+
 
 def test_pref_from_members():
     aux = _Aux()

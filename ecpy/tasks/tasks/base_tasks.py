@@ -26,6 +26,7 @@ from copy import deepcopy
 from traceback import format_exc
 from types import MethodType
 from cProfile import Profile
+from operator import attrgetter
 
 from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
@@ -1161,7 +1162,10 @@ class RootTask(ComplexTask):
         """Release all the resources used by tasks.
 
         """
-        for _, resource in self.resources.items():
+        # Release by priority to be sure that their is no-conflict
+        # (Threads vs instruments for example)
+        for resource in sorted(self.resources.values(),
+                               key=attrgetter('priority')):
             resource.release()
 
     def register_in_database(self):

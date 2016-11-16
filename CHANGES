@@ -1,6 +1,32 @@
 Ecpy Changelog
 ==============
 
+0.1.0.b4
+--------
+
+- utils: improve error message if an exception is raised when updating members
+  from preferences
+- utils.widgets: proper sync for DictEditor
+- measure: use custom action for copying task
+- utils: fix bug in copy action of qt_tree_menu
+- measure: when stopping first check whether or not to process next measure.
+- tasks.configs: sync name used in LoopConfig with subconfig
+- measure: add the measure id in the panel of an enqueued measure
+- measure: fix path building for measure saving
+- instruments: fix default of TCPIP connection for device name
+- utils: fix default layout of FieldFieldEditor for DictEditor
+- instruments : add missing import in manifest
+- instruments : properly parent profile edition widget
+- instruments: show connection/settings when selecting them.
+- utils : properly clean the selection when all items are removed.
+- instruments : set the connection declaration when creating.
+
+0.1.0.b3
+--------
+
+- make read-only better handled in VisaConnections
+- improve layout of FieldCompleterFieldEditor for DictEditor
+
 0.1.0.b2
 --------
 

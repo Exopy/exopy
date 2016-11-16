@@ -66,7 +66,8 @@ enamldef BrowsingDialog(Dialog): dial:
                         text = 'Add'
                         clicked ::
                             i = ProfileInfos.create_blank(plugin)
-                            d = ProfileEditionDialog(plugin=plugin,
+                            d = ProfileEditionDialog(dial,
+                                                     plugin=plugin,
                                                      profile_infos=i,
                                                      creation=True)
                             if d.exec_():
@@ -81,7 +82,8 @@ enamldef BrowsingDialog(Dialog): dial:
                                         p_id not in plugin.used_profiles)
                         clicked ::
                             p = plugin._profiles[p_id].clone()
-                            d = ProfileEditionDialog(plugin=plugin,
+                            d = ProfileEditionDialog(dial,
+                                                     plugin=plugin,
                                                      profile_infos=p,
                                                      creation=False)
                             if d.exec_():

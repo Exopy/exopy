@@ -73,7 +73,7 @@ class _DictEditorModel(Atom):
         if not self._no_notif:
             self._no_notif = True
             t = (type(self.editor.mapping) if self.editor.mapping is not None
-                else dict)
+                 else dict)
 
             self.editor.mapping = t((p.key, p.value) for p in self.pairs)
             self._no_notif = False
@@ -208,6 +208,8 @@ template DictEditor(Content):
     """
     Container: main:
         attr mapping
+        mapping ::
+            self._model.regenerate_pairs()
         attr operations
         attr attributes : dict = {}
         attributes ::
@@ -244,6 +246,7 @@ enamldef FieldFieldEditor(Container):
 
     Field: k:
         text := model.key
+        hug_width='strong'
     Field: v:
         text := model.value
 

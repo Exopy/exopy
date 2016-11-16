@@ -20,7 +20,7 @@ from atom.api import Str, Unicode, Enum, Atom, Constant
 from ast import literal_eval
 
 from textwrap import fill
-from future.utils import istext
+from future.utils import istext, raise_from
 
 from inspect import getargspec
 from inspect import cleandoc
@@ -282,8 +282,12 @@ def update_members_from_preferences(self, parameters):
         else:
             value = parameters[name]
             converted = member_from_pref(self, member, value)
-
-            setattr(self, name, converted)
+            try:
+                setattr(self, name, converted)
+            except Exception as e:
+                msg = 'An exception occured when trying to set {} to {}'
+                raise_from(ValueError(msg.format(name, converted)),
+                                      e)
 
 bind_method(HasPrefAtom, 'preferences_from_members',
             preferences_from_members)

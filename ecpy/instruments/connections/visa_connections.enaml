@@ -256,7 +256,7 @@ enamldef VisaTCPIP(BaseVisaConnection): main:
     attr host_address = ''
 
     #: LAN device name of the instrument (INSTR resource class only)
-    attr lan_device_name = ''
+    attr lan_device_name = 'inst0'
 
     #: Port to which open the socket connection (SOCKET resource class only)
     attr port = '0'

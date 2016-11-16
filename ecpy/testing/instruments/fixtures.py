@@ -12,9 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-import pytest
 from pprint import pformat
+from time import sleep
 
+import pytest
 import enaml
 
 with enaml.imports():
@@ -65,3 +66,7 @@ def instr_workbench(workbench, monkeypatch, app_dir, app):
             workbench.unregister(m_id)
         except Exception:
             pass
+
+        # Give some time to the os to release resources linked to file
+        # monitoring.
+        sleep(0.01)

@@ -21,12 +21,14 @@ import enaml
 from ecpy.testing.measure.fixtures import measure as m_build
 from ecpy.testing.util import process_app_events, handle_dialog
 from ecpy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
+from ecpy.utils.widgets.qt_clipboard import CLIPBOARD
 
 with enaml.imports():
     from ecpy.testing.windows import DockItemTestingWindow
     from ecpy.measure.workspace.measure_edition import (MeasureEditorDockItem,
                                                         MeasureEditorDialog,
-                                                        SaveAction, build_task)
+                                                        SaveAction, build_task,
+                                                        TaskCopyAction)
 
 
 pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
@@ -45,6 +47,21 @@ def edition_view(measure, workspace, windows):
                                  measure=measure,
                                  name='test')
     return DockItemTestingWindow(widget=item)
+
+
+def test_copy_action(workspace, measure, windows):
+    """Test copying a task does work.
+
+    """
+    task = BreakTask(name='Test')
+    measure.root_task.add_child_task(0, task)
+    action = TaskCopyAction(workspace=workspace,
+                            action_context=dict(copyable=True,
+                                                data=(None, None, task, None)))
+    action.triggered = True
+    new = CLIPBOARD.instance
+    assert isinstance(new, BreakTask)
+    assert new.name == 'Test'
 
 
 def test_save_action(workspace, measure, windows):

@@ -19,7 +19,7 @@ from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox, factory
 from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
                                DockItem, Label, GroupBox, Field)
-from enaml.stdlib.message_box import question
+from enaml.stdlib.message_box import question, information
 
 
 from ...utils.widgets.list_editor import ListEditor
@@ -33,7 +33,7 @@ enamldef MeasView(GroupBox): widget:
     #: Refrence to the measure driving this view.
     attr model
 
-    title << model.name
+    title << model.name + '-' + model.id
 
     layout_constraints => ():
         meas = widget.model
@@ -106,11 +106,26 @@ enamldef ExecutionDockItem(DockItem):
     title = 'Enqueued measures'
 
     func move_measure(old, new):
-        workspace.plugin.enqueued_measures.move(old, new)
+        queue = workspace.plugin.enqueued_measures
+        status = ('READY', 'COMPLETED', 'SKIPPED', 'INTERRUPTED', 'FAILED')
+        if (queue.measures[old].status not in status or
+            queue.measures[new].status not in status):
+            information(self, title="Can't move measure",
+                        text=('Can only move measures whose status is one of:'
+                              '\n ' + ', '.join(status)))
+        else:
+            queue.move(old, new)
 
     func remove_measure(index):
-        measure = workspace.plugin.enqueued_measures.measures[index]
-        workspace.plugin.enqueued_measures.remove(measure)
+        queue = workspace.plugin.enqueued_measures
+        measure = queue.measures[index]
+        status = ('READY', 'COMPLETED', 'INTERRUPTED', 'SKIPPED', 'FAILED')
+        if measure.status not in status:
+            information(self, title="Can't delete measure",
+                        text=('Can only delete measures whose status is one '
+                              'of:\n ' + ', '.join(status)))
+        else:
+            queue.remove(measure)
 
     Container:
         constraints << [vbox(ed,
@@ -182,16 +197,16 @@ enamldef ExecutionDockItem(DockItem):
                 Action:
                     text = 'Skip post execution'
                     triggered ::
+                        should_process_all()
                         workspace.stop_current_measure(no_post_exec=True,
                                                        force=stopping)
-                        should_process_all()
 
 
                 Action:
                     text = 'Run post execution'
                     triggered ::
-                        workspace.stop_current_measure(force=stopping)
                         should_process_all()
+                        workspace.stop_current_measure(force=stopping)
 
         CheckBox: proc_all:
             text = 'Process all'

@@ -115,12 +115,18 @@ def test_root_view(windows, task_workbench, dialog_sleep):
     sleep(dialog_sleep)
 
     editor.operations['move'](0, 1)
+    process_app_events()
+    sleep(dialog_sleep)
 
-    task.children[1].remove_child_task(0)
-    assert len(view._cache) == 3
+    task.remove_child_task(1)
+    process_app_events()
+    sleep(dialog_sleep)
+    assert len(view._cache) == 2
 
     editor.operations['remove'](0)
-    assert len(view._cache) == 2
+    process_app_events()
+    sleep(dialog_sleep)
+    assert len(view._cache) == 1
 
     win.close()
 

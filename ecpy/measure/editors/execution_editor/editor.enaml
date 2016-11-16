@@ -14,6 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import attrgetter
 from collections import Iterable
+from time import sleep
 
 from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
                                PopupView, Field, RadioButton,
@@ -426,7 +427,14 @@ enamldef ExecutionEditor(BaseEditor): editor:
             # This is Qt specific
             if view.proxy_is_active:
                 view.proxy.layout_container = None
+            # HINT force the refreshing of the parent, this handles the case
+            # of moving selection back and forth between 2 tasks at the same
+            # depth
+            view.set_parent(None)
             view.set_parent(scroll)
+            # HINT attempt at fixing the issue in which a task widget is
+            # displayed before being given a parent.
+            sleep(0.001)
             view.refresh()
             view.show()
 

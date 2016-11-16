@@ -56,7 +56,7 @@ def build_task_from_config(config, build_dep, as_root=False):
     config : dict
         Dictionary representing the task hierarchy.
 
-    build_dep :
+    build_dep : Workbench or dict
         Source of the build dependencies of the hierarchy. This can either
         be the application workbench or a dict of dependencies.
 

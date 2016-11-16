@@ -89,10 +89,10 @@ class QtListStrWidget(RawWidget):
         # Set the selection mode.
         if self.multiselect:
             mode = QtGui.QAbstractItemView.ExtendedSelection
-            selected = [self.selected_item]
+            selected = self.selected_items
         else:
             mode = QtGui.QAbstractItemView.SingleSelection
-            selected = self.selected_items
+            selected = [self.selected_item]
         widget.setSelectionMode(mode)
 
         self.proxy.widget = widget  # Anticipated so that selection works
@@ -145,6 +145,11 @@ class QtListStrWidget(RawWidget):
         self._set_widget_items(self.get_widget())
         if new:
             self._do_default_selection()
+        else:
+            if self.multiselect:
+                self.selected_items = []
+            else:
+                self.selected_item = None
 
     def _post_setattr_multiselect(self, old, new):
         """Update the widget selection mode.
