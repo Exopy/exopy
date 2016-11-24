@@ -69,4 +69,4 @@ def instr_workbench(workbench, monkeypatch, app_dir, app):
 
         # Give some time to the os to release resources linked to file
         # monitoring.
-        sleep(0.01)
+        sleep(0.1)
