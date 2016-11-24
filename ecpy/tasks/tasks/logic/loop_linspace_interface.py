@@ -14,7 +14,8 @@ from __future__ import (division, unicode_literals, print_function,
 
 import numbers
 from atom.api import Unicode
-from numpy import linspace
+from numpy import arange
+from decimal import Decimal
 
 from ..task_interface import TaskInterface
 from ..validators import Feval
@@ -61,23 +62,30 @@ class LinspaceLoopInterface(TaskInterface):
             return test, traceback
 
         try:
-            linspace(start, stop, num)
+            arange(start, stop, step)
         except Exception as e:
             test = False
-            mess = 'Loop task did not succeed to create a linspace: {}'
-            traceback[err_path + '-linspace'] = mess.format(e)
+            mess = 'Loop task did not succeed to create an arange: {}'
+            traceback[err_path + '-arange'] = mess.format(e)
 
         return test, traceback
 
     def perform(self):
-        """Build the linspace and pass it to the LoopTask.
+        """Build the arange and pass it to the LoopTask.
 
         """
         task = self.task
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         step = task.format_and_eval_string(self.step)
-        num = int(round(abs(((stop - start)/step)))) + 1
+        num = int(abs(((stop - start)/step)))
 
-        iterable = linspace(start, stop, num)
+        if start > stop:
+            step = -step
+
+        if num >= abs((stop - start)/step):
+            stop += step
+
+        digit = abs(Decimal(str(step)).as_tuple().exponent)
+        iterable = (round(value, digit) for value in arange(start, stop, step))
         task.perform_loop(iterable)
