@@ -102,6 +102,18 @@ def sys_path():
         os.rename(protected, app_dir)
 
 
+@pytest.fixture(scope='session', autouse=True)
+def watchdog_on_travis():
+    """Do not use inotify on travis as it tends to break builds.
+
+    """
+    if 'TRAVIS' in os.environ:
+        print('Using polling observer on Travis')
+        from watchdog.observers.polling import PollingObserver
+        import watchdog.observers
+        watchdog.observers.Observer = PollingObserver
+
+
 @pytest.yield_fixture(scope='session')
 def app():
     """Make sure a QtApplication is active.
