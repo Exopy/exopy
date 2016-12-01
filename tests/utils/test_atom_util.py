@@ -137,7 +137,7 @@ def test_member_to_pref2():
 
 
 def test_member_to_pref3():
-    aux = _Aux()
+    aux = _Aux(enum=str('a'))
     assert member_to_pref(aux, aux.get_member(str('enum')), 'a') == 'a'
 
 

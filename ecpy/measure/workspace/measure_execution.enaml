@@ -13,6 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
+from functools import partial
 
 from enaml.application import deferred_call
 from enaml.core.api import Looper, Conditional
@@ -92,6 +93,15 @@ def label_maker(running, paused):
             return 'Resume'
         else:
             return 'Pause'
+
+
+def _set_enabled(widget, workspace, change):
+    """Determine wheter or not to enable a widget based on the state of the
+    of the enqueued measures.
+
+    """
+    widget.enabled = (not workspace.plugin.processor.active and
+                      bool(workspace.plugin.enqueued_measures.measures))
 
 
 enamldef ExecutionDockItem(DockItem):
@@ -225,13 +235,8 @@ enamldef ExecutionDockItem(DockItem):
                 workspace.remove_processed_measures()
 
             initialized ::
-                workspace.plugin.enqueued_measures.observe('changed',
-                                                           set_enabled)
-
-            func set_enabled(change):
-                clean.enabled = \
-                    (not workspace.plugin.processor.active and
-                     bool(workspace.plugin.enqueued_measures.measures))
+                handler = partial(_set_enabled, clean, workspace)
+                workspace.plugin.enqueued_measures.observe('changed', handler)
 
         PushButton: mon:
             text = 'Show monitors'

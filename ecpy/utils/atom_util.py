@@ -13,14 +13,14 @@ preferences handling.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from past.builtins import basestring
-from future.utils import bind_method
 from collections import OrderedDict
-from atom.api import Str, Unicode, Enum, Atom, Constant
 from ast import literal_eval
 
 from textwrap import fill
-from future.utils import istext, raise_from
+from future.utils import raise_from
+from past.builtins import basestring
+from future.utils import bind_method
+from atom.api import Str, Unicode, Enum, Atom, Constant
 
 from inspect import getargspec
 from inspect import cleandoc
@@ -159,9 +159,9 @@ def member_to_pref(obj, member, val):
 
     # If 'pref=True' then we rely on the standard save mechanism
     if meta_value is True:
-        # If val is text, then we can simply cast it and rely on python/Atom
-        # default methods.
-        if istext(val):
+        # If val is string-like, then we can simply cast it and rely on
+        # python/Atom default methods.
+        if isinstance(val, basestring):
             pref_value = val
         else:
             pref_value = repr(val)
@@ -286,8 +286,7 @@ def update_members_from_preferences(self, parameters):
                 setattr(self, name, converted)
             except Exception as e:
                 msg = 'An exception occured when trying to set {} to {}'
-                raise_from(ValueError(msg.format(name, converted)),
-                                      e)
+                raise_from(ValueError(msg.format(name, converted)), e)
 
 bind_method(HasPrefAtom, 'preferences_from_members',
             preferences_from_members)
