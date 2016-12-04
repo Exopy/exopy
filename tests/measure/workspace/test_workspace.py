@@ -137,6 +137,24 @@ def test_workspace_lifecycle(workspace, tmpdir):
     assert not workspace.plugin.processor.monitors_window.visible
 
 
+def test_handling_missing_measure_in_state(workspace):
+    """Check the exception raised for a corrupted workspace state.
+
+    """
+    process_app_events()
+    workbench = workspace.plugin.workbench
+    # Test stopping the workspace
+    core = workbench.get_plugin('enaml.workbench.core')
+    cmd = 'enaml.workbench.ui.close_workspace'
+    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+
+    workspace.plugin._workspace_state['measure_panels'] = {}
+
+    with pytest.raises(RuntimeError):
+        cmd = 'enaml.workbench.ui.select_workspace'
+        core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+
+
 @pytest.mark.timeout(30)
 def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     """Test creating, saving, loading a measure.

@@ -40,6 +40,8 @@ def execution_view(measure_workbench, workspace, windows):
     pl.enqueued_measures.add(m_build(measure_workbench))
     pl.enqueued_measures.measures[1].name = 'dummy_test'
     pl.selected_engine = 'dummy'
+    engine = pl.create('engine', pl.selected_engine)
+    pl.processor.engine = engine
 
     item = ExecutionDockItem(workspace=workspace)
     return DockItemTestingWindow(widget=item)
@@ -322,7 +324,7 @@ def test_show_monitors(execution_view, dialog_sleep):
 
 
 def test_engine_status(execution_view, dialog_sleep):
-    """Test te display of the engine status.
+    """Test the display of the engine status.
 
     """
     execution_view.show()
@@ -330,6 +332,7 @@ def test_engine_status(execution_view, dialog_sleep):
     sleep(dialog_sleep)
 
     item = execution_view.widget
+    del item.workspace.plugin.processor.engine
 
     en_stat = item.dock_widget().widgets()[-1]
     assert not en_stat.visible

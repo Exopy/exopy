@@ -489,7 +489,7 @@ class MeasureSpace(Workspace):
         """Handle inserting a new MeasureEditorDockItem in the content.
 
         """
-        if not panels:
+        if panels is None:
             template = 'meas_%d'
             items = self.dock_area.dock_items()
             test = re.compile('meas\_([0-9]+)$')
