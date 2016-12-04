@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Widgest related to measure edition tasks.
+"""Widget related to measure edition tasks.
 
 """
 from __future__ import (division, unicode_literals, print_function,

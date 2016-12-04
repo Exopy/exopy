@@ -50,7 +50,7 @@ def workspace(measure_workbench, measure, windows):
     return measure_plugin.workspace
 
 
-def test_workspace_lifecycle(workspace):
+def test_workspace_lifecycle(workspace, tmpdir):
     """Test the workspace life cycle.
 
     """
@@ -76,10 +76,30 @@ def test_workspace_lifecycle(workspace):
     assert len(workspace.plugin.edited_measures.measures) == 1
     assert workspace.plugin.edited_measures.measures[0].monitors
 
+    # Create a new measure and enqueue it
+    workspace.new_measure()
+    process_app_events()
+    assert len(workspace.plugin.edited_measures.measures) == 2
+    m = workspace.plugin.edited_measures.measures[1]
+    m.root_task.default_path = text(tmpdir)
+
+    assert workspace.enqueue_measure(m)
+    process_app_events()
+
+    # Create a tool edition window
+    for d in workspace.dock_area.dock_items():
+        if d.name == 'meas_0':
+            edition_view = d
+    ed = edition_view.dock_widget().widgets()[0]
+    btn = ed.widgets()[4]
+    btn.clicked = True
+    process_app_events()
+
     # Check observance of engine selection.
     workspace.plugin.selected_engine = ''
     assert not engine.workspace_contributing
     workspace.plugin.selected_engine = 'dummy'
+    process_app_events()
     assert engine.workspace_contributing
 
     # Test stopping the workspace
@@ -93,10 +113,15 @@ def test_workspace_lifecycle(workspace):
     assert 'ecpy.measure.workspace' not in log.handler_ids
     assert not workspace._selection_tracker._thread.is_alive()
 
-    # Test restarting now that we have one edited measure.
+    # Test restarting now that we have two edited measure.
     cmd = 'enaml.workbench.ui.select_workspace'
     core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
-    assert len(workspace.plugin.edited_measures.measures) == 1
+    assert len(workspace.plugin.edited_measures.measures) == 2
+
+    # Check that all dock items have been restored.
+    names = [d.name for d in workspace.dock_area.dock_items()]
+    for n in ('meas_0', 'meas_1', 'meas_0_tools'):
+        assert n in names
 
     # Create a false monitors_window
     workspace.plugin.processor.monitors_window = Window()
