@@ -264,7 +264,7 @@ enamldef ExecutionDockItem(DockItem):
             initialized ::
                 proc.observe('engine', observe_status)
                 if proc.engine:
-                    update_status({'change': proc.engine.status})
+                    update_status({'value': proc.engine.status})
 
             # This is necessary an the engine status can be updated by a thread
             # which is not the main one.

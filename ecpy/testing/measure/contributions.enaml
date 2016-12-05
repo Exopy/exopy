@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from enaml.widgets.api import DockItem
+from enaml.layout.api import InsertItem, RemoveItem
 from enaml.workbench.api import PluginManifest, Extension
 from ecpy.app.dependencies.api import (BuildDependency,
                                        RuntimeDependencyAnalyser,
@@ -90,9 +92,21 @@ enamldef MeasureTestManifest(PluginManifest):
                 self.selected = False
 
             contribute_to_workspace => (workspace):
+                # Add the log panel to the dock area at the right of the main log panel
+                area = workspace.dock_area
+                dock = DockItem(name='dummy')
+                op = InsertItem(item='dummy', target='main_log',
+                                position='right')
+                area.update_layout(op)
                 self.workspace_contributing = True
 
             clean_workspace => (workspace):
+                # Remove the log panel from the dock area.
+                area = workspace.dock_area
+                if area:
+                    for item in area.dock_items():
+                        if item.name == 'dummy':
+                            item.destroy()
                 self.workspace_contributing = False
 
     Extension:

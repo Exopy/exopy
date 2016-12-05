@@ -34,6 +34,7 @@ with enaml.imports():
     from ..engines.selection import EngineSelector
     from .content import MeasureContent
     from .measure_edition import MeasureEditorDockItem
+    from .tools_edition import ToolsEditorDockItem
     from .manifest import MeasureSpaceMenu
 
 
@@ -89,8 +90,9 @@ class MeasureSpace(Workspace):
         if not plugin.edited_measures.measures:
             self.new_measure()
         else:
+            panels = self.plugin._workspace_state['measure_panels']
             self._insert_new_edition_panels(plugin.edited_measures.measures,
-                                            False)
+                                            False, panels)
 
         # Check whether or not an engine can contribute.
         if plugin.selected_engine:
@@ -98,17 +100,12 @@ class MeasureSpace(Workspace):
             engine = plugin.get_declarations('engine', [id_])[id_]
             deferred_call(engine.contribute_to_workspace, self)
 
+        if self.plugin._workspace_state:
+            self.dock_area.layout = self.plugin._workspace_state['layout']
+
         plugin.observe('selected_engine', self._update_engine_contribution)
 
         self._selection_tracker.start(plugin.edited_measures.measures[0])
-
-        if LAYOUT is not None:
-            # HINT : this way all items are referenced by the layout
-            #        which avoid spurious warnings and crashes
-            self.dock_area.layout = LAYOUT
-
-            # TODO : This does not preserve truly the layout as the engine
-            #        can modify it
 
     def stop(self):
         """Stop the workspace and clean.
@@ -127,6 +124,24 @@ class MeasureSpace(Workspace):
             engine = plugin._engines.contributions[plugin.selected_engine]
             engine.clean_workspace(self)
 
+        # HINT : we save the layout after removing the engine contribution.
+        # which means that the layout is not prefectly preserved. To avoid that
+        # we would need to insert the engine in sync way (not using
+        # deferred_call) but this can lead to other issues.
+        layout = self.dock_area.save_layout()
+
+        m_edit_panels = [di for di in self.dock_area.dock_items() if
+                         isinstance(di, MeasureEditorDockItem)]
+        m_tools_panels = {di.measure: di for di in self.dock_area.dock_items()
+                          if isinstance(di, ToolsEditorDockItem)}
+
+        names = {di.measure: (di.name, getattr(m_tools_panels.get(di.measure),
+                                               'name', ''))
+                 for di in m_edit_panels}
+
+        self.plugin._workspace_state = {'layout': layout,
+                                        'measure_panels': names}
+
         # Remove handler from the root logger.
         core = self.workbench.get_plugin('enaml.workbench.core')
         cmd = 'ecpy.app.logging.remove_handler'
@@ -137,9 +152,6 @@ class MeasureSpace(Workspace):
         self.plugin.workspace = None
 
         self._selection_tracker.stop()
-
-        global LAYOUT
-        LAYOUT = self.dock_area.save_layout()
 
     def new_measure(self, dock_item=None):
         """Create a new edited measure using the default tools.
@@ -473,40 +485,54 @@ class MeasureSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    def _insert_new_edition_panels(self, measures, update=True):
+    def _insert_new_edition_panels(self, measures, update=True, panels=None):
         """Handle inserting a new MeasureEditorDockItem in the content.
 
         """
-        template = 'meas_%d'
-        items = self.dock_area.dock_items()
-        test = re.compile('meas\_([0-9]+)$')
-        measure_items = [i for i in items if test.match(i.name)]
+        if panels is None:
+            template = 'meas_%d'
+            items = self.dock_area.dock_items()
+            test = re.compile('meas\_([0-9]+)$')
+            measure_items = [i for i in items if test.match(i.name)]
 
-        ops = []
-        for measure in measures:
-            if not measure_items:
-                name = template % 0
-                ops.append(InsertItem(item=name, target='meas_exec'))
-            else:
-                indexes = [int(test.match(i.name).group(1))
-                           for i in measure_items]
-                indexes.sort()
-
-                if len(indexes) <= max(indexes):
-                    ind = [i for i, x in enumerate(indexes) if i != x][0]
+            ops = []
+            for measure in measures:
+                if not measure_items:
+                    name = template % 0
+                    ops.append(InsertItem(item=name, target='meas_exec'))
                 else:
-                    ind = len(measure_items)
+                    indexes = [int(test.match(i.name).group(1))
+                               for i in measure_items]
+                    indexes.sort()
 
-                name = template % ind
-                ops.append(InsertTab(item=name, target=template % indexes[0]))
+                    if len(indexes) <= max(indexes):
+                        ind = [i for i, x in enumerate(indexes) if i != x][0]
+                    else:
+                        ind = len(measure_items)
 
-            measure_items.append(MeasureEditorDockItem(self.dock_area,
-                                                       workspace=self,
-                                                       measure=measure,
-                                                       name=name))
+                    name = template % ind
+                    ops.append(InsertTab(item=name,
+                                         target=template % indexes[0]))
 
-        if update:
-            deferred_call(self.dock_area.update_layout, ops)
+                measure_items.append(MeasureEditorDockItem(self.dock_area,
+                                                           workspace=self,
+                                                           measure=measure,
+                                                           name=name))
+
+            if update:
+                deferred_call(self.dock_area.update_layout, ops)
+        else:
+            for m in measures:
+                if m not in panels:
+                    msg = ('Cannot insert edition panels for measure %s, no '
+                           'infos were provided.')
+                    raise RuntimeError(msg % m)
+                ed_name, t_name = panels[m]
+                MeasureEditorDockItem(self.dock_area, workspace=self,
+                                      measure=m, name=ed_name)
+                if t_name:
+                    ToolsEditorDockItem(self.dock_area, measure=m,
+                                        name=t_name)
 
     def _update_engine_contribution(self, change):
         """Make sure that the engine contribution to the workspace does reflect

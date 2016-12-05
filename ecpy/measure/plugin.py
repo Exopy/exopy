@@ -16,7 +16,7 @@ import logging
 import os
 from functools import partial
 
-from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool
+from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool, Dict
 
 from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   make_extension_validator)
@@ -310,6 +310,9 @@ class MeasurePlugin(HasPreferencesPlugin):
 
     #: Collector of post-execution hooks.
     _post_hooks = Typed(ExtensionsCollector)
+
+    #: Workspace state infos kept to preserve layout.
+    _workspace_state = Dict()
 
     def _post_setattr_selected_engine(self, old, new):
         """Ensures that the selected engine is informed when it is selected and
