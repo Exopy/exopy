@@ -46,6 +46,8 @@ SETTINGS_POINT = 'ecpy.instruments.settings'
 
 ALIASES_POINT = 'ecpy.instruments.manufacturer_aliases'
 
+logger = logging.getLogger(__name__)
+
 
 def validate_user(user):
     """Validate that the user does declare a validate method if its policy is
@@ -272,6 +274,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             Ready to use widget.
 
         """
+        if settings_id is None:
+            msg = 'No id was found for the settings whose infos are %s'
+            logger.warn(msg, infos)
         s_decl = self._settings.contributions[settings_id]
         sett = s_decl.new(self.workbench, infos, read_only)
         if sett.declaration is None:

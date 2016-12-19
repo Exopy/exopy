@@ -26,7 +26,7 @@ class BaseSettings(GroupBox):
     """
     #: Id of this settings (different from the declaration one as multiple
     #: settings of the same type can exist for a single instrument).
-    name = d_(Unicode())
+    user_id = d_(Unicode())
 
     #: Reference to the declaration that created this object.
     declaration = d_(ForwardTyped(lambda: Settings))
@@ -40,15 +40,15 @@ class BaseSettings(GroupBox):
 
         The base funcion should always be called (using
         BaseSettings.gather_infos as super is not allowed in declarative
-        functions)
+        functions) and all values should be strings.
 
         """
-        return {'id': self.declaration.id, 'name': self.name}
+        return {'id': self.declaration.id, 'user_id': self.user_id}
 
     def _default_title(self):
-        return self.name + ' (' + self.declaration.id + ')'
+        return self.user_id + ' (' + self.declaration.id + ')'
 
-    def _post_setattr_name(self, old, new):
+    def _post_setattr_user_id(self, old, new):
         if self.declaration:
             self.title = new + ' (' + self.declaration.id + ')'
 
