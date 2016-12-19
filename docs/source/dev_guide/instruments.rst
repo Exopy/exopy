@@ -24,7 +24,7 @@ conflict. Before using an instrument, the plugin planning to use the instrument
 needs to request the right to do so. This right can be refused if another part
 of the application, that cannot stop using it, is currently using it. Only
 plugin which declare that they use instrument can request the right to use one.
-See the :ref:reg_user section, to know how to declare that a plugin is an
+See the :ref:`reg_user` section, to know how to declare that a plugin is an
 instrument user.
 
 When the privilege to use an instrument is granted, the instrument plugin
@@ -127,7 +127,7 @@ will be accessed if Driver does not provide a value for a specific field :
   instruments.
 - 'manufacturer': the manucfacturer of all children drivers.
   For example : Keysight (please note that for manufacturer like Keysight,
-  whose name changed through time aliases can be declared :ref:decl_alias,
+  whose name changed through time aliases can be declared :ref:`decl_alias`,
   in those cases the name used internally will always be the main name.)
 - 'serie': some instruments exists within a serie of similar instruments, and
   the serie might be more descriptive than the model (example : Keysight EXG,
