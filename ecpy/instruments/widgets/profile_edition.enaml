@@ -289,7 +289,7 @@ enamldef SettingsCreationDialog(Dialog): dial:
             text = 'Ok'
             enabled << bool(n_val.text) and n_val.validator.valid
             clicked ::
-                settings.name = n_val.name
+                settings.name = n_val.text
                 dial.accept()
 
 
@@ -527,7 +527,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                             kw = {'plugin': plugin,
                                   'model_infos': profile_infos.model,
                                   'existing': [s.name for s in settings]}
-                            dial = SettingsCreationDialog(**kw)
+                            dial = SettingsCreationDialog(main, **kw)
                             if dial.exec_() and dial.settings:
                                 dial.settings.read_only = read_only
                                 main.settings = (main.settings[:] +
