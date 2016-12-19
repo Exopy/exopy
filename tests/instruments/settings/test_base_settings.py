@@ -19,9 +19,9 @@ def test_base_settings():
     """Test the base settings functions.
 
     """
-    s = BaseSettings(name='Dummy', declaration=Settings(id='test'))
+    s = BaseSettings(user_id='Dummy', declaration=Settings(id='test'))
     del s.title
     assert s.title == 'Dummy (test)'
-    s.name = 'D'
+    s.user_id = 'D'
     assert s.title == 'D (test)'
     assert 'id' in s.gather_infos()

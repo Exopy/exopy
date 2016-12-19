@@ -129,7 +129,7 @@ enamldef InstrContributor1(PluginManifest):
             description = 'False settings 1'
             new => (workbench, defaults, read_only):
                 return TestSettings(defaults=defaults,
-                                    name=defaults.get('name', 'empty'),
+                                    user_id=defaults.get('user_id', 'empty'),
                                     read_only=read_only)
         Settings:
             id = 'false_settings2'
@@ -137,7 +137,7 @@ enamldef InstrContributor1(PluginManifest):
             new => (workbench, defaults, read_only):
                 return TestSettings(declaration=self,
                                     defaults=defaults,
-                                    name=defaults.get('name', 'empty'),
+                                    user_id=defaults.get('user_id', 'empty'),
                                     read_only=read_only)
         Settings:
             id = 'false_settings3'
@@ -145,7 +145,7 @@ enamldef InstrContributor1(PluginManifest):
             new => (workbench, defaults, read_only):
                 return TestSettings(declaration=self,
                                     defaults=defaults,
-                                    name=defaults.get('name', 'empty'),
+                                    user_id=defaults.get('user_id', 'empty'),
                                     read_only=read_only)
 
     Extension:

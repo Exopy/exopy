@@ -277,6 +277,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         if settings_id is None:
             msg = 'No id was found for the settings whose infos are %s'
             logger.warn(msg, infos)
+            return None
         s_decl = self._settings.contributions[settings_id]
         sett = s_decl.new(self.workbench, infos, read_only)
         if sett.declaration is None:

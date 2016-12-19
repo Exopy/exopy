@@ -373,8 +373,9 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                for k, v in profile_infos.connections.items()]
 
     #: Settings editors opened.
-    attr settings : list = [plugin.create_settings(v.get('id'), v, read_only)
-                            for v in profile_infos.settings.values()]
+    attr settings : list = list(filter(None,
+                            [plugin.create_settings(v.get('id'), v, read_only)
+                            for v in profile_infos.settings.values()]))
 
     #: Prevent edition while allowing to navigate the notebooks.
     attr read_only : bool = False

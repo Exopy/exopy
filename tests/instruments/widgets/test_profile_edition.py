@@ -178,7 +178,7 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
     ws[-1].clicked = True
     process_and_sleep()
 
-    assert settings.name == 'dummy'
+    assert settings.user_id == 'dummy'
 
     i = 0
     while i < 10 and len(RenameSettingsPopup.popup_views) != 0:
@@ -199,7 +199,7 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
     ws[-2].clicked = True
     process_and_sleep()
 
-    assert settings.name == 'dummy'
+    assert settings.user_id == 'dummy'
 
 
 def test_profile_edition_dialog_ok(prof_plugin, process_and_sleep,
