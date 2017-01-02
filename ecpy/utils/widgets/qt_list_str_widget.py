@@ -236,7 +236,7 @@ class QtListStrWidget(RawWidget):
                     self.selected_items = items_selected
 
     def _select_on_widget(self, items, widget=None):
-        """Seclect the specified items on the widget.
+        """Select the specified items on the widget.
 
         """
         if widget is None:

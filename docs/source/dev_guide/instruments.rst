@@ -24,7 +24,7 @@ conflict. Before using an instrument, the plugin planning to use the instrument
 needs to request the right to do so. This right can be refused if another part
 of the application, that cannot stop using it, is currently using it. Only
 plugin which declare that they use instrument can request the right to use one.
-See the :ref:reg_user section, to know how to declare that a plugin is an
+See the :ref:`reg_user` section, to know how to declare that a plugin is an
 instrument user.
 
 When the privilege to use an instrument is granted, the instrument plugin
@@ -127,7 +127,7 @@ will be accessed if Driver does not provide a value for a specific field :
   instruments.
 - 'manufacturer': the manucfacturer of all children drivers.
   For example : Keysight (please note that for manufacturer like Keysight,
-  whose name changed through time aliases can be declared :ref:decl_alias,
+  whose name changed through time aliases can be declared :ref:`decl_alias`,
   in those cases the name used internally will always be the main name.)
 - 'serie': some instruments exists within a serie of similar instruments, and
   the serie might be more descriptive than the model (example : Keysight EXG,
@@ -235,15 +235,16 @@ To do so, you must contribute a |Connection| object to the
   when declaring a driver.
 - an 'new' declarative function which should create a new widget (inheriting
   from |BaseConnection|) used to edit the connection data. The 'defaults'
-  dictionary should be used to properly initialize the widget. The 'read_only'
-  attributes should be set after creation to avoid trouble (hence you should
-  use << when reading this attribute value in the view).
+  dictionary should be used to properly initialize the widget. Note that all
+  values should be expected as strings. The 'read_only' attributes should be
+  set after creation to avoid trouble (hence you should use << when reading
+  this attribute value in the view).
 
 
 Registering a settings
 ----------------------
 
-Contrary to connections settings are mush more closely tight to particular
+Contrary to connections settings are much more closely tied to a particular
 architecture of driver. To declare a new settings, you must contribute a
 |Settings| object to the 'ecpy.instruments.settings' extension point. A
 |Settings| must declare :
@@ -253,9 +254,10 @@ architecture of driver. To declare a new settings, you must contribute a
   when declaring a driver.
 - an 'new' declarative function which should create a new widget (inheriting
   from |BaseSettings|) used to edit the settings data. The 'defaults'
-  dictionary should be used to properly initialize the widget. The 'read_only'
-  attributes should be set after creation to avoid trouble (hence you should
-  use << when reading this attribute value in the view).
+  dictionary should be used to properly initialize the widget. Note that all
+  values should be expected as strings. The 'read_only attributes should be
+  set after creation to avoid trouble (hence you should use << when reading
+  this attribute value in the view).
 
 
 .. _decl_alias:

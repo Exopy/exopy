@@ -191,7 +191,7 @@ enamldef ConnectionValidationWindow(Window): dial:
                 Label:
                     text = 'Settings'
                 ObjectCombo:
-                    items << ([s.name for s in editor.settings]
+                    items << ([s.user_id for s in editor.settings]
                               if editor.settings else [])
                     tool_tip = 'Select the settings to use during the test.'
                     selected >> dial.settings
@@ -289,7 +289,7 @@ enamldef SettingsCreationDialog(Dialog): dial:
             text = 'Ok'
             enabled << bool(n_val.text) and n_val.validator.valid
             clicked ::
-                settings.name = n_val.name
+                settings.user_id = n_val.text
                 dial.accept()
 
 
@@ -303,6 +303,10 @@ enamldef RenameSettingsPopup(PopupView): pop:
     #: Names of the other existing settings editor.
     attr existing
 
+    #: Reference to the list edition widget which should refresh after
+    #: renaming
+    attr editor
+
     window_type = 'popup'
 
     close_on_click = False
@@ -315,8 +319,9 @@ enamldef RenameSettingsPopup(PopupView): pop:
             text = 'Name'
         Field: n_val:
             hug_width = 'ignore'
-            text = settings.name
+            text = settings.user_id
             validator = SetValidator(existing=existing)
+            submit_triggers = ['auto_sync']
         PushButton: can:
             text = 'Cancel'
             clicked ::
@@ -325,7 +330,8 @@ enamldef RenameSettingsPopup(PopupView): pop:
             enabled << bool(n_val.text) and n_val.validator.valid
             text = 'Ok'
             clicked ::
-                settings.name = n_val.text
+                settings.user_id = n_val.text
+                editor.refresh_items()
                 pop.close()
 
 
@@ -367,8 +373,9 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                                for k, v in profile_infos.connections.items()]
 
     #: Settings editors opened.
-    attr settings : list = [plugin.create_settings(v['id'], v, read_only)
-                            for v in profile_infos.settings.values()]
+    attr settings : list = list(filter(None,
+                            [plugin.create_settings(v.get('id'), v, read_only)
+                            for v in profile_infos.settings.values()]))
 
     #: Prevent edition while allowing to navigate the notebooks.
     attr read_only : bool = False
@@ -383,11 +390,13 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
         This is needed to update the connections and settings.
 
         """
+        profile_infos.connections = {}
         for c in connections:
             profile_infos.connections[c.declaration.id] = c.gather_infos()
 
+        profile_infos.settings = {}
         for s in settings:
-            profile_infos.settings[s.name] = s.gather_infos()
+            profile_infos.settings[s.user_id] = s.gather_infos()
 
     ended ::
         if self._validator and self._validator.visible:
@@ -514,7 +523,7 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         selected_item << (main.settings[0] if main.settings
                                           else None)
                         sort = True
-                        to_string = lambda s: s.name
+                        to_string = lambda s: s.user_id
                     _Include: s_sett:
                         destroy_old = False
                         objects << ([setts.selected_item]
@@ -526,8 +535,8 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         clicked ::
                             kw = {'plugin': plugin,
                                   'model_infos': profile_infos.model,
-                                  'existing': [s.name for s in settings]}
-                            dial = SettingsCreationDialog(**kw)
+                                  'existing': [s.user_id for s in settings]}
+                            dial = SettingsCreationDialog(main, **kw)
                             if dial.exec_() and dial.settings:
                                 dial.settings.read_only = read_only
                                 main.settings = (main.settings[:] +
@@ -540,11 +549,12 @@ enamldef ProfileEditionWidget(_DestroyableContainer): main:
                         visible = not read_only
                         clicked ::
                             s = setts.selected_item
-                            others = set((s.name for s in settings))
-                            others.remove(s.name)
+                            others = set((s.user_id for s in settings))
+                            others.remove(s.user_id)
                             popup = RenameSettingsPopup(parent=self,
                                                         settings=s,
-                                                        existing=others)
+                                                        existing=others,
+                                                        editor=setts)
                             popup.show()
                     PushButton: del_s:
                         text = 'Delete'
