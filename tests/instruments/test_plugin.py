@@ -245,7 +245,7 @@ def test_create_connection(instr_workbench):
     assert c.declaration is not None
 
 
-def test_create_settings(instr_workbench):
+def test_create_settings(instr_workbench, caplog):
     """Test creating a settings.
 
     """
@@ -256,6 +256,11 @@ def test_create_settings(instr_workbench):
     c = p.create_settings('false_settings', d)
     assert c.defaults == d
     assert c.declaration is not None
+
+    c = p.create_settings(None, d)
+    assert c is None
+    recs = caplog.records()
+    assert len(recs) == 1 and recs[0].levelname == 'WARNING'
 
 
 def test_get_drivers(instr_workbench):

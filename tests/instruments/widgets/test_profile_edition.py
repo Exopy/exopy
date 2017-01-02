@@ -87,6 +87,17 @@ def test_connection_creation_dialog(prof_plugin, model_infos,
     ws[0].selected_item = ws[0].items[1]
     process_and_sleep()
     assert d.connection.declaration.id == 'false_connection3'
+    ws[-1].clicked = True  # Ok button
+    process_and_sleep()
+    assert d.result
+
+    d = ConnectionCreationDialog(plugin=prof_plugin, model_infos=model_infos,
+                                 existing=['false_connection2'])
+    d.show()
+    process_and_sleep()
+    d.central_widget().widgets()[-2].clicked = True  # Cancel button
+    process_and_sleep()
+    assert not d.result
 
 
 def test_connection_validation_window(prof_plugin, process_and_sleep,
@@ -102,10 +113,14 @@ def test_connection_validation_window(prof_plugin, process_and_sleep,
     w.show()
     process_and_sleep()
 
+    # XXX need to select a driver
+
     widgets = w.central_widget().widgets()
     p = widgets[-3]
     p.clicked = True
     assert 'The connection was successfully established' in widgets[-2].text
+
+    # XXX add a test for failed connection test
 
     widgets[-1].clicked = True
     process_app_events()
@@ -136,6 +151,20 @@ def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
 
     n.validator.validate('false_settings2')
     assert not ok.enabled
+
+    n = ws[-3]
+    n.text = 'dummy'
+    ok.clicked = True
+    assert d.settings.user_id == n.text
+    assert d.result
+
+    d2 = SettingsCreationDialog(plugin=prof_plugin, model_infos=model_infos,
+                                existing=['false_settings2'])
+    d2.show()
+    process_and_sleep()
+    d2.central_widget().widgets()[-2].clicked = False  # Cancel button
+    process_and_sleep()
+    assert not d2.result
 
 
 def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
@@ -207,6 +236,7 @@ def test_profile_edition_dialog_ok(prof_plugin, process_and_sleep,
     """Test the dialog used to edit a profile.
 
     """
+    # XXX need to test model selection
     profile_infos.connections.clear()
     profile_infos.settings.clear()
 
