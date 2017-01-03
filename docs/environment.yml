@@ -13,7 +13,7 @@ dependencies:
 - enaml
 - enaml-pygments
 - kiwisolver
-- pathtool
+- pathtools
 - watchdog
 - fontconfig
 - freetype
@@ -34,7 +34,7 @@ dependencies:
 - pixman
 - ply
 - py
-- pygment
+- pygments
 - pyqt=4.11
 - pytest
 - python=3.5
