@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+
 import enaml
 from enaml.widgets.api import MultilineField
 
@@ -37,11 +39,11 @@ def test_driver_validation_error_handler(windows, instr_workbench):
         w = dial.errors['ecpy.driver-validation']
         assert 'd' in w.errors
         for err in ('starter', 'connections', 'settings'):
-            assert err in w.errors[d]
+            assert err in w.errors['d']
 
     with handle_dialog('accept', check_dialog):
         core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
-                                  'details': {'d': d.validate(p)}})
+                                  'details': {'d': d.validate(p)[1]}})
 
 
 def test_reporting_on_extension_errors(windows, instr_workbench):

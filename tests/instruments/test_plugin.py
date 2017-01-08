@@ -23,8 +23,7 @@ from configobj import ConfigObj
 from ecpy.instruments.api import Starter, BaseStarter
 from ecpy.instruments.user import InstrUser
 from ecpy.instruments.plugin import validate_user, validate_starter
-from ecpy.instruments.infos import DriverInfos
-from ecpy.testing.util import handle_dialog, process_app_events
+from ecpy.testing.util import process_app_events
 
 from .conftest import PROFILE_PATH
 with enaml.imports():
@@ -350,28 +349,6 @@ def test_release_profiles(prof_plugin):
     assert 'fp1' not in prof_plugin.used_profiles
     assert 'fp2' not in prof_plugin.used_profiles
     assert 'fp3' in prof_plugin.used_profiles
-
-
-def test_driver_validation_error_handler(windows, instr_workbench):
-    """Test the error handler dedicated to driver validation issues.
-
-    """
-    core = instr_workbench.get_plugin('enaml.workbench.core')
-    p = instr_workbench.get_plugin('ecpy.instruments')
-    d = DriverInfos(starter='starter', connections={'c1': {}, 'c2': {}},
-                    settings={'s2': {}, 's3': {}})
-    cmd = 'ecpy.app.errors.signal'
-
-    def check_dialog(dial):
-        w = dial.errors['ecpy.driver-validation']
-        assert 'd' in w.errors
-        for err in ('starter', 'connections', 'settings'):
-            assert err in w.errors[d]
-
-    with handle_dialog('accept', check_dialog):
-        core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
-                                  'details': {'d': d.validate(p)}})
-        sleep(0.2)
 
 
 def test_validate_runtime_dependencies_driver(instr_workbench):
