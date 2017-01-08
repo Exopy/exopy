@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 from future.builtins import str as uni
 from atom.api import List, Tuple, Unicode, Bool, Callable, Value
 from enaml.core.declarative import d_
-from enaml.qt import QtCore, QtGui
+from enaml.qt import QtCore, QtWidgets
 from enaml.widgets.api import RawWidget, Feature
 
 
-class QDelimitedCompleter(QtGui.QCompleter):
+class QDelimitedCompleter(QtWidgets.QCompleter):
     """A custom completer to use with QtLineCompleter, QtTextEdit.
 
     This completer only propose completion between specified characters.
@@ -45,16 +45,16 @@ class QDelimitedCompleter(QtGui.QCompleter):
 
     def __init__(self, parent, delimiters, entries, entries_updater):
 
-        super(QtGui.QCompleter, self).__init__(parent)
+        super(QDelimitedCompleter, self).__init__(parent)
 
         self.delimiters = delimiters
-        if isinstance(parent, QtGui.QLineEdit):
+        if isinstance(parent, QtWidgets.QLineEdit):
             self.text_getter = parent.text
             self.cursor_pos = parent.cursorPosition
             self.insert_text = parent.insert
             parent.textChanged[str].connect(self.text_changed)
             self.completionNeeded.connect(self.complete)
-        elif isinstance(parent, QtGui.QTextEdit):
+        elif isinstance(parent, QtWidgets.QTextEdit):
             parent.textChanged.connect(self.text_changed)
             self.cursor_pos = lambda: parent.textCursor().position()
             self.insert_text =\
@@ -66,7 +66,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
             raise ValueError(msg.format(parent))
 
         self.setCaseSensitivity(QtCore.Qt.CaseSensitive)
-        self.setModel(QtGui.QStringListModel(entries, self))
+        self.setModel(QtCore.QStringListModel(entries, self))
 
         self.activated[str].connect(self.complete_text)
         self.setWidget(parent)
@@ -84,7 +84,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
 
         if self._upddate_entries and self.entries_updater:
             entries = self.entries_updater()
-            self.setModel(QtGui.QStringListModel(entries, self))
+            self.setModel(QtCore.QStringListModel(entries, self))
             self._upddate_entries = False
 
         all_text = uni(text)
@@ -124,7 +124,7 @@ class QDelimitedCompleter(QtGui.QCompleter):
         """Update the completer completion model.
 
         """
-        self.setModel(QtGui.QStringListModel(entries))
+        self.setModel(QtCore.QStringListModel(entries))
 
     def _text_edit_complete(self):
         """Propose completion for QTextEdit.
@@ -163,20 +163,26 @@ class QtLineCompleter(RawWidget):
     #: Reference to the QCompleter used by the widget.
     _completer = Value()
 
+    # PySide requires weakrefs for using bound methods as slots.
+    # PyQt doesn't, but executes unsafe code if not using weakrefs.
+    __slots__ = '__weakref__'
+
     def create_widget(self, parent):
         """Finishes initializing by creating the underlying toolkit widget.
 
         """
-        widget = QtGui.QLineEdit(parent)
+        widget = QtWidgets.QLineEdit(parent)
         self._completer = QDelimitedCompleter(widget, self.delimiters,
                                               self.entries,
                                               self.entries_updater)
         widget.setText(self.text)
+        self.proxy.widget = widget  # Anticipated so that selection works
         widget.textEdited.connect(self.update_object)
         return widget
 
     def update_object(self):
         """ Handles the user entering input data in the edit control.
+
         """
         if (not self._no_update) and self.activated:
             value = self.get_widget().text()
@@ -208,7 +214,7 @@ class QtLineCompleter(RawWidget):
         self._completer.on_focus_gained()
 
 
-class QCompletableTexEdit(QtGui.QTextEdit):
+class QCompletableTexEdit(QtWidgets.QTextEdit):
     """A QTextEdit letting the completer handles key presses when visible.
 
     """
@@ -255,6 +261,10 @@ class QtTextCompleter(RawWidget):
     #: Reference to the QCompleter used by the widget.
     _completer = Value()
 
+    # PySide requires weakrefs for using bound methods as slots.
+    # PyQt doesn't, but executes unsafe code if not using weakrefs.
+    __slots__ = '__weakref__'
+
     def create_widget(self, parent):
         """Finishes initializing by creating the underlying toolkit widget.
 
@@ -265,6 +275,7 @@ class QtTextCompleter(RawWidget):
                                               self.entries_updater)
         widget.completer = self._completer
         widget.setText(self.text)
+        self.proxy.widget = widget  # Anticipated so that selection works
         widget.textChanged.connect(self.update_object)
         return widget
 

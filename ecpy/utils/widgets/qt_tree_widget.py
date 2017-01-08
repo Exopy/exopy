@@ -14,8 +14,7 @@ This tree widget has limited functionality, it supports only :
 - no undo capabilities
 - single TreeNode fitting an object.
 
-
-It should be used with the TreeNode declartive class and the Menu item given
+It should be used with the TreeNode declarative class and the Menu item given
 in qt_tree_menu.enaml.
 
 This is vastly inspired from TraitsUI implementation.
@@ -32,7 +31,7 @@ from atom.api import (Bool, List, Value, Dict, Int)
 
 from enaml.widgets.api import RawWidget
 from enaml.core.declarative import d_
-from enaml.qt import QtCore, QtGui
+from enaml.qt import QtCore, QtGui, QtWidgets
 
 from .qt_clipboard import CLIPBOARD, PyMimeData
 from .tree_nodes import TreeNode
@@ -67,9 +66,9 @@ INDEX_GUARD = 0x1
 
 #: Standard icons map.
 STD_ICON_MAP = {
-    '<item>':   QtGui.QStyle.SP_FileIcon,
-    '<group>':  QtGui.QStyle.SP_DirClosedIcon,
-    '<open>':   QtGui.QStyle.SP_DirOpenIcon
+    '<item>':   QtWidgets.QStyle.SP_FileIcon,
+    '<group>':  QtWidgets.QStyle.SP_DirClosedIcon,
+    '<open>':   QtWidgets.QStyle.SP_DirOpenIcon
     }
 
 
@@ -112,6 +111,10 @@ class QtTreeWidget(RawWidget):
 
     #: Object id to object map used internally.
     _map = Dict()
+
+    # PySide requires weakrefs for using bound methods as slots.
+    # PyQt doesn't, but executes unsafe code if not using weakrefs.
+    __slots__ = '__weakref__'
 
     # =========================================================================
     # --- Enaml Raw widget interface ------------------------------------------
@@ -287,9 +290,9 @@ class QtTreeWidget(RawWidget):
 
         """
         if index is None:
-            cnid = QtGui.QTreeWidgetItem(nid)
+            cnid = QtWidgets.QTreeWidgetItem(nid)
         else:
-            cnid = QtGui.QTreeWidgetItem()
+            cnid = QtWidgets.QTreeWidgetItem()
             nid.insertChild(index, cnid)
 
         cnid.setText(0, node.get_label(obj))
@@ -340,7 +343,7 @@ class QtTreeWidget(RawWidget):
                 # child.  As the tree is being populated lazily we create a
                 # dummy that will be removed when the node is expanded for the
                 # first time.
-                cnid._dummy = QtGui.QTreeWidgetItem(cnid)
+                cnid._dummy = QtWidgets.QTreeWidgetItem(cnid)
 
         # Return the newly created node:
         return cnid
@@ -915,7 +918,7 @@ class QtTreeWidget(RawWidget):
         nid.setIcon(0, self._get_icon(node, obj, expanded))
 
 
-class _TreeWidget(QtGui.QTreeWidget):
+class _TreeWidget(QtWidgets.QTreeWidget):
     """ The _TreeWidget class is a specialised QTreeWidget that reimplements
         the drag'n'drop support so that it hooks into the provided support.
 
@@ -923,8 +926,9 @@ class _TreeWidget(QtGui.QTreeWidget):
 
     def __init__(self, parent, drag_drop):
         """ Initialise the tree widget.
+
         """
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         if drag_drop:

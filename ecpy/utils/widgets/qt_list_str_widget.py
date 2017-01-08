@@ -16,7 +16,7 @@ from future.builtins import str as ustr
 from atom.api import (Bool, List, Value, Int, Callable, Dict, set_default)
 from enaml.widgets.api import RawWidget
 from enaml.core.declarative import d_
-from enaml.qt import QtGui
+from enaml.qt import QtCore, QtWidgets
 
 # cyclic notification guard flags
 INDEX_GUARD = 0x1
@@ -47,6 +47,10 @@ class QtListStrWidget(RawWidget):
 
     hug_width = set_default(str('strong'))
     hug_height = set_default(str('ignore'))
+
+    # PySide requires weakrefs for using bound methods as slots.
+    # PyQt doesn't, but executes unsafe code if not using weakrefs.
+    __slots__ = '__weakref__'
 
     def initialize(self):
         """Ensures that the selected members always have meaningful values.
@@ -81,17 +85,17 @@ class QtListStrWidget(RawWidget):
 
         """
         # Create the list widget.
-        widget = QtGui.QListWidget(parent)
+        widget = QtWidgets.QListWidget(parent)
 
         # Populate the widget.
         self._set_widget_items(widget)
 
         # Set the selection mode.
         if self.multiselect:
-            mode = QtGui.QAbstractItemView.ExtendedSelection
+            mode = QtWidgets.QAbstractItemView.ExtendedSelection
             selected = self.selected_items
         else:
-            mode = QtGui.QAbstractItemView.SingleSelection
+            mode = QtWidgets.QAbstractItemView.SingleSelection
             selected = [self.selected_item]
         widget.setSelectionMode(mode)
 
@@ -160,11 +164,11 @@ class QtListStrWidget(RawWidget):
             return
 
         if new:
-            mode = QtGui.QAbstractItemView.ExtendedSelection
+            mode = QtWidgets.QAbstractItemView.ExtendedSelection
             if self.items:
                 self.selected_items = [self.selected_item]
         else:
-            mode = QtGui.QAbstractItemView.SingleSelection
+            mode = QtWidgets.QAbstractItemView.SingleSelection
             if self.items:
                 self.selected_item = self.selected_items[0]
 
@@ -243,8 +247,8 @@ class QtListStrWidget(RawWidget):
             widget = self.get_widget()
         if widget is not None:
             widget.setCurrentItem(widget.item(0),
-                                  QtGui.QItemSelectionModel.Clear)
+                                  QtCore.QItemSelectionModel.Clear)
             item_map = self._map
             for n in items:
                 widget.setCurrentItem(widget.item(item_map[n]),
-                                      QtGui.QItemSelectionModel.Select)
+                                      QtCore.QItemSelectionModel.Select)

@@ -33,7 +33,7 @@ setup(
     zip_safe=False,
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={'': ['*.enaml', '*.txt']},
-    requires=['future', 'pyqt4', 'atom', 'enaml', 'kiwisolver', 'configobj',
+    requires=['future', 'pyqt', 'atom', 'enaml', 'kiwisolver', 'configobj',
               'watchdog', 'setuptools', 'qtawesome'],
     install_requires=['setuptools', 'future', 'atom', 'enaml', 'kiwisolver',
                       'configobj', 'watchdog', 'qtawesome'],
