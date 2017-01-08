@@ -128,12 +128,12 @@ def test_visa_tcpip_socket(windows, process_and_sleep):
     assemble_canonical_name(**c.gather_infos())
 
 
-def test_creating_a_visa_connection(prof_plugin, windows, capturelog):
+def test_creating_a_visa_connection(prof_plugin, windows, caplog):
     """Test creating a Visa connection through VisaConnection.new
 
     """
     c = prof_plugin.create_connection('VisaTCPIP', {'__junk': ''}, True)
     w = show_widget(c)
-    assert capturelog.records()
+    assert caplog.records
     assert c.read_only
     w.close

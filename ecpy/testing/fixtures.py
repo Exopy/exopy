@@ -36,7 +36,7 @@ ECPY = ''
 DIALOG_SLEEP = 0
 
 
-pytest_plugins = str('pytest_capturelog')
+pytest_plugins = str('pytest_catchlog')
 
 
 def pytest_addoption(parser):

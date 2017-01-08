@@ -151,7 +151,7 @@ def test_handling_crash_of_watchdog(instr_workbench, caplog):
 
     p.stop()
     j()
-    assert any(r.levelname == 'CRITICAL' for r in caplog.records())
+    assert any(r.levelname == 'CRITICAL' for r in caplog.records)
 
 
 def test_plugin_handling_driver_validation_issue(instr_workbench):
@@ -188,7 +188,7 @@ def test_handle_wrong_profile_dir(instr_workbench, caplog):
     p._profiles_folders = ['dummy']
     p._refresh_profiles()
 
-    for records in caplog.records():
+    for records in caplog.records:
         assert records.levelname == 'WARNING'
 
 
@@ -203,7 +203,7 @@ def test_handle_corrupted_profile(prof_plugin, caplog):
 
     prof_plugin._refresh_profiles()
 
-    for record in caplog.records():
+    for record in caplog.records:
         if 'ecpy' in record.name:
             assert record.levelname == 'WARNING'
 
@@ -258,7 +258,7 @@ def test_create_settings(instr_workbench, caplog):
 
     c = p.create_settings(None, d)
     assert c is None
-    recs = caplog.records()
+    recs = caplog.records
     assert len(recs) == 1 and recs[0].levelname == 'WARNING'
 
 

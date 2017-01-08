@@ -355,7 +355,7 @@ def test_refresh_monitored_entries(monitor, database):
     assert not monitor.hidden_entries
 
 
-def test_process_news(monitor, database, capturelog):
+def test_process_news(monitor, database):
     """ Test processing news coming from a database.
 
     """

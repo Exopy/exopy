@@ -39,13 +39,13 @@ def test_lifecyle(app, icon_workbench, caplog):
 
     # Check we fallback on FontAwesome if the theme does not provide the
     # required icon.
-    assert not caplog.records()
+    assert not caplog.records
     assert pl.get_icon('folder-open') is not None
-    assert len(caplog.records()) == 1
+    assert len(caplog.records) == 1
 
     # Check that requiring a non-existing icon does not crash
     assert pl.get_icon('__xxx__') is None
-    assert len(caplog.records()) == 2
+    assert len(caplog.records) == 2
 
     # Test refreshing when new theme is registered.
     icon_workbench.register(ThemeContributor2())
@@ -89,12 +89,12 @@ def test_get_icon_handling_errors(icon_workbench, caplog):
 
     theme = pl._icon_themes.contributions['dummy']
     theme.throw = True
-    assert not caplog.records()
+    assert not caplog.records
     assert pl.get_icon('dumb1') is None
-    assert len(caplog.records()) == 1
-    assert 'Icon' in caplog.text()
-    assert 'Fallback' in caplog.text()
-    assert 'raised' in caplog.text()
+    assert len(caplog.records) == 1
+    assert 'Icon' in caplog.text
+    assert 'Fallback' in caplog.text
+    assert 'raised' in caplog.text
 
 
 def test_fontawesome(icon_workbench, windows, process_and_sleep):

@@ -81,7 +81,7 @@ def test_handling_missing_default_rule(text_monitor_workbench, caplog):
     conf[path] = {'default_rules': repr(['test_format', 'unknown'])}
     set_preferences(text_monitor_workbench, conf)
     text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
-    assert caplog.records()
+    assert caplog.records
 
 
 def test_plugin_build_rule(text_monitor_plugin):
