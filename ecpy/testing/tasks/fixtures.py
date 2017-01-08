@@ -13,12 +13,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from time import sleep
-from pprint import pformat
 
 import pytest
 import enaml
 
 from ecpy.tasks.api import RootTask
+from ecpy.testing.util import exit_on_err
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -43,15 +43,7 @@ def task_workbench(workbench, monkeypatch, app_dir):
     """Setup the workbench in such a way that the task manager can be tested.
 
     """
-    def exit_err(self):
-        """Turn error reporting into an exception.
-
-        """
-        if self._delayed:
-            raise Exception('Unexpected exceptions occured :\n' +
-                            pformat(self._delayed))
-
-    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
+    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_on_err)
 
     workbench.register(CoreManifest())
     workbench.register(AppManifest())
