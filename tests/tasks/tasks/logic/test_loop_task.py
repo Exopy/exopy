@@ -12,9 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from multiprocessing import Event
+
 import pytest
 import enaml
-from multiprocessing import Event
+import numpy as np
 
 from ecpy.testing.tasks.util import CheckTask
 from ecpy.testing.util import (show_and_close_widget, show_widget,
@@ -56,6 +58,34 @@ def iterable_interface(request):
     interface = IterableLoopInterface()
     interface.iterable = 'range(11)'
     return interface
+
+
+def false_perform_loop(self, iterable):
+    """Used to patch LoopTask for testing.
+
+    """
+    self.database_entries = {'iterable': iterable}
+
+
+def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
+    """Test that no matter the sign of step we generat the proper array.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask(should_stop=Event(), should_pause=Event())
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    lt.interface = linspace_interface
+    linspace_interface.step = '-0.1'
+    linspace_interface.perform()
+    np.testing.assert_array_almost_equal(lt.database_entries['iterable'],
+                                         np.linspace(1, 2, 11))
+
+    linspace_interface.start = '5.0'
+    linspace_interface.perform()
+    np.testing.assert_array_almost_equal(lt.database_entries['iterable'],
+                                         np.linspace(5, 2, 31))
 
 
 class TestLoopTask(object):
@@ -239,12 +269,12 @@ class TestLoopTask(object):
         """
         self.task.interface = linspace_interface
         import ecpy.tasks.tasks.logic.loop_linspace_interface as li
-        monkeypatch.setattr(li, 'linspace', lambda x: x)
+        monkeypatch.setattr(li.np, 'arange', lambda x: x)
 
         test, traceback = self.task.check(test_instr=True)
         assert not test
         assert len(traceback) == 1
-        assert 'root/Test-linspace' in traceback
+        assert 'root/Test-arange' in traceback
 
     def test_check_iterable_interface1(self, iterable_interface):
         """Test that everything is ok when all formulas are true.
