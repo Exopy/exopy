@@ -22,7 +22,7 @@ from ecpy.measure.engines.api import BaseEngine
 from ecpy.measure.engines.utils import MeasureSpy, ThreadMeasureMonitor
 
 
-def test_spy(capturelog):
+def test_spy(caplog):
     """Test the measure spy working.
 
     """
@@ -48,7 +48,7 @@ def test_spy(capturelog):
     assert q.get(2) == ('root/test', 1)
 
     data.set_value('root', 'test', A())
-    assert capturelog.records()
+    assert caplog.records
 
     data.set_value('root', 'test2', 1)
     assert q.empty()
@@ -67,7 +67,7 @@ class B(object):
         raise Exception()
 
 
-def test_monitor_thread(capturelog):
+def test_monitor_thread(caplog):
     """Test the monitor thread rerouting news to engine signal.
 
     """
@@ -91,5 +91,5 @@ def test_monitor_thread(capturelog):
     q.put((None, None))
     m.join()
 
-    assert capturelog.records()
+    assert caplog.records
     assert e.test == 'test'

@@ -24,7 +24,7 @@ tested nonetheless.
     Running the test suite requires :
 
     - pytest
-    - pytest-capturelog
+    - pytest-catchlog
     - pytest-cov
     - pytest-timeout
     - enaml_coverage_plugin

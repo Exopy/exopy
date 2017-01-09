@@ -12,6 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import logging
 from collections import Mapping
 from ast import literal_eval
 
@@ -465,7 +466,7 @@ enamldef InstrumentManagerManifest(PluginManifest):
                                       for d, v in formatted.items()])
                     new_errors.update(formatted)
 
-                logger.debug(msg)
+                logging.getLogger(__name__).debug(msg)
                 errors.update(new_errors)
                 return BasicErrorsDisplay(kind='Driver information validation',
                                           errors=new_errors)

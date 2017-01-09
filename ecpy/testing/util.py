@@ -15,6 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 from time import sleep
 from contextlib import contextmanager
+from pprint import pformat
 
 import enaml
 from configobj import ConfigObj
@@ -221,6 +222,23 @@ def signal_error_raise():
         yield
     finally:
         ErrorsPlugin.signal = func
+
+
+def exit_on_err(self):
+    """Replacement function for ecpy.app.errors plugin exit_error_gathering.
+
+    This function will raise instead of displaying a dialog. Useful to catch
+    unexpected errors.
+
+    Should be used in conjunction with the monkeypatch fixture.
+
+    """
+    self._gathering_counter -= 1
+    if self._gathering_counter < 1:
+        self._gathering_counter = 0
+        if self._delayed:
+            msg = 'Unexpected exceptions occured :\n'
+            raise ErrorDialogException(msg + pformat(self._delayed))
 
 
 class CallSpy(object):

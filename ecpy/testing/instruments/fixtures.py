@@ -12,11 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from pprint import pformat
 from time import sleep
 
 import pytest
 import enaml
+
+from ecpy.testing.util import exit_on_err
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -39,15 +40,7 @@ def instr_workbench(workbench, monkeypatch, app_dir, app):
     """Setup the workbench in such a way that the instrs manager can be tested.
 
     """
-    def exit_err(self):
-        """Turn error reporting into error raising.
-
-        """
-        if self._delayed:
-            raise Exception('Unexpected exceptions occured :\n' +
-                            pformat(self._delayed))
-
-    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
+    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_on_err)
     workbench.register(CoreManifest())
     workbench.register(AppManifest())
     workbench.register(PreferencesManifest())

@@ -13,13 +13,11 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from time import sleep
-from pprint import pformat
 
 import pytest
 import enaml
 
-from ecpy.testing.util import ErrorDialogException
-
+from ecpy.testing.util import exit_on_err
 from ecpy.measure.measure import Measure
 from ecpy.tasks.api import RootTask
 
@@ -48,15 +46,7 @@ def measure_workbench(workbench, monkeypatch, app_dir):
     """Setup the workbench in such a way that the measure plugin can be tested.
 
     """
-    def exit_err(self):
-        self._gathering_counter -= 1
-        if self._gathering_counter < 1:
-            self._gathering_counter = 0
-            if self._delayed:
-                msg = 'Unexpected exceptions occured :\n'
-                raise ErrorDialogException(msg + pformat(self._delayed))
-
-    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_err)
+    monkeypatch.setattr(ErrorsPlugin, 'exit_error_gathering', exit_on_err)
     workbench.register(CoreManifest())
     workbench.register(AppManifest())
     workbench.register(PreferencesManifest())

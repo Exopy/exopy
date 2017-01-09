@@ -49,7 +49,7 @@ before_install:
 
   # Intall test tools
   - $CONDA_INSTALL pytest
-  - $PIP_INSTALL pytest-cov pytest-capturelog pytest-timeout
+  - $PIP_INSTALL pytest-cov pytest-catchlog pytest-timeout
   - $PIP_INSTALL https://github.com/MatthieuDartiailh/enaml_coverage_plugin/tarball/master
 
   # Install codecov report tools
@@ -77,7 +77,7 @@ after_success:
   - cd ${SRC_DIR}
   - codecov
   - export PACK="$(conda build conda --output)"
-  - conda convert $PACK -p 'all' --quiet -o $CONDA_BLD_PATH 
+  - conda convert $PACK -p 'all' --quiet -o $CONDA_BLD_PATH
   - cd $CONDA_BLD_PATH
   - source deactivate
   - if [[ $TRAVIS_SECURE_ENV_VARS ]]; then python ../continuous-integration/anaconda-push.py; fi

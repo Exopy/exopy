@@ -468,7 +468,7 @@ def test_handling_unpickling_error_in_sending_meas_infos(process_engine,
     assert 'engine' in t.value.errors
     assert 'dead' in t.value.errors['engine']
     assert process_engine.status == 'Stopped'
-    assert 'ERROR' in caplog.text()
+    assert 'ERROR' in caplog.text
 
 
 @pytest.mark.timeout(60)

@@ -85,7 +85,7 @@ def test_handle_wrong_template_dir(task_workbench, caplog):
     p._template_folders = ['dummy']
     p._refresh_templates()
 
-    for records in caplog.records():
+    for records in caplog.records:
         assert records.levelname == 'WARNING'
 
 
