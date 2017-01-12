@@ -966,7 +966,7 @@ class _TreeWidget(QtWidgets.QTreeWidget):
         painter = QtGui.QPainter(pm)
 
         option = self.viewOptions()
-        option.state |= QtGui.QStyle.State_Selected
+        option.state |= QtWidgets.QStyle.State_Selected
         option.rect = QtCore.QRect(nid_rect.topLeft() -
                                    rect.topLeft(), nid_rect.size())
         self.itemDelegate().paint(painter, option, self.indexFromItem(nid))
