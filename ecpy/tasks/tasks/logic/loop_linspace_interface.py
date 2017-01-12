@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -13,8 +13,10 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import numbers
+from decimal import Decimal
+
+import numpy as np
 from atom.api import Unicode
-from numpy import linspace
 
 from ..task_interface import TaskInterface
 from ..validators import Feval
@@ -61,23 +63,35 @@ class LinspaceLoopInterface(TaskInterface):
             return test, traceback
 
         try:
-            linspace(start, stop, num)
+            np.arange(start, stop, step)
         except Exception as e:
             test = False
-            mess = 'Loop task did not succeed to create a linspace: {}'
-            traceback[err_path + '-linspace'] = mess.format(e)
+            mess = 'Loop task did not succeed to create an arange: {}'
+            traceback[err_path + '-arange'] = mess.format(e)
 
         return test, traceback
 
     def perform(self):
-        """Build the linspace and pass it to the LoopTask.
+        """Build the arange and pass it to the LoopTask.
 
         """
         task = self.task
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         step = task.format_and_eval_string(self.step)
-        num = int(round(abs(((stop - start)/step)))) + 1
+        num = int(abs(((stop - start)/step)))
 
-        iterable = linspace(start, stop, num)
+        step = -abs(step) if start > stop else abs(step)
+
+        if num >= abs((stop - start)/step):
+            stop += step
+
+        # This is done this way to avoid ever having to deal with a number
+        # that is not exactly start + n*step due to floating point rounding
+        # errors.
+        digit = abs(Decimal(str(step)).as_tuple().exponent)
+        raw_values = np.arange(start, stop, step)
+        iterable = np.fromiter((round(value, digit)
+                                for value in raw_values),
+                               np.float, len(raw_values))
         task.perform_loop(iterable)
