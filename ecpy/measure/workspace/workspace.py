@@ -527,8 +527,11 @@ class MeasureSpace(Workspace):
             for m in measures:
                 if m not in panels:
                     msg = ('Cannot insert edition panels for measure %s, no '
-                           'infos were provided.')
-                    raise RuntimeError(msg % m)
+                           'infos were provided. Panels exists for:\n%s')
+                    raise RuntimeError(msg % (m.name + ' (id : %s)' % m.id,
+                                              ', '.join(m.name for m in panels)
+                                              )
+                                       )
                 ed_name, t_name = panels[m]
                 MeasureEditorDockItem(self.dock_area, workspace=self,
                                       measure=m, name=ed_name)
