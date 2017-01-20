@@ -264,6 +264,14 @@ class TestTaskExecution(object):
     def test_root_perform_wait_all(self):
         """Test running a simple task waiting on all pools.
 
+        Notes
+        -----
+        When starting par will be executed in its own thread, which will allow
+        aux to run. The test will wait for aux to set its flag. At this step
+        wait should be waiting as one pool is active. After checking that we 
+        can set the flag on which par is waiting and let the execution 
+        complete.        
+        
         """
         root = self.root
 
@@ -283,6 +291,9 @@ class TestTaskExecution(object):
         t = threading.Thread(target=root.perform)
         t.start()
         event2.wait()
+        sleep(1)
+        assert not wait.perform_called
+        assert root.resources['active_threads']['test']
         event1.set()
         t.join()
 
@@ -293,69 +304,115 @@ class TestTaskExecution(object):
         assert wait.perform_called == 1
         assert not root.resources['active_threads']['test']
 
-    @pytest.mark.timeout(10)
+    @pytest.mark.timeout(20)
+    def test_root_perform_no_wait_single(self):
+        """Test running a simple task waiting on a single pool.
+
+        Notes
+        -----
+        When starting par will be executed in its own thread, which will allow
+        par2 to start (also in its own thread) as a consequence aux will be 
+        run. The test will wait for aux to set its flag. At this step wait 
+        should be waiting as one pool other than test is active. After checking
+        that, we set the flag on which par is waiting. This should allow wait 
+        to run. Once we have checked it is so, we let par2 complete.
+        
+        """
+        root = self.root
+        event1 = threading.Event()
+        event2 = threading.Event()
+        event3 = threading.Event()
+        event4 = threading.Event()
+
+        par = CheckTask(name='test', custom=lambda t, x: event1.wait())
+        par.parallel = {'activated': True, 'pool': 'aux'}
+        par2 = CheckTask(name='test', custom=lambda t, x: event2.wait())
+        par2.parallel = {'activated': True, 'pool': 'test'}
+        aux = CheckTask(name='signal', custom=lambda t, x: event3.set())
+        wait = CheckTask(name='wait', custom=lambda t, x: event4.set())
+        wait.wait = {'activated': True, 'no_wait': ['test']}
+        root.add_child_task(0, par)
+        root.add_child_task(1, par2)
+        root.add_child_task(2, aux)
+        root.add_child_task(3, wait)
+        root.check()
+
+        t = threading.Thread(target=root.perform)
+        t.start()
+        event3.wait()
+        sleep(1)
+        assert not wait.perform_called
+        assert root.resources['active_threads']['test']
+        assert root.resources['active_threads']['aux']
+        event1.set()
+        sleep(1)
+        assert wait.perform_called
+        assert root.resources['active_threads']['test']
+        assert not root.resources['active_threads']['aux']
+        event2.set()
+        t.join()
+
+        assert not root.should_pause.is_set()
+        assert not root.should_stop.is_set()
+        assert par.perform_called == 1
+        assert par2.perform_called == 1
+        assert aux.perform_called == 1
+        assert wait.perform_called == 1
+        assert root.resources['active_threads']['test']
+        assert not root.resources['active_threads']['aux']
+
+    @pytest.mark.timeout(20)
     def test_root_perform_wait_single(self):
         """Test running a simple task waiting on a single pool.
 
+        Notes
+        -----
+        When starting par will be executed in its own thread, which will allow
+        par2 to start (also in its own thread) as a consequence aux will be 
+        run. The test will wait for aux to set its flag. At this step wait 
+        should be waiting as one thread in test pool is active. After checking
+        that, we set the flag on which par2 is waiting. This should allow wait 
+        to run. Once we have checked it is so, we let par complete.
+        
         """
         root = self.root
         event1 = threading.Event()
         event2 = threading.Event()
+        event3 = threading.Event()
+        event4 = threading.Event()
 
         par = CheckTask(name='test', custom=lambda t, x: event1.wait())
-        par.parallel = {'activated': True, 'pool': 'test'}
-        aux = CheckTask(name='signal', custom=lambda t, x: event2.set())
-        aux.parallel = {'activated': True, 'pool': 'aux'}
-        wait = CheckTask(name='wait')
-        wait.wait = {'activated': True, 'no_wait': ['aux']}
-        root.add_child_task(0, par)
-        root.add_child_task(1, aux)
-        root.add_child_task(2, wait)
-        root.check()
-
-        t = threading.Thread(target=root.perform)
-        t.start()
-        event2.wait()
-        event1.set()
-        t.join()
-
-        assert not root.should_pause.is_set()
-        assert not root.should_stop.is_set()
-        assert par.perform_called == 1
-        assert aux.perform_called == 1
-        assert wait.perform_called == 1
-        assert not root.resources['active_threads']['test']
-        assert root.resources['active_threads']['aux']
-
-    @pytest.mark.timeout(10)
-    def test_root_perform_no_wait_single(self):
-        """Test running a simple task not waiting on a single pool.
-
-        """
-        root = self.root
-        event1 = threading.Event()
-        event2 = threading.Event()
-
-        par = CheckTask(name='test', custom=lambda t, x: event1.wait())
-        par.parallel = {'activated': True, 'pool': 'test'}
-        aux = CheckTask(name='signal', custom=lambda t, x: event2.set())
-        aux.parallel = {'activated': True, 'pool': 'aux'}
-        wait = CheckTask(name='wait')
+        par.parallel = {'activated': True, 'pool': 'aux'}
+        par2 = CheckTask(name='test', custom=lambda t, x: event2.wait())
+        par2.parallel = {'activated': True, 'pool': 'test'}
+        aux = CheckTask(name='signal', custom=lambda t, x: event3.set())
+        wait = CheckTask(name='wait', custom=lambda t, x: event4.set())
         wait.wait = {'activated': True, 'wait': ['test']}
         root.add_child_task(0, par)
-        root.add_child_task(1, aux)
-        root.add_child_task(2, wait)
+        root.add_child_task(1, par2)
+        root.add_child_task(2, aux)
+        root.add_child_task(3, wait)
         root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
-        event2.wait()
+        event3.wait()
+        sleep(1)
+        assert not wait.perform_called
+        assert root.resources['active_threads']['test']
+        assert root.resources['active_threads']['aux']
+        event2.set()
+        sleep(1)
+        assert wait.perform_called
+        assert root.resources['active_threads']['aux']
+        assert not root.resources['active_threads']['test']
         event1.set()
         t.join()
 
         assert not root.should_pause.is_set()
         assert not root.should_stop.is_set()
         assert par.perform_called == 1
+        assert par2.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
         assert not root.resources['active_threads']['test']
