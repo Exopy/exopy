@@ -253,16 +253,25 @@ def make_wait(perform, wait, no_wait):
     """
     if wait:
         def get_pools(active_threads):
+            """Get the pools on which to wait.
+
+            """
             return wait
 
     elif no_wait:
         def get_pools(active_threads):
+            """Get the pools on which to wait.
+
+            """
             with active_threads.locked():
                 pools = [k for k in active_threads if k not in no_wait]
             return pools
 
     else:
         def get_pools(active_threads):
+            """Get the pools on which to wait.
+
+            """
             return list(active_threads)
 
     def wrapper(obj, *args, **kwargs):
