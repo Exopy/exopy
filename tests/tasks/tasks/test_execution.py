@@ -226,6 +226,7 @@ class TestTaskExecution(object):
             """Check that this is not running in the main thread.
 
             """
+            assert task.root.resources['threads']['test']
             assert threading.current_thread().name != main
 
         root = self.root
@@ -239,7 +240,48 @@ class TestTaskExecution(object):
         assert not root.should_pause.is_set()
         assert not root.should_stop.is_set()
         assert aux.perform_called == 1
-        assert root.resources['threads']['test']
+
+    @pytest.mark.timeout(10)
+    def test_root_perform_parallel_in_finalization(self):
+        """Ensure that the ThreadResources release does not prevent to start
+        new threads.
+
+        """
+        root = self.root
+
+        event1 = threading.Event()
+        event2 = threading.Event()
+        event3 = threading.Event()
+
+        comp = ComplexTask(name='comp')
+        comp.parallel = {'activated': True, 'pool': 'test'}
+        aux = CheckTask(name='signal', custom=lambda t, x: event1.set())
+        wait = CheckTask(name='test', custom=lambda t, x: event2.wait())
+        par = CheckTask(name='signal', custom=lambda t, x: event3.set())
+        # Test creating a new thread as by priority active_threads is released
+        # later.
+        par.parallel = {'activated': True, 'pool': 'test2'}
+        comp.add_child_task(0, aux)
+        comp.add_child_task(1, wait)
+        comp.add_child_task(2, par)
+        root.add_child_task(0, comp)
+        root.check()
+
+        t = threading.Thread(target=root.perform)
+        t.start()
+        event1.wait()
+        assert root.resources['active_threads']['test']
+        assert not root.resources['active_threads']['test2']
+        event2.set()
+        event3.wait()
+        t.join()
+
+        assert not root.should_pause.is_set()
+        assert not root.should_stop.is_set()
+        assert par.perform_called == 1
+        assert aux.perform_called == 1
+        assert wait.perform_called == 1
+        assert not root.resources['active_threads']['test']
 
     def test_handle_task_exception_in_thread(self):
         """Test handling an exception occuring in a thread (test smooth_crash).
@@ -268,10 +310,10 @@ class TestTaskExecution(object):
         -----
         When starting par will be executed in its own thread, which will allow
         aux to run. The test will wait for aux to set its flag. At this step
-        wait should be waiting as one pool is active. After checking that we 
-        can set the flag on which par is waiting and let the execution 
-        complete.        
-        
+        wait should be waiting as one pool is active. After checking that we
+        can set the flag on which par is waiting and let the execution
+        complete.
+
         """
         root = self.root
 
@@ -304,19 +346,19 @@ class TestTaskExecution(object):
         assert wait.perform_called == 1
         assert not root.resources['active_threads']['test']
 
-    @pytest.mark.timeout(20)
+    @pytest.mark.timeout(10)
     def test_root_perform_no_wait_single(self):
         """Test running a simple task waiting on a single pool.
 
         Notes
         -----
         When starting par will be executed in its own thread, which will allow
-        par2 to start (also in its own thread) as a consequence aux will be 
-        run. The test will wait for aux to set its flag. At this step wait 
+        par2 to start (also in its own thread) as a consequence aux will be
+        run. The test will wait for aux to set its flag. At this step wait
         should be waiting as one pool other than test is active. After checking
-        that, we set the flag on which par is waiting. This should allow wait 
+        that, we set the flag on which par is waiting. This should allow wait
         to run. Once we have checked it is so, we let par2 complete.
-        
+
         """
         root = self.root
         event1 = threading.Event()
@@ -345,9 +387,9 @@ class TestTaskExecution(object):
         assert root.resources['active_threads']['test']
         assert root.resources['active_threads']['aux']
         event1.set()
-        sleep(1)
+        event4.wait()
         assert wait.perform_called
-        assert root.resources['active_threads']['test']
+        assert root.resources['active_threads']._dict['test']
         assert not root.resources['active_threads']['aux']
         event2.set()
         t.join()
@@ -358,7 +400,7 @@ class TestTaskExecution(object):
         assert par2.perform_called == 1
         assert aux.perform_called == 1
         assert wait.perform_called == 1
-        assert root.resources['active_threads']['test']
+        assert not root.resources['active_threads']['test']
         assert not root.resources['active_threads']['aux']
 
     @pytest.mark.timeout(20)
@@ -368,12 +410,12 @@ class TestTaskExecution(object):
         Notes
         -----
         When starting par will be executed in its own thread, which will allow
-        par2 to start (also in its own thread) as a consequence aux will be 
-        run. The test will wait for aux to set its flag. At this step wait 
+        par2 to start (also in its own thread) as a consequence aux will be
+        run. The test will wait for aux to set its flag. At this step wait
         should be waiting as one thread in test pool is active. After checking
-        that, we set the flag on which par2 is waiting. This should allow wait 
+        that, we set the flag on which par2 is waiting. This should allow wait
         to run. Once we have checked it is so, we let par complete.
-        
+
         """
         root = self.root
         event1 = threading.Event()
@@ -402,7 +444,7 @@ class TestTaskExecution(object):
         assert root.resources['active_threads']['test']
         assert root.resources['active_threads']['aux']
         event2.set()
-        sleep(1)
+        event4.wait()
         assert wait.perform_called
         assert root.resources['active_threads']['aux']
         assert not root.resources['active_threads']['test']
@@ -416,7 +458,7 @@ class TestTaskExecution(object):
         assert aux.perform_called == 1
         assert wait.perform_called == 1
         assert not root.resources['active_threads']['test']
-        assert root.resources['active_threads']['aux']
+        assert not root.resources['active_threads']['aux']
 
     @pytest.mark.timeout(10)
     def test_stop(self):

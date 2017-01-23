@@ -1249,6 +1249,8 @@ class RootTask(ComplexTask):
 
         """
         return {'threads': ThreadPoolResource(),
-                'active_threads': ThreadPoolResource(),
+                # Reduce priority to stop through the thread resource.
+                # This is far less likely to cause a deadlock.
+                'active_threads': ThreadPoolResource(priority=0),
                 'instrs': InstrsResource(),
                 'files': FilesResource()}
