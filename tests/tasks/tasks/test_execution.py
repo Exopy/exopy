@@ -288,7 +288,7 @@ class TestTaskExecution(object):
 
         """
         def raiser(task, value):
-            raise Exception
+            raise Exception()
 
         root = self.root
         aux = CheckTask(name='test', custom=raiser)
