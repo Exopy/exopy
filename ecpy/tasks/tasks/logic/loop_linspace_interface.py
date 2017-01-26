@@ -89,14 +89,14 @@ class LinspaceLoopInterface(TaskInterface):
         # Update stop to make sure that the generated step is close to the user
         # specified one.
         stop_digit = abs(Decimal(str(stop)).as_tuple().exponent)
-        stop = round(start + (num-1)*step, stop_digit)
+        start_digit = abs(Decimal(str(start)).as_tuple().exponent)
+        step_digit = abs(Decimal(str(step)).as_tuple().exponent)
+        digit = max((start_digit, step_digit, stop_digit))
+        stop = round(start + (num-1)*step, digit)
 
         # Round values to the maximal number of digit used in start, stop and
         # step so that we never get issues with floating point rounding issues.
         # The max is used to allow from 1.01 to 2.01 by 0.1
-        start_digit = abs(Decimal(str(start)).as_tuple().exponent)
-        step_digit = abs(Decimal(str(step)).as_tuple().exponent)
-        digit = max((start_digit, step_digit, stop_digit))
         raw_values = np.linspace(start, stop, num)
         iterable = np.fromiter((round(value, digit)
                                 for value in raw_values),

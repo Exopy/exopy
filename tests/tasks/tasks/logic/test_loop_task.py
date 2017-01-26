@@ -88,7 +88,7 @@ def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     expected = np.array([3.0, 2.9, 2.8, 2.7, 2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 2.0]
                         )
     np.testing.assert_array_equal(lt.database_entries['iterable'],
-                                         expected)
+                                  expected)
 
 
 def test_linspace_handling_of_rounding(monkeypatch, linspace_interface):
@@ -123,8 +123,14 @@ def test_linspace_handling_of_rounding(monkeypatch, linspace_interface):
                          1.91, 2.01])
     np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
-    # the stop case seems pretty redundant with either start or stop, so no
-    # test
+    # Start use more digit and stop does not round properly
+    lt.interface = linspace_interface
+    linspace_interface.start = '0.501'
+    linspace_interface.stop = '1'
+    linspace_interface.step = '0.2'
+    linspace_interface.perform()
+    expected = np.array([0.501, 0.701, 0.901])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
 
 def test_linspace_handling_of_non_matching_stop(monkeypatch,
