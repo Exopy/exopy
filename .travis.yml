@@ -71,7 +71,7 @@ before_script:
 script:
   # Run the Ecpy test suite
   - cd ${SRC_DIR}
-  - py.test tests --cov ecpy --cov-report xml
+  - py.test tests --cov ecpy --cov-report xml -v
 
 after_success:
   - cd ${SRC_DIR}

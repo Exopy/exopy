@@ -130,25 +130,31 @@ class ThreadDispatcher(Atom):
         self._pool = pool
         self.inactive.set()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, task, *args, **kwargs):
         """Dispatch the work to the background thread.
 
         """
         if self._thread is None:
-            pools = args[0].root.resources['threads']
+            pools = task.root.resources['threads']
             with pools.safe_access(self._pool) as threads:
                 threads.append(self)
             self._thread = Thread(group=None,
                                   target=self._background_loop)
             self._thread.start()
 
+        # Make sure the background thread is done processing the previous work.
         self.inactive.wait()
-        self._args_kwargs = args, kwargs
-        self._new_args.set()
-        pools = args[0].root.resources['active_threads']
+
+        # Mark the thread as active.
+        self.inactive.clear()
+        task.root.active_threads_counter.increment()
+        pools = task.root.resources['active_threads']
         with pools.safe_access(self._pool) as threads:
             threads.append(self)
-        args[0].root.active_threads_counter.increment()
+
+        # Pass the arguments
+        self._args_kwargs = task, args, kwargs
+        self._new_args.set()
 
     def stop(self):
         """Stop the background thread.
@@ -160,7 +166,7 @@ class ThreadDispatcher(Atom):
         while self._new_args.is_set():
             sleep(1e-3)
         self.inactive.wait()
-        self._args_kwargs = (None, None)
+        self._args_kwargs = (None, None, None)
         self._new_args.set()
         self._thread.join()
         del self._thread
@@ -189,14 +195,13 @@ class ThreadDispatcher(Atom):
         """
         while True:
             self._new_args.wait()
-            self.inactive.clear()
-            args, kwargs = self._args_kwargs
-            if args is None:
+            task, args, kwargs = self._args_kwargs
+            if task is None:
                 break
-            self._func(*args, **kwargs)
+            self._func(task, *args, **kwargs)
             self._new_args.clear()
             self.inactive.set()
-            args[0].root.active_threads_counter.decrement()
+            task.root.active_threads_counter.decrement()
 
 
 def make_parallel(perform, pool):
@@ -247,100 +252,61 @@ def make_wait(perform, wait, no_wait):
 
     """
     if wait:
-        def wrapper(obj, *args, **kwargs):
-            """Wrap function to wait upon specified pools.
+        def get_pools(active_threads):
+            """Get the pools on which to wait.
 
             """
-            all_threads = obj.root.resources['active_threads']
-            while True:
-                threads = []
-                # Get all the threads we should be waiting upon.
-                with all_threads.locked():
-                    for p in wait:
-                        threads.extend(all_threads[p])
-
-                # If there is none break. Use any as threads is an iterator.
-                if not any(threads):
-                    break
-
-                # Else join them.
-                for thread in threads:
-                    thread.inactive.wait()
-
-                # Make sure nobody modify the pools and update them by removing
-                # the references to the dead threads.
-                with all_threads.locked():
-                    for w in wait:
-                        all_threads[w] = [t for t in all_threads[w]
-                                          if not t.inactive.is_set()]
-
-                # Start over till no thread remain in the pools in wait.
-
-            return perform(obj, *args, **kwargs)
+            return wait
 
     elif no_wait:
-        def wrapper(obj, *args, **kwargs):
-            """Wrap function not waiting on specified pools.
+        def get_pools(active_threads):
+            """Get the pools on which to wait.
 
             """
-            all_threads = obj.root.resources['active_threads']
-            with all_threads.locked():
-                pools = [k for k in all_threads if k not in no_wait]
+            with active_threads.locked():
+                pools = [k for k in active_threads if k not in no_wait]
+            return pools
 
-            while True:
-                # Get all the threads we should be waiting upon.
-                threads = []
-                with all_threads.locked():
-                    for p in pools:
-                        threads.extend(all_threads[p])
-
-                # If there is None break. Use any as threads is an iterator.
-                if not any(threads):
-                    break
-
-                # Else join them.
-                for thread in threads:
-                    thread.inactive.wait()
-
-                # Make sure nobody modify the pools and update them by removing
-                # the references to the dead threads.
-                with all_threads.locked():
-                    for p in pools:
-                        all_threads[p] = [t for t in all_threads[p]
-                                          if not t.inactive.is_set()]
-
-                # Start over till no thread remain in the pool in wait.
-
-            return perform(obj, *args, **kwargs)
     else:
-        def wrapper(obj, *args, **kwargs):
-            """Wrap function waiting on all pool threads.
+        def get_pools(active_threads):
+            """Get the pools on which to wait.
 
             """
-            all_threads = obj.root.resources['active_threads']
+            return list(active_threads)
 
-            while True:
-                threads = []
-                with all_threads.locked():
-                    # Get all the threads we should be waiting upon.
-                    for p in all_threads:
-                        threads.extend(all_threads[p])
+    def wrapper(obj, *args, **kwargs):
+        """Wrap function to wait upon specified pools.
 
-                # If there is none break. Use any as threads is an iterator.
-                if not any(threads):
-                    break
+        """
+        all_threads = obj.root.resources['active_threads']
+        while True:
+            threads = []
+            # Get all the pools we should be operating on.
+            pools = get_pools(all_threads)
 
-                # Else join them.
-                for thread in threads:
-                    thread.inactive.wait()
+            # Get all the threads we should be operating upon.
+            with all_threads.locked():
+                for p in pools:
+                    threads.extend(all_threads[p])
 
-                # Make sure nobody modify the pools and update them by removing
-                # the references to the dead threads.
-                with all_threads.locked():
-                    for p in all_threads:
-                        all_threads[p] = [t for t in all_threads[p]
-                                          if not t.inactive.is_set()]
-            return perform(obj, *args, **kwargs)
+            # If there is none break. Use any as threads is an iterator.
+            if not any(threads):
+                break
+
+            # Else join them.
+            for thread in threads:
+                thread.inactive.wait()
+
+            # Make sure nobody modify the pools and update them by removing
+            # the references to the dead threads.
+            with all_threads.locked():
+                for p in pools:
+                    all_threads[p] = [t for t in all_threads[p]
+                                      if not t.inactive.is_set()]
+
+            # Start over till no thread remain in the pools in wait.
+
+        return perform(obj, *args, **kwargs)
 
     update_wrapper(wrapper, perform)
 

@@ -55,8 +55,8 @@ class SharedDict(Atom):
         dict is used.
 
     """
-    def __init__(self, default=None):
-        super(SharedDict, self).__init__()
+    def __init__(self, default=None, **kwargs):
+        super(SharedDict, self).__init__(**kwargs)
         if default is not None:
             self._dict = defaultdict(default)
         else:
@@ -173,21 +173,41 @@ class ThreadPoolResource(ResourceHolder):
     # Should always be released first. As execution may not yet be complete.
     priority = set_default(-1)
 
-    def __init__(self, default=list):
-        super(ThreadPoolResource, self).__init__(default)
+    def __init__(self, default=list, **kwargs):
+        super(ThreadPoolResource, self).__init__(default, **kwargs)
 
     def release(self):
         """Join all the threads still alive.
 
         """
-        for _, pool in self.items():
-            for dispatcher in pool:
+        while True:
+            threads = []
+            bugged = []
+            with self.locked():
+                # Get all the dispatcher we should be waiting upon.
+                for pool in self:
+                    threads.extend(self[pool])
+
+            # If there is none break.
+            if not any(threads):
+                break
+
+            # Else stop them.
+            for dispatcher in threads:
                 try:
                     dispatcher.stop()
                 except Exception:
                     log = logging.getLogger(__name__)
                     mes = 'Failed to join thread %s from pool %s'
                     log.exception(mes, dispatcher, pool)
+                    bugged.append(dispatcher)
+
+            # Make sure nobody modify the pools and update them by removing
+            # the references to the dead threads.
+            with self.locked():
+                for p in self:
+                    self[p] = [d for d in self[p]
+                               if d not in bugged and not d.inactive.is_set()]
 
 
 class InstrsResource(ResourceHolder):
