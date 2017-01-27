@@ -232,6 +232,7 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     assert len(workspace.plugin.edited_measures.measures) == 3
     m = workspace.plugin.edited_measures.measures[2]
     assert m.path == text(f)
+    assert workspace._get_last_selected_measure() is m
 
     # Test loading a measure in an existing dock_item
     panel = workspace.dock_area.find('meas_0')
