@@ -114,6 +114,23 @@ class MeasureTracker(Atom):
 
         return self._selected
 
+    def set_selected_measure(self, measure):
+        """Set the currently selected measure.
+
+        This is used when the selected measure does not result from focusing.
+
+        """
+        while True:
+
+            self._buffer_empty.wait()
+            if self._queue_not_empty.is_set():
+                # Cannot be tested in a perfectly deterministic way
+                sleep(0.05)  # pragma: no cover
+            else:
+                break
+
+        self._selected = measure
+
     # --- Private API ---------------------------------------------------------
 
     #: Background thread processing the last selection.

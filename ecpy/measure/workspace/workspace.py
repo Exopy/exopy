@@ -253,6 +253,8 @@ class MeasureSpace(Workspace):
         else:
             dock_item.measure = measure
 
+        self._selection_tracker.set_selected_measure(measure)
+
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
         """Put a measure in the queue if it pass the tests.
