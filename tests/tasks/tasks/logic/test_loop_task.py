@@ -68,7 +68,7 @@ def false_perform_loop(self, iterable):
 
 
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
-    """Test that no matter the sign of step we generat the proper array.
+    """Test that no matter the sign of step we generate the proper array.
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
@@ -79,13 +79,78 @@ def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     lt.interface = linspace_interface
     linspace_interface.step = '-0.1'
     linspace_interface.perform()
-    np.testing.assert_array_almost_equal(lt.database_entries['iterable'],
-                                         np.linspace(1, 2, 11))
+    expected = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
+                        )
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
-    linspace_interface.start = '5.0'
+    linspace_interface.start = '3.0'
     linspace_interface.perform()
-    np.testing.assert_array_almost_equal(lt.database_entries['iterable'],
-                                         np.linspace(5, 2, 31))
+    expected = np.array([3.0, 2.9, 2.8, 2.7, 2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 2.0]
+                        )
+    np.testing.assert_array_equal(lt.database_entries['iterable'],
+                                  expected)
+
+
+def test_linspace_handling_of_rounding(monkeypatch, linspace_interface):
+    """Test that we properly round the values.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask(should_stop=Event(), should_pause=Event())
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Step use more digit
+    lt.interface = linspace_interface
+    linspace_interface.start = '0.1'
+    linspace_interface.stop = '0.11'
+    linspace_interface.step = '0.001'
+    linspace_interface.perform()
+    expected = np.array([0.1, 0.101, 0.102, 0.103, 0.104, 0.105, 0.106,
+                         0.107, 0.108, 0.109, 0.11])
+    # Check that this does indeed cause a rounding issue
+    with pytest.raises(AssertionError):
+        np.testing.assert_array_equal(np.linspace(0.1, 0.11, 11), expected)
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
+    # Start use more digit
+    lt.interface = linspace_interface
+    linspace_interface.start = '1.01'
+    linspace_interface.stop = '2.01'
+    linspace_interface.step = '0.1'
+    linspace_interface.perform()
+    expected = np.array([1.01, 1.11, 1.21, 1.31, 1.41, 1.51, 1.61, 1.71, 1.81,
+                         1.91, 2.01])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
+    # Start use more digit and stop does not round properly
+    lt.interface = linspace_interface
+    linspace_interface.start = '0.501'
+    linspace_interface.stop = '1'
+    linspace_interface.step = '0.2'
+    linspace_interface.perform()
+    expected = np.array([0.501, 0.701, 0.901])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
+
+def test_linspace_handling_of_non_matching_stop(monkeypatch,
+                                                linspace_interface):
+    """Test that we respect the step even if stop does not match.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask(should_stop=Event(), should_pause=Event())
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    lt.interface = linspace_interface
+    linspace_interface.start = '0.1'
+    linspace_interface.stop = '0.1101'
+    linspace_interface.step = '0.001'
+    linspace_interface.perform()
+    expected = np.array([0.1, 0.101, 0.102, 0.103, 0.104, 0.105, 0.106,
+                         0.107, 0.108, 0.109, 0.11])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
 
 class TestLoopTask(object):
