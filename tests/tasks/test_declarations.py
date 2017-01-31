@@ -368,6 +368,7 @@ def test_register_interface_extend_interface1(collector, int_decl):
     interface = collector.contributions['ecpy.Task'].interfaces['Test']
     assert interface.instruments == {'test'}
     assert 'dep' in interface.dependencies
+    assert len(interface.dependencies) == 3
 
 
 def test_register_interface_extend_interface2(collector, int_decl):

@@ -33,7 +33,8 @@ class ObjectDependentInfos(Atom):
     """Base infos for tasks and interfaces.
 
     """
-    #: List of instrument supported by this task.
+    #: Set of instrument supported by this task. This should never be updated
+    #: in place, it should always be copied and replaced by the new value.
     instruments = Coerced(set, ())
 
     #: Runtime dependencies ids of this object.
@@ -41,6 +42,11 @@ class ObjectDependentInfos(Atom):
 
     #: Dict of interfaces supported by this object as {id: InterfaceInfos}.
     interfaces = Dict()
+
+    def __init__(self, **kwargs):
+        super(ObjectDependentInfos, self).__init__(**kwargs)
+        if self.instruments:
+            self._post_setattr_instruments(set(), self.instruments)
 
     def walk_interfaces(self, depth=None):
         """Yield all the interfaces of a task/interfaces.
@@ -58,6 +64,17 @@ class ObjectDependentInfos(Atom):
                 for ii_id, ii in i.walk_interfaces(d):
                     yield ii_id, ii
 
+    def _post_setattr_instruments(self, old, new):
+        """Update the dependencies each time the instruments member is set.
+
+        """
+        if new:
+            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
+        else:
+            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
+                                      INSTR_RUNTIME_PROFILES_ID))
+
 
 class TaskInfos(ObjectDependentInfos):
     """An object used to store informations about a task.
@@ -72,17 +89,6 @@ class TaskInfos(ObjectDependentInfos):
     #: Metadata associated with this task such as group, looping capabilities,
     #: etc
     metadata = Dict()
-
-    def _post_setattr_instruments(self, old, new):
-        """Update the dependencies each time the instruments member is set.
-
-        """
-        if new:
-            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
-        else:
-            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
 
 
 class InterfaceInfos(ObjectDependentInfos):
