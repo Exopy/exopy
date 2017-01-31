@@ -165,7 +165,7 @@ class DependenciesPlugin(Plugin):
         # and create the generator traversing the object.
         if isinstance(obj, Section):
             gen = traverse_config(obj)
-            getter = getitem
+            getter = dict.get
         else:
             gen = obj.traverse()
             getter = getattr
@@ -182,7 +182,9 @@ class DependenciesPlugin(Plugin):
         need_runtime = 'runtime' in dependencies
 
         for component in gen:
-            dep_type = getter(component, 'dep_type')
+            dep_type = getter(component, 'dep_type', None)
+            if dep_type is None:
+                continue
             try:
                 collector = builds[dep_type]
             except KeyError:
