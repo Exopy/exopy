@@ -119,9 +119,11 @@ def test_analysing_build_from_config(dep_workbench):
 
     """
     core = dep_workbench.get_plugin('enaml.workbench.core')
+    # nested field ensures that we skip object missing a dep_type
     dep = core.invoke_command(ANALYSE,
                               {'obj': ConfigObj({'val': '1',
-                                                 'dep_type': 'test'})}
+                                                 'dep_type': 'test',
+                                                 'nested': {}})}
                               )
     assert not dep.errors
     assert 'test' in dep.dependencies
