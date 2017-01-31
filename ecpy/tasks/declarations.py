@@ -144,8 +144,8 @@ class Task(Declarator):
             return
 
         infos = TaskInfos(metadata=self.metadata,
-                          dependencies=self.dependencies)
-        infos.instruments = self.instruments
+                          dependencies=self.dependencies,
+                          instruments=self.instruments)
 
         # Get the task class.
         t_cls = import_and_get(t_path, task, traceback, task_id)
@@ -337,7 +337,11 @@ class Interface(Declarator):
                 collector._delayed.append(self)
                 return
             infos = parent_infos.interfaces[s_id]
-            infos.instruments.update(self.instruments)
+
+            # Update instruments by copying to get the right post_setattr
+            instrs = infos.instruments.copy()
+            instrs.update(self.instruments)
+            infos.instruments = instrs
             infos.dependencies.update(self.dependencies)
 
             check = check_children(self)
@@ -450,7 +454,8 @@ class Interface(Declarator):
             if ':' not in self.interface:
                 if interface in parent_infos.interfaces:
                     infos = parent_infos.interfaces[interface]
-                    infos.instruments -= set(self.instruments)
+                    infos.instruments = (infos.instruments -
+                                         set(self.instruments))
                     infos.dependencies -= set(self.dependencies)
                 return
 
