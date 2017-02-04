@@ -86,6 +86,38 @@ def close_all_windows():
         sleep(0.02)
 
 
+class ScheduledClosing(object):
+    """Scheduled closing of dialog.
+
+    """
+
+    def __init__(self, cls, custom, op):
+        self.called = False
+        self.cls = cls
+        self.custom = custom
+        self.op = op
+
+    def __call__(self):
+        i = 0
+        while True:
+            dial = get_window(self.cls)
+            if dial is not None:
+                break
+            elif i > 10:
+                raise Exception('Dialog timeout')
+            sleep(0.1)
+            i += 1
+
+        try:
+            self.custom(dial)
+        finally:
+            process_app_events()
+            from .fixtures import DIALOG_SLEEP
+            sleep(DIALOG_SLEEP)
+            getattr(dial, self.op)()
+            self.called = True
+
+
 @contextmanager
 def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
                   skip_answer=False):
@@ -111,27 +143,15 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
         the answer itself.
 
     """
-    def close_dialog():
-        i = 0
-        while True:
-            dial = get_window(cls)
-            if dial is not None:
-                break
-            elif i > 10:
-                raise Exception('Dialog timeout')
-            sleep(0.1)
-            i += 1
-
-        try:
-            custom(dial)
-        finally:
+    sch = ScheduledClosing(cls, custom, op)
+    timed_call(time, sch)
+    try:
+        yield
+    except Exception:
+        raise
+    else:
+        while not sch.called:
             process_app_events()
-            from .fixtures import DIALOG_SLEEP
-            sleep(DIALOG_SLEEP)
-            getattr(dial, op)()
-    timed_call(time, close_dialog)
-    yield
-    process_app_events()
 
 
 @contextmanager
