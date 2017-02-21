@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import sys
+
 import pytest
 import enaml
 from atom.api import Atom, Dict, List
@@ -458,8 +460,10 @@ def test_register_interface_decl_cls1(int_decl, collector):
     task, i = int_decl
     i.interface = 'foo.bar:baz'
     task.register(collector, tb)
+    err_name = ('ImportError' if sys.version_info < (3, 6) else
+                'ModuleNotFoundError')
     assert ('ecpy.LoopTask:ecpy.baz' in tb and
-            'ImportError' in tb['ecpy.LoopTask:ecpy.baz'])
+            err_name in tb['ecpy.LoopTask:ecpy.baz'])
 
 
 def test_register_interface_decl_cls1_bis(collector):

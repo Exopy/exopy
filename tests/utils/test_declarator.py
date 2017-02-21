@@ -12,9 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import sys
+
 import pytest
 from future.utils import python_2_unicode_compatible
-
 from atom.api import Bool
 from enaml.core.api import Declarative
 
@@ -141,7 +142,10 @@ def test_import_and_get():
 
     tb = {}
     import_and_get('___ecpy', 'r', tb, 'test')
-    assert 'ImportError' in tb['test']
+    if sys.version_info < (3, 6):
+        assert 'ImportError' in tb['test']
+    else:
+        assert 'ModuleNotFoundError' in tb['test']
 
     import_and_get('ecpy.testing.broken_enaml', 'r', tb, 'test')
     assert 'AttributeError' in tb['test'] or 'NameError' in tb['test']
