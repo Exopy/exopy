@@ -14,9 +14,10 @@ env:
 
 matrix:
   include:
-    - env: PYTHON=2.7 CONDA_PY=27 QT_API=4
-    - env: PYTHON=3.4 CONDA_PY=34 QT_API=4
-    - env: PYTHON=3.5 CONDA_PY=35 QT_API=5
+    - env: PYTHON=2.7 CONDA_PY=27 QT_API=pyqt4
+    - env: PYTHON=3.4 CONDA_PY=34 QT_API=pyqt4
+    - env: PYTHON=3.5 CONDA_PY=35 QT_API=pyqt5
+    - env: PYTHON=3.6 CONDA_PY=36 QT_API=pyqt5
 
 before_install:
 
