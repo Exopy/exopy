@@ -14,10 +14,10 @@ env:
 
 matrix:
   include:
-    - env: PYTHON=2.7 CONDA_PY=27 QT_API=pyqt4
-    - env: PYTHON=3.4 CONDA_PY=34 QT_API=pyqt4
-    - env: PYTHON=3.5 CONDA_PY=35 QT_API=pyqt5
-    - env: PYTHON=3.6 CONDA_PY=36 QT_API=pyqt5
+    - env: PYTHON=2.7 CONDA_PY=27 QT_VERSION=4
+    - env: PYTHON=3.4 CONDA_PY=34 QT_VERSION=4
+    - env: PYTHON=3.5 CONDA_PY=35 QT_VERSION=5
+    - env: PYTHON=3.6 CONDA_PY=36 QT_VERSION=5
 
 before_install:
 
@@ -45,7 +45,7 @@ before_install:
   - cd ..
 
   # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt=$QT_API future numpy configobj watchdog enaml qtawesome
+  - $CONDA_INSTALL pyqt=$QT_VERSION future numpy configobj watchdog enaml qtawesome
   - $PIP_INSTALL pyvisa
 
   # Intall test tools
@@ -72,6 +72,7 @@ before_script:
 script:
   # Run the Ecpy test suite
   - cd ${SRC_DIR}
+  - export QT_API=pyqt$QT_VERSION
   - py.test tests --cov ecpy --cov-report xml -v
 
 after_success:
