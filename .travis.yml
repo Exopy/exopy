@@ -27,8 +27,6 @@ before_install:
   - ./miniconda.sh -b -p ~/anaconda
   - export PATH=~/anaconda/bin:$PATH
 
-  - SRC_DIR=$(pwd)
-
   # Setup environment
   - travis_retry conda update --yes conda
   - conda install conda-build anaconda-client --yes -q
@@ -39,10 +37,10 @@ before_install:
   - PIP_INSTALL="pip install -q"
 
   # Setup conda build output directory
+  - cd ~
   - mkdir conda-bld-out
   - cd conda-bld-out
   - export CONDA_BLD_PATH=$(pwd)
-  - cd ..
 
   # Install ecpy dependencies
   - $CONDA_INSTALL pyqt=$QT_VERSION future numpy configobj watchdog enaml qtawesome
@@ -59,8 +57,8 @@ before_install:
 install:
 
   # Install ecpy (check that build script is not broken
-  - cd ${SRC_DIR}
-  - conda build conda -q  # Package building does run only very minimal tests
+  - cd $TRAVIS_BUILD_DIR
+  - conda build conda -q  # Package building does run only very minimal tests)
   - conda install ecpy --use-local --yes -q --override-channels
   - cd ~
 
@@ -71,12 +69,12 @@ before_script:
 
 script:
   # Run the Ecpy test suite
-  - cd ${SRC_DIR}
+  - cd $TRAVIS_BUILD_DIR
   - export QT_API=pyqt$QT_VERSION
   - py.test tests --cov ecpy --cov-report xml -v
 
 after_success:
-  - cd ${SRC_DIR}
+  - cd ${TRAVIS_BUILD_DIR}
   - codecov
   - export PACK="$(conda build conda --output)"
   - conda convert $PACK -p 'all' --quiet -o $CONDA_BLD_PATH
