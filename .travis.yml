@@ -31,9 +31,11 @@ before_install:
   - travis_retry conda update --yes conda
   - conda install conda-build anaconda-client --yes -q
   - conda config --add channels ecpy
-  - conda create -n travisci --yes python=$PYTHON pip
+  - conda config --set always_yes yes
+  - conda info -a
+  - conda create -n travisci python=$PYTHON pip
   - source activate travisci
-  - CONDA_INSTALL="conda install --yes -q"
+  - CONDA_INSTALL="conda install -q"
   - PIP_INSTALL="pip install -q"
 
   # Setup conda build output directory
@@ -59,7 +61,7 @@ install:
   # Install ecpy (check that build script is not broken
   - cd $TRAVIS_BUILD_DIR
   - conda build conda -q  # Package building does run only very minimal tests)
-  - conda install ecpy --use-local --yes -q --override-channels
+  - conda install ecpy --use-local -q --override-channels
   - cd ~
 
 before_script:
