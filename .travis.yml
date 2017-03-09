@@ -78,11 +78,4 @@ script:
 after_success:
   - cd $TRAVIS_BUILD_DIR
   - codecov
-
-# The tags flag may be interesting to deploy release in a different place
-deploy:
-  provider: script
-  script: continuous-integration/deploy.sh
-  skip_cleanup: true
-  on:
-    branch: master
+  - if [ "$TRAVIS_PULL_REQUEST" = false ]; then bash continuous-integration/deploy.sh; fi
