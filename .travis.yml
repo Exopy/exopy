@@ -29,9 +29,8 @@ before_install:
 
   # Setup environment
   - travis_retry conda update --yes conda
-  - conda install conda-build anaconda-client --yes -q
-  - conda config --add channels ecpy
-  - conda config --set always_yes yes
+  - conda config --append channels ecpy --set always_yes yes
+  - conda install conda-build anaconda-client -q
   - conda info -a
   - conda create -n travisci python=$PYTHON pip
   - source activate travisci
@@ -76,10 +75,10 @@ script:
   - py.test tests --cov ecpy --cov-report xml -v
 
 after_success:
-  - cd ${TRAVIS_BUILD_DIR}
+  - cd $TRAVIS_BUILD_DIR
   - codecov
   - export PACK="$(conda build conda --output)"
   - conda convert $PACK -p 'all' --quiet -o $CONDA_BLD_PATH
   - cd $CONDA_BLD_PATH
   - source deactivate
-  - if [[ $TRAVIS_SECURE_ENV_VARS ]]; then python ../continuous-integration/anaconda-push.py; fi
+  - if [[ $TRAVIS_SECURE_ENV_VARS ]]; then python $TRAVIS_BUILD_DIR/continuous-integration/anaconda-push.py; fi
