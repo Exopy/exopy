@@ -79,8 +79,6 @@ enamldef IconManagerManifest(PluginManifest):
             id = 'ecpy.FontAwesome'
 
             get_icon => (manager, icon_id):
-                # HINT make sure qtpy does not select qt5 when enaml use qt4
-                os.environ['QT_API'] = 'pyqt'
                 from qtawesome import icon as qicon
                 try:
                     icon = enaml.icon.Icon(_tkdata=qicon('fa.' + icon_id))
@@ -93,8 +91,6 @@ enamldef IconManagerManifest(PluginManifest):
             id = 'ecpy.ElusiveIcon'
 
             get_icon => (manager, icon_id):
-                # HINT make sure qtpy does not select qt5 when enaml use qt4
-                os.environ['QT_API'] = 'pyqt'
                 from qtawesome import icon as qicon
                 try:
                     icon = enaml.icon.Icon(_tkdata=qicon('ei.' + icon_id))

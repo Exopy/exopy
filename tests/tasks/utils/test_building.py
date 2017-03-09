@@ -55,9 +55,7 @@ def test_create_task2(windows, task_workbench, dialog_sleep):
         process_app_events()
         sleep(dialog_sleep)
         assert dial.config
-        selector.selected_task = '_dummy_'
-
-        process_app_events()
+        dial._choose_config('_dummy_')
         assert not dial.config
         sleep(dialog_sleep)
 

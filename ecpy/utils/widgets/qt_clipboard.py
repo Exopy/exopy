@@ -24,7 +24,7 @@ except ImportError:
 import warnings
 
 from future.builtins import bytes
-from enaml.qt import QtCore, QtGui
+from enaml.qt import QtCore, QtWidgets
 from atom.api import Atom, Property
 
 
@@ -64,10 +64,11 @@ class PyMimeData(QtCore.QMimeData):
                     warnings.warn(("Could not pickle dragged object %s, " +
                                    "using %s mimetype instead") % (repr(data),
                                   self.NOPICKLE_MIME_TYPE), RuntimeWarning)
-                    self.setData(self.NOPICKLE_MIME_TYPE, str(id(data)))
+                    self.setData(self.NOPICKLE_MIME_TYPE,
+                                 str(id(data)).encode('utf8'))
 
         else:
-            self.setData(self.NOPICKLE_MIME_TYPE, str(id(data)))
+            self.setData(self.NOPICKLE_MIME_TYPE, str(id(data)).encode('utf8'))
 
     @classmethod
     def coerce(cls, md):
@@ -183,7 +184,7 @@ class _Clipboard(Atom):
         """ The instance getter.
 
         """
-        md = PyMimeData.coerce(QtGui.QApplication.clipboard().mimeData())
+        md = PyMimeData.coerce(QtWidgets.QApplication.clipboard().mimeData())
         if md is None:
             return None
 
@@ -194,14 +195,14 @@ class _Clipboard(Atom):
         """ The instance setter.
 
         """
-        QtGui.QApplication.clipboard().setMimeData(PyMimeData(data))
+        QtWidgets.QApplication.clipboard().setMimeData(PyMimeData(data))
 
     @has_instance.getter
     def _has_instance_getter(self):
         """ The has_instance getter.
 
         """
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         return clipboard.mimeData().hasFormat(PyMimeData.MIME_TYPE)
 
     @instance_type.getter
@@ -209,7 +210,7 @@ class _Clipboard(Atom):
         """ The instance_type getter.
 
         """
-        md = PyMimeData.coerce(QtGui.QApplication.clipboard().mimeData())
+        md = PyMimeData.coerce(QtWidgets.QApplication.clipboard().mimeData())
         if md is None:
             return None
 
