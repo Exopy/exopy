@@ -22,7 +22,7 @@ matrix:
 before_install:
 
   # Install Miniconda
-  - travis_retry wget -q https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - travis_retry wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p ~/anaconda
   - export PATH=~/anaconda/bin:$PATH
