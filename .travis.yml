@@ -29,7 +29,8 @@ before_install:
 
   # Setup environment
   - travis_retry conda update --yes conda
-  - conda config --append channels ecpy --set always_yes yes
+  - conda config --set always_yes yes
+  - conda config --append channels ecpy
   - conda install conda-build anaconda-client -q
   - conda info -a
   - conda create -n travisci python=$PYTHON pip
