@@ -274,7 +274,7 @@ class Interface(Declarator):
 
     #: Path or tuple of paths to the view objects associated with the interface
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    views = d_(Value())
+    views = d_(Value(factory=list))
 
     #: Name of the task/interfaces to which this interface contribute. If this
     #: interface contributes to a task then the task id is enough, if it
@@ -358,6 +358,7 @@ class Interface(Declarator):
         path = self.get_path()
         vs = ([self.views] if not isinstance(self.views, (list, tuple))
               else self.views)
+
         try:
             i_path, interface = (path + '.' + self.interface
                                  if path else self.interface).split(':')
