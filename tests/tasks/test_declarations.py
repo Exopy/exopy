@@ -341,7 +341,22 @@ def test_interface_decl2(int_decl, collector):
     assert len(interfaces[0].views) == 2
 
 
-def test_interface_decl3(collector, int_decl):
+def test_interface_decl3(int_decl, collector):
+    """Test registering an interface with no view.
+
+    """
+    task, interface = int_decl
+    interface.views = []
+    task.register(collector, {})
+
+    task_infos = list(collector.contributions.values())[0]
+    assert len(task_infos.interfaces) == 1
+    interface = list(task_infos.interfaces.values())[0]
+    assert interface.parent is task_infos
+    assert len(interface.views) == 0
+
+
+def test_interface_decl4(collector, int_decl):
     """Test handling not yet registered task.
 
     """
