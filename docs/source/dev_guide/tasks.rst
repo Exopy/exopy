@@ -321,7 +321,9 @@ but only two of them must be given non-default values :
   attribute, the supported driver should be listed. Note that if a driver is
   supported through the use of an interface the driver should be listed in the
   interface and not in the task. Driver should be listed by specifying their id
-  ie top_package.architecture.class_name.
+  ie top_package.architecture.class_name. If this field is specified, the task
+  should be a subclass of |InstrumentTask| or have a selected_instrument member
+  similar to the one of |InstrumentTask|.
 - 'dependencies' : If the task has rutime dependencies other than instruments
   the ids of the corresponding analysers should be listed here.
 
@@ -504,7 +506,9 @@ example :
 .. note::
 
     |Interface|, like |Task| has a *metadata* and an *instruments* members
-    which have the exact same functionalities.
+    which have the exact same functionalities.  If *instruments* is specified,
+    the interface should have a selected_instrument member similar to the one
+    of |InstrumentTask| or be linked to an interface/task that does.
 
 
 .. _dev_tasks_new_filter:

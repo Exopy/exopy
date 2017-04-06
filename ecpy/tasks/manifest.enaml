@@ -484,6 +484,24 @@ enamldef TasksManagerManifest(PluginManifest):
             analyse => (workbench, obj, dependencies, errors):
                 dependencies.add(obj.selected_instrument[1])
 
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.interface.instruments.profiles'
+            collector_id = 'ecpy.instruments.profiles'
+            analyse => (workbench, obj, dependencies, errors):
+                if not hasattr(obj, 'selected_instrument'):
+                    obj = obj.task
+                dependencies.add(obj.selected_instrument[0])
+
+        RuntimeDependencyAnalyser:
+            id = 'ecpy.tasks.interface.instruments.drivers'
+            collector_id = 'ecpy.instruments.drivers'
+            analyse => (workbench, obj, dependencies, errors):
+                if not hasattr(obj, 'selected_instrument'):
+                    from .tasks.task_interface import IInterface
+                    obj = (obj.parent if isinstance(obj, IInterface) else
+                           obj.task)
+                dependencies.add(obj.selected_instrument[1])
+
     Extension:
         id = 'prefs'
         point = 'ecpy.app.preferences.plugin'

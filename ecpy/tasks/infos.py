@@ -12,7 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, List, Subclass, Dict, Coerced, Typed
+from atom.api import (Atom, List, Subclass, Dict, Coerced, Typed, Unicode,
+                      set_default)
 import enaml
 
 from .tasks.base_tasks import BaseTask
@@ -24,15 +25,28 @@ with enaml.imports():
     from .configs.base_config_views import BaseConfigView
 
 
-INSTR_RUNTIME_DRIVERS_ID = 'ecpy.tasks.instruments.drivers'
+INSTR_RUNTIME_TASK_DRIVERS_ID = 'ecpy.tasks.instruments.drivers'
 
-INSTR_RUNTIME_PROFILES_ID = 'ecpy.tasks.instruments.profiles'
+INSTR_RUNTIME_TASK_PROFILES_ID = 'ecpy.tasks.instruments.profiles'
+
+INSTR_RUNTIME_INTERFACE_DRIVERS_ID = 'ecpy.tasks.interface.instruments.drivers'
+
+INSTR_RUNTIME_INTERFACE_PROFILES_ID =\
+    'ecpy.tasks.interface.instruments.profiles'
 
 
 class ObjectDependentInfos(Atom):
     """Base infos for tasks and interfaces.
 
     """
+    #: Id of the runtime dependency analyser to use for driver detection to add
+    #: to the dependencies if instruments is set.
+    DRIVER_ANALYSER = Unicode()
+
+    #: Id of the runtime dependency analyser to use for profile detection to
+    #: add to the dependencies if instruments is set.
+    PROFILE_ANALYSER = Unicode()
+
     #: Set of instrument supported by this task. This should never be updated
     #: in place, it should always be copied and replaced by the new value.
     instruments = Coerced(set, ())
@@ -69,11 +83,11 @@ class ObjectDependentInfos(Atom):
 
         """
         if new:
-            self.dependencies |= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
+            self.dependencies |= set((self.DRIVER_ANALYSER,
+                                      self.PROFILE_ANALYSER))
         else:
-            self.dependencies -= set((INSTR_RUNTIME_DRIVERS_ID,
-                                      INSTR_RUNTIME_PROFILES_ID))
+            self.dependencies -= set((self.DRIVER_ANALYSER,
+                                      self.PROFILE_ANALYSER))
 
 
 class TaskInfos(ObjectDependentInfos):
@@ -90,6 +104,10 @@ class TaskInfos(ObjectDependentInfos):
     #: etc
     metadata = Dict()
 
+    DRIVER_ANALYSER = set_default(INSTR_RUNTIME_TASK_DRIVERS_ID)
+
+    PROFILE_ANALYSER = set_default(INSTR_RUNTIME_TASK_PROFILES_ID)
+
 
 class InterfaceInfos(ObjectDependentInfos):
     """An object used to store informations about an interface.
@@ -103,6 +121,10 @@ class InterfaceInfos(ObjectDependentInfos):
 
     #: Parent task or interface infos.
     parent = Typed(ObjectDependentInfos)
+
+    DRIVER_ANALYSER = set_default(INSTR_RUNTIME_INTERFACE_DRIVERS_ID)
+
+    PROFILE_ANALYSER = set_default(INSTR_RUNTIME_INTERFACE_PROFILES_ID)
 
 
 class ConfigInfos(Atom):
