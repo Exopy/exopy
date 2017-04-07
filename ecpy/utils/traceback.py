@@ -21,9 +21,17 @@ if sys.version_info >= 3:
     from traceback import format_exc, format_tb
 else:
     def format_exc():
+        """Decode and format the current traceback in a safe way.
+
+        """
         from traceback import format_exc
         return format_exc().decode('utf-8', 'surrogateescape')
 
     def format_tb(tb):
+        """Format and decode a traceback in a safe way.
+
+        """
         from traceback import format_tb
         return format_tb(tb).decode('utf-8', 'surrogateescape')
+
+__all__ = ['format_exc', 'format_tb']
