@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 from operator import attrgetter
-from traceback import format_exc
 from textwrap import fill
 from inspect import cleandoc
 
@@ -25,6 +24,7 @@ from enaml.widgets.api import (PushButton, Menu, Action, Container, Dialog,
                                Label, Field, Notebook, DockItem, DockArea)
 from enaml.stdlib.message_box import question
 
+from ...utils.traceback import format_exc
 from ...utils.widgets.qt_clipboard import CLIPBOARD
 from ...utils.widgets.qt_tree_widget import QtTreeWidget
 from ...utils.widgets.tree_nodes import TreeNode

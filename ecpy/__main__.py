@@ -16,13 +16,13 @@ import sys
 import threading
 from pkg_resources import iter_entry_points
 from operator import itemgetter
-from traceback import format_exc
 from argparse import ArgumentParser
 
 import enaml
 from atom.api import Atom, Dict, Value, List
 from enaml.qt.qt_application import QtApplication
 from enaml.workbench.api import Workbench
+from ecpy.utils.traceback import format_exc
 
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox, DialogButton

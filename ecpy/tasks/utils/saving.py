@@ -12,11 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
-
 from enaml.stdlib.message_box import critical
 
 from .templates import save_template
+from ...utils.traceback import format_exc
+
 
 import enaml
 with enaml.imports():

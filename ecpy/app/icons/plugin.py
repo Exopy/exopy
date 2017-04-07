@@ -13,11 +13,11 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import logging
-from traceback import format_exc
 
 from atom.api import List, Typed, Unicode
 
 from .icon_theme import IconTheme, IconThemeExtension
+from ...utils.traceback import format_exc
 from ...utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                    make_extension_validator)
 

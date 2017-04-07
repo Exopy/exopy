@@ -14,10 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pkg_resources
 import logging
-from traceback import format_exc
+
 from atom.api import List, Dict
 from enaml.workbench.api import Plugin, PluginManifest
 
+from ...utils.traceback import format_exc
 
 logger = logging.getLogger(__name__)
 

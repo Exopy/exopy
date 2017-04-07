@@ -19,9 +19,10 @@ import logging
 from functools import update_wrapper
 from time import sleep
 from threading import Thread, Event, current_thread
-from traceback import format_exc
 
 from atom.api import Atom, Value, Callable, Unicode
+
+from ...utils.traceback import format_exc
 
 
 def handle_stop_pause(root):

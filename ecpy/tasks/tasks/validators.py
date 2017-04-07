@@ -12,9 +12,9 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
-
 from atom.api import Atom, Value, Bool
+
+from ...utils.traceback import format_exc
 
 
 class Feval(Atom):

@@ -12,8 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
-
 from atom.api import Coerced, Bool
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer, Pos
@@ -23,6 +21,7 @@ from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
                                PopupView, Container, Menu, Action,
                                Window)
 
+from ...utils.traceback import format_exc
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names
 from ...utils.enaml_destroy_hook import add_destroy_hook

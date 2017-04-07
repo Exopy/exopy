@@ -16,11 +16,11 @@ import logging
 from multiprocessing import Pipe, Queue, Event
 from threading import Thread
 from threading import Event as tEvent
-from traceback import format_exc
 from pprint import pformat
 
 from atom.api import Typed, Value, Bool
 
+from ....utils.traceback import format_exc
 from ....app.log.tools import QueueLoggerThread
 from ..base_engine import BaseEngine
 from ..utils import ThreadMeasureMonitor

@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import logging
-from traceback import format_exc
 from collections import OrderedDict, defaultdict
 from itertools import chain
 from datetime import date
@@ -25,6 +24,7 @@ from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
 from configobj import ConfigObj
 
 from ..tasks.api import RootTask
+from ..utils.traceback import format_exc
 from ..utils.configobj_ops import include_configobj
 from ..utils.atom_util import HasPrefAtom
 

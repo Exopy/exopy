@@ -13,10 +13,10 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from collections import OrderedDict
-from traceback import format_exc
 
 from atom.api import (Typed, set_default)
 
+from ....utils.traceback import format_exc
 from ....utils.atom_util import (ordered_dict_from_pref, ordered_dict_to_pref)
 
 from ..base_tasks import SimpleTask

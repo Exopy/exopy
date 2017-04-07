@@ -15,7 +15,6 @@ from __future__ import (division, unicode_literals, print_function,
 import logging
 import os
 import re
-from traceback import format_exc
 
 import enaml
 from atom.api import Typed, Value, Property, set_default
@@ -24,9 +23,10 @@ from enaml.workbench.ui.api import Workspace
 from enaml.widgets.api import FileDialogEx
 from enaml.layout.api import InsertItem, InsertTab
 
+from ...utils.traceback import format_exc
+from ...tasks.api import RootTask
 from ..measure import Measure
 from ..plugin import MeasurePlugin
-from ...tasks.api import RootTask
 from .measure_tracking import MeasureTracker
 
 with enaml.imports():

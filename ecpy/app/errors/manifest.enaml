@@ -14,7 +14,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 from pprint import pformat
-from traceback import format_exc
 from collections import defaultdict, Mapping
 
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
@@ -25,6 +24,7 @@ from enaml.widgets.api import MultilineField
 from .errors import ErrorHandler
 from ..states.state import State
 from .widgets import BasicErrorsDisplay, HierarchicalErrorsDisplay
+from ...utils.traceback import format_exc
 from ...utils.mapping_utils import recursive_update
 from ...utils.plugin_tools import make_handler
 

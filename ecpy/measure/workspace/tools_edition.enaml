@@ -12,13 +12,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
-
 from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
                                Container, MultilineField, Label)
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.core.api import Declarative, Include
 
+from ...utils.traceback import format_exc
 from ...utils.enaml_destroy_hook import add_destroy_hook
 from ...utils.widgets.qt_list_str_widget import QtListStrWidget
 from ...utils.transformers import ids_to_unique_names

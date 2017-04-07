@@ -19,7 +19,6 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 import logging
 from time import sleep
-from traceback import format_exc
 from threading import Thread, RLock
 
 import enaml
@@ -31,6 +30,7 @@ from enaml.application import deferred_call, schedule
 from .engines.api import BaseEngine, ExecutionInfos
 from .measure import Measure
 from ..utils.flags import BitFlag
+from ..utils.traceback import format_exc
 
 
 logger = logging.getLogger(__name__)

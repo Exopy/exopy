@@ -14,11 +14,12 @@ from __future__ import (division, unicode_literals, print_function,
 
 import re
 from importlib import import_module
-from traceback import format_exc
 
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, Bool
 from enaml.core.api import Declarative, d_
+
+from .traceback import format_exc
 
 
 @python_2_unicode_compatible

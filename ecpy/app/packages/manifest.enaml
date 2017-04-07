@@ -22,7 +22,6 @@ from __future__ import (division, unicode_literals, print_function,
 
 import logging
 from collections import Mapping
-from traceback import format_exc
 from pprint import pformat
 
 from enaml.workbench.api import PluginManifest, Extension
@@ -31,6 +30,7 @@ from enaml.widgets.api import MultilineField
 from ..app_extensions import AppStartup
 from ..errors.errors import ErrorHandler
 from ..errors.widgets import BasicErrorsDisplay
+from ...utils.traceback import format_exc
 
 PLUGIN_ID = 'ecpy.app.packages'
 logger = logging.getLogger(__name__)
