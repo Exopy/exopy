@@ -17,7 +17,7 @@ import sys
 from future.utils.surrogateescape import register_surrogateescape
 register_surrogateescape()
 
-if sys.version_info >= 3:
+if sys.version_info >= (3,):
     from traceback import format_exc, format_tb
 else:
     def format_exc():
