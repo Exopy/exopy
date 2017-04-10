@@ -20,18 +20,20 @@ register_surrogateescape()
 if sys.version_info >= (3,):
     from traceback import format_exc, format_tb
 else:
+    # Returns a single string
     def format_exc():
-        """Decode and format the current traceback in a safe way.
+        """Format and decode the current traceback in a safe way.
 
         """
         from traceback import format_exc
         return format_exc().decode('utf-8', 'surrogateescape')
 
+    # Returns a list of strings
     def format_tb(tb):
         """Format and decode a traceback in a safe way.
 
         """
         from traceback import format_tb
-        return format_tb(tb).decode('utf-8', 'surrogateescape')
+        return [e.decode('utf-8', 'surrogateescape') for e in format_tb(tb)]
 
 __all__ = ['format_exc', 'format_tb']
