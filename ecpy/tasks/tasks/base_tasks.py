@@ -23,7 +23,6 @@ from collections import Iterable
 from inspect import cleandoc
 from textwrap import fill
 from copy import deepcopy
-from traceback import format_exc
 from types import MethodType
 from cProfile import Profile
 from operator import attrgetter
@@ -33,6 +32,7 @@ from atom.api import (Atom, Int, Bool, Value, Unicode, List,
                       Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
 
+from ...utils.traceback import format_exc
 from ...utils.atom_util import (tagged_members, member_to_pref,
                                 update_members_from_preferences)
 from ...utils.container_change import ContainerChange

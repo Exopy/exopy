@@ -16,10 +16,10 @@ import os
 import logging
 import logging.config
 import sys
-from traceback import format_exc
 from multiprocessing import Process
 from time import sleep
 
+from ....utils.traceback import format_exc
 from ....app.log.tools import (StreamToLogRedirector, DayRotatingTimeHandler)
 from ....tasks.api import build_task_from_config
 from ..utils import MeasureSpy

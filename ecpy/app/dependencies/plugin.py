@@ -14,12 +14,12 @@ from __future__ import (division, unicode_literals, print_function,
 
 from operator import getitem
 from collections import defaultdict
-from traceback import format_exc
 
 from configobj import Section
 from atom.api import Atom, Typed
 from enaml.workbench.api import Plugin
 
+from ...utils.traceback import format_exc
 from ...utils.configobj_ops import traverse_config
 from ...utils.plugin_tools import ExtensionsCollector, make_extension_validator
 

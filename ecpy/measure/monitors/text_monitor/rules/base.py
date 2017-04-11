@@ -14,12 +14,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from inspect import cleandoc
-from traceback import format_exc
 
 from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Dict
 from enaml.core.api import Declarative, d_
 
+from .....utils.traceback import format_exc
 from .....utils.atom_util import HasPrefAtom
 from .....utils.declarator import (Declarator, GroupDeclarator,
                                    import_and_get)

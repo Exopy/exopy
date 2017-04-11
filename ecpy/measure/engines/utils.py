@@ -16,11 +16,11 @@ import logging
 from threading import Thread
 from queue import Empty  # This is allowed thanks to the future package
 from multiprocessing.queues import Queue
-from traceback import format_exc
 from pickle import dumps
 
 from atom.api import Atom, Coerced, Typed
 
+from ...utils.traceback import format_exc
 from ...tasks.tasks.database import TaskDatabase
 
 

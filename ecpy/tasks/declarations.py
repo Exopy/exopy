@@ -12,7 +12,6 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
 from inspect import cleandoc
 
 from future.utils import python_2_unicode_compatible
@@ -21,6 +20,7 @@ from enaml.core.api import d_, d_func
 
 from .infos import TaskInfos, InterfaceInfos, ConfigInfos
 from ..utils.declarator import Declarator, GroupDeclarator, import_and_get
+from ..utils.traceback import format_exc
 
 
 def check_children(declarator):

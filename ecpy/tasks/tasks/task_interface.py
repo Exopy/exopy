@@ -12,10 +12,10 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from traceback import format_exc
 from atom.api import (Atom, ForwardTyped, Typed, Unicode, Dict, Property,
                       Constant)
 
+from ...utils.traceback import format_exc
 from ...utils.atom_util import HasPrefAtom, tagged_members
 from .base_tasks import BaseTask
 from . import validators
