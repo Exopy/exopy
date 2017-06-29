@@ -15,10 +15,11 @@ requirements:
   build:
     - python
     - future
+    - enaml >=0.10.2.dev
   run:
     - python
     - python.app       [osx]
-    - enaml >=0.10.0.dev
+    - enaml >=0.10.2.dev
     - pyqt
     - atom >=0.4.0.dev
     - kiwisolver >=0.2.0.dev

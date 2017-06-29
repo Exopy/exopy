@@ -28,7 +28,7 @@ MINOR = 1
 MICRO = 0
 
 # The status indicate if this is a development or pre-release version
-STATUS = 'b4'
+STATUS = ''
 
 #: A namedtuple of the version info for the current release.
 version_info = namedtuple('version_info', 'major minor micro status')

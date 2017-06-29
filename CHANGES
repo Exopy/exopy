@@ -1,6 +1,28 @@
 Ecpy Changelog
 ==============
 
+0.1.0 - 29/06/2017
+------------------
+
+- tasks: fix collections of instr dependencies of interfaces (#99)
+- tasks: allow for no views for an interface (#97)
+- utils: use surrogate escape on Python 2 when decoding formatted traceback (#100)
+- add support for qt5 and python 3.6 (#96)
+- testing: handle dialog block execution till handler called (#95)
+- tasks: fix handling of instrument dependencies in interfaces (#88)
+- app : allow dep_type to be absent when analysing (#87)
+- tasks: fix linspace interface (#79)
+- measure: make sure loaded measure is selected after loading (#85)
+- tasks: fixes for the execution of task in parallel (#80)
+- testing: provide a function to monkeypatch exit_error_gathering
+- instruments: fix broken test
+- testing: switch to pytest-catchlog
+- instruments: fixes to settings edition (#74)
+- measure: fix issues with workspace switching. (#72)
+- measure: fix issue with enqueueing when switching workspaces
+- utils: do not use repr on str in Python 2
+- testing: increase time left to the os to clean resources
+
 0.1.0.b4
 --------
 
