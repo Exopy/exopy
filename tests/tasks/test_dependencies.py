@@ -19,8 +19,12 @@ from future.builtins import str
 
 from ecpy.app.dependencies.api import (BuildDependency,
                                        RuntimeDependencyAnalyser)
-from ecpy.tasks.api import ComplexTask, InstrumentTask
-from ecpy.tasks.infos import TaskInfos
+from ecpy.tasks.api import ComplexTask, InstrumentTask, TaskInterface
+from ecpy.tasks.infos import (TaskInfos, InterfaceInfos,
+                              INSTR_RUNTIME_TASK_DRIVERS_ID,
+                              INSTR_RUNTIME_TASK_PROFILES_ID,
+                              INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
+                              INSTR_RUNTIME_INTERFACE_PROFILES_ID)
 
 
 @pytest.fixture
@@ -49,26 +53,56 @@ def interface_dep_collector(task_workbench):
 
 @pytest.fixture
 def driver_dep_collector(task_workbench):
-    """Collector for driver dependencies (InstrumentTask).
+    """Collector for driver dependencies for task supporting instrument and
+    having the proper selected_intrument member.
 
     """
     plugin = task_workbench.get_plugin('ecpy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
-            if b.id == 'ecpy.tasks.instruments.drivers'][0]
+            if b.id == INSTR_RUNTIME_TASK_DRIVERS_ID][0]
 
 
 @pytest.fixture
 def profile_dep_collector(task_workbench):
-    """Collector for profile dependencies (InstrumentTask).
+    """Collector for profile dependencies for task supporting instrument and
+    having the proper selected_intrument member.
 
     """
     plugin = task_workbench.get_plugin('ecpy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
-            if b.id == 'ecpy.tasks.instruments.profiles'][0]
+            if b.id == INSTR_RUNTIME_TASK_PROFILES_ID][0]
+
+
+@pytest.fixture
+def i_driver_dep_collector(task_workbench):
+    """Collector for driver dependencies for interface supporting instrument
+    and having the proper selected_intrument member or being attached to a task
+    that does.
+
+    """
+    plugin = task_workbench.get_plugin('ecpy.tasks')
+    dep_ext = [e for e in plugin.manifest.extensions
+               if e.id == 'runtime_deps'][0]
+    return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
+            if b.id == INSTR_RUNTIME_INTERFACE_DRIVERS_ID][0]
+
+
+@pytest.fixture
+def i_profile_dep_collector(task_workbench):
+    """Collector for profile dependencies for interface supporting instrument
+    and having the proper selected_intrument member or being attached to a task
+    that does.
+
+    """
+    plugin = task_workbench.get_plugin('ecpy.tasks')
+    dep_ext = [e for e in plugin.manifest.extensions
+               if e.id == 'runtime_deps'][0]
+    return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
+            if b.id == INSTR_RUNTIME_INTERFACE_PROFILES_ID][0]
 
 
 def test_analysing_task_dependencies(monkeypatch, task_workbench,
@@ -208,4 +242,57 @@ def test_analysing_instr_task_dependencies(monkeypatch, task_workbench,
     dep.clear()
     driver_dep_collector.analyse(task_workbench, t, dep, errors)
     assert 'dummy' in dep
+    assert not errors
+
+
+def test_analysing_instr_interface_dependencies(monkeypatch, task_workbench,
+                                                interface_dep_collector,
+                                                i_profile_dep_collector,
+                                                i_driver_dep_collector):
+    """Test analysing the dependencies of an interface.
+
+    """
+    class FalseI(TaskInterface):
+
+            __slots__ = ('__dict__')
+
+    plugin = task_workbench.get_plugin('ecpy.tasks')
+    p_infos = TaskInfos(cls=InstrumentTask, instruments=['test'])
+    plugin._tasks.contributions['ecpy.InstrumentTask'] = p_infos
+    p_infos.interfaces['tests.FalseI'] =\
+        InterfaceInfos(cls=FalseI, instruments=['test'], parent=p_infos)
+
+    dep = set()
+    errors = dict()
+    i = FalseI()
+    t = InstrumentTask(selected_instrument=('test', 'dummy', 'c', None))
+    i.task = t
+    run = interface_dep_collector.analyse(task_workbench, i, getattr,
+                                          dep, errors)
+
+    assert run == {INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
+                   INSTR_RUNTIME_INTERFACE_PROFILES_ID}
+    assert 'ecpy.InstrumentTask:tests.FalseI' in dep
+    assert not errors
+
+    dep.clear()
+    i_profile_dep_collector.analyse(task_workbench, i, dep, errors)
+    assert 'test' in dep
+    assert not errors
+
+    dep.clear()
+    i_driver_dep_collector.analyse(task_workbench, i, dep, errors)
+    assert 'dummy' in dep
+    assert not errors
+
+    i.selected_instrument = ('test2', 'dummy2', 'c', None)
+
+    dep.clear()
+    i_profile_dep_collector.analyse(task_workbench, i, dep, errors)
+    assert 'test2' in dep
+    assert not errors
+
+    dep.clear()
+    i_driver_dep_collector.analyse(task_workbench, i, dep, errors)
+    assert 'dummy2' in dep
     assert not errors

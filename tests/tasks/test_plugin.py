@@ -191,7 +191,7 @@ def test_get_interface_infos(task_workbench):
 
 
 def test_get_interface(task_workbench):
-    """Test accessing a task.
+    """Test accessing an interface.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
@@ -207,7 +207,7 @@ def test_get_interface(task_workbench):
 
 
 def test_get_interfaces(task_workbench):
-    """Test accessing multiple tasks.
+    """Test accessing multiple interfaces.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
