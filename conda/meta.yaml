@@ -10,6 +10,8 @@ build:
   entry_points:
     - ecpy = ecpy.__main__:main
   osx_is_app: True
+  has_prefix_files:
+    - ecpy/*.enamlc
 
 requirements:
   build:
