@@ -867,8 +867,11 @@ class QtTreeWidget(RawWidget):
 
                         child, child_node = self._node_for(child)
                         if child_node is not None:
-                            if new >= len(self.nodes):
-                                new = len(self.nodes) - 1
+                            nodes_number = len(self._nodes_for(nid))
+                            if new > old and new >= nodes_number:
+                                new = None
+                            elif old > new and new >= nodes_number:
+                                    new = len(self.nodes) - 1
                             self._insert_node(nid, new, child_node,
                                               child)
 
