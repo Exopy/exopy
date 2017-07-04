@@ -871,7 +871,7 @@ class QtTreeWidget(RawWidget):
                             if new > old and new >= nodes_number:
                                 new = None
                             elif old > new and new >= nodes_number:
-                                    new = len(self.nodes) - 1
+                                new = len(self.nodes) - 1
                             self._insert_node(nid, new, child_node,
                                               child)
 
