@@ -404,6 +404,9 @@ class QtTreeWidget(RawWidget):
                 child, child_node = self._node_for(child)
                 if child_node is not None:
                     self._append_node(nid, child_node, child)
+                else:
+                    msg = 'No Node type found for child {}.'
+                    raise ValueError(msg.format(child))
 
             # Indicate the item is now populated:
             self._set_node_data(nid, (True, node, obj))
@@ -809,6 +812,9 @@ class QtTreeWidget(RawWidget):
                     child, child_node = self._node_for(child)
                     if child_node is not None:
                         self._append_node(nid, child_node, child)
+                    else:
+                        msg = 'No Node type found for child {}'
+                        raise ValueError(msg.format(child))
 
             # Try to expand the node (if requested):
             if node.can_auto_open(obj):
@@ -816,6 +822,12 @@ class QtTreeWidget(RawWidget):
 
     def _children_updated(self, change):
         """ Handles the children of a node being changed.
+
+        Parameters
+        ----------
+        change : ecpy.utils.container_change.ContainerChange
+            Describes the modification that occured on the children of the
+            observed node.
 
         """
         obj = change.obj
@@ -837,6 +849,9 @@ class QtTreeWidget(RawWidget):
                         if child_node is not None:
                             self._insert_node(nid, index, child_node,
                                               child)
+                        else:
+                            msg = 'No Node type found for child {} at index {}'
+                            raise ValueError(msg.format(child, index))
 
                 # Try to expand the node (if requested):
                 if node.can_auto_open(obj):
@@ -865,15 +880,18 @@ class QtTreeWidget(RawWidget):
                         # Remove all of the children that were deleted:
                         self._delete_node(self._nodes_for(nid)[old])
 
+                        # Get the node class for the child, we know it exists
+                        # since it was there previously
                         child, child_node = self._node_for(child)
-                        if child_node is not None:
-                            nodes_number = len(self._nodes_for(nid))
-                            if new > old and new >= nodes_number:
-                                new = None
-                            elif old > new and new >= nodes_number:
-                                new = len(self.nodes) - 1
-                            self._insert_node(nid, new, child_node,
-                                              child)
+
+                        # Number of sub nodes remaining on the parent node
+                        nodes_number = len(self._nodes_for(nid))
+                        # If the child was moved down towards the last
+                        # available slot, turn the insertion operation in
+                        # an append as we always insert before another node
+                        if new > old and new >= nodes_number:
+                            new = None
+                        self._insert_node(nid, new, child_node, child)
 
                 # Try to expand the node (if requested):
                 if node.can_auto_open(obj):
