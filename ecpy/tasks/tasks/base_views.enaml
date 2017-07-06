@@ -155,11 +155,15 @@ enamldef RootTaskView(BaseTaskView): main:
         """
         try:
             view = _cache.pop(task)
+            # Make sure all children are parented and will hence be properly
+            # destroyed.
+            view.refresh()
+            view.set_parent(None)
             view.destroy()
         except KeyError:
             pass
         else:
-            # Remove all views that may have been destroyed because their
+            # Remove all views that have been destroyed because their
             # parent was just destroyed
             self._cache = {k: v for k, v in _cache.items()
                            if not v.is_destroyed}
