@@ -12,6 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+from time import sleep
+                        
 import pytest
 import enaml
 
@@ -214,7 +216,9 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
 
     # Create a new pool using the context menu on parallell
     ced.widgets()[2].children[0].children[0].triggered = True
-    process_and_sleep()
+    # This can fails on Travis if we do not sleep
+    process_app_events()
+    sleep(1)
     process_app_events()  # So that the popup shows correctly
     popup_content = get_popup_content(ced.widgets()[2])
     popup_content[0].text = 'test3'
@@ -225,7 +229,9 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
 
     # Create a new pool using the context menu on parallell, but cancel it
     ced.widgets()[2].children[0].children[0].triggered = True
-    process_and_sleep()
+    # This can fails on Travis if we do not sleep
+    process_app_events()
+    sleep(1)
     process_app_events()  # So that the popup shows correctly
     popup_content = get_popup_content(ced.widgets()[2])
     popup_content[0].text = 'test4'
