@@ -62,6 +62,15 @@ be executed. Three parameters are editable :
   which parallel pool to wait on (hence the id), or not to wait on some pools
   or to wait on all pools.
 
+Task pools
+""""""""""
+
+A pool simply consist in a user-defined group of tasks.
+In a measure, each task can be associated with a pool from the dropdown menu
+of the execution editor. To define a new pool, right click on the menu and
+enter a name. You will then be able to select one or multiple of you defined
+pool(s) in the wait or no wait options.
+
 .. note::
 
     It is possible to run a task in parallel and have it wait on other pools.
