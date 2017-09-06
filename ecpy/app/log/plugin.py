@@ -85,7 +85,7 @@ class LogPlugin(Plugin):
         logger.addHandler(handler)
 
         self._handlers[id] = (handler, name)
-        self.handler_ids = self._handlers.keys()
+        self.handler_ids = list(self._handlers.keys())
 
         if refs:
             return refs
@@ -104,13 +104,13 @@ class LogPlugin(Plugin):
             handler, logger_name = handlers.pop(id)
             logger = logging.getLogger(logger_name)
             logger.removeHandler(handler)
-            for filter_id in self._filters.keys():
+            for filter_id in self.filter_ids:
                 infos = self._filters[filter_id]
                 if infos[1] == id:
                     del self._filters[filter_id]
 
-            self.filter_ids = self._filters.keys()
-            self.handler_ids = self._handlers.keys()
+            self.filter_ids = list(self._filters.keys())
+            self.handler_ids = list(self._handlers.keys())
 
     def add_filter(self, id, filter, handler_id):
         """Add a filter to the specified handler.
@@ -139,7 +139,7 @@ class LogPlugin(Plugin):
             handler.addFilter(filter)
             self._filters[id] = (filter, handler_id)
 
-            self.filter_ids = self._filters.keys()
+            self.filter_ids = list(self._filters.keys())
 
         else:
             logger = logging.getLogger(__name__)
@@ -159,7 +159,7 @@ class LogPlugin(Plugin):
             filter, handler_id = filters.pop(id)
             handler, _ = self._handlers[handler_id]
             handler.removeFilter(filter)
-            self.filter_ids = self._filters.keys()
+            self.filter_ids = list(self._filters.keys())
 
     def set_formatter(self, handler_id, formatter):
         """Set the formatter of the specified handler.
