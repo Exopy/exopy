@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -877,7 +877,7 @@ class QtTreeWidget(RawWidget):
                 # Only move nodes if the parent has already been expanded
                 if expanded:
                     for old, new, child in change.moved:
-                        # Remove all of the children that were deleted:
+                        # Remove the node that moved:
                         self._delete_node(self._nodes_for(nid)[old])
 
                         # Get the node class for the child, we know it exists
@@ -1117,16 +1117,36 @@ class _TreeWidget(QtWidgets.QTreeWidget):
 
                 pnid = pnid.parent()
 
+        # Dropped object
         data = PyMimeData.coerce(event.mimeData()).instance()
+
+        # Node and object dropped onto
         _, node, obj = control._get_node_data(nid)
 
+        # Test whether or not the dragged object is droppable on the underlying
+        # node.
         if event.proposedAction() == QtCore.Qt.MoveAction and \
                 control._is_droppable(node, obj, data, False):
-            # append to node being dropped on
-            action = 'append'
-            to_node = node
-            to_object = obj
-            to_index = None
+
+            # If the node we drop on is already the parent of the dropped
+            # object simply issue a move to index 0
+            if control.get_parent(data) is obj:
+                action = 'move'
+                to_node = node
+                to_object = obj
+                to_index = 0
+            # Otherwise insert to first position in node being dropped on or
+            # append if insertion is not allowed
+            elif control._is_droppable(node, obj, data, True):
+                action = 'insert'
+                to_node = node
+                to_object = obj
+                to_index = 0
+            else:
+                action = 'append'
+                to_node = node
+                to_object = obj
+                to_index = None
         else:
             # get parent of node being dropped on
             to_node, to_object, to_index = control._node_index(nid)
@@ -1139,6 +1159,8 @@ class _TreeWidget(QtWidgets.QTreeWidget):
                 # insert into the parent of the node being dropped on
                 else:
                     action = 'insert'
+                # Move or insert below the node dropped onto
+                to_index += 1
             elif control._is_droppable(to_node, to_object, data, False):
                 # append to the parent of the node being dropped on
                 action = 'append'
