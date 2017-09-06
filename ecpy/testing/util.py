@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -12,7 +12,11 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import sys
 import os
+import gc
+import weakref
+import inspect
 from time import sleep
 from contextlib import contextmanager
 from pprint import pformat
@@ -24,7 +28,6 @@ from enaml.qt.qt_application import QtApplication
 from enaml.widgets.api import Window, Dialog
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox
-
 
 APP_PREFERENCES = os.path.join('app', 'preferences')
 APP_DIR_CONFIG = 'app_directory.ini'
@@ -91,11 +94,12 @@ class ScheduledClosing(object):
 
     """
 
-    def __init__(self, cls, custom, op):
+    def __init__(self, cls, handler, op, skip_answer):
         self.called = False
         self.cls = cls
-        self.custom = custom
+        self.handler = handler
         self.op = op
+        self.skip_answer = skip_answer
 
     def __call__(self):
         i = 0
@@ -109,12 +113,13 @@ class ScheduledClosing(object):
             i += 1
 
         try:
-            self.custom(dial)
+            self.handler(dial)
         finally:
             process_app_events()
             from .fixtures import DIALOG_SLEEP
             sleep(DIALOG_SLEEP)
-            getattr(dial, self.op)()
+            if not self.skip_answer:
+                getattr(dial, self.op)()
             self.called = True
 
 
@@ -143,7 +148,7 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
         the answer itself.
 
     """
-    sch = ScheduledClosing(cls, custom, op)
+    sch = ScheduledClosing(cls, custom, op, skip_answer)
     timed_call(time, sch)
     try:
         yield
@@ -274,3 +279,91 @@ class CallSpy(object):
         self.called += 1
         self.args = args
         self.kwargs = kwargs
+
+
+class ObjectTracker(object):
+    """Object tracking instance of a given class exists.
+
+    It works by patching __new__ and keeping a WeakSet of the created objects.
+    So instances created before creating the tracker are not tracked.
+
+    If the objects are not weak referenceable you should set has_weakref to
+    False. By default objects inheriting from Atom are not weak referenceable.
+    It provides way to list the object referring alive objects to help tracking
+    ref leaks.
+
+    """
+    def __init__(self, cls, has_weakref=True):
+        self._refs = weakref.WeakSet()
+
+        # Create a weak referenceable subclass if necessary
+        if not has_weakref:
+            class __weakref_cls__(cls):
+                __slots__ = ('__weakref__',)
+        else:
+            __weakref_cls__ = cls
+
+        def override_new(original_cls, *args, **kwargs):
+            """Function replacing new allowing to track instances.
+
+            """
+            new = __weakref_cls__.__old_new__(__weakref_cls__, *args, **kwargs)
+            self._refs.add(new)
+            return new
+
+        __weakref_cls__.__old_new__ = cls.__new__
+        cls.__new__ = (override_new if sys.version_info >= (3,) else
+                       staticmethod(override_new))
+        __weakref_cls__.original_cls = cls
+
+        self.cls = __weakref_cls__
+
+    def stop_tracking(self):
+        """Use to properly remove tracking.
+
+        """
+        self.cls.original_cls.__new__ = self.cls.__old_new__
+
+    @property
+    def alive_instances(self):
+        """Currently alive instances of the tracked objects.
+
+        """
+        gc.collect()
+        return self._refs
+
+    def list_referrers(self, exclude=[], depth=0):
+        """List all the referrers of the tracked objects.
+
+        Can exlude some objects and go to deeper levels (referrers of the
+        referrers) in which case reference to the first object are filtered.
+        References held by frames are also filtered
+
+        This function is mostly useful when tracking why an object that is
+        expected to be released is not.
+
+        """
+        gc.collect()
+
+        def find_referrers(ref_dict, obj, depth=0, exclude=[]):
+            """Find the object referring the specified object.
+
+            """
+            referrers = [ref for ref in gc.get_referrers(obj)
+                         if not (inspect.isframe(ref) or
+                         ref in exclude)]
+            if depth == 0:
+                ref_dict[obj] = referrers
+            else:
+                deeper = {}
+                for r in referrers:
+                    find_referrers(deeper, r, depth-1,
+                                   exclude + [obj, referrers])
+                ref_dict[obj] = deeper
+
+        tracked = {}
+        objs = [r for r in self._refs if r not in exclude]
+        for r in objs:
+            find_referrers(tracked, r, depth, [objs])
+
+        return tracked

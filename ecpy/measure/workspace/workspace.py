@@ -251,9 +251,33 @@ class MeasureSpace(Workspace):
         if dock_item is None:
             self._insert_new_edition_panels((measure,))
         else:
+            # If we were passed a dock item it means we are replacing an
+            # existing measure with a different one, so the previous one is
+            # not edited anymore.
+            self.plugin.edited_measures.remove((dock_item.measure,))
             dock_item.measure = measure
 
         self._selection_tracker.set_selected_measure(measure)
+
+        # HINT: code used to track ref leak to root task
+        # requires to activtae root task instance tracking in tasks.base_tasks
+#        def print_infos(root):
+#            import gc
+#            gc.collect()
+#            import inspect
+#            from ecpy.tasks.tasks.base_tasks import ROOTS
+#            for r in ROOTS:
+#                if r is not root:
+#                    refs = [ref for ref in gc.get_referrers(r)
+#                            if not inspect.isframe(ref)]
+#                    print(('Root', refs))
+#                    for ref in refs:
+#                        print((ref,
+#                               [re for re in gc.get_referrers(ref)
+#                                if re is not refs and
+#                                   not inspect.isframe(re)]))
+#
+#        deferred_call(print_infos, measure.root_task)
 
     # TODO : making this asynchronous or notifying the user would be super nice
     def enqueue_measure(self, measure):
