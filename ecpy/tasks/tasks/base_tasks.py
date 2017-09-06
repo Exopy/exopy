@@ -655,7 +655,7 @@ class ComplexTask(BaseTask):
     #: List of all the children of the task. The list should not be manipulated
     #: directly by user code.
     #: The tag 'child' is used to mark that a member can contain child tasks
-    #: and is used gather children for operation which must occur on all of
+    #: and is used to gather children for operation which must occur on all of
     #: them.
     children = List().tag(child=100)
 
@@ -1021,6 +1021,10 @@ class ComplexTask(BaseTask):
             child.parent = self
             child.root = self.root
 
+# HINT: RootTask instance tracking code
+# import weakref
+# ROOTS = weakref.WeakSet()
+
 
 class RootTask(ComplexTask):
     """Special task which is always the root of a measurement.
@@ -1086,6 +1090,9 @@ class RootTask(ComplexTask):
     path = Constant('root')
     database_entries = set_default({'default_path': ''})
 
+# HINT: RootTask instance tracking code
+#    __slots__ = ('__weakref__',)
+
     def __init__(self, *args, **kwargs):
         self.preferences = ConfigObj(indent_type='    ', encoding='utf-8')
         self.database = TaskDatabase()
@@ -1095,6 +1102,10 @@ class RootTask(ComplexTask):
         self.parent = self
         self.active_threads_counter.observe('count', self._state)
         self.paused_threads_counter.observe('count', self._state)
+
+# HINT: RootTask instance tracking code
+#        ROOTS.add(self)
+#        print(len(ROOTS))
 
     def check(self, *args, **kwargs):
         """Check that the default path is a valid directory.

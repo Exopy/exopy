@@ -123,10 +123,15 @@ def test_root_view(windows, task_workbench, dialog_sleep):
     sleep(dialog_sleep)
     assert len(view._cache) == 2
 
+    # Test removing the last child and removing a view for an already removed
+    # task
+    child_task = task.children[0]
     editor.operations['remove'](0)
     process_app_events()
     sleep(dialog_sleep)
     assert len(view._cache) == 1
+
+    view.discard_view(child_task)
 
     win.close()
 

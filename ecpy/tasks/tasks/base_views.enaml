@@ -155,11 +155,15 @@ enamldef RootTaskView(BaseTaskView): main:
         """
         try:
             view = _cache.pop(task)
+            # Make sure all children are parented and will hence be properly
+            # destroyed.
+            view.refresh()
+            view.set_parent(None)
             view.destroy()
         except KeyError:
             pass
         else:
-            # Remove all views that may have been destroyed because their
+            # Remove all views that have been destroyed because their
             # parent was just destroyed
             self._cache = {k: v for k, v in _cache.items()
                            if not v.is_destroyed}
@@ -170,9 +174,13 @@ enamldef RootTaskView(BaseTaskView): main:
         # to speed up a bit the process.
         tasks = sorted(_cache, key=attrgetter('depth'))
         for t in tasks:
-            view = _cache[task]
+            view = _cache.pop(t)
             if not view.is_destroyed:
                 view.destroy()
+            # Manually breaking the reference cycles reduce the gc work
+            view.task = None
+            view.root = None
+        self.root = None
 
     constraints = [vbox(hbox(p_lab, p_val, p_exp, prof), editor),
                    align('v_center', p_lab, p_val)]
