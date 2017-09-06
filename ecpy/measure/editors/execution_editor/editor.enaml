@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -13,11 +13,12 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from operator import attrgetter
-from collections import Iterable
+from collections import Iterable, OrderedDict
 from time import sleep
 
+from atom.api import Value, Typed
 from enaml.widgets.api import (Container, GroupBox, CheckBox, ScrollArea,
-                               PopupView, Field, RadioButton,
+                               PopupView, Field, RadioButton, HGroup,
                                ObjectCombo, PushButton, Menu, Action)
 from enaml.core.api import Looper, Conditional, Include
 from enaml.layout.api import vbox, hbox, spacer
@@ -125,10 +126,14 @@ enamldef _BaseExecutionEditor(Container):
     #: Reference to the model keeping track of the pools currently used.
     attr _model
 
-    padding = 0
+    padding = 1
+
     constraints << [hbox(stop,
-                         *((parallel,) + tuple(par_cond.items) + (wait,)
-                           + tuple(wai_cond.items) + (spacer,)))]
+                         *((parallel,) +
+                           ((par_comb,) if par_comb.visible else ()) +
+                           (wait,) +
+                           ((wai_cond,) if wai_cond.visible else ()) +
+                           (spacer,)))]
 
     CheckBox: stop:
         text = 'Stoppable'
@@ -139,11 +144,6 @@ enamldef _BaseExecutionEditor(Container):
         hug_width = 'strong'
 
     CheckBox: parallel:
-        # Workaround the fact that otherwise when the checkbox is unchecked
-        # the declaration for the ObjectCombo in par_cond is destroyed but the
-        # qt object try to refresh its items given the async nature of enaml.
-        attr active : bool = checked
-
         text = 'Parallel'
         tool_tip = 'Should this task perform its job in parallel (new thread).'
         hug_width = 'strong'
@@ -151,35 +151,26 @@ enamldef _BaseExecutionEditor(Container):
         checked ::
             _set_parallel(task, 'activated', change['value'])
 
-            parallel.active = change['value']
+    ObjectCombo: par_comb:
+        #: Way for the popup to send its answer (popup is non-blocking)
+        event answer
 
-    # Select parallel pool of execution.
-    Conditional: par_cond:
-        condition << parallel.active
+        items << _model.pools
+        visible << parallel.checked
+        selected << task.parallel.get('pool')
+        selected ::
+            _set_parallel(task, 'pool', change['value'])
+        answer ::
+            _set_parallel(task, 'pool', change['value'])
+        tool_tip = 'Right-click to declare a new pool.'
 
-        ObjectCombo: par_comb:
-            #: Way for the popup to send its answer (popup is non-blocking)
-            attr answer
-
-            items << _model.pools
-            selected << task.parallel.get('pool')
-            selected ::
-                _set_parallel(task, 'pool', change['value'])
-            answer ::
-                _set_parallel(task, 'pool', change['value'])
-            tool_tip = 'Right-click to declare a new pool.'
-
-            Menu:
-                context_menu = True
-                Action:
-                    text = 'Add new pool'
-                    initialized::
-                        # Need to init the value so that the popup answer is
-                        # signaled.
-                        par_comb.answer = '__gg__'
-                    triggered ::
-                        popup = _PopupField(par_comb)
-                        popup.show()
+        Menu:
+            context_menu = True
+            Action:
+                text = 'Add new pool'
+                triggered ::
+                    popup = _PopupField(par_comb)
+                    popup.show()
 
     CheckBox: wait:
         text = 'Wait'
@@ -190,8 +181,11 @@ enamldef _BaseExecutionEditor(Container):
         checked ::
             _set_wait(task, 'activated', change['value'])
 
-    Conditional: wai_cond:
-        condition << wait.checked
+    HGroup: wai_cond:
+
+        visible << wait.checked
+        padding = 1
+        trailing_spacer = spacer
 
         #: Currently selected pool to wait on.
         attr selected << set(task.wait.get('wait', []) +
@@ -224,14 +218,11 @@ enamldef _BaseExecutionEditor(Container):
         PushButton:
 
             #: Way for the popup to send its answer (popup is non-blocking)
-            attr answer
+            event answer
 
             text = 'Edit'
             hug_width = 'strong'
 
-            initialized ::
-                # Need to init the value so that the popup answer is signaled.
-                self.answer = ['']
             clicked ::
                 sel = wai_cond.selected.copy()
                 popup = _PopupList(self, selected=sel,
@@ -244,6 +235,7 @@ enamldef _BaseExecutionEditor(Container):
                     task.wait = dict(activated=True, no_wait=list(new_sel))
                 else:
                     task.wait = dict(activated=True, wait=list(new_sel))
+
 
 enamldef SimpleTaskExecutionEditor(GroupBox):
     """Editor specialized in handling SimpleTask subclasses.
@@ -266,20 +258,66 @@ enamldef SimpleTaskExecutionEditor(GroupBox):
 
     title = task.name
 
-    padding = 0
+    padding = 1
 
     _BaseExecutionEditor: ed:
         pass
 
 
-enamldef ComplexTaskExecutionEditor(GroupBox): main:
+class _BaseComplexTaskExecutionEditor(GroupBox):
+    """Base view handling the observation.
+
+    """
+    #: Reference to the task this editor is linked to.
+    task = Value()
+
+    #: List of task that should be displayed by the editor. Keep cached
+    #: to determine the modifications
+    _tasks = Typed(OrderedDict, ())
+
+    def __init__(self, parent, **kwargs):
+        super(_BaseComplexTaskExecutionEditor, self).__init__(parent, **kwargs)
+        for m in tagged_members(self.task, 'child'):
+            self.task.observe(m, self.populate_tagged_children)
+        for m in tagged_members(self.task, 'child_notifier'):
+            self.task.observe(m, self.populate_tagged_children)
+        self.populate_tagged_children()
+
+    def destroy(self):
+        """Clear the _tasks cache to avoid any issue.
+
+        """
+        for m in tagged_members(self.task, 'child'):
+            self.task.unobserve(m, self.populate_tagged_children)
+        for m in tagged_members(self.task, 'child_notifier'):
+            self.task.unobserve(m, self.populate_tagged_children)
+        self._tasks.clear()
+        super(_BaseComplexTaskExecutionEditor, self).destroy()
+
+    def populate_tagged_children(self, change=None):
+        """Refresh the editors for the included tagged children.
+
+        """
+        tasks = self.task.gather_children()
+        added = set(tasks) - set(self._tasks)
+        removed = set(self._tasks) - set(tasks)
+        self._tasks = OrderedDict([(t, self.root.view_for(t)) for t in tasks])
+
+        for t in removed:
+            self.root.discard_view(t)
+
+        c_tag = self.children[-1]
+
+        for t in added:
+            self._tasks[t].set_parent(c_tag)
+
+        c_tag.request_relayout()
+
+
+enamldef ComplexTaskExecutionEditor(_BaseComplexTaskExecutionEditor): main:
     """Editor specialized in handling ComplexTask subclasses.
 
     """
-
-    #: Reference to the task this editor is linked to.
-    attr task
-
     #: Reference to the root editor managing the cache.
     attr root
 
@@ -293,79 +331,48 @@ enamldef ComplexTaskExecutionEditor(GroupBox): main:
         """Function making sure that the editor is displayed correctly.
 
         """
-        self.show()
-        for ed in tag.objects:
-            ed.set_parent(main)
+        # First update the children before showing the widget
+        for ed in _tasks.values():
+            ed.set_parent(c_tag)
             ed.refresh()
+        c_tag.request_relayout()
+        self.show()
 
-    func populate_tagged_children(change=None):
-        """Refresh the editors for the included tagged children.
-
-        """
-        if isinstance(change, dict) and 'oldvalue' in change:
-            if isinstance(change['oldvalue'], Iterable):
-                removed = set(change['oldvalue']) - set(change['value'])
-                for t in removed:
-                    root.discard_view(t)
-            else:
-                root.discard_view(change['oldvalue'])
-        elif change is not None:
-            if change.collapsed:
-                for c in change.collapsed:
-                    for _, t in c.removed:
-                        root.discard_view(t)
-            else:
-                for _, t in change.removed:
-                    root.discard_view(t)
-
-        views = []
-        for child in task.gather_children():
-            v = root.view_for(child)
-            v.visible = main.show_children
-            views.append(v)
-
-        tag.objects = views
-
-    title = task.name if task else ''
-
-    layout_constraints => ():
-        """Setup the constraints for the children.
-
-        """
-        children = self.visible_widgets()
-        constraints = [vbox(*(tuple(children) + (spacer,)))]
-        for child in children:
-            constraints.append(child.left == contents_left)
-        return constraints
-
-    initialized ::
-        for m in tagged_members(task, 'child'):
-            task.observe(m, self.populate_tagged_children)
-        for m in tagged_members(task, 'child_notifier'):
-            task.observe(m, self.populate_tagged_children)
-        populate_tagged_children()
+    title << task.name if task else ''
 
     # The root task does not have that kind of settings
     Conditional:
-        condition << task.depth != 0
+        condition << task.depth != 0 if task else False
         _BaseExecutionEditor:
             task = main.task
             _model = main._model
 
     PushButton:
-        text << '-' if c_tag.visible else '+'
+        text << '-' if show_children else '+'
         constraints = [height == 10]
         clicked ::
             main.show_children = not show_children
+            c_tag.request_relayout()
 
     Container: c_tag:
-        padding = 0
+        padding = 1
         visible << show_children
-        visible ::
-            for o in tag.objects:
-                o.visible = visible
-        Include: tag:
-            pass
+
+        layout_constraints => ():
+            """Setup the constraints for the children.
+
+            This is necessary to avoid that the widget takes more space than
+            necessary.
+
+            """
+            if show_children:
+                views = _tasks.values()
+                constraints = [vbox(*(tuple(views) + (spacer,)))]
+                for child in children:
+                    constraints.append(child.left == contents_left)
+                return constraints
+            else:
+                return []
 
 
 enamldef ExecutionEditor(BaseEditor): editor:
@@ -406,10 +413,18 @@ enamldef ExecutionEditor(BaseEditor): editor:
         """
         try:
             view = _cache.pop(task)
+            # Make sure all children are parented and will hence be properly
+            # destroyed
+            view.refresh()
             view.set_parent(None)
             view.destroy()
         except KeyError:
             pass
+        else:
+            # Remove all views that have been destroyed because their
+            # parent was just destroyed
+            self._cache = {k: v for k, v in _cache.items()
+                           if not v.is_destroyed}
 
     func set_view_for(task):
         """Set the currently displayed widget to match the selected view.
@@ -421,7 +436,7 @@ enamldef ExecutionEditor(BaseEditor): editor:
         if task:
             view = view_for(task)
             # HINT this is needed because otherwise we try to relayout tasks
-            # that should not be relaid out because there are not diplayed
+            # that should not be relaid out because there are not displayed
             # anymore and should be the layout parent of the displayed task.
             # (RootTask for a complex one).
             # This is Qt specific
@@ -451,9 +466,16 @@ enamldef ExecutionEditor(BaseEditor): editor:
         # to speed up a bit the process.
         tasks = sorted(_cache, key=attrgetter('depth'))
         for t in tasks:
-            view = _cache[t]
+            view = _cache.pop(t)
             if not view.is_destroyed:
                 view.destroy()
+            # Manually breaking the reference cycles reduce the gc work
+            view.root = None
+            # We do not do the same for task as it is not needed and weird to
+            # a very weird KeyError.
+        # Manually breaking the reference cycles reduce the gc work
+        if pool_model:
+            pool_model.root = None
 
     Container: cont:
         padding = 2
