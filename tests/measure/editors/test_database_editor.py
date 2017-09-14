@@ -16,6 +16,7 @@ from time import sleep
 
 import pytest
 import enaml
+from enaml.widgets.api import FlowArea, Menu
 
 from ecpy.utils.container_change import ContainerChange
 from ecpy.tasks.api import RootTask, ComplexTask, SimpleTask
@@ -33,6 +34,16 @@ with enaml.imports():
 
 @pytest.fixture
 def task():
+    """Task used to test the editor.
+
+    Root:
+        SimpleTask: simp1, entries: t
+        ComplexTask: comp1, entries: t1, t2
+            SimpleTask: simp2, entris: t
+            ComplexTask: comp2, entries: t1, t2
+                SimpleTask: simp3, entries: t
+
+    """
     r = RootTask()
     r.add_child_task(0, SimpleTask(name='simp1', database_entries={'t': 1}))
     c = ComplexTask(name='comp1', database_entries={'t1': 2, 't2': 'r'})
@@ -44,6 +55,17 @@ def task():
     c.add_child_task(1, c2)
     r.add_child_task(1, c)
     return r
+
+
+def test_node_creation(task):
+    """Test creating the editor when exceptions already exists.
+
+    """
+    # Add an access exception to the deepest level
+    simp3 = task.children[1].children[1].children[0]
+    simp3.add_access_exception('t', 1)
+    ed = EditorModel(root=task)
+    assert ed.nodes[simp3.path].has_exceptions
 
 
 def test_node_sorting(task):
@@ -75,28 +97,29 @@ def test_editor_modifying_exception_level(task):
     ed = EditorModel(root=task)
     rnode = ed.nodes['root']
 
-    node = rnode.children[0].children[0]
+    parent_node = rnode.children[0]
+    node = parent_node.children[0]
     # Check that we can desambiguate between task with same prefix
     node.task.add_child_task(0, SimpleTask(name='simp3_t',
                                            database_entries={'t': 1}))
     node.add_exception('simp3_t')
-    assert 'simp3_t' in node.parent.exceptions
+    assert 'simp3_t' in parent_node.exceptions
     assert 't' in node.task.children[1].access_exs
 
     ed.increase_exc_level('root/comp1', 'simp3_t')
-    assert 'simp3_t' not in node.parent.exceptions
-    assert 'simp3_t' in node.parent.parent.exceptions
+    assert 'simp3_t' not in parent_node.exceptions
+    assert 'simp3_t' in rnode.exceptions
 
     ed.decrease_exc_level('root', 'simp3_t')
-    assert 'simp3_t' in node.parent.exceptions
-    assert 'simp3_t' not in node.parent.parent.exceptions
+    assert 'simp3_t' in parent_node.exceptions
+    assert 'simp3_t' not in rnode.exceptions
 
     ed.decrease_exc_level('root/comp1', 'simp3_t')
-    assert 'simp3_t' not in node.parent.exceptions
+    assert 'simp3_t' not in parent_node.exceptions
     assert 't' not in node.task.children[1].access_exs
 
-    node.parent.add_exception('simp2_t')
-    assert 'simp2_t' in node.parent.parent.exceptions
+    parent_node.add_exception('simp2_t')
+    assert 'simp2_t' in rnode.exceptions
 
 
 def test_editor_changing_root(task):
@@ -202,6 +225,9 @@ def test_editor_widget(windows, task, dialog_sleep):
     def get_task_widget(editor):
         return editor.page_widget().widgets()[0].scroll_widget()
 
+    def get_flow_area(widget):
+        return [w for w in widget.children if isinstance(w, FlowArea)][0]
+
     def get_menu(task_widget, widget_index):
         flow_area = task_widget.widgets()[0]
         flow_item = flow_area.flow_items()[widget_index]
@@ -218,9 +244,21 @@ def test_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
 
     r_widget = get_task_widget(editor)
-    flow_area = r_widget.children[0]
+    flow_area = get_flow_area(r_widget)
     # Check that there is no contextual menu attached.
-    assert len(flow_area.children[0].children[0].children) == 1
+    assert not [w for w in flow_area.flow_items()[0].flow_widget().children
+                if isinstance(w, Menu)]
+
+    # Ask the editor to hide its children by clicking the button (this does
+    # not check that the layout actually changed simply that is is correct)
+    r_widget.widgets()[-2].clicked = True
+    assert r_widget.widgets()[-1].visible is False
+    assert not r_widget.widgets()[-1].layout_constraints()
+
+    # Undo
+    r_widget.widgets()[-2].clicked = True
+    assert r_widget.widgets()[-1].visible is True
+    assert r_widget.widgets()[-1].layout_constraints()
 
     # Add an access exception to the lowest level.
     editor.selected_task = task.children[1].children[1]
@@ -241,7 +279,7 @@ def test_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
 
     widget = get_task_widget(editor)
-    flow_area = widget.children[0]
+    flow_area = get_flow_area(widget)
     menu = get_menu(widget, -1)
     assert len(menu.items()) == 2  # Check that both actions are there.
     move_up_action = menu.items()[0]
@@ -257,7 +295,7 @@ def test_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
 
     widget = get_task_widget(editor)
-    flow_area = widget.children[0]
+    flow_area = get_flow_area(widget)
     menu = get_menu(widget, -1)
     assert len(menu.items()) == 1  # Check that only one action is there.
     move_down_action = menu.items()[0]
@@ -272,7 +310,7 @@ def test_editor_widget(windows, task, dialog_sleep):
     sleep(dialog_sleep)
 
     widget = get_task_widget(editor)
-    flow_area = widget.children[0]
+    flow_area = get_flow_area(widget)
     assert len(flow_area.flow_items()) == 4
 
     menu = get_menu(widget, -1)
@@ -282,6 +320,12 @@ def test_editor_widget(windows, task, dialog_sleep):
     assert not task_with_exs.access_exs
     sleep(dialog_sleep)
 
+    # Destroy a task such that it leads to the destruction of a node
     editor.selected_task = task
+    old_cache = editor._cache.copy()
+    task.remove_child_task(1)
     process_app_events()
+    assert len(editor._cache) == 1
+    for node in old_cache:
+        editor.discard_view(node)
     sleep(dialog_sleep)

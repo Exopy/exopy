@@ -19,7 +19,7 @@ import enaml
 from enaml.widgets.api import Window
 from future.builtins import str as text
 
-from ecpy.testing.util import process_app_events, handle_dialog
+from ecpy.testing.util import process_app_events, handle_dialog, ObjectTracker
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
@@ -160,97 +160,124 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     """Test creating, saving, loading a measure.
 
     """
-    workspace.new_measure()
-    measure = workspace.plugin.edited_measures.measures[-1]
-    assert len(workspace.plugin.edited_measures.measures) == 2
-    assert measure.monitors
+    process_app_events()
 
-    d = tmpdir.mkdir('measure_save')
-    f = d.join('test')
-    from ecpy.measure.workspace.workspace import FileDialogEx
-
-    # Test handling an empty answer.
-    @classmethod
-    def get(*args, **kwargs):
-        pass
-    monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
-    workspace.save_measure(measure)
-
-    assert not d.listdir()
-
-    # Test saving.
-    @classmethod
-    def get(*args, **kwargs):
-        return text(f)
-    monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
-    workspace.save_measure(measure)
-    sleep(0.1)
-
-    f += '.meas.ini'
-    assert f in d.listdir()
-    f.remove()
-
-    # Test saving on previously used file.
-    workspace.save_measure(measure)
-    assert f in d.listdir()
-
-    f = d.join('test2.meas.ini')
-
-    # Test saving as in a new file.
-    @classmethod
-    def get(*args, **kwargs):
-        return text(f)
-    monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
-    workspace.save_measure(measure, False)
-
-    assert f in d.listdir()
-
-    # Test handling error in saving.
     from ecpy.measure.measure import Measure
+    from ecpy.tasks.api import RootTask
 
-    def r(s, m):
-        raise Exception()
+    measure_tracker = ObjectTracker(Measure, False)
+    root_tracker = ObjectTracker(RootTask, False)
+    try:
+        assert len(measure_tracker.alive_instances) == 0
+        assert len(root_tracker.alive_instances) == 0
 
-    monkeypatch.setattr(Measure, 'save', r)
-    with handle_dialog():
+        workspace.new_measure()
+        measure = workspace.plugin.edited_measures.measures[-1]
+        assert len(workspace.plugin.edited_measures.measures) == 2
+        assert measure.monitors
+        assert len(measure_tracker.alive_instances) == 1
+        assert len(root_tracker.alive_instances) == 1
+
+        d = tmpdir.mkdir('measure_save')
+        f = d.join('test')
+        from ecpy.measure.workspace.workspace import FileDialogEx
+
+        # Test handling an empty answer.
+        @classmethod
+        def get(*args, **kwargs):
+            pass
+        monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
         workspace.save_measure(measure)
 
-    # Test loading and dialog reject.
-    @classmethod
-    def get(*args, **kwargs):
-        pass
-    monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
-    assert workspace.load_measure('file') is None
+        assert not d.listdir()
 
-    # Test loading measure.
-    @classmethod
-    def get(*args, **kwargs):
-        return text(f)
-    monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
-    workspace.load_measure('file')
+        # Test saving.
+        @classmethod
+        def get(*args, **kwargs):
+            return text(f)
+        monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
+        workspace.save_measure(measure)
+        sleep(0.1)
 
-    assert len(workspace.plugin.edited_measures.measures) == 3
-    m = workspace.plugin.edited_measures.measures[2]
-    assert m.path == text(f)
-    assert workspace._get_last_selected_measure() is m
+        f += '.meas.ini'
+        assert f in d.listdir()
+        f.remove()
 
-    # Test loading a measure in an existing dock_item
-    panel = workspace.dock_area.find('meas_0')
-    panel.measure.name = '__dummy__'
-    workspace.load_measure('file', panel)
-    assert panel.measure.name != '__dummy__'
+        # Test saving on previously used file.
+        workspace.save_measure(measure)
+        assert f in d.listdir()
 
-    # Test handling loading error.
-    @classmethod
-    def r(cls, measure_plugin, path, build_dep=None):
-        return None, {'r': 't'}
+        f = d.join('test2.meas.ini')
 
-    monkeypatch.setattr(Measure, 'load', r)
-    with handle_dialog(custom=lambda dial: dial.maximize()):
+        # Test saving as in a new file.
+        @classmethod
+        def get(*args, **kwargs):
+            return text(f)
+        monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
+        workspace.save_measure(measure, False)
+
+        assert f in d.listdir()
+
+        # Test handling error in saving.
+        def r(s, m):
+            raise Exception()
+
+        monkeypatch.setattr(measure_tracker.cls, 'save', r)
+        with handle_dialog():
+            workspace.save_measure(measure)
+
+        # Test loading and dialog reject.
+        @classmethod
+        def get(*args, **kwargs):
+            pass
+        monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
+        assert workspace.load_measure('file') is None
+
+        # Test loading measure.
+        @classmethod
+        def get(*args, **kwargs):
+            return text(f)
+        monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
         workspace.load_measure('file')
 
-    with pytest.raises(NotImplementedError):
-        workspace.load_measure('template')
+        assert len(workspace.plugin.edited_measures.measures) == 3
+        m = workspace.plugin.edited_measures.measures[2]
+        assert m.path == text(f)
+        assert workspace._get_last_selected_measure() is m
+
+        # Test loading a measure in an existing dock_item and check the old one
+        # does not remain in the list of edited measures
+        panel = workspace.dock_area.find('meas_0')
+        panel.measure.name = '__dummy__'
+        old_measure = panel.measure
+        workspace.load_measure('file', panel)
+        assert panel.measure.name != '__dummy__'
+        assert old_measure not in workspace.plugin.edited_measures.measures
+        del old_measure
+
+        # Test handling loading error.
+        @classmethod
+        def r(cls, measure_plugin, path, build_dep=None):
+            return None, {'r': 't'}
+
+        monkeypatch.setattr(Measure, 'load', r)
+        with handle_dialog(custom=lambda dial: dial.maximize()):
+            workspace.load_measure('file')
+
+        with pytest.raises(NotImplementedError):
+            workspace.load_measure('template')
+
+        # Check that have only two measures and root (no leakage)
+        # HINT : use for debugging
+    #    from pprint import pprint
+    #    print(workspace.plugin.edited_measures.measures)
+    #    pprint(measure_tracker.list_referrers())
+        assert len(measure_tracker.alive_instances) == 3
+        assert len(root_tracker.alive_instances) == 3
+
+    finally:
+        measure_tracker.stop_tracking()
+        root_tracker.stop_tracking()
 
 
 def test_handling_all_tools_combinations(workspace):

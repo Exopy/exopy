@@ -273,7 +273,8 @@ def main(cmd_line_args=None):
     core = workbench.get_plugin('enaml.workbench.core')
 
     # Install global except hook.
-    core.invoke_command('ecpy.app.errors.install_excepthook', {})
+    if not args.nocapture:
+        core.invoke_command('ecpy.app.errors.install_excepthook', {})
 
     # Select workspace
     core.invoke_command('enaml.workbench.ui.select_workspace',

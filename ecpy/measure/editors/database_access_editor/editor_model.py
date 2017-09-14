@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -12,7 +12,7 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Typed, List, ForwardTyped, Signal, Dict
+from atom.api import Atom, Typed, List, Dict
 
 from ....tasks.api import RootTask, ComplexTask
 from ....tasks.tasks.database import DatabaseNode
@@ -27,9 +27,6 @@ class NodeModel(Atom):
     #: Reference to the task this node refers to.
     task = Typed(ComplexTask)
 
-    #: Reference to editor model.
-    editor = ForwardTyped(lambda: EditorModel)
-
     #: Database entries available on the node associated with the task.
     entries = List()
 
@@ -39,30 +36,39 @@ class NodeModel(Atom):
     #: Database entries for which an access exception exists
     has_exceptions = List()
 
-    #: Reference to the node which a parent of this one.
-    parent = ForwardTyped(lambda: NodeModel)
-
     #: Children nodes
     children = List()
 
-    #: Notifier for changes to the children. Simply there to satisfy the
-    #: TaskEditor used in the view.
-    children_changed = Signal()
-
-    def __init__(self, **kwargs):
-
-        super(NodeModel, self).__init__(**kwargs)
-        for m in tagged_members(self.task, 'child_notifier'):
-            self.task.observe(m, self._react_to_task_children_event)
-
-    def sort_nodes(self):
+    def sort_nodes(self, nodes=None):
         """Sort the nodes according to the task order.
+
+        New nodes can be passed to the methods in which case they will replace
+        the existing ones.
+
+        """
+        nodes = nodes if nodes is not None else self.children
+        tasks = [t for t in self.task.gather_children()
+                 if isinstance(t, ComplexTask)]
+        self.children = sorted(nodes,
+                               key=lambda n: tasks.index(n.task))
+
+    def add_node(self, node):
+        """Add a node to the children of this one.
+
+        """
+        self.sort_nodes(self.children + [node])
+
+    def remove_node(self, node):
+        """Remove a node from the children.
+
+        We also discard all nodes that have no linked task
+        (happen when dicarding a ComplexTask containing other tasks).
 
         """
         tasks = [t for t in self.task.gather_children()
                  if isinstance(t, ComplexTask)]
-        self.children = sorted(self.children,
-                               key=lambda n: tasks.index(n.task))
+        self.sort_nodes([c for c in self.children
+                         if c is not node and c.task in tasks])
 
     def add_exception(self, entry):
         """Add an access exception.
@@ -76,6 +82,21 @@ class NodeModel(Atom):
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================
+
+    def _post_setattr_task(self, old, new):
+        """Attach and detach observers as needed.
+
+        """
+        if new:
+            for m in tagged_members(new, 'child'):
+                new.observe(m, self._react_to_task_children_event)
+            for m in tagged_members(new, 'child_notifier'):
+                new.observe(m, self._react_to_task_children_event)
+        if old:
+            for m in tagged_members(old, 'child'):
+                old.unobserve(m, self._react_to_task_children_event)
+            for m in tagged_members(old, 'child_notifier'):
+                old.unobserve(m, self._react_to_task_children_event)
 
     def _react_to_task_children_event(self, change):
         """Simply reorder the nodes if it was a move event.
@@ -117,9 +138,6 @@ class EditorModel(Atom):
     """
     #: Reference to the root task of the currently edited task hierarchy.
     root = Typed(RootTask)
-
-    #: Signal that a node was deleted (the payload is the node model object).
-    node_deleted = Signal()
 
     #: Dictionary storing the nodes for all tasks by path.
     nodes = Dict()
@@ -195,12 +213,22 @@ class EditorModel(Atom):
             database_nodes = new.database.list_nodes()
             nodes = {p: self._model_from_node(p, n)
                      for p, n in database_nodes.items()}
+            # Write the has_exception member now that all nodes exists
+            for p, n in nodes.items():
+                if n.exceptions:
+                    access = database_nodes[p].meta['access']
+                    for k, v in access.items():
+                        nodes[p + '/' + v].has_exceptions.append(k)
+
+            # Set the proper parent for each node knowing there is only one
+            # root node whose path is root, all other contain at least one /
+            # and isolating the first part of the path e find its parent
             for p, m in nodes.items():
                 if '/' in p:
                     p, _ = p.rsplit('/', 1)
-                    m.parent = nodes[p]
                     nodes[p].children.append(m)
 
+            # Sort nodes now that they all have a parent
             for nmodel in nodes.values():
                 nmodel.sort_nodes()
 
@@ -245,8 +273,8 @@ class EditorModel(Atom):
         origin_node = self.nodes[path + '/' + news[2] if news[2] else path]
         if news[0] == 'added':
             n.exceptions = n.exceptions[:] + [news[3]]
-
-            origin_node.has_exceptions = n.has_exceptions[:] + [news[3]]
+            origin_node.has_exceptions = (origin_node.has_exceptions[:] +
+                                          [news[3]])
 
         elif news[0] == 'renamed':
             exceptions = n.exceptions[:]
@@ -264,7 +292,6 @@ class EditorModel(Atom):
             if news[3]:
                 del exceptions[exceptions.index(news[3])]
                 n.exceptions = exceptions
-
                 exs = origin_node.has_exceptions[:]
                 del exs[exs.index(news[3])]
                 origin_node.has_exceptions = exs
@@ -285,9 +312,7 @@ class EditorModel(Atom):
         if news[0] == 'added':
             parent = self.nodes[news[1]]
             model = self._model_from_node(path, news[3])
-            model.parent = parent
-            parent.children.append(model)
-            parent.sort_nodes()
+            parent.add_node(model)
             self.nodes[path] = model
 
         elif news[0] == 'renamed':
@@ -301,10 +326,8 @@ class EditorModel(Atom):
         elif news[0] == 'removed':
             node = self.nodes[path]
             del self.nodes[path]
-            parent = node.parent
-            del parent.children[parent.children.index(node)]
-            parent.sort_nodes()
-            self.node_deleted(node)
+            parent = self.nodes[path.rsplit('/', 1)[0]]
+            parent.remove_node(node)
 
     def _get_task(self, path):
         """Retrieve the task corresponding to a certain path.
@@ -332,5 +355,5 @@ class EditorModel(Atom):
         entries = [k for k, v in node.data.items()
                    if not isinstance(v, DatabaseNode)]
         excs = list(node.meta.get('access', {}).keys())
-        return NodeModel(editor=self, entries=entries,
-                         exceptions=excs, task=self._get_task(path))
+        return NodeModel(entries=entries, exceptions=excs,
+                         task=self._get_task(path))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,17 +17,35 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 from time import sleep
+from collections import OrderedDict
 
 from enaml.widgets.api import (Container, GroupBox, ScrollArea, Menu, Action,
-                               Label, FlowArea, FlowItem)
+                               Label, FlowArea, FlowItem, PushButton)
 from enaml.core.api import Looper, Conditional
+from enaml.layout.api import vbox, spacer
+from enaml.styling import StyleSheet, Style, Setter
 
 from ....tasks.tasks.task_editor import FoldableTaskEditor
 from ..base_editor import BaseEditor
 from .editor_model import EditorModel
 
 
-enamldef NodeEditor(GroupBox):
+enamldef BlueLabel(StyleSheet):
+    """Style sheet setting the background to lighblue
+
+    For unclear reasons this gives more consistent results than setting the
+    background member.
+
+    """
+    Style:
+        style_class = 'blue'
+        Setter:
+            field = 'background'
+            value = 'lightblue'
+
+
+
+enamldef NodeEditor(GroupBox): main:
     """Access editor for a NodeModel.
 
     """
@@ -35,7 +53,13 @@ enamldef NodeEditor(GroupBox):
     attr node
 
     #: Reference to the root view holding the cache.
-    alias root : ed.root
+    attr root
+
+    #: Should the children be shown
+    attr show_children : bool = True
+
+    #: Reference to the nodes view in the proper order
+    attr _nodes = OrderedDict()
 
     title << node.task.name if node else ''
 
@@ -48,10 +72,39 @@ enamldef NodeEditor(GroupBox):
         """Function making sure that the editor is displayed correctly.
 
         """
-        ed.refresh()
+        # First update the children before showing the widget
+        for ed in _nodes.values():
+            ed.set_parent(c_nodes)
+            ed.refresh()
+        c_nodes.request_relayout()
         self.show()
 
+    func populate_nodes(change=None):
+        """Refresh the editors for the included nodes.
+
+        """
+        nodes = node.children
+        added = set(nodes) - set(self._nodes)
+        removed = set(self._nodes) - set(nodes)
+        self._nodes = OrderedDict([(n, root.view_for(n)) for n in nodes])
+
+        for n in removed:
+            root.discard_view(n)
+
+        for n in added:
+            _nodes[n].set_parent(c_nodes)
+
+        c_nodes.request_relayout()
+
+    initialized ::
+        node.observe('children', self.populate_nodes)
+        populate_nodes()
+
+    BlueLabel:
+        pass
+
     FlowArea:
+        resist_height = 'ignore'
         hug_height = 'medium'
         hug_width = 'ignore'
 
@@ -62,9 +115,9 @@ enamldef NodeEditor(GroupBox):
                     padding = 0
                     Label:
                         text << loop_item
-                        background << ('lightblue'
-                                       if loop_item in node.has_exceptions
-                                       else None)
+                        style_class << ('blue'
+                                        if loop_item in node.has_exceptions
+                                        else '')
                         Conditional:
                             condition << (node.task.depth != 0 and
                                           loop_item not in node.has_exceptions)
@@ -90,7 +143,7 @@ enamldef NodeEditor(GroupBox):
                                 Action:
                                     text = 'Move up'
                                     triggered ::
-                                        e = node.editor
+                                        e = root.database_model
                                         t = node.task
                                         p = t.path + '/' + t.name
                                         e.increase_exc_level(p, loop_item)
@@ -100,16 +153,38 @@ enamldef NodeEditor(GroupBox):
                                             'node, if necessary removing it '
                                             'completetly')
                                 triggered ::
-                                    e = node.editor
+                                    e = root.database_model
                                     t = node.task
                                     p = (t.path + '/' + t.name if t.depth
                                          else t.path)
                                     e.decrease_exc_level(p, loop_item)
 
-    FoldableTaskEditor: ed:
-        # This abuses the task editor but it is really nice.
-        task = node
-        operations = {}
+    PushButton:
+        text << '-' if show_children else '+'
+        constraints = [height == 10]
+        clicked ::
+            main.show_children = not show_children
+            c_nodes.request_relayout()
+
+    Container: c_nodes:
+        padding = 1
+        visible << show_children
+
+        layout_constraints => ():
+            """Setup the constraints for the children.
+
+            This is necessary to avoid that the widget takes more space than
+            necessary.
+
+            """
+            if show_children:
+                views = _nodes.values()
+                constraints = [vbox(*(tuple(views) + (spacer,)))]
+                for child in children:
+                    constraints.append(child.left == contents_left)
+                return constraints
+            else:
+                return []
 
 
 enamldef DatabaseAccessEditor(BaseEditor): main:
@@ -137,18 +212,26 @@ enamldef DatabaseAccessEditor(BaseEditor): main:
 
         """
         try:
-            view = _cache.pop(task)
+            view = _cache.pop(node)
+            # Make sure all children are parented and will hence be properly
+            # destroyed
+            view.refresh()
+            view.set_parent(None)
             view.destroy()
         except KeyError:
             pass
+        else:
+            # Remove all views that have been destroyed because their
+            # parent was just destroyed
+            self._cache = {k: v for k, v in _cache.items()
+                           if not v.is_destroyed}
 
     func set_view_for(task):
         """Set the currently displayed widget to match the selected view.
 
         """
-        if not database_model:
+        if not main.database_model:
             main.database_model = EditorModel(root=task.root)
-            main.database_model.observe('node_deleted', discard_view)
 
         if task:
             if task.name == 'Root':
@@ -157,7 +240,7 @@ enamldef DatabaseAccessEditor(BaseEditor): main:
                 node = database_model.nodes[task.path + '/' + task.name]
             view = view_for(node)
             # HINT this is needed because otherwise we try to relayout tasks
-            # that should not be relaid out because there are not diplayed
+            # that should not be relaid out because there are not displayed
             # anymore and should be the layout parent of the displayed task.
             # (RootTask for a complex one).
             # This is Qt specific
@@ -187,9 +270,16 @@ enamldef DatabaseAccessEditor(BaseEditor): main:
         # to speed up a bit the process.
         nodes = sorted(_cache, key=lambda n: n.task.depth)
         for n in nodes:
-            view = _cache[n]
+            view = _cache.pop(n)
             if not view.is_destroyed:
                 view.destroy()
+            # Manually breaking the reference cycles reduce the gc work
+            n.task = None
+            view.root = None
+        # Manually breaking the reference cycles reduce the gc work
+        if database_model:
+            database_model.root = None
+            self.database_model = None
 
     Container:
         ScrollArea: scroll:

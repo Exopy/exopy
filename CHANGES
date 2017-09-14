@@ -1,9 +1,15 @@
 Ecpy Changelog
 ==============
 
-0.1.0 - 29/06/2017
-------------------
+0.1.0 - to be released
+----------------------
 
+- measure: fix all found bugs of execution editor (#110)
+- measure: fix all found bugs of database access editor (#110)
+- measure: remove measure from the list of edited ones when loading (#110)
+- measure: fix bug when switching workspaces after loading a measure (#110)
+- measure: fix reference leak of old measures (#110)
+- widgets: more homogoneous behavior of drag and drop in the tree (#110)
 - tasks: fix collections of instr dependencies of interfaces (#99)
 - tasks: allow for no views for an interface (#97)
 - utils: use surrogate escape on Python 2 when decoding formatted traceback (#100)
