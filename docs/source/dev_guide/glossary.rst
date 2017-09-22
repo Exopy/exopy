@@ -13,6 +13,24 @@ will be used in the following of this guide.
 
 .. contents::
 
+Set up ecpy in developper mode
+------------------------------
+Here we describe a simple workflow for developpers to contribute to ecpy. 
+It is convenient to use a git GUI such as smartgit. Then, create a repository 
+on your computer where you can clone all the ecpy
+repositories (ecpy, ecpy_hqc_legacy, ecpy_pulses, etc). On your command 
+terminal, navigate to the folder
+of each repository, and type the following command:
+    $ python setup.py develop
+When you want to add a development, use your git GUI to create a branch
+from master, and give it a consistent name. When you finish your development,
+rebase to master, and then push
+your branch. You can now open a pull request. Your code will be discussed among
+the ecpy contributors, and when 
+judged adequate, it will be merged onto the master branch.
+
+Note that while your are developping you can switch between a python 2 and a
+python 3 Anaconda environment to test your code before pushing.
 
 Application architecture
 ------------------------
