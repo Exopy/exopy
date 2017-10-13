@@ -175,8 +175,8 @@ class TestLoopTask(object):
         assert subtask1.parent is self.task
         assert subtask1.path and subtask1.depth
         assert 'value' not in self.task.database_entries
-        assert subtask1.get_from_database('check_val')
-        assert self.task.preferences['task']['name'] == 'check'
+        assert subtask1.get_from_database('Test_val')
+        assert self.task.preferences['task']['name'] == 'Test'
 
         subtask2 = CheckTask(name='rep', database_entries={'new': 1})
         self.task.task = subtask2
@@ -184,23 +184,29 @@ class TestLoopTask(object):
         assert not subtask1.root
         assert not subtask1.parent
         with pytest.raises(KeyError):
-            assert subtask1.get_from_database('check_val')
+            subtask1.get_from_database('Test_val')
 
         assert subtask2.root is self.root
         assert subtask2.database is self.root.database
         assert subtask2.parent is self.task
         assert subtask2.path and subtask1.depth
         assert 'value' not in self.task.database_entries
-        assert subtask2.get_from_database('rep_new')
-        assert self.task.preferences['task']['name'] == 'rep'
+        assert subtask2.get_from_database('Test_new')
+        assert self.task.preferences['task']['name'] == 'Test'
+
+        self.task.name += '2'
+        assert subtask2.name == self.task.name
 
         self.task.task = None
 
         assert not subtask2.root
         assert not subtask2.parent
         with pytest.raises(KeyError):
-            assert subtask2.get_from_database('rep_new')
+            subtask2.get_from_database('Test2_new')
         assert 'value' in self.task.database_entries
+
+        # check that we handle properly the case of no subtask
+        self.task.name += '2'
 
     def test_traverse(self, linspace_interface):
         """Test traversing a with interfaces ComplexTask.
@@ -226,7 +232,7 @@ class TestLoopTask(object):
                 }
         new = RootTask.build_from_config(self.root.preferences, deps)
 
-        assert new.children[0].task.name == 'check'
+        assert new.children[0].task.name == 'Test'
 
         self.task.interface = iterable_interface
         self.root.update_preferences_from_members()

@@ -189,6 +189,8 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
                 old.parent = None
 
         if new:
+            new.name = self.name
+
             if self.has_root:
                 new.depth = self.depth + 1
                 new.database = self.database
@@ -228,3 +230,10 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
             if 'elapsed_time' in aux:
                 del aux['elapsed_time']
             self.database_entries = aux
+
+    def _post_setattr_name(self, old, new):
+        """Sets the subtask's name to its parent's name.
+
+        """
+        if self.task:
+            self.task.name = new
