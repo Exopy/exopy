@@ -45,13 +45,13 @@ def test_base_validation(task):
     """Test simply validating the evaluation.
 
     """
-    task.feval = '2*{test_val}'
+    task.feval = '2*{Loop_val}'
     val, res, msg = validators.Feval().check(task, 'feval')
     assert val == 2
     assert res
     assert not msg
 
-    task.feval = '2-*{test_val}'
+    task.feval = '2-*{Loop_val}'
     val, res, msg = validators.Feval().check(task, 'feval')
     assert val is None
     assert not res
@@ -64,13 +64,13 @@ def test_type_validation(task):
     """
     validator = validators.Feval(types=numbers.Real)
 
-    task.feval = '2*{test_val}'
+    task.feval = '2*{Loop_val}'
     val, res, msg = validator.check(task, 'feval')
     assert val == 2
     assert res
     assert not msg
 
-    task.feval = '2j*{test_val}'
+    task.feval = '2j*{Loop_val}'
     val, res, msg = validator.check(task, 'feval')
     assert val is None
     assert not res
@@ -92,7 +92,7 @@ def test_skip_empty(task):
     """Test skipping an empty value.
 
     """
-    task.feval = '2*{test_val}'
+    task.feval = '2*{Loop_val}'
     val, res, msg = validators.SkipEmpty().check(task, 'feval')
     assert val == 2
     assert res
@@ -115,7 +115,7 @@ def test_skip_in_loop(task):
     assert res
     assert not msg
 
-    task.feval = '2*{test_val}'
+    task.feval = '2*{Loop_val}'
     root = task.root
     task.parent.task = None
     root.add_child_task(0, task)
