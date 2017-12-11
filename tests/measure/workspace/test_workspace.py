@@ -543,12 +543,12 @@ def test_measure_execution(workspace):
             self.called = 'resume'
 
         def stop_measure(self, no_post_exec=False, force=False):
-            self.args = dict(no_post_exed=no_post_exec,
+            self.args = dict(no_post_exec=no_post_exec,
                              force=force)
             self.called = 'stop'
 
         def stop_processing(self, no_post_exec=False, force=False):
-            self.args = dict(no_post_exed=no_post_exec,
+            self.args = dict(no_post_exec=no_post_exec,
                              force=force)
             self.called = 'processing'
 
