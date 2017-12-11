@@ -525,11 +525,13 @@ def test_measure_execution(workspace):
 
     """
     from ecpy.measure.processor import MeasureProcessor
-    from atom.api import Unicode
+    from atom.api import Unicode, Dict
 
     class P(MeasureProcessor):
 
         called = Unicode()
+
+        args = Dict()
 
         def start_measure(self, measure):
             self.called = 'start'
@@ -541,9 +543,13 @@ def test_measure_execution(workspace):
             self.called = 'resume'
 
         def stop_measure(self, no_post_exec=False, force=False):
+            self.args = dict(no_post_exec=no_post_exec,
+                             force=force)
             self.called = 'stop'
 
         def stop_processing(self, no_post_exec=False, force=False):
+            self.args = dict(no_post_exec=no_post_exec,
+                             force=force)
             self.called = 'processing'
 
     workspace.plugin.processor = P()
@@ -585,11 +591,15 @@ def test_measure_execution(workspace):
     workspace.resume_current_measure()
     assert workspace.plugin.processor.called == 'resume'
 
-    workspace.stop_current_measure()
+    workspace.stop_current_measure(no_post_exec=True)
     assert workspace.plugin.processor.called == 'stop'
+    assert workspace.plugin.processor.args == dict(no_post_exec=True,
+                                                   force=False)
 
-    workspace.stop_processing_measures()
+    workspace.stop_processing_measures(force=True)
     assert workspace.plugin.processor.called == 'processing'
+    assert workspace.plugin.processor.args == dict(no_post_exec=False,
+                                                   force=True)
 
 
 def test_remove_processed_measures(workspace):
