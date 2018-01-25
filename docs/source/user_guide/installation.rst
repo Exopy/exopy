@@ -59,3 +59,12 @@ Checking your installation
 You should then be able to start ecpy using the ecpy command in a command
 line or the launcher present in the Anaconda Launcher if you are using 
 Anaconda.
+
+In case this does not work you can run the application from the command line 
+using:
+
+    $ python -m ecpy -s
+
+This allows to display the error log directly in the console which should allow
+you to track down the origin of the issue.
+    
