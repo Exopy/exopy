@@ -45,7 +45,7 @@ before_install:
   - export CONDA_BLD_PATH=$(pwd)
 
   # Install ecpy dependencies
-  - $CONDA_INSTALL pyqt=$QT_VERSION future numpy configobj watchdog enaml qtawesome
+  - $CONDA_INSTALL pyqt=$QT_VERSION future numpy configobj watchdog "enaml>=0.10.0.dev" qtawesome
   - $PIP_INSTALL pyvisa
 
   # Intall test tools
