@@ -15,12 +15,15 @@ will be used in the following of this guide.
 
 Set up ecpy in developper mode
 ------------------------------
+
 Here we describe a simple workflow for developpers to contribute to ecpy.  It
 is convenient to use a git GUI such as smartgit. Then, create a repository on
 your computer and clone all the ecpy repositories (ecpy,
 ecpy_hqc_legacy, ecpy_pulses, etc). On your command terminal, navigate to the
 folder of each repository, and type the following command:
+
     $ python setup.py develop
+    
 this install allows ecpy components to be well detected while directly taking
 account any change made to the code. When you want to add a development, use
 your git GUI to create a branch from master, and give it a consistent name.
@@ -33,8 +36,16 @@ force push your changes. You can now open a pull request. Your code will be
 discussed among the ecpy contributors, and when judged adequate, it will be
 merged onto the master branch.
 
-Note that while you are developping you can switch between various python
-versions through the Anaconda environment to test your code before pushing.
+.. note:: 
+
+    A convenient way to install all dependencies for the packages is to install
+    from conda (see :ref:`installation` for details) and to then uninstall the 
+    packages you want to work on in develop mode. BE SURE to uninstall the 
+    conda package first, before re-installing in develop mode.
+
+.. note::
+    While you are developping you can switch between various python versions
+    through the Anaconda environment to test your code before pushing.
 
 Application architecture
 ------------------------
@@ -67,9 +78,9 @@ The manifest of a plugin is written in an enaml file (.enaml). It must be given
 an id (which must be unique and is a dot separated string, ex:
 'ecpy.app.logging') and can have a two kind of children :
 
-- |ExtensionPoint| children are used to declare points to which other plugin can
-  contribute to extend the plugin capabilities. The extension point needs an
-  id.
+- |ExtensionPoint| children are used to declare points to which other plugin 
+  can contribute to extend the plugin capabilities. The extension point needs
+  an id.
 - |Extension| children are used to declare contribution to other plugins, they
   must have an id and declare to which extension point they are contributing.
   The extension point is the combination of the plugin id and the extension
