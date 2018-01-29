@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Ecpy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -34,9 +34,6 @@ ECPY = ''
 
 #: Global variable linked to the --ecpy-sleep cmd line option.
 DIALOG_SLEEP = 0
-
-
-pytest_plugins = str('pytest_catchlog')
 
 
 def pytest_addoption(parser):

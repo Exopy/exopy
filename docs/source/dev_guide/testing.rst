@@ -23,8 +23,7 @@ tested nonetheless.
 
     Running the test suite requires :
 
-    - pytest
-    - pytest-catchlog
+    - pytest > 3.3
     - pytest-cov
     - pytest-timeout
     - enaml_coverage_plugin

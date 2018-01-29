@@ -8,14 +8,9 @@ branches:
   only:
     - master
 
-env:
-  global:
-    secure: "KbxZXwF51qTGVz53pYCd6jfgwIL3cjr9RqW4QKV7M6JnwbytBB8E66x747UO/KFQStL6DKKnkp5OoEWRMq9LL97VnM1GuIKOe39IpANIgSZDnO22pWoSM85KNQEFFl04bLTbarR41XFc704oxpVb7bd2t15cyBL1SUDlSHhauv4="
-
 matrix:
   include:
     - env: PYTHON=2.7 CONDA_PY=27 QT_VERSION=4
-    - env: PYTHON=3.4 CONDA_PY=34 QT_VERSION=4
     - env: PYTHON=3.5 CONDA_PY=35 QT_VERSION=5
     - env: PYTHON=3.6 CONDA_PY=36 QT_VERSION=5
 
@@ -73,7 +68,7 @@ script:
   # Run the Ecpy test suite
   - cd $TRAVIS_BUILD_DIR
   - export QT_API=pyqt$QT_VERSION
-  - py.test tests --cov ecpy --cov-report xml -v
+  - py.test tests --cov ecpy --cov-report xml -v --log-cli-level CRITICAL
 
 after_success:
   - cd $TRAVIS_BUILD_DIR

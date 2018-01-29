@@ -4,6 +4,8 @@ Ecpy Changelog
 0.1.0 - to be released
 ----------------------
 
+- docs: improve documentation about debugging (#124)
+- measure: fix a bug causing unwanted forced stops (#122)
 - measure: fix all found bugs of execution editor (#110)
 - measure: fix all found bugs of database access editor (#110)
 - measure: remove measure from the list of edited ones when loading (#110)
