@@ -8,13 +8,13 @@ Compatibility
 
 Ecpy is compatible with Python 2.7 and 3.4 or later.
 
-Linux, Windows and OSX should all work as long as Qt 4 is supported by the 
-platform.
+Linux, Windows and OSX should all work as long as Qt 4 or Qt 5 is supported
+by the platform.
 
 Installing using Conda
 ----------------------
 
-The easiest way to install numba and get updates is by using Conda,
+The easiest way to install ecpy and get updates is by using Conda,
 a cross-platform package manager and software distribution maintained
 by Continuum Analytics.  You can either use `Anaconda
 <http://continuum.io/downloads.html>`_ to get the full stack in one download,
