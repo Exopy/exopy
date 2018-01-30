@@ -45,14 +45,6 @@ source, to do so just use :
 The dependencies of Ecpy however can be more cumbersome to install. You can 
 find the list in the setup.py script at the root of the Ecpy repository.
 
-.. note::
-
-    On python 2, you can use the development version of enaml which can be 
-    found at <https://github.com/nucleic/enaml>. On python 3 however, you 
-    should use the fork located in the Ecpy organization 
-    <https://github.com/Ecpy/enaml> as long as the changes present in that fork 
-    have not been merged back into the main repository.
-
 Checking your installation
 --------------------------
 
