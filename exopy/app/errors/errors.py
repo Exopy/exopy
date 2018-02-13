@@ -29,7 +29,7 @@ class ErrorHandler(Declarative):
 
     @d_func
     def handle(self, workbench, infos):
-        """Handle the report by taking any appropriate measure.
+        """Handle the report by taking any appropriate measurement.
 
         The error should always be logged to be sure that a trace remains.
 

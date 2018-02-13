@@ -1,4 +1,4 @@
-exopy.measure.editors.execution_editor package
+exopy.measurement.editors.execution_editor package
 =============================================
 
 Submodules

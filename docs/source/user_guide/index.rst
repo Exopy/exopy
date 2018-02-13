@@ -14,5 +14,5 @@ master the different capabilities of the software.
     installation
     first_steps
     instruments
-    measure_edition
+    measurement_edition
     

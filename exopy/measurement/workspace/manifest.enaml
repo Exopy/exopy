@@ -1,0 +1,217 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Definition of the workspace content and contributed menus.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, DockArea, DockItem, Menu, Action,
+                               PopupView, Label)
+from enaml.layout.api import HSplitLayout, VSplitLayout
+from enaml.workbench.api import PluginManifest, Extension
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem
+from enaml.styling import StyleSheet, Style, Setter
+
+
+# =============================================================================
+# --- Utilities ---------------------------------------------------------------
+# =============================================================================
+
+enamldef MoreVisibleLabel(StyleSheet):
+    """Style sheet allowing to use a large font for the save confirmation popup
+
+    """
+    Style:
+        style_class = 'large-font'
+        Setter:
+            field = 'font'
+            value = '20pt bold Verdana'
+
+
+enamldef SaveConfirm(PopupView):
+    """Popup signaling that a measurement was correctly saved.
+
+    """
+    #: Name of the measurement that was just saved.
+    attr measurement_name
+
+    parent_anchor = (0.5, 0.0)
+    timeout = 2
+
+    MoreVisibleLabel:
+        pass
+    Container:
+        Label:
+            text = 'Measurement %s was correctly saved' % measurement_name
+            style_class = 'large-font'
+
+
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
+
+def new_measurement(event):
+    """Create a new blank measurement.
+
+    """
+    workbench = event.workbench
+    plugin = workbench.get_plugin('exopy.measurement')
+    plugin.workspace.new_measurement()
+
+
+def save_measurement(event):
+    """Save a measurement.
+
+    """
+    workbench = event.workbench
+    workspace = workbench.get_plugin('exopy.measurement').workspace
+    measurement = (event.parameters['measurement'] or
+                   workspace.last_selected_measurement)
+
+    if measurement.path:
+        measurement.save(measurement.path)
+        window = workbench.get_plugin('enaml.workbench.ui').window
+        SaveConfirm(window, measurement_name=measurement.name).show()
+
+    else:
+        workspace.save_measurement(measurement)
+
+
+def save_measurement_as(event):
+    """Save a measurement to a location specified by the user.
+
+    """
+    workbench = event.workbench
+    workspace = workbench.get_plugin('exopy.measurement').workspace
+    measurement = event.parameters['measurement'] or workspace.last_selected_measurement
+
+    workspace.save_measurement(measurement, False)
+
+
+def load_measurement(event):
+    """Load a measurement stored in a config file.
+
+    """
+    workbench = event.workbench
+    plugin = workbench.get_plugin('exopy.measurement')
+    plugin.workspace.load_measurement('file')
+
+
+def load_template(event):
+    """Create a new measurement using a task template as root.
+
+    """
+    workbench = event.workbench
+    plugin = workbench.get_plugin('hqc_meas.measurement')
+    plugin.workspace.load_measurement('template')
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+NEW_DESCRIPTION =\
+'''Create a new measurement using the default parameters for the tools (monitors,
+pre-execution and post-execution hooks).'''
+
+SAVE_DESCRIPTION =\
+'''Save a currently edited measurement to a file. If this measurement has already
+been saved to a file then simply overwrite it.'''
+
+SAVE_AS_DESCRIPTION =\
+'''Save a currently edited measurement to a file. The user will always be asked
+to choose a file to which the measurement should be saved.'''
+
+LOAD_DESCRIPTION =\
+'''Load a measurement from a file.'''
+
+LOAD_DESCRIPTION =\
+'''Create a measurement from a template.'''
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef MeasurementSpaceMenu(PluginManifest):
+    """ Contribution to the main window of the MeasurementSpace.
+
+    """
+    #: Reference to the workspace
+    attr workspace
+
+    id = 'exopy.measurement.workspace.menus'
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.measurement.workspace.new'
+            description = NEW_DESCRIPTION
+            handler = new_measurement
+        Command:
+            id = 'exopy.measurement.workspace.save'
+            description = SAVE_DESCRIPTION
+            handler = save_measurement
+        Command:
+            id = 'exopy.measurement.workspace.save_as'
+            description = SAVE_AS_DESCRIPTION
+            handler = save_measurement_as
+        Command:
+            id = 'exopy.measurement.workspace.load'
+            description = LOAD_DESCRIPTION
+            handler = load_measurement
+        Command:
+            id = 'exopy.measurement.workspace.load_template'
+            description = LOAD_TEMPLATE_DESCRIPTION
+            handler = load_template
+
+    Extension:
+        id = 'action'
+        point = 'enaml.workbench.ui.actions'
+        # File contributions.
+        ActionItem:
+            path = '/file/new'
+            label = 'New measurement'
+            command = 'exopy.measurement.workspace.new'
+            group = 'user'
+            before = 'save'
+        ActionItem:
+            path = '/file/save'
+            label = 'Save measurement'
+            shortcut = 'Ctrl+S'
+            command = 'exopy.measurement.workspace.save'
+            parameters = dict(measurement=None)
+            group = 'user'
+            before = 'save_as'
+        ActionItem:
+            path = '/file/save_as'
+            label = 'Save measurement as'
+            command = 'exopy.measurement.workspace.save_as'
+            parameters = dict(measurement=None)
+            group = 'user'
+            before = 'load'
+        ActionItem:
+            path = '/file/load'
+            label = 'Load measurement'
+            command = 'exopy.measurement.workspace.load'
+            group = 'user'
+            before = 'load_template'
+        ActionItem:
+            path = '/file/load_template'
+            label = 'Build measurement from template'
+            command = 'exopy.measurement.workspace.load_template'
+            group = 'user'
+            # TODO reactivate later
+            enabled = False

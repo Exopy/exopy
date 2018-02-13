@@ -1,4 +1,4 @@
-exopy.measure package
+exopy.measurement package
 ====================
 
 Subpackages
@@ -20,6 +20,6 @@ Submodules
    base_tool
    container
    manifest
-   measure
+   measurement
    plugin
    processor

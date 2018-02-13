@@ -1,7 +1,7 @@
-exopy.measure.workspace.content module
+exopy.measurement.workspace.content module
 =====================================
 
-.. automodule:: exopy.measure.workspace.content
+.. automodule:: exopy.measurement.workspace.content
     :members:
     :undoc-members:
     :show-inheritance:

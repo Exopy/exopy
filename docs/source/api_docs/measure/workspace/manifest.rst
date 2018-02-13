@@ -1,7 +1,7 @@
-exopy.measure.workspace.manifest module
+exopy.measurement.workspace.manifest module
 ======================================
 
-.. automodule:: exopy.measure.workspace.manifest
+.. automodule:: exopy.measurement.workspace.manifest
     :members:
     :undoc-members:
     :show-inheritance:

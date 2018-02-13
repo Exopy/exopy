@@ -1,7 +1,7 @@
-exopy.measure.plugin module
+exopy.measurement.plugin module
 ==========================
 
-.. automodule:: exopy.measure.plugin
+.. automodule:: exopy.measurement.plugin
     :members:
     :undoc-members:
     :show-inheritance:

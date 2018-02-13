@@ -84,7 +84,7 @@ user has defined a directory in which to store application data.'''
 CLOSING_EXT_DESC =\
 '''Plugins can contribute AppClosing to this point to add additional checks
 before closing the application. This is for example used by the measurement
-plugin to ensure that the user does not close the application while a measure
+plugin to ensure that the user does not close the application while a measurement
 is running.'''
 
 CLOSED_EXT_DESC =\

@@ -72,32 +72,32 @@
 
 .. |ArgParser| replace:: :py:class:`~exopy.__main__.ArgParser`
 
-.. Measure substitutions
+.. Measurement substitutions
 .. ----------------------------------------------------------------------------
 
-.. |BaseMeasureTool| replace:: :py:class:`~exopy.measure.base_tool.BaseMeasureTool`
+.. |BaseMeasureTool| replace:: :py:class:`~exopy.measurement.base_tool.BaseMeasureTool`
 
-.. |BaseToolDeclaration| replace:: :py:class:`~exopy.measure.base_tool.BaseToolDeclaration`
+.. |BaseToolDeclaration| replace:: :py:class:`~exopy.measurement.base_tool.BaseToolDeclaration`
 
-.. |BasePreExecutionHook| replace:: :py:class:`~exopy.measure.hooks.base_hooks.BasePreExecutionHook`
+.. |BasePreExecutionHook| replace:: :py:class:`~exopy.measurement.hooks.base_hooks.BasePreExecutionHook`
 
-.. |PreExecutionHook| replace:: :py:class:`~exopy.measure.hooks.base_hooks.PreExecutionHook`
+.. |PreExecutionHook| replace:: :py:class:`~exopy.measurement.hooks.base_hooks.PreExecutionHook`
 
-.. |BaseMonitor| replace:: :py:class:`~exopy.measure.monitors.base_monitor.BaseMonitor`
+.. |BaseMonitor| replace:: :py:class:`~exopy.measurement.monitors.base_monitor.BaseMonitor`
 
-.. |Monitor| replace:: :py:class:`~exopy.measure.monitors.base_monitor.BaseMonitor`
+.. |Monitor| replace:: :py:class:`~exopy.measurement.monitors.base_monitor.BaseMonitor`
 
-.. |BasePostExecutionHook| replace:: :py:class:`~exopy.measure.hooks.base_hooks.BasePostExecutionHook`
+.. |BasePostExecutionHook| replace:: :py:class:`~exopy.measurement.hooks.base_hooks.BasePostExecutionHook`
 
-.. |PostExecutionHook| replace:: :py:class:`~exopy.measure.hooks.base_hooks.PostExecutionHook`
+.. |PostExecutionHook| replace:: :py:class:`~exopy.measurement.hooks.base_hooks.PostExecutionHook`
 
-.. |BaseEditor| replace:: :py:class:`~exopy.measure.editors.base_editor.BaseEditor`
+.. |BaseEditor| replace:: :py:class:`~exopy.measurement.editors.base_editor.BaseEditor`
 
-.. |Editor| replace:: :py:class:`~exopy.measure.editors.base_editor.Editor`
+.. |Editor| replace:: :py:class:`~exopy.measurement.editors.base_editor.Editor`
 
-.. |BaseEngine| replace:: :py:class:`~exopy.measure.engines.base_engine.BaseEngine`
+.. |BaseEngine| replace:: :py:class:`~exopy.measurement.engines.base_engine.BaseEngine`
 
-.. |Engine| replace:: :py:class:`~exopy.measure.engines.base_engine.Engine`
+.. |Engine| replace:: :py:class:`~exopy.measurement.engines.base_engine.Engine`
 
 
 .. Instruments substitutions

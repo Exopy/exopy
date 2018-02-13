@@ -193,7 +193,8 @@ def test_register_task_decl_taskcls3(collector, task_decl):
     tb = {}
     task_decl.task = 'exopy.tasks.tasks.database:TaskDatabase'
     task_decl.register(collector, tb)
-    assert 'exopy.TaskDatabase' in tb and 'subclass' in tb['exopy.TaskDatabase']
+    assert ('exopy.TaskDatabase' in tb and
+            'subclass' in tb['exopy.TaskDatabase'])
 
 
 def test_register_task_decl_view1(collector, task_decl):
@@ -538,13 +539,16 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
     tb = {}
     task = Task(task='exopy.tasks.tasks.logic.loop_task:LoopTask',
                 view='exopy.tasks.tasks.logic.views.loop_view:LoopView')
-    i = Interface(interface='exopy.tasks.tasks.logic.loop_iterable_interface:IterableLoopInterface',
+    i = Interface(interface='exopy.tasks.tasks.logic.'
+                            'loop_iterable_interface:IterableLoopInterface',
                   views=['_dumy__:Test', 'exopy.testing.broken_enaml:Task'])
     task.insert_children(None, [i])
     task.register(collector, tb)
     assert 'exopy.LoopTask:exopy.IterableLoopInterface_1' in tb
-    assert ('AttributeError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'] or
+    assert ('AttributeError' in
+            tb['exopy.LoopTask:exopy.IterableLoopInterface_1'] or
             'NameError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'])
+
 
 def test_register_interface_decl_view2(int_decl, collector):
     """Test handling view issues : undefined in module.
@@ -835,7 +839,8 @@ def test_register_task_decl_cls3(collector, config_decl):
     tb = {}
     config_decl.config = 'exopy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
-    assert 'exopy.TaskDatabase' in tb and 'subclass' in tb['exopy.TaskDatabase']
+    assert ('exopy.TaskDatabase' in tb and
+            'subclass' in tb['exopy.TaskDatabase'])
 
 
 def test_register_config_decl_view1(collector, config_decl):
@@ -845,7 +850,8 @@ def test_register_config_decl_view1(collector, config_decl):
     tb = {}
     config_decl.view = 'exopy.tasks.foo:Task'
     config_decl.register(collector, tb)
-    assert 'exopy.PyTaskConfig' in tb and 'import' in tb['exopy.PyTaskConfig']
+    assert ('exopy.PyTaskConfig' in tb and
+            'import' in tb['exopy.PyTaskConfig'])
 
 
 def test_register_config_decl_view1bis(collector, config_decl):
@@ -855,7 +861,8 @@ def test_register_config_decl_view1bis(collector, config_decl):
     tb = {}
     config_decl.view = 'exopy.testing.broken_module:Task'
     config_decl.register(collector, tb)
-    assert 'exopy.PyTaskConfig' in tb and 'NameError' in tb['exopy.PyTaskConfig']
+    assert ('exopy.PyTaskConfig' in tb and
+            'NameError' in tb['exopy.PyTaskConfig'])
 
 
 def test_register_config_decl_view2(collector, config_decl):
@@ -875,7 +882,8 @@ def test_register_config_decl_view3(collector, config_decl):
     tb = {}
     config_decl.view = 'exopy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
-    assert 'exopy.PyTaskConfig' in tb and 'subclass' in tb['exopy.PyTaskConfig']
+    assert ('exopy.PyTaskConfig' in tb and
+            'subclass' in tb['exopy.PyTaskConfig'])
 
 
 def test_unregister_config_decl1(collector, config_decl):

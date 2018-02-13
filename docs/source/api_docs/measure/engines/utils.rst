@@ -1,7 +1,7 @@
-exopy.measure.engines.utils module
+exopy.measurement.engines.utils module
 =================================
 
-.. automodule:: exopy.measure.engines.utils
+.. automodule:: exopy.measurement.engines.utils
     :members:
     :undoc-members:
     :show-inheritance:

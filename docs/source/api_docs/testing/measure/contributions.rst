@@ -1,7 +1,7 @@
-exopy.testing.measure.contributions module
+exopy.testing.measurement.contributions module
 =========================================
 
-.. automodule:: exopy.testing.measure.contributions
+.. automodule:: exopy.testing.measurement.contributions
     :members:
     :undoc-members:
     :show-inheritance:

@@ -94,7 +94,7 @@ def make_stoppable(function_to_decorate):
 
 
 def smooth_crash(function_to_decorate):
-    """This decorator ensures that any unhandled error will cause the measure
+    """This decorator ensures that any unhandled error will cause the measurement
     to stop in a nice way. It is always present at the root call of any thread.
 
     """

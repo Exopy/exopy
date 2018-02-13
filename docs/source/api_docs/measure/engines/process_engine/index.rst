@@ -1,4 +1,4 @@
-exopy.measure.engines.process_engine package
+exopy.measurement.engines.process_engine package
 ===========================================
 
 Submodules

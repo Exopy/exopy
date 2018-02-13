@@ -1,7 +1,7 @@
-exopy.measure.editors.standard_editor module
+exopy.measurement.editors.standard_editor module
 ===========================================
 
-.. automodule:: exopy.measure.editors.standard_editor
+.. automodule:: exopy.measurement.editors.standard_editor
     :members:
     :undoc-members:
     :show-inheritance:

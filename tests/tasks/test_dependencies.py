@@ -18,13 +18,13 @@ import pytest
 from future.builtins import str
 
 from exopy.app.dependencies.api import (BuildDependency,
-                                       RuntimeDependencyAnalyser)
+                                        RuntimeDependencyAnalyser)
 from exopy.tasks.api import ComplexTask, InstrumentTask, TaskInterface
 from exopy.tasks.infos import (TaskInfos, InterfaceInfos,
-                              INSTR_RUNTIME_TASK_DRIVERS_ID,
-                              INSTR_RUNTIME_TASK_PROFILES_ID,
-                              INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
-                              INSTR_RUNTIME_INTERFACE_PROFILES_ID)
+                               INSTR_RUNTIME_TASK_DRIVERS_ID,
+                               INSTR_RUNTIME_TASK_PROFILES_ID,
+                               INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
+                               INSTR_RUNTIME_INTERFACE_PROFILES_ID)
 
 
 @pytest.fixture

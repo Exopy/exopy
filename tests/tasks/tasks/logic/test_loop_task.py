@@ -20,7 +20,7 @@ import numpy as np
 
 from exopy.testing.tasks.util import CheckTask
 from exopy.testing.util import (show_and_close_widget, show_widget,
-                               process_app_events)
+                                process_app_events)
 from exopy.tasks.api import RootTask
 from exopy.tasks.tasks.logic.loop_task import LoopTask
 from exopy.tasks.tasks.logic.loop_iterable_interface\
@@ -227,8 +227,8 @@ class TestLoopTask(object):
         self.root.update_preferences_from_members()
 
         deps = {'exopy.task': {'exopy.RootTask': RootTask,
-                              'exopy.LoopTask': LoopTask,
-                              'exopy.CheckTask': CheckTask}
+                               'exopy.LoopTask': LoopTask,
+                               'exopy.CheckTask': CheckTask}
                 }
         new = RootTask.build_from_config(self.root.preferences, deps)
 
@@ -240,8 +240,8 @@ class TestLoopTask(object):
         assert prefs['children_0'].sections[1] == 'task'
         del prefs['children_0']['task']
         deps = {'exopy.task': {'exopy.RootTask': RootTask,
-                              'exopy.LoopTask': LoopTask,
-                              'exopy.CheckTask': CheckTask},
+                               'exopy.LoopTask': LoopTask,
+                               'exopy.CheckTask': CheckTask},
                 'exopy.tasks.interface':
                     {'exopy.LoopTask:exopy.IterableLoopInterface':
                         IterableLoopInterface}

@@ -18,8 +18,9 @@ import pytest
 from atom.api import (Unicode, Float, Enum, List, Typed, Int, Value,
                       Constant)
 from exopy.utils.atom_util import (tagged_members, member_from_pref,
-                                  member_to_pref, HasPrefAtom,
-                                  ordered_dict_from_pref, ordered_dict_to_pref)
+                                   member_to_pref, HasPrefAtom,
+                                   ordered_dict_from_pref,
+                                   ordered_dict_to_pref)
 
 
 class _Aaux(HasPrefAtom):

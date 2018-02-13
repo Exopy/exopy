@@ -18,7 +18,7 @@ import pytest
 import enaml
 
 from exopy.testing.util import (show_and_close_widget, show_widget,
-                               process_app_events)
+                                process_app_events)
 from exopy.tasks.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
     from exopy.tasks.configs.loop_config_view import LoopConfigView

@@ -17,7 +17,7 @@ import pytest
 from exopy.tasks.api import ComplexTask, SimpleTask
 from exopy.tasks.infos import TaskInfos
 from exopy.tasks.filters import (TaskFilter, GroupTaskFilter,
-                                SubclassTaskFilter, MetadataTaskFilter)
+                                 SubclassTaskFilter, MetadataTaskFilter)
 
 
 @pytest.fixture

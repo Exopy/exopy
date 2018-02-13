@@ -1,7 +1,7 @@
-exopy.testing.measure.fixtures module
+exopy.testing.measurement.fixtures module
 ====================================
 
-.. automodule:: exopy.testing.measure.fixtures
+.. automodule:: exopy.testing.measurement.fixtures
     :members:
     :undoc-members:
     :show-inheritance:

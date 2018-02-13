@@ -1,0 +1,179 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets associated with the TextMonitor.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from operator import attrgetter
+
+from enaml.core.api import Looper, Conditional
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Container, CheckBox, Label, Field,
+                               CheckBox, Form)
+from enaml.stdlib.message_box import question
+
+from ....utils.widgets.qt_list_str_widget import QtListStrWidget
+from ..base_monitor import BaseMonitorItem
+from .custom_entry_edition import EntryDialog
+from .rules.edition_views import EditRulesView
+
+
+enamldef TextMonitorEdit(Container): main:
+    """Widget used to edit the TextMonitor parameters during the measurement
+    edition.
+
+    """
+    #: Reference to the monitor driving this view.
+    attr monitor
+
+    #: Currently selected entry.
+    attr selected
+
+    constraints << [hbox(vbox(undisp_lab, undisp),
+                         vbox(disp_all, disp_one,
+                              hide_one, hide_all, spacer),
+                         vbox(disp_lab, disp),
+                         vbox(edit_rules, manual_entries,
+                              *(cond.items + [show_hidden, spacer])),
+                         ),
+                    disp_all.width == disp_one.width,
+                    disp_one.width == hide_one.width,
+                    hide_one.width == hide_all.width]
+
+    # Undisplayed entries.
+    Label: undisp_lab:
+        text = 'Undisplayed entries'
+
+    QtListStrWidget: undisp:
+        items << sorted(monitor.undisplayed_entries, key=attrgetter('path'))
+        to_string = attrgetter('name')
+        selected_item ::
+            selected = selected_item
+            disp.clear_selection()
+
+    # Displayed entries.
+    Label: disp_lab:
+        text = 'Displayed entries'
+
+    QtListStrWidget: disp:
+        items << sorted(monitor.displayed_entries, key=attrgetter('path'))
+        to_string = attrgetter('name')
+        selected_item ::
+            selected = selected_item
+            undisp.clear_selection()
+
+    # Main buttons for changing displayed/undisplayed.
+    PushButton: disp_all:
+        text = '>>'
+        hug_width = 'strong'
+        clicked ::
+            monitor.move_entries('undisplayed', 'displayed',
+                                 monitor.undisplayed_entries)
+
+    PushButton: disp_one:
+        text = '>'
+        hug_width = 'strong'
+        clicked ::
+            e = [e for e in monitor.undisplayed_entries
+                 if e == undisp.selected_item]
+            if e:
+                index = undisp.items.index(undisp.selected_item)
+                monitor.move_entries('undisplayed', 'displayed', e)
+                if undisp.items:
+                    if index >= len(undisp.items):
+                        index -= 1
+                    undisp.selected_item = undisp.items[index]
+
+
+    PushButton: hide_all:
+        text = '<<'
+        hug_width = 'strong'
+        clicked ::
+            monitor.move_entries('displayed', 'undisplayed',
+                                 monitor.displayed_entries)
+
+    PushButton: hide_one:
+        text = '<'
+        hug_width = 'strong'
+        clicked ::
+            e = [e for e in monitor.displayed_entries
+                    if e == disp.selected_item]
+            if e:
+                index = disp.items.index(disp.selected_item)
+                monitor.move_entries('displayed', 'undisplayed', e)
+                if disp.items:
+                    if index >= len(disp.items):
+                        index -= 1
+                    disp.selected_item = disp.items[index]
+
+    CheckBox: show_hidden:
+        text = 'Show hidden entries'
+        checked ::
+            if show_hidden.checked:
+                monitor.add_entries('undisplayed', monitor.hidden_entries)
+            else:
+                monitor.remove_entries('undisplayed', monitor.hidden_entries)
+
+    # Special edition buttons.
+    PushButton: edit_rules:
+        text = 'Edit rules'
+        clicked ::
+            d = EditRulesView(monitor=monitor)
+            d.exec_()
+
+    PushButton: manual_entries:
+        text = 'Add entry'
+        clicked ::
+            dial = EntryDialog(parent=main,
+                               monitor=monitor)
+            if dial.exec_():
+                monitor.custom_entries.append(dial.entry)
+                monitor.add_entries('displayed', (dial.entry,))
+
+    Conditional: cond:
+        condition << selected in monitor.custom_entries
+        PushButton:
+            text = 'Edit entry'
+            clicked ::
+                EntryDialog(parent=main,
+                            monitor=monitor,
+                            entry=selected).exec_()
+
+        PushButton:
+            text = 'Delete entry'
+            clicked::
+                q = question(main, 'Confirm deletion',
+                             'Are you sure tou want to delete the entry '
+                             '{}'.format(selected.name))
+                if q.action == 'accept':
+                    if selected in monitor.displayed_entries:
+                        monitor.remove_entries('displayed', (selected,))
+                    else:
+                        monitor.remove_entries('undisplayed', (selected,))
+                    monitor.custom_entries.remove(selected)
+
+
+enamldef TextMonitorItem(BaseMonitorItem):
+    """DockItem the monitor infos about the measurement.
+
+    """
+    title = 'Text monitor'
+
+    Form: form:
+        Looper:
+            iterable << (sorted(monitor.displayed_entries,
+                                key=attrgetter('path')) if monitor else [])
+            Label:
+                hug_width = 'strong'
+                text << loop_item.name
+            Field:
+                read_only = True
+                text << loop_item.value

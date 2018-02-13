@@ -15,8 +15,8 @@ import sys
 from multiprocessing import Queue
 from time import sleep, localtime
 from exopy.app.log.tools import (StreamToLogRedirector, QueueHandler,
-                                LogModel, DayRotatingTimeHandler,
-                                GuiHandler, QueueLoggerThread)
+                                 LogModel, DayRotatingTimeHandler,
+                                 GuiHandler, QueueLoggerThread)
 
 from exopy.testing.util import process_app_events
 

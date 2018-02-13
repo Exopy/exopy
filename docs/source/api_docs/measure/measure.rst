@@ -1,7 +1,7 @@
-exopy.measure.measure module
+exopy.measurement.measurement module
 ===========================
 
-.. automodule:: exopy.measure.measure
+.. automodule:: exopy.measurement.measurement
     :members:
     :undoc-members:
     :show-inheritance:

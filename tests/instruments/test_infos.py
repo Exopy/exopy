@@ -18,9 +18,9 @@ import pytest
 from configobj import ConfigObj
 
 from exopy.instruments.infos import (DriverInfos, InstrumentModelInfos,
-                                    SeriesInfos, ManufacturerInfos,
-                                    ManufacturersHolder, ProfileInfos,
-                                    validate_profile_infos)
+                                     SeriesInfos, ManufacturerInfos,
+                                     ManufacturersHolder, ProfileInfos,
+                                     validate_profile_infos)
 from exopy.instruments.manufacturer_aliases import ManufacturerAlias
 
 

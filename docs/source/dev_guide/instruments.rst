@@ -6,7 +6,7 @@ Instruments
 ===========
 
 Exopy is designed to run physics experiments and such experiments requires more
-than just a computer. One can need to apply a DC voltage, measure a current,
+than just a computer. One can need to apply a DC voltage, measurement a current,
 ... All this requires instruments that needs to be interfaced and controlled.
 
 The following sections will dicsuss how Exopy handles instruments, but not how

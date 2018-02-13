@@ -361,7 +361,8 @@ def test_validate_runtime_dependencies_driver(instr_workbench):
     d_c = d_p.run_deps_collectors.contributions['exopy.instruments.drivers']
 
     err = {}
-    d_c.validate(instr_workbench, ('instruments.test.FalseDriver', 'dummy'), err)
+    d_c.validate(instr_workbench, ('instruments.test.FalseDriver', 'dummy'),
+                 err)
 
     assert len(err) == 1
     assert 'instruments.test.FalseDriver' not in err['unknown-drivers']

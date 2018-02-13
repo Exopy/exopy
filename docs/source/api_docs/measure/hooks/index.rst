@@ -1,4 +1,4 @@
-exopy.measure.hooks package
+exopy.measurement.hooks package
 ==========================
 
 Submodules

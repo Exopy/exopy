@@ -1,7 +1,7 @@
-exopy.measure.workspace.monitors_window module
+exopy.measurement.workspace.monitors_window module
 =============================================
 
-.. automodule:: exopy.measure.workspace.monitors_window
+.. automodule:: exopy.measurement.workspace.monitors_window
     :members:
     :undoc-members:
     :show-inheritance:

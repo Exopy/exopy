@@ -1,7 +1,7 @@
-exopy.measure.monitors.text_monitor.manifest module
+exopy.measurement.monitors.text_monitor.manifest module
 ==================================================
 
-.. automodule:: exopy.measure.monitors.text_monitor.manifest
+.. automodule:: exopy.measurement.monitors.text_monitor.manifest
     :members:
     :undoc-members:
     :show-inheritance:

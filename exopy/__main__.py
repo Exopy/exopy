@@ -36,8 +36,8 @@ with enaml.imports():
     from exopy.app.icons.manifest import IconManagerManifest
     from exopy.app.packages.manifest import PackagesManifest
     from exopy.app.log.manifest import LogManifest
-    from exopy.measure.manifest import MeasureManifest
-    from exopy.measure.monitors.text_monitor.manifest\
+    from exopy.measurement.manifest import MeasureManifest
+    from exopy.measurement.monitors.text_monitor.manifest\
         import TextMonitorManifest
     from exopy.instruments.manifest import InstrumentManagerManifest
     from exopy.tasks.manifest import TasksManagerManifest
@@ -194,13 +194,14 @@ def main(cmd_line_args=None):
     """
     # Build parser from ArgParser and parse arguemnts
     parser = ArgParser()
-    parser.add_choice('workspaces', 'exopy.measure.workspace', 'measure')
+    parser.add_choice('workspaces', 'exopy.measurement.workspace',
+                      'measurement')
     parser.add_argument("-s", "--nocapture",
                         help="Don't capture stdout/stderr",
                         action='store_true')
     parser.add_argument("-w", "--workspace",
                         help='Select start-up workspace',
-                        default='measure', choices='workspaces')
+                        default='measurement', choices='workspaces')
     parser.add_argument("-r", "--reset-app-folder",
                         help='Reset the application startup folder.',
                         action='store_true')
@@ -291,8 +292,8 @@ def main(cmd_line_args=None):
 
     # Unregister all contributed packages
     workbench.unregister('exopy.app.packages')
-    workbench.unregister('exopy.measure.monitors.text_monitor')
-    workbench.unregister('exopy.measure')
+    workbench.unregister('exopy.measurement.monitors.text_monitor')
+    workbench.unregister('exopy.measurement')
     workbench.unregister('exopy.tasks')
     workbench.unregister('exopy.instruments')
     workbench.unregister('exopy.app.icons')

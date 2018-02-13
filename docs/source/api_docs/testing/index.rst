@@ -8,7 +8,7 @@ Subpackages
     :maxdepth: 2
 
     instruments <instruments/index>
-    measure <measure/index>
+    measurement <measurement/index>
     tasks <tasks/index>
 
 Submodules

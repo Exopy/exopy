@@ -27,7 +27,7 @@ with enaml.imports():
     from exopy.tasks.widgets.building import BuilderView
 
 from exopy.testing.util import (show_widget, process_app_events, handle_dialog,
-                               get_window)
+                                get_window)
 
 
 pytest_plugins = str('exopy.testing.tasks.fixtures'),

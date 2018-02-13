@@ -171,12 +171,12 @@ pytest using the 'py.test tests' command.
 To run only tests linked to a limited part of the application one can specify
 the path of the packages containing the tests or even the module.
 
->>> py.test tests/measure/monitors
+>>> py.test tests/measurement/monitors
 
 To run only a single function one should specify specify its name after the
 name of the module and separate them using '::'.
 
->>> py.test tests/measure/test_measure.py::test_tool_handling
+>>> py.test tests/measurement/test_measurement.py::test_tool_handling
 
 Of course pytest can take command line arguments, please refer to the pytest
 `documentation_` for more details.

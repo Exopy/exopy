@@ -6,7 +6,7 @@ Tasks and interfaces
 ====================
 
 Tasks form the backbone of Exopy measurement principle. A task represents an
-action to perform during a measure. Tasks can be assembled in a hierarchical
+action to perform during a measurement. Tasks can be assembled in a hierarchical
 manner with any level of nesting. Tasks support parallel execution (using
 threads) and the associated synchronizations, they can also exchange data
 through a common database.
@@ -109,7 +109,7 @@ simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
 (formatting and evaluation) :
 
 - for formatting only the value should be True, or 'Warn' if the error does not
-  forbids to enqueue the measure.
+  forbids to enqueue the measurement.
 - for formatting and evaluation it should be a |Feval| instance. See example.
 
 .. code-block:: python

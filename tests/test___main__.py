@@ -42,17 +42,18 @@ def test_parser_adding_choice_and_arg_with_choice():
 
     """
     parser = ArgParser()
-    parser.add_choice('workspaces', 'exopy.measure.workspace', 'measure')
+    parser.add_choice('workspaces', 'exopy.measurement.workspace',
+                      'measurement')
     parser.add_argument("-w", "--workspace",
                         help='Select start-up workspace',
-                        default='measure', choices='workspaces')
-    parser.add_choice('workspaces', 'exopy.measure.dummy', 'measure')
+                        default='measurement', choices='workspaces')
+    parser.add_choice('workspaces', 'exopy.measurement.dummy', 'measurement')
 
-    vals = parser.parse_args('-w measure'.split(' '))
-    assert vals.workspace == 'exopy.measure.workspace'
+    vals = parser.parse_args('-w measurement'.split(' '))
+    assert vals.workspace == 'exopy.measurement.workspace'
 
-    vals = parser.parse_args('-w exopy.measure.dummy'.split(' '))
-    assert vals.workspace == 'exopy.measure.dummy'
+    vals = parser.parse_args('-w exopy.measurement.dummy'.split(' '))
+    assert vals.workspace == 'exopy.measurement.dummy'
 
 
 def test_running_main_error_in_loading(windows, monkeypatch):

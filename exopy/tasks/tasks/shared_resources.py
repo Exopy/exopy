@@ -159,7 +159,7 @@ class ResourceHolder(SharedDict):
         """Reset the resources.
 
         This is different from releasing. This method is typically called when
-        resuming a measure to ensure that the state of the resources can be
+        resuming a measurement to ensure that the state of the resources can be
         trusted inspite of the interruption.
 
         """

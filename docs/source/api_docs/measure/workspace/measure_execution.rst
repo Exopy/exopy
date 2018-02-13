@@ -1,7 +1,7 @@
-exopy.measure.workspace.measure_execution module
+exopy.measurement.workspace.measurement_execution module
 ===============================================
 
-.. automodule:: exopy.measure.workspace.measure_execution
+.. automodule:: exopy.measurement.workspace.measurement_execution
     :members:
     :undoc-members:
     :show-inheritance:

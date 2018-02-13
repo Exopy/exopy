@@ -54,8 +54,10 @@ class TestFormulaTask(object):
 
         """
         self.task.write_in_database('pi', 3.1)
-        self.task.formulas = ordered_dict_from_pref(self, self.task.formulas,
-            "[(u'key1', '1.0+3.0'), (u'key2', '3.0 + {Test_pi}')]")
+        self.task.formulas = \
+            ordered_dict_from_pref(self, self.task.formulas,
+                                   ("[(u'key1', '1.0+3.0'), "
+                                    "(u'key2', '3.0 + {Test_pi}')]"))
         self.root.prepare()
 
         self.task.perform()

@@ -93,5 +93,5 @@ The second tab of the dialog allows to know what part of the application is
 currently using instruments. Note that currently only one part of the 
 application can use instruments at any given time.
 
-Typically when starting a measure the instruments used in the measure should
-go from unused to used by the 'exopy.measure' plugin.
+Typically when starting a measurement the instruments used in the measurement should
+go from unused to used by the 'exopy.measurement' plugin.

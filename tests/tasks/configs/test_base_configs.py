@@ -19,7 +19,7 @@ import enaml
 
 from exopy.testing.util import show_and_close_widget
 from exopy.tasks.configs.base_configs import (PyTaskConfig,
-                                             TemplateTaskConfig)
+                                              TemplateTaskConfig)
 with enaml.imports():
     from exopy.tasks.configs.base_config_views\
         import (PyConfigView, TemplateConfigView)

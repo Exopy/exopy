@@ -20,7 +20,7 @@ from future.builtins import str
 from enaml.workbench.api import Workbench
 
 from exopy.testing.util import (handle_dialog, exopy_path, APP_DIR_CONFIG,
-                               APP_PREFERENCES)
+                                APP_PREFERENCES)
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -302,7 +302,7 @@ class TestPreferencesPlugin(object):
         monkeypatch.setattr(FileDialogEx, 'get_save_file_name', answer)
         core = self.workbench.get_plugin('enaml.workbench.core')
         core.invoke_command('exopy.app.preferences.save', {'path': prefs_path,
-                                                          'ask_user': True})
+                                                           'ask_user': True})
 
         ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
         assert os.path.isfile(path)

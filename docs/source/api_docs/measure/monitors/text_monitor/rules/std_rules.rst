@@ -1,7 +1,7 @@
-exopy.measure.monitors.text_monitor.rules.std_rules module
+exopy.measurement.monitors.text_monitor.rules.std_rules module
 =========================================================
 
-.. automodule:: exopy.measure.monitors.text_monitor.rules.std_rules
+.. automodule:: exopy.measurement.monitors.text_monitor.rules.std_rules
     :members:
     :undoc-members:
     :show-inheritance:

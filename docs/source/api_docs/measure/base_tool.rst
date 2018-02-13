@@ -1,7 +1,7 @@
-exopy.measure.base_tool module
+exopy.measurement.base_tool module
 =============================
 
-.. automodule:: exopy.measure.base_tool
+.. automodule:: exopy.measurement.base_tool
     :members:
     :undoc-members:
     :show-inheritance:

@@ -73,7 +73,7 @@ Customizing application start up and closing
 In some cases, a plugin needs to perform some operation at application start up
 (for example discover extension packages, or adding new logger handlers) or
 some special clean up operations when the application exits. It may also need
-to have a say so about whether or not the application can exit (if a measure
+to have a say so about whether or not the application can exit (if a measurement
 is running the application should not exit without a huge warning). The
 'exopy.app' plugin is responsible for handling all those possibilities. It
 relies on three extension points (one for each behaviour) :

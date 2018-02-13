@@ -20,7 +20,7 @@ please refer to its documentation for the specifics of the procedure.
     application
     tasks
     instruments
-    measure
+    measurement
     testing
     style_guide
     atom_enaml

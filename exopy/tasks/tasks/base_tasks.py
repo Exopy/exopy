@@ -1052,7 +1052,8 @@ class RootTask(ComplexTask):
     paused = Typed(Event)
 
     #: Inter-process event signaling the main thread is done, handling the
-    #: measure resuming, and hence notifying the task execution has resumed.
+    #: measurement resuming, and hence notifying the task execution has
+    #: resumed.
     resumed = Typed(Event)
 
     #: Dictionary used to store errors occuring during performing.
