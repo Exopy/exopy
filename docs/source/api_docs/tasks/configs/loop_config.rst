@@ -1,7 +1,7 @@
-ecpy.tasks.configs.loop_config module
+exopy.tasks.configs.loop_config module
 =====================================
 
-.. automodule:: ecpy.tasks.configs.loop_config
+.. automodule:: exopy.tasks.configs.loop_config
     :members:
     :undoc-members:
     :show-inheritance:

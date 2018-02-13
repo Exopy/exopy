@@ -1,0 +1,154 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifest for the PackagesPlugin which collect and handle extension packages.
+
+Extension packages are packages which declare a setuptools entry point :
+`exopy_package_extension` pointing towards a callable returning a lits of plugin
+manifest. At application start up, the entry point is inspected and all
+collected manifest are registered. They are unregistered during application
+closing (after calling the ClosedApp handlers). Each manifest can declare a
+priority between 0 and 100 which will be used when unregistering (lower values
+unregistered first).
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import logging
+from collections import Mapping
+from pprint import pformat
+
+from enaml.workbench.api import PluginManifest, Extension
+from enaml.widgets.api import MultilineField
+
+from ..app_extensions import AppStartup
+from ..errors.errors import ErrorHandler
+from ..errors.widgets import BasicErrorsDisplay
+from ...utils.traceback import format_exc
+
+PLUGIN_ID = 'exopy.app.packages'
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def packages_plugin_factory():
+    """Factory function for the PackagesPLugin
+
+    """
+    from .plugin import PackagesPlugin
+    return PackagesPlugin()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+PACKAGE_ERROR_DESCRIPTION =\
+"""Specific handler for package loading errors.
+
+The handler expects the 'id' of the package for which loading failed and a
+'message' explaining what happened.
+"""
+
+
+REGISTERING_ERR_DESCRIPTION =\
+"""Specific handler for plugin registering errors.
+
+The handler expect to find the 'id' of the manifest whose registering failed,
+and a 'message' key.
+
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef PackagesManifest(PluginManifest):
+    """Manifest of the Packages plugin.
+
+    """
+    id = PLUGIN_ID
+    factory = packages_plugin_factory
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'startup'
+        point = 'exopy.app.startup'
+        AppStartup:
+            id = 'exopy.app.packages'
+            priority = 5
+            run => (workbench, cmd_args):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                plugin.collect_and_register()
+
+    Extension:
+        id = 'error'
+        point = 'exopy.app.errors.handler'
+        ErrorHandler:
+            attr errors = {}
+            id = 'package'
+            description = PACKAGE_ERROR_DESCRIPTION
+            handle => (workbench, infos):
+                if not isinstance(infos, Mapping):
+                    err = {}
+                    for i in infos:
+                        logger.debug(i['message'])
+                        err[i['id']] = i['message']
+                    errors.update(infos)
+                    return BasicErrorsDisplay(kind='Packages',
+                                              errors=err)
+                else:
+                    logger.debug(infos['message'])
+                    errors[infos['id']] = infos['message']
+                    return MultilineField(text=infos['message'],
+                                          read_only=True)
+
+            report => (workbench):
+                if errors:
+                    return BasicErrorsDisplay(errors=errors,
+                                              kind='Packages')
+                else:
+                    msg = 'No package registering error occured.'
+                    return MultilineField(text=msg)
+
+        ErrorHandler:
+            attr errors = {}
+            id = 'registering'
+            description = REGISTERING_ERR_DESCRIPTION
+            handle => (workbench, infos):
+                err = {}
+                if not isinstance(infos, Mapping):
+                    # Explicit loop to avoid weird scoping issues.
+                    for i in infos:
+                        err[i['id']] = self._format(i)
+                    errors.update(err)
+                    return BasicErrorsDisplay(errors=err,
+                                              kind='Manifests')
+                else:
+                    msg = self._format(infos)
+                    errors[infos['id']] = msg
+                    return MultilineField(text=msg, read_only=True)
+
+            report => (workbench):
+                if errors:
+                    return BasicErrorsDisplay(errors=errors,
+                                              kind='Manifests')
+                else:
+                    msg = 'No manifest registering error occured.'
+                    return MultilineField(text=msg)
+
+            func _format(infos):
+                return ('Failed to register manifest {}'.format(infos['id']) +
+                        infos['message'])
+

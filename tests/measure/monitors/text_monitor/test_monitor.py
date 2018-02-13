@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,18 +18,18 @@ from operator import attrgetter
 import pytest
 import enaml
 
-from ecpy.tasks.tasks.database import TaskDatabase
-from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
-from ecpy.measure.monitors.text_monitor.rules.std_rules import (FormatRule,
+from exopy.tasks.tasks.database import TaskDatabase
+from exopy.measure.monitors.text_monitor.entry import MonitoredEntry
+from exopy.measure.monitors.text_monitor.rules.std_rules import (FormatRule,
                                                                 RejectRule)
-from ecpy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import process_app_events, handle_dialog
 with enaml.imports():
-    from ecpy.testing.windows import (ContainerTestingWindow,
+    from exopy.testing.windows import (ContainerTestingWindow,
                                       DockItemTestingWindow)
-    from ecpy.measure.monitors.text_monitor.monitor_views\
+    from exopy.measure.monitors.text_monitor.monitor_views\
         import (TextMonitorItem, TextMonitorEdit)
 
-pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
+pytest_plugins = str('exopy.testing.measure.monitors.text_monitor.fixtures'),
 
 
 @pytest.fixture
@@ -37,8 +37,8 @@ def monitor(text_monitor_workbench):
     """Bare text monitor as created by the plugin.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measure')
-    return p.create('monitor', 'ecpy.text_monitor', False)
+    p = text_monitor_workbench.get_plugin('exopy.measure')
+    return p.create('monitor', 'exopy.text_monitor', False)
 
 
 @pytest.fixture
@@ -430,7 +430,7 @@ def test_get_set_state(monitor, monkeypatch, measure, database):
 
     assert 'rule_0' in state
     rule = state['rule_0']
-    assert (rule == {'class_id': 'ecpy.FormatRule', 'id': 'Test',
+    assert (rule == {'class_id': 'exopy.FormatRule', 'id': 'Test',
                      'description': '',
                      'hide_entries': 'True',
                      'suffixes': repr([u'loop', u'index']),
@@ -452,7 +452,7 @@ def test_get_set_state(monitor, monkeypatch, measure, database):
             repr([e.path for e in monitor.hidden_entries]))
 
     monitor._clear_state()
-    import ecpy.measure.monitors.text_monitor.monitor as mod
+    import exopy.measure.monitors.text_monitor.monitor as mod
     monkeypatch.setattr(mod, 'information',
                         lambda *args, **kwargs: print(args, kwargs))
 
@@ -465,7 +465,7 @@ def test_get_set_state(monitor, monkeypatch, measure, database):
     state2 = monitor.get_state()
     assert state == state2
 
-    from ecpy.tasks.tasks.database import TaskDatabase
+    from exopy.tasks.tasks.database import TaskDatabase
     monkeypatch.setattr(TaskDatabase, 'list_all_entries',
                         lambda *args, **kwargs: {'root/test_loop': 10,
                                                  'root/test2_index': 1,
@@ -495,9 +495,9 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
     """Test the capabalities of the widget used to edit a text monitor.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    p = text_monitor_workbench.get_plugin('exopy.measure.monitors.text_monitor')
     m = p.create_monitor(False)
-    m.rules.append(p.build_rule(dict(id='test', class_id='ecpy.FormatRule',
+    m.rules.append(p.build_rule(dict(id='test', class_id='exopy.FormatRule',
                                      new_entry_formatting='{index}/{number}',
                                      suffixes=['index', 'number'],
                                      new_entry_suffix='progress')))
@@ -578,7 +578,7 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
 
     # Test delete entry
     with enaml.imports():
-        from ecpy.measure.monitors.text_monitor import monitor_views
+        from exopy.measure.monitors.text_monitor import monitor_views
 
     def false_question(*args, **kwargs):
         class O(object):
@@ -593,7 +593,7 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
 
     m.add_entries('undisplayed', [e])
     with enaml.imports():
-        from ecpy.measure.monitors.text_monitor import monitor_views
+        from exopy.measure.monitors.text_monitor import monitor_views
 
     def false_question(*args, **kwargs):
         class O(object):

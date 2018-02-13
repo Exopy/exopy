@@ -1,7 +1,7 @@
-ecpy.app.errors.widgets module
+exopy.app.errors.widgets module
 ==============================
 
-.. automodule:: ecpy.app.errors.widgets
+.. automodule:: exopy.app.errors.widgets
     :members:
     :undoc-members:
     :show-inheritance:

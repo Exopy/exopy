@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #

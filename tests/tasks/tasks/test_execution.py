@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -21,11 +21,11 @@ import pytest
 from atom.api import Unicode, set_default
 from enaml.application import deferred_call
 
-from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
-from ecpy.tasks.tasks.validators import Feval, SkipEmpty
+from exopy.tasks.tasks.base_tasks import RootTask, ComplexTask
+from exopy.tasks.tasks.validators import Feval, SkipEmpty
 
-from ecpy.testing.tasks.util import CheckTask, ExceptionTask
-from ecpy.testing.util import process_app_events
+from exopy.testing.tasks.util import CheckTask, ExceptionTask
+from exopy.testing.util import process_app_events
 
 
 class TestTaskExecution(object):

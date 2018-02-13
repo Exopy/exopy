@@ -1,0 +1,340 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifest of the preferences plugin.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import os
+import sys
+from configobj import ConfigObj
+from future.builtins import str
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+from enaml.widgets.api import (FileDialogEx, Dialog, Field, Container,
+                               PushButton)
+from enaml.layout.api import hbox, vbox, spacer
+
+from ..states.state import State
+from ..app_extensions import AppStartup
+
+PLUGIN_ID = 'exopy.app.preferences'
+
+MODULE_PATH = os.path.dirname(__file__)
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def preference_plugin_factory():
+    """Factory function for the PrefPlugin
+
+    """
+    from .plugin import PrefPlugin
+    return PrefPlugin()
+
+# =============================================================================
+# --- Startup handler ---------------------------------------------------------
+# =============================================================================
+
+TOOLTIP = \
+'''Folder used by the application to store informations such as preferences
+log files, ...'''
+
+
+enamldef AppDirSelectionDialog(Dialog): dial:
+    """Simple dialog prompting the user to choose a directory for the app.
+
+    """
+    #: Currently seleted path
+    attr path
+
+    #: Default path located in the user directory.
+    attr user_path = path
+
+    title = 'Choose the directory in which to store application settings'
+
+    Container:
+        constraints = [vbox(fd, hbox(rs, ch, spacer), hbox(spacer, qu, ok)),
+                       ch.right + 1.1*ch.width <= qu.left]
+
+        Field: fd:
+            text := path
+            tool_tip = TOOLTIP
+
+        PushButton: rs:
+            text = 'Restore default'
+            clicked:: dial.path = user_path
+
+        PushButton: ch:
+            text = 'Choose directory'
+            clicked ::
+                d = FileDialogEx.get_existing_directory(current_path=path)
+                if d:
+                    dial.path = d
+        PushButton: ok:
+            text = 'Ok'
+            clicked :: dial.accept()
+
+        PushButton: qu:
+            text = 'Quit Exopy'
+            clicked :: dial.reject()
+
+
+
+def check_app_folder(workbench, cmd_args):
+    """Check whether or not the app folder is defined and prompt the user if
+    not.
+
+    """
+    app_dir = os.path.join(MODULE_PATH, 'app_directory.ini')
+    if (not os.path.isfile(app_dir) or
+            'app_path' not in ConfigObj(app_dir, encoding='utf-8') or
+            getattr(cmd_args, 'reset_app_folder', None)):
+        path = ''
+        try:
+            # Explicit casting to detect encoding issues.
+            path = str(os.path.expanduser(os.path.join('~', 'exopy')))
+        except Exception:
+            # Silently ignore issues on Python 2 when userpath contains
+            # non-ascii characters.
+            pass
+        dial = AppDirSelectionDialog(path=path)
+        if not dial.exec_():
+            sys.exit(1)
+        conf = ConfigObj(app_dir, encoding='utf-8', indent_type='    ')
+        conf['app_path'] = dial.path
+        conf.write()
+
+    app_path = ConfigObj(app_dir, encoding='utf-8')['app_path']
+    if not os.path.isdir(app_path):
+        try:
+            os.makedirs(app_path)
+        except Exception:
+            raise SystemExit('Cannot create exopy directory : %s' % app_path)
+
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
+
+def save_preferences(event):
+    """Handler for the 'exopy.app.preferences.save' command.
+
+    """
+    pref = event.workbench.get_plugin(PLUGIN_ID)
+    if 'ask_user' in event.parameters:
+        factory = FileDialogEx.get_save_file_name
+        path = factory(name_filters=['*.ini'],
+                       current_path=pref.last_directory)
+        if path:
+            pref.last_directory = os.path.dirname(path)
+            pref.save_preferences(path=path)
+    elif 'path' in event.parameters:
+        pref.save_preferences(path=event.parameters['path'])
+    else:
+        pref.save_preferences()
+
+
+def load_preferences(event):
+    """Handler for the 'exopy.app.preferences.load' command.
+
+    """
+    pref = event.workbench.get_plugin(PLUGIN_ID)
+    if 'ask_user' in event.parameters:
+        ini_path = event.parameters.get('path', pref.last_directory)
+        factory = FileDialogEx.get_open_file_name
+        path = factory(current_path=ini_path, name_filters=['*.ini'])
+        if path:
+            pref.last_directory = os.path.dirname(path)
+            pref.load_preferences(path=path)
+    elif 'path' in event.parameters:
+        pref.load_preferences(path=event.parameters['path'])
+    else:
+        pref.load_preferences()
+
+
+def plugin_init_complete(event):
+    """Handler for the 'plugin_init_complete' command
+    """
+    pref = event.workbench.get_plugin(PLUGIN_ID)
+    return pref.plugin_init_complete(event.parameters['plugin_id'])
+
+
+def get_plugin_preferences(event):
+    """Handler for the 'hqc_meas.preferences.get' command
+
+    """
+    pref = event.workbench.get_plugin(PLUGIN_ID)
+    return pref.get_plugin_preferences(event.parameters['plugin_id'])
+
+# TODO implement pref editor
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+PREF_PLUGINS_DESCRIPTION = \
+"""Plugins which uses the built in preferences system should provide an
+extension to this point in the form of a Preferences object so that they are
+hooked up in the automatic saving of preferences."""
+
+SAVE_PREFERENCES_DESCRIPTION = \
+"""This command will save the current preferences.
+
+In the absence of parameters the preferences are saved under
+'prefs/default.ini' in the app folder.
+
+Parameters
+----------
+ask_user : bool, optional
+    If true the user will be prompted to choose the path to which the
+    preferences should be saved.
+path : unicode, optional
+    Path to which save the preferences or starting point of the dialog
+    depending on the value of ask_user.
+
+"""
+
+LOAD_PREFERENCES_DESCRIPTION = \
+"""This command will load preferences.
+
+In the absence of parameters the preferences are loaded from
+'prefs/default.ini' in the app folder.
+
+Parameters
+----------
+ask_user : bool, optional
+    If true the user will be prompted to choose the path from which the
+    preferences should be loaded.
+path : unicode, optional
+    Path from which to load the preferences or starting point of the dialog
+    depending on the value of ask_user.
+
+"""
+
+PLUGIN_INIT_COMPLETE_DESCRIPTION = \
+""" Notify the preference plugin that a contributing plugin has completed its
+initialisation, ie auto saved members can now be connected. """
+
+GET_PLUGIN_PREF_DESCRIPTION = \
+"""Return the preferences stored for a given plugin
+
+Preferences are returned as a dict composed only of strings.
+
+Parameters
+----------
+plugin_id : unicode
+    Id of the plugin whose preferences should be returned.
+
+"""
+
+OPEN_EDITOR_DESCRIPTION = \
+"""Open the preference editor dialog. """
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef PreferencesManifest(PluginManifest):
+    """Manifest for the PreferencePlugin.
+
+    """
+    id = PLUGIN_ID
+    factory = preference_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'plugin'
+        description = PREF_PLUGINS_DESCRIPTION
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'state'
+        point = 'exopy.app.states.state'
+        State:
+            id = 'exopy.app.directory'
+            sync_members = ['app_directory']
+
+    Extension:
+        id = 'startup'
+        point = 'exopy.app.startup'
+        AppStartup:
+            id = 'exopy.app.directory'
+            priority = 0
+            run => (workbench, cmd_args):
+                check_app_folder(workbench, cmd_args)
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.app.preferences.save'
+            description = SAVE_PREF_DESCRIPTION
+            handler = save_preferences
+        Command:
+            id = 'exopy.app.preferences.load'
+            description = LOAD_PREF_DESCRIPTION
+            handler = load_preferences
+        Command:
+            id = 'exopy.app.preferences.plugin_init_complete'
+            description = PLUGIN_INIT_COMPLETE_DESCRIPTION
+            handler = plugin_init_complete
+        Command:
+            id = 'exopy.app.preferences.get'
+            description = GET_PLUGIN_PREF_DESCRIPTION
+            handler = get_plugin_preferences
+#        Command:
+#            id = 'exopy.preferences.open_editor'
+#            description = OPEN_EDITOR_DESCRIPTION
+#            handler = open_editor
+
+    Extension:
+        id = 'menus'
+        point = 'enaml.workbench.ui.actions'
+        MenuItem:
+            path = '/prefs'
+            label = 'Preferences'
+            before = 'tools'
+            after = 'file'
+            ItemGroup:
+                id = 'pref'
+        ActionItem:
+            path = '/prefs/save'
+            label = 'Save'
+            group = 'pref'
+            command = 'exopy.app.preferences.save'
+            parameters = {'ask_user': True}
+        ActionItem:
+            path = '/prefs/load'
+            label = 'Load'
+            group = 'pref'
+            command = 'exopy.app.preferences.load'
+            parameters = {'ask_user': True}
+        ActionItem:
+            path = '/prefs/save_default'
+            label = 'Save default'
+            group = 'pref'
+            command = 'exopy.preferences.save'
+        ActionItem:
+            path = '/prefs/load_default'
+            label = 'Load default'
+            group = 'pref'
+            command = 'exopy.preferences.load'
+#        ActionItem:
+#            path = '/prefs/edit'
+#            label = 'Edit'
+#            command = 'hqc_meas.preferences.open_editor'

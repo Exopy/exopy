@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,56 +18,48 @@ import pytest
 import enaml
 from configobj import ConfigObj
 
-from ecpy.testing.util import (handle_dialog,
-                               show_and_close_widget)
-from ecpy.tasks.api import (RootTask, InstrTaskView, TaskInterface,
-                            InstrumentTask, InterfaceableTaskMixin)
-from ecpy.tasks.infos import TaskInfos, InterfaceInfos
+from exopy.testing.util import (handle_dialog,
+                                show_and_close_widget)
+from exopy.testing.instruments.util import add_profile
+from exopy.tasks.api import (RootTask, InstrTaskView, TaskInterface,
+                             InstrumentTask, InterfaceableTaskMixin)
+from exopy.tasks.infos import TaskInfos, InterfaceInfos
 with enaml.imports():
-    from ecpy.tasks.manifest import TasksManagerManifest
-    from ecpy.tasks.tasks.base_views import RootTaskView
+    from exopy.tasks.manifest import TasksManagerManifest
+    from exopy.tasks.tasks.base_views import RootTaskView
+    from .instrument_contributor import InstrContributor
 
-from ...instruments.conftest import PROFILE_PATH, prof_plugin
 
-pytest_plugins = str('ecpy.testing.instruments.fixtures'),
+pytest_plugins = str('exopy.testing.instruments.fixtures'),
+
+PROFILE_PATH = os.path.join(os.path.dirname(__file__), 'fp.instr.ini')
 
 
 class InterInstrTask(InterfaceableTaskMixin, InstrumentTask):
 
-    task_id = 'ecpy.InstrumentTask'
-
-
-def add_profile(workbench, name, model):
-    """Add a new instrument profiles for a given model.
-
-    """
-    p_plugin = workbench.get_plugin('ecpy.instruments')
-    c = ConfigObj(PROFILE_PATH, encoding='utf-8')
-    c['model_id'] = model
-    with open(os.path.join(p_plugin._profiles_folders[0], name + '.instr.ini'),
-              'wb') as f:
-        c.write(f)
-
-    p_plugin._refresh_profiles()
+    task_id = 'exopy.InstrumentTask'
 
 
 @pytest.fixture
-def instr_task_workbench(prof_plugin):
+def instr_task_workbench(instr_workbench):
     """Workbench with instrument and task support and patched task.
 
     """
-    w = prof_plugin.workbench
+    w = instr_workbench
+    w.register(InstrContributor())
+    c = ConfigObj(PROFILE_PATH, encoding='utf-8')
+    add_profile(instr_workbench, c, ['fp1', 'fp2', 'fp3', 'fp4'])
     w.register(TasksManagerManifest())
-    p = w.get_plugin('ecpy.tasks')
+    p = w.get_plugin('exopy.tasks')
     infos = TaskInfos(cls=InterInstrTask,
-                      instruments=['tests.test.FalseDriver'])
-    infos.interfaces = {'test.I':
-                        InterfaceInfos(cls=TaskInterface, parent=infos,
-                                       instruments=['tests.test.FalseDriver4',
-                                                    'tests.test.FalseDriver2'],
-                                       )
-                        }
-    p._tasks.contributions['ecpy.InstrumentTask'] = infos
+                      instruments=['tasks.test.FalseDriver'])
+    infos.interfaces = \
+        {'test.I': InterfaceInfos(cls=TaskInterface, parent=infos,
+                                  instruments=['tasks.test.FalseDriver4',
+                                               'tasks.test.FalseDriver2']
+                                  )
+         }
+    p._tasks.contributions['exopy.InstrumentTask'] = infos
 
     return w
 
@@ -96,13 +88,16 @@ def test_profile_filtering(instr_task_workbench, instr_view):
     """Test filtering the profiles allowed for a task.
 
     """
-    add_profile(instr_task_workbench, 'fp5', 'Dummy.dumb.002')
-    p = instr_task_workbench.get_plugin('ecpy.instruments')
+    c = ConfigObj(PROFILE_PATH, encoding='utf-8')
+    c['model_id'] = 'Dummy.dumb.002'
+    add_profile(instr_task_workbench, c, ['fp5'])
+    p = instr_task_workbench.get_plugin('exopy.instruments')
     filtered = instr_view.filter_profiles(p._profiles)
     assert 'fp5' not in filtered
 
-    add_profile(instr_task_workbench, 'fp6', 'Dummy.dumb.003')
-    p = instr_task_workbench.get_plugin('ecpy.instruments')
+    c['model_id'] = 'Dummy.dumb.003'
+    add_profile(instr_task_workbench, c, ['fp6'])
+    p = instr_task_workbench.get_plugin('exopy.instruments')
     filtered = instr_view.filter_profiles(p._profiles)
     assert 'fp6' in filtered
 
@@ -111,12 +106,12 @@ def test_driver_filtering(instr_task_workbench, instr_view):
     """Test filtering the drivers allowed for a task.
 
     """
-    p = instr_task_workbench.get_plugin('ecpy.instruments')
+    p = instr_task_workbench.get_plugin('exopy.instruments')
     filtered = instr_view.filter_drivers(p._profiles['fp1'].model.drivers)
     assert len(filtered) == 2
 
-    pt = instr_task_workbench.get_plugin('ecpy.tasks')
-    del pt._tasks.contributions['ecpy.InstrumentTask'].interfaces
+    pt = instr_task_workbench.get_plugin('exopy.tasks')
+    del pt._tasks.contributions['exopy.InstrumentTask'].interfaces
     filtered = instr_view.filter_drivers(p._profiles['fp1'].model.drivers)
     assert len(filtered) == 1
 
@@ -139,7 +134,7 @@ def test_select_instrument(instr_task_workbench, instr_view):
 
     """
     tool_btn = instr_view.widgets()[-1].widgets()[-1]
-    selec = ('fp1', 'tests.test.FalseDriver',
+    selec = ('fp1', 'tasks.test.FalseDriver',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
     with handle_dialog('reject'):
@@ -161,7 +156,7 @@ def test_select_interface_based_on_instrument(instr_task_workbench,
     instr_view.select_interface()
     assert not instr_view.task.interface
 
-    selec = ('fp1', 'tests.test.FalseDriver2',
+    selec = ('fp1', 'tasks.test.FalseDriver2',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
     instr_view.select_interface()
@@ -169,13 +164,13 @@ def test_select_interface_based_on_instrument(instr_task_workbench,
 
     # Check that moving back to an instrument with no associated interface
     # does discard the interface.
-    selec = ('fp1', 'tests.test.FalseDriver',
+    selec = ('fp1', 'tasks.test.FalseDriver',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
     instr_view.select_interface()
     assert not instr_view.task.interface
 
-    selec = ('fp1', 'tests.test.FalseDriver2',
+    selec = ('fp1', 'tasks.test.FalseDriver2',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
     instr_view.select_interface()

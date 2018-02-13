@@ -1,4 +1,4 @@
-ecpy.measure.workspace package
+exopy.measure.workspace package
 ==============================
 
 Submodules

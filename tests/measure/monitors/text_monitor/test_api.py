@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,4 +17,4 @@ def test_api_import():
     """Test importing all the names defined in the api module.
 
     """
-    from ecpy.measure.monitors.text_monitor.api import BaseRule
+    from exopy.measure.monitors.text_monitor.api import BaseRule

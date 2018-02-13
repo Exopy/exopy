@@ -1,8 +1,8 @@
-Ecpy Changelog
+Exopy Changelog
 ==============
 
-0.1.0 - to be released
-----------------------
+0.1.0 - unreleased
+------------------
 
 - docs: improve documentation about debugging (#124)
 - measure: fix a bug causing unwanted forced stops (#122)

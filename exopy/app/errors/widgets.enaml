@@ -1,0 +1,162 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to display errors messages received by the plugin.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from future.builtins import str
+from enaml.core.api import Looper, Include, Conditional
+from enaml.layout.api import vbox, hbox, align
+from enaml.stdlib.mapped_view import MappedView
+from enaml.widgets.api import (Container, MultilineField, Notebook, Dialog,
+                               Page, Label)
+
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.widgets.dict_tree_view import DictTreeView, Leaf, Node
+
+
+enamldef ErrorsDialog(Dialog):
+    """Dialog presenting all the errors reported in a notebook.
+
+    """
+    #: Errors by kind. For each kind the handler returned a Container
+    #: widget which we display in a notebook page.
+    attr errors : dict
+
+    title = 'Application errors'
+
+    Conditional:
+        condition = bool(errors)
+
+        Container:
+            Notebook:
+                tabs_closable = False
+                Looper:
+                    iterable = sorted(errors)
+                    Page:
+                        title = loop_item
+                        # Directly include widgets inheriting from container.
+                        Conditional:
+                            condition = isinstance(errors[loop_item],
+                                                   Container)
+                            Include:
+                                objects = [errors[loop_item]]
+
+                        # Add a container for non-Container widgets.
+                        Conditional:
+                            condition = not isinstance(errors[loop_item],
+                                                       Container)
+                            Container:
+                                Include:
+                                    objects = [errors[loop_item]]
+
+    Conditional:
+        condition = not bool(errors)
+        Container:
+            MultilineField:
+                text = 'No error occured'
+                read_only = True
+
+
+enamldef UnknownErrorWidget(Container):
+    """Widget used to display messages for errors for which no specific handler
+    was found.
+
+    """
+    #: Kind of the errror for which no handler was found.
+    attr kind
+
+    #: Message presenting all the infos in a nice formatted version.
+    attr msg
+
+    Label:
+        text =\
+            'No handler was found for %s, the formatted infos are below' % kind
+
+    MultilineField:
+        text = msg
+        read_only = True
+
+
+enamldef BasicErrorsDisplay(Container):
+    """Display the errors as a list with a panel for the message.
+
+    """
+    #: Dict listing the errors as id: message.
+    attr errors
+
+    #: Currently selected error.
+    alias selected : lis.selected_item
+    selected = list(errors)[0] if errors else None
+
+    #: Kind of the errors.
+    alias kind : lis_lab.text
+
+
+    constraints = [vbox(hbox(lis_lab, che_lab), hbox(lis, che)),
+                   align('left', lis_lab, lis),
+                   align('left', che_lab, che)]
+
+    Label: lis_lab:
+        pass
+    QtListStrWidget: lis:
+        items = sorted(errors.keys())
+        hug_height = 'ignore'
+
+    Label: che_lab:
+        text << selected if selected else ''
+    MultilineField: che:
+        text << errors[selected] if (errors and selected) else ''
+        read_only = True
+
+
+def format_error(node):
+    """Build a nice string representation of a node.
+
+    """
+    if isinstance(node, Leaf):
+        return str(node.value)
+    else:
+        msg = 'Node %s contains the following entries :\n' % node.name
+        for n in node.nodes:
+            if isinstance(n, Leaf):
+                msg += '- %s : %s\n' % (n.name, str(n.value).split('\n', 1)[0])
+            else:
+                msg += '- %s : node\n' % n.name
+
+        return msg
+
+
+enamldef HierarchicalErrorsDisplay(Container): main:
+    """Widget used to display a nested dictionary.
+
+    Keys must always be unicode and values should unicode or dict.
+
+    """
+    #: Dict listing the errors as point: errors.
+    alias errors : tr.mapping
+
+    #: Currently selected error.
+    alias selected : tr.selected_item
+
+    #: Kind of the errors.
+    alias kind : lis_lab.text
+
+    constraints = [hbox(vbox(lis_lab, tr), txt),
+                   txt.width >= 2*tr.width]
+
+    Label: lis_lab:
+        pass
+    DictTreeView: tr:
+        hug_height = 'ignore'
+
+    MultilineField: txt:
+        text << format_error(tr.selected_item)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,15 +17,15 @@ from time import sleep
 import enaml
 import pytest
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
-    from ecpy.app.log.manifest import LogManifest
-    from ecpy.tasks.manifest import TasksManagerManifest
+    from exopy.app.log.manifest import LogManifest
+    from exopy.tasks.manifest import TasksManagerManifest
 
 
-pytests_plugin = str('ecpy.testing.measure.fixtures'),
+pytests_plugin = str('exopy.testing.measure.fixtures'),
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def content_workbench(measure_workbench, measure, windows):
     measure_workbench.register(UIManifest())
     measure_workbench.register(LogManifest())
     measure_workbench.register(TasksManagerManifest())
-    measure_plugin = measure_workbench.get_plugin('ecpy.measure')
+    measure_plugin = measure_workbench.get_plugin('exopy.measure')
     measure_plugin.selected_engine = 'dummy'
     measure_plugin.default_monitors = ['dummy']
 
@@ -56,11 +56,11 @@ def test_content(content_workbench, windows, dialog_sleep):
 
     core = content_workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.select_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
     process_app_events()
     sleep(dialog_sleep)
 
-    pl = content_workbench.get_plugin('ecpy.measure')
+    pl = content_workbench.get_plugin('exopy.measure')
     pl.workspace.new_measure()
     process_app_events()
     sleep(dialog_sleep)

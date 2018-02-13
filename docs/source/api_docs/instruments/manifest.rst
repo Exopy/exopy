@@ -1,7 +1,7 @@
-ecpy.instruments.manifest module
+exopy.instruments.manifest module
 ================================
 
-.. automodule:: ecpy.instruments.manifest
+.. automodule:: exopy.instruments.manifest
     :members:
     :undoc-members:
     :show-inheritance:

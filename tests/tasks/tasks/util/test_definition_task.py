@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,14 +17,14 @@ import enaml
 from multiprocessing import Event
 from collections import OrderedDict
 
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.tasks.string_evaluation import safe_eval
-from ecpy.tasks.tasks.base_tasks import RootTask
-from ecpy.tasks.tasks.util.definition_task import DefinitionTask
-from ecpy.utils.atom_util import (ordered_dict_from_pref)
+from exopy.testing.util import show_and_close_widget
+from exopy.tasks.tasks.string_evaluation import safe_eval
+from exopy.tasks.tasks.base_tasks import RootTask
+from exopy.tasks.tasks.util.definition_task import DefinitionTask
+from exopy.utils.atom_util import (ordered_dict_from_pref)
 
 with enaml.imports():
-    from ecpy.tasks.tasks.util.views.definition_view import DefinitionView
+    from exopy.tasks.tasks.util.views.definition_view import DefinitionView
 
 
 class TestDefinitionTask(object):

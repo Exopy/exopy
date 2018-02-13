@@ -1,7 +1,7 @@
-ecpy.app.errors.manifest module
+exopy.app.errors.manifest module
 ===============================
 
-.. automodule:: ecpy.app.errors.manifest
+.. automodule:: exopy.app.errors.manifest
     :members:
     :undoc-members:
     :show-inheritance:

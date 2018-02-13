@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,12 +17,12 @@ from pytest import raises
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.states.manifest import StateManifest
+    from exopy.app.states.manifest import StateManifest
     from .states_utils import StateContributor
 
 
 CORE_PLUGIN = 'enaml.workbench.core'
-GET_STATE = 'ecpy.app.states.get'
+GET_STATE = 'exopy.app.states.get'
 
 STATE_ID = 'test.states.state'
 
@@ -51,7 +51,7 @@ class TestState(object):
         with raises(AttributeError):
             state.string = 1
 
-        self.workbench.unregister('ecpy.app.states')
+        self.workbench.unregister('exopy.app.states')
 
     def test_state_unicity(self):
         """Test that asking twice the same state return the same object.
@@ -100,5 +100,5 @@ def test_api_import():
     """Test importing the api module.
 
     """
-    from ecpy.app.states import api
+    from exopy.app.states import api
     assert api.__all__

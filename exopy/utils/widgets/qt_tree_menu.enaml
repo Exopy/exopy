@@ -1,0 +1,165 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Standard menu for the tree widget.
+
+The action context will be set by the tree widget to a dictionary with the
+following keys:
+
+- 'copyable': bool, can the node be copied
+- 'cutable': bool, can the node be cut
+- 'pasteable': bool, can node be pasted here
+- 'renamable': bool, can the node be renamed
+- 'deletable': bool, can the node be deleted
+- 'not_root': bool, is the node the root node of the tree
+- 'data': tuple, (tree, TreeNode instance, object, id of the node)
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import Action
+from enaml.stdlib.message_box import question
+from copy import deepcopy
+
+from .qt_clipboard import CLIPBOARD
+
+
+# --- Copies the current tree node object to the paste buffer -----------------
+
+enamldef CopyAction(Action):
+    """ Copies the current tree node object to the paste buffer.
+
+    """
+    attr action_context
+    text = 'Copy'
+    visible << action_context['copyable']
+    triggered::
+        CLIPBOARD.instance = deepcopy(action_context['data'][2])
+
+
+# --- Cuts the current tree node object into the paste buffer -----------------
+
+enamldef CutAction(Action):
+    """ Cuts the current tree node object into the paste buffer.
+
+    """
+    attr action_context
+    text = 'Cut'
+    visible << action_context['cutable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        CLIPBOARD.instance = obj
+        widget._delete(*widget._node_index(nid))
+
+
+# --- Pastes the current contents of the paste buffer into the current node ---
+
+enamldef PasteAction(Action):
+    """ Pastes the current contents of the paste buffer into the current node.
+
+    """
+    attr action_context
+    text = 'Paste'
+    visible << action_context['pasteable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        widget._append(node, obj, CLIPBOARD.instance, False)
+
+
+# --- Deletes the current node from the tree ----------------------------------
+
+enamldef DeleteAction(Action):
+    """ Deletes the current node from the tree.
+
+    """
+    attr action_context
+    text = 'Delete'
+    visible << action_context['deletable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        rc = node.confirm_delete(obj)
+        if rc is not False:
+            if rc is not True:
+                # Ask user to confirm the delete:
+                label = node.get_label(obj)
+                confirm = question(
+                            None,
+                            "Confirm Deletion",
+                            "Are you sure you want to delete {}?".format(label)
+                            )
+                if confirm is not None and confirm.action == 'accept':
+                    widget._delete( *widget._node_index( nid ) )
+            else:
+                widget._delete( *widget._node_index( nid ) )
+
+
+# --- Renames the current tree node -------------------------------------------
+
+enamldef RenameAction(Action):
+    """ Rename the current node.
+
+    """
+    attr action_context
+    text = 'Rename'
+    visible << action_context['renamable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        tree = widget.get_widget()
+        blc = tree.blockSignals(True)
+        nid.setText(0, node.enter_rename(obj))
+        tree.blockSignals(blc)
+        tree.editItem(nid)
+
+
+# --- Adds a new object to the current node -----------------------------------
+
+enamldef NewAction(Action):
+    """ Adds a new object to the current node.
+
+    Attributes
+    ----------
+    factory : callable
+        Callable to use to generate a new object.
+
+    args : tuple
+        Arguments to pass to the factory function.
+
+    kwargs : dict
+        Keyword arguments to pass to the factory function.
+
+    mode : {'Append', 'Add before', 'Add after'}
+        How to insert the new child into the hierarchy.
+
+    """
+    attr action_context
+    attr factory
+    text << mode
+    attr args = ()
+    attr kwargs = {}
+    attr mode = 'Append'
+    visible << mode == 'Append' or action_context['not_root']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        new_obj = factory(*args, **kwargs)
+        if new_obj:
+            tree = widget.get_widget()
+            if mode == 'Append':
+                widget._append(node, obj, new_obj, False)
+                tree.setCurrentItem(nid.child(nid.childCount() - 1))
+            if mode.startswith('Add'):
+                if 'before' in mode:
+                    index = widget._node_index(nid)[2]
+                else:
+                    index = widget._node_index(nid)[2] + 1
+                parent = widget.get_parent(obj)
+                parent_node = widget.get_node(parent)
+                widget._insert(parent_node, parent, index,
+                                        new_obj)
+                parent_nid = widget._get_object_nid(parent)
+                tree.setCurrentItem(parent_nid.child(index))

@@ -1,7 +1,7 @@
-ecpy.testing.util module
+exopy.testing.util module
 ========================
 
-.. automodule:: ecpy.testing.util
+.. automodule:: exopy.testing.util
     :members:
     :undoc-members:
     :show-inheritance:

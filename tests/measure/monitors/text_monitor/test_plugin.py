@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,13 +17,13 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 import enaml
 
-from ecpy.measure.monitors.text_monitor.rules.std_rules import FormatRule
-from ecpy.testing.util import set_preferences
+from exopy.measure.monitors.text_monitor.rules.std_rules import FormatRule
+from exopy.testing.util import set_preferences
 
 with enaml.imports():
     from .contributed_rules import RulesManifest
 
-pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures')
+pytest_plugins = str('exopy.testing.measure.monitors.text_monitor.fixtures')
 
 
 @pytest.fixture
@@ -32,19 +32,19 @@ def text_monitor_plugin(text_monitor_workbench):
 
     """
     conf = {}
-    path = 'ecpy.measure.monitors.text_monitor'
-    rule1 = {'class_id': 'ecpy.FormatRule', 'id': 'test_format',
+    path = 'exopy.measure.monitors.text_monitor'
+    rule1 = {'class_id': 'exopy.FormatRule', 'id': 'test_format',
              'suffixes': repr(['a', 'b']),
              'new_entry_formatting': '{a}/{b}',
              'new_entry_suffix': 'c'}
-    rule2 = {'class_id': 'ecpy.RejectRule',
+    rule2 = {'class_id': 'exopy.RejectRule',
              'id': 'test_reject',
              'suffixes': repr(['a', 'b'])}
     conf[path] = {'_user_rules': repr({'test_format': rule1,
                                        'test_reject': rule2}),
                   'default_rules': repr(['test_format', 'unknown'])}
     set_preferences(text_monitor_workbench, conf)
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    p = text_monitor_workbench.get_plugin('exopy.measure.monitors.text_monitor')
     # Set manually as we added those without the preferences.
     p.default_rules = ['test_format', 'unknown']
     return p
@@ -57,14 +57,14 @@ def test_lifecycle(text_monitor_plugin):
     """
     assert 'test_format' in text_monitor_plugin.rules
     assert 'test_reject' in text_monitor_plugin.rules
-    assert 'ecpy.FormatRule' in text_monitor_plugin.rule_types
-    assert 'ecpy.RejectRule' in text_monitor_plugin.rule_types
+    assert 'exopy.FormatRule' in text_monitor_plugin.rule_types
+    assert 'exopy.RejectRule' in text_monitor_plugin.rule_types
 
     manifest = RulesManifest()
     text_monitor_plugin.workbench.register(manifest)
 
     assert 'contributed' in text_monitor_plugin.rules
-    assert 'tests.Contributed' in text_monitor_plugin.rule_types
+    assert 'measure.Contributed' in text_monitor_plugin.rule_types
 
     text_monitor_plugin.stop()
 
@@ -77,10 +77,10 @@ def test_handling_missing_default_rule(text_monitor_workbench, caplog):
 
     """
     conf = {}
-    path = 'ecpy.measure.monitors.text_monitor'
+    path = 'exopy.measure.monitors.text_monitor'
     conf[path] = {'default_rules': repr(['test_format', 'unknown'])}
     set_preferences(text_monitor_workbench, conf)
-    text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    text_monitor_workbench.get_plugin('exopy.measure.monitors.text_monitor')
     assert caplog.records
 
 
@@ -88,7 +88,7 @@ def test_plugin_build_rule(text_monitor_plugin):
     """ Test building a rule.
 
     """
-    config = {'class_id': 'ecpy.RejectRule',
+    config = {'class_id': 'exopy.RejectRule',
               'id': 'test_reject',
               'suffixes': repr(['a', 'b'])}
     rule = text_monitor_plugin.build_rule(config)
@@ -169,7 +169,7 @@ def test_plugin_save_rule(text_monitor_plugin):
 
     assert 'Test' in text_monitor_plugin.rules
     rule_conf = text_monitor_plugin._user_rules['Test']
-    assert rule_conf == {'class_id': 'ecpy.FormatRule',
+    assert rule_conf == {'class_id': 'exopy.FormatRule',
                          'id': 'Test',
                          'description': '',
                          'hide_entries': 'True',

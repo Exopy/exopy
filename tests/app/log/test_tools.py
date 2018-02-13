@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 import sys
 from multiprocessing import Queue
 from time import sleep, localtime
-from ecpy.app.log.tools import (StreamToLogRedirector, QueueHandler,
+from exopy.app.log.tools import (StreamToLogRedirector, QueueHandler,
                                 LogModel, DayRotatingTimeHandler,
                                 GuiHandler, QueueLoggerThread)
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 
 def test_log_model():
@@ -250,7 +250,7 @@ def test_rotating_file_handler_dst(tmpdir, logger, monkeypatch):
         return current_time + 0.1
 
     monkeypatch.setattr(DayRotatingTimeHandler, 'computeRollover', rollover)
-    from ecpy.app.log.tools import time
+    from exopy.app.log.tools import time
     monkeypatch.setattr(time, 'localtime', Aux.loct)
     handler = DayRotatingTimeHandler(str(tmpdir.join('test.log')))
     logger.addHandler(handler)

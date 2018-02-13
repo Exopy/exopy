@@ -1,7 +1,7 @@
-ecpy.utils.flags module
+exopy.utils.flags module
 =======================
 
-.. automodule:: ecpy.utils.flags
+.. automodule:: exopy.utils.flags
     :members:
     :undoc-members:
     :show-inheritance:

@@ -5,10 +5,10 @@
 Measure and tools
 =================
 
-The measure system is at the heart of Ecpy. At the centre of a measure one
+The measure system is at the heart of Exopy. At the centre of a measure one
 finds a hierarchy of tasks, but around it revolves a number of tools allowing
 to customize its execution. This section will present the possibility of
-extension Ecpy offers as far as the measure system is concerned.
+extension Exopy offers as far as the measure system is concerned.
 
 .. note::
 
@@ -59,7 +59,7 @@ Adding a pre-hook requires to :
   be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PreExecutionHook| to the
-  'ecpy.measure.pre-execution' extension point. The declaration should
+  'exopy.measure.pre-execution' extension point. The declaration should
   re-declare the functions :
 
   - new: which should create a new instance of the tool.
@@ -98,7 +98,7 @@ Adding a monitor requires to :
   Additionally the database entries to observe should be stored using their
   full path in the 'monitored_entries' member.
 
-- declare it by contributing a |Monitor| to the 'ecpy.measure.monitors'
+- declare it by contributing a |Monitor| to the 'exopy.measure.monitors'
   extension point. The declaration should re-declare the functions :
 
   - new: which should create a new instance of the monitor.
@@ -136,7 +136,7 @@ Adding a post-hook requires to :
   be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PostExecutionHook| to the
-  'ecpy.measure.post-execution' extension point. The declaration should
+  'exopy.measure.post-execution' extension point. The declaration should
   re-declare the functions :
 
   - new: which should create a new instance of the tool.
@@ -180,7 +180,7 @@ Adding an editor requires to :
   Additionally one can specify whether to hide/disabled the tree widget used
   to select the task when the editor is selected.
 
-- declare it by contributing an |Editor| to the 'ecpy.measure.editors'
+- declare it by contributing an |Editor| to the 'exopy.measure.editors'
   extension point. The declaration should re-declare the functions :
 
   - new : which should create a new instance of the tool.
@@ -206,7 +206,7 @@ Adding an engine requires to :
   - stop: which stops the execution.
   - shutdown: which stops the engine.
 
-- declare it by contributing an |Editor| to the 'ecpy.measure.editors'
+- declare it by contributing an |Editor| to the 'exopy.measure.editors'
   extension point. The declaration should re-declare the functions :
 
   - new: which should create a new instance of the tool.

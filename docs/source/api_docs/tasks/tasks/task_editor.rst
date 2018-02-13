@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.task_editor module
+exopy.tasks.tasks.task_editor module
 ===================================
 
-.. automodule:: ecpy.tasks.tasks.task_editor
+.. automodule:: exopy.tasks.tasks.task_editor
     :members:
     :undoc-members:
     :show-inheritance:

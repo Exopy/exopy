@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -12,8 +12,8 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
-from ecpy.testing.util import process_app_events
+from exopy.measure.monitors.text_monitor.entry import MonitoredEntry
+from exopy.testing.util import process_app_events
 
 
 def test_entry_formatting():

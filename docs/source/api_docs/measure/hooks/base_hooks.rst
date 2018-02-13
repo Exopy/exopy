@@ -1,7 +1,7 @@
-ecpy.measure.hooks.base_hooks module
+exopy.measure.hooks.base_hooks module
 ====================================
 
-.. automodule:: ecpy.measure.hooks.base_hooks
+.. automodule:: exopy.measure.hooks.base_hooks
     :members:
     :undoc-members:
     :show-inheritance:

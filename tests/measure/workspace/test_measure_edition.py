@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,20 +18,20 @@ from collections import namedtuple
 import pytest
 import enaml
 
-from ecpy.testing.measure.fixtures import measure as m_build
-from ecpy.testing.util import process_app_events, handle_dialog
-from ecpy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
-from ecpy.utils.widgets.qt_clipboard import CLIPBOARD
+from exopy.testing.measure.fixtures import measure as m_build
+from exopy.testing.util import process_app_events, handle_dialog
+from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
+from exopy.utils.widgets.qt_clipboard import CLIPBOARD
 
 with enaml.imports():
-    from ecpy.testing.windows import DockItemTestingWindow
-    from ecpy.measure.workspace.measure_edition import (MeasureEditorDockItem,
+    from exopy.testing.windows import DockItemTestingWindow
+    from exopy.measure.workspace.measure_edition import (MeasureEditorDockItem,
                                                         MeasureEditorDialog,
                                                         SaveAction, build_task,
                                                         TaskCopyAction)
 
 
-pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
+pytest_plugins = str('exopy.testing.measure.workspace.fixtures'),
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ def test_save_action(workspace, measure, windows):
         with pytest.raises(CmdException) as ex:
             act.triggered = True
             process_app_events()
-        assert ex.value.cmd == 'ecpy.app.errors.signal'
+        assert ex.value.cmd == 'exopy.app.errors.signal'
     finally:
         CorePlugin.invoke_command = old
 
@@ -158,7 +158,7 @@ def test_switching_between_tasks(edition_view, dialog_sleep):
     ed = edition_view.widget.dock_widget().widgets()[0]
 
     nb = ed.widgets()[-1]
-    nb.selected_tab = 'ecpy.database_access'
+    nb.selected_tab = 'exopy.database_access'
     process_app_events()
     sleep(dialog_sleep)
 
@@ -167,7 +167,7 @@ def test_switching_between_tasks(edition_view, dialog_sleep):
     process_app_events()
     sleep(dialog_sleep)
 
-    assert nb.selected_tab == 'ecpy.standard'
+    assert nb.selected_tab == 'exopy.standard'
 
     tree.selected_item = ed.measure.root_task
     process_app_events()
@@ -228,7 +228,7 @@ def test_closing_measure(edition_view, monkeypatch, dialog_sleep):
 
     # Monkeypatch question (handle_dialog does not work on it on windows)
     with enaml.imports():
-        from ecpy.measure.workspace import measure_edition
+        from exopy.measure.workspace import measure_edition
 
     monkeypatch.setattr(measure_edition, 'question', lambda *args: None)
     edition_view.widget.proxy.on_closed()
@@ -263,7 +263,7 @@ def test_measure_edition_dialog(workspace, measure, windows, monkeypatch,
     process_app_events()
     sleep(dialog_sleep)
 
-    from ecpy.measure.workspace.workspace import MeasureSpace
+    from exopy.measure.workspace.workspace import MeasureSpace
 
     def false_save(self, meas, *args, **kwargs):
         false_save.called = 1

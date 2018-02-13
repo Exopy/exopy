@@ -5,20 +5,20 @@
 Instruments
 ===========
 
-Ecpy is designed to run physics experiments and such experiments requires more
+Exopy is designed to run physics experiments and such experiments requires more
 than just a computer. One can need to apply a DC voltage, measure a current,
 ... All this requires instruments that needs to be interfaced and controlled.
 
-The following sections will dicsuss how Ecpy handles instruments, but not how
-to write drivers as Ecpy let the user free to use the framework of its choice
+The following sections will dicsuss how Exopy handles instruments, but not how
+to write drivers as Exopy let the user free to use the framework of its choice
 to do this.
 
 .. contents::
 
-Instruments within Ecpy
+Instruments within Exopy
 -----------------------
 
-Instruments in Ecpy are managed by a dedicated plugin ensuring that a single
+Instruments in Exopy are managed by a dedicated plugin ensuring that a single
 part of the application use a given instrument at any time, in order to avoid
 conflict. Before using an instrument, the plugin planning to use the instrument
 needs to request the right to do so. This right can be refused if another part
@@ -49,7 +49,7 @@ instrument :
     ignored.
 
 All those parameters are stored in '.instr.ini' file that can be edited through
-the GUI. It is hence necessary to add to Ecpy the proper widget to edit the
+the GUI. It is hence necessary to add to Exopy the proper widget to edit the
 connections and settings (in the following those terms will often refer to
 the widget rather than the data in the profile).
 Settings are quite specific to the 'architecture' of the driver and this is
@@ -57,7 +57,7 @@ fine, however connections are not : the VISA address of an instrument does not
 depend on the driver architecture. Hence connections should not be designed
 with a particular architecture of driver in mind.
 However not all driver 'architectures' use the same procedure to initialize a
-driver and later on close the connection. Ecpy allows for such discrepencies
+driver and later on close the connection. Exopy allows for such discrepencies
 using starters. Starters are simply intermediate taking the driver class, the
 connection and settings to use and taking care of the
 initialization/finalization.
@@ -79,11 +79,11 @@ Registering a driver
 Registering a driver is the most current operation of the ones presented. To do
 so you need to do is to declare your driver in a plugin manifest so
 that the main application can find it. Your plugin should contribute
-an extension to 'ecpy.instruments.drivers' providing |Drivers| and/or |Driver|
+an extension to 'exopy.instruments.drivers' providing |Drivers| and/or |Driver|
 objects.
 
 Let's say we need to declare a single driver named 'MyDriver'. The name of our
-extension package (see :doc:`glossary`) is named 'my_ecpy_plugin'.
+extension package (see :doc:`glossary`) is named 'my_exopy_plugin'.
 Let's look at the example below:
 
 .. code-block:: enaml
@@ -93,10 +93,10 @@ Let's look at the example below:
         id = 'my_plugin_id'
 
         Extension:
-            point = 'ecpy.instruments.drivers'
+            point = 'exopy.instruments.drivers'
 
             Drivers:
-                path = 'my_ecpy_plugin'
+                path = 'my_exopy_plugin'
                 manufacturer = 'MyManufacturer'
 
                 Driver:
@@ -135,7 +135,7 @@ will be accessed if Driver does not provide a value for a specific field :
   set.
 - 'kind': the kind of instrument. Allowed values are : 'Other', 'DC source',
   'AWG', 'RF source', 'Lock-in', 'Spectrum analyser', 'Multimeter'.
-  Those values are defined in 'ecpy.instruments.infos'. This is used only for
+  Those values are defined in 'exopy.instruments.infos'. This is used only for
   filtering so this field is not mandatory.
 - 'starter': Id of the starter to use with this driver.
 - 'connections': Ids and default values for the supported connections (the
@@ -153,7 +153,7 @@ additional attributes compared to the one mentionned for |Drivers| :
   driver matches several models (which is unlikely as there are always some
   differences) it should be declared twice.
 
-This is it. Now when starting Ecpy your new driver should be listed and if not
+This is it. Now when starting Exopy your new driver should be listed and if not
 driver was previously declared for this model of instrument the model should
 have been added.
 
@@ -181,7 +181,7 @@ user is susceptible to stop using a driver if requested (and how to send it
 such a request).
 
 Declaring an instrument user is straightforward. To do so, you must contribute
-an |InstrUser| object to the 'ecpy.instruments.users' extension point.
+an |InstrUser| object to the 'exopy.instruments.users' extension point.
 An |InstrUser| must have :
 
 - an 'id' which should be unique and is generally the id of the plugin using
@@ -197,7 +197,7 @@ Registering a starter
 
 The goal of starters is to allow a transparent use of instrument no matter
 their architecture. To declare a starter, you must contribute a |Starter|
-object to the 'ecpy.instruments.starters' extension point.
+object to the 'exopy.instruments.starters' extension point.
 A |Starter| must declare :
 
 - an 'id' which should be unique and is the one used when declaring a driver.
@@ -224,11 +224,11 @@ Registering a connection
 
 As previously explained, the fields of a connection should be mapped to real
 protocol used for communication and not a specific implementation. Hence the
-VISA connections provided in Ecpy should cover most usages. However it is
+VISA connections provided in Exopy should cover most usages. However it is
 possible to add other connections to cover less frequent cases.
 
 To do so, you must contribute a |Connection| object to the
-'ecpy.instruments.connections' extension point. A |Connection| must declare :
+'exopy.instruments.connections' extension point. A |Connection| must declare :
 
 - an 'id' which should be unique and is the one used when declaring a driver.
 - a 'description' detailing the possible default values that can be specified
@@ -246,7 +246,7 @@ Registering a settings
 
 Contrary to connections settings are much more closely tied to a particular
 architecture of driver. To declare a new settings, you must contribute a
-|Settings| object to the 'ecpy.instruments.settings' extension point. A
+|Settings| object to the 'exopy.instruments.settings' extension point. A
 |Settings| must declare :
 
 - an 'id' which should be unique and is the one used when declaring a driver.
@@ -267,12 +267,12 @@ Registering a manufacturer alias
 
 Some instruments' manufacturer changed name during their history, and hence
 the same instrument can be attributed to two different manufacturers. To deal
-with that kind of cases, Ecpy allows to declare aliases to a manufacturer name.
+with that kind of cases, Exopy allows to declare aliases to a manufacturer name.
 When such aliases are declared, any alias can be used when declaring the driver
 but only the 'real' name will be used internally (in profile for example).
 
 To declare a manufacturer alias, you must contribute a |ManufacturerAlias| to
-the 'ecpy.instruments.manufacturer_aliases' extension point. A
+the 'exopy.instruments.manufacturer_aliases' extension point. A
 |ManufacturerAlias| must declare :
 
 - an 'id' which should be the real manufacturer name.
@@ -283,4 +283,4 @@ Manufacturer names (real and aliases) should all be capitalized.
 
 .. note::
 
-    The 'trivial' case of Keysight/Agilent/HP is already taken care of in Ecpy.
+    The 'trivial' case of Keysight/Agilent/HP is already taken care of in Exopy.

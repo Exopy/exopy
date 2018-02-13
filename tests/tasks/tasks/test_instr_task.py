@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,10 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 from atom.api import Unicode
 
-from ecpy.tasks.tasks.base_tasks import RootTask
-from ecpy.tasks.tasks.validators import Feval
-from ecpy.tasks.tasks.instr_task import (InstrumentTask, PROFILE_DEPENDENCY_ID,
-                                         DRIVER_DEPENDENCY_ID)
+from exopy.tasks.tasks.base_tasks import RootTask
+from exopy.tasks.tasks.validators import Feval
+from exopy.tasks.tasks.instr_task import (InstrumentTask,
+                                          PROFILE_DEPENDENCY_ID,
+                                          DRIVER_DEPENDENCY_ID)
 
 p_id = PROFILE_DEPENDENCY_ID
 d_id = DRIVER_DEPENDENCY_ID

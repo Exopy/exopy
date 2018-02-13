@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2017 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,18 +17,18 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.utils.container_change import ContainerChange
-from ecpy.tasks.api import RootTask, ComplexTask, SimpleTask
-from ecpy.tasks.tasks.logic.loop_task import LoopTask
-from ecpy.measure.editors.api import Editor
-from ecpy.measure.editors.execution_editor.editor_model import\
+from exopy.utils.container_change import ContainerChange
+from exopy.tasks.api import RootTask, ComplexTask, SimpleTask
+from exopy.tasks.tasks.logic.loop_task import LoopTask
+from exopy.measure.editors.api import Editor
+from exopy.measure.editors.execution_editor.editor_model import\
      ExecutionEditorModel
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.measure.editors.execution_editor import ExecutionEditor
-    from ecpy.testing.windows import PageTestingWindow
+    from exopy.measure.editors.execution_editor import ExecutionEditor
+    from exopy.testing.windows import PageTestingWindow
 
 
 @pytest.fixture
@@ -171,7 +171,7 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
         """
         return editor.page_widget().widgets()[0].scroll_widget().widgets()[0]
 
-    editor = ExecutionEditor(declaration=Editor(id='ecpy.execution_editor'),
+    editor = ExecutionEditor(declaration=Editor(id='exopy.execution_editor'),
                              selected_task=task)
     window = PageTestingWindow(widget=editor)
     window.show()

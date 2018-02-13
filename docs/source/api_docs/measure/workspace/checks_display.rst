@@ -1,7 +1,7 @@
-ecpy.measure.workspace.checks_display module
+exopy.measure.workspace.checks_display module
 ============================================
 
-.. automodule:: ecpy.measure.workspace.checks_display
+.. automodule:: exopy.measure.workspace.checks_display
     :members:
     :undoc-members:
     :show-inheritance:

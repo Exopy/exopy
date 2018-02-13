@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,15 +17,15 @@ from multiprocessing import Event
 import pytest
 import enaml
 
-from ecpy.testing.util import show_and_close_widget
-from ecpy.testing.tasks.util import CheckTask
-from ecpy.tasks.api import RootTask
-from ecpy.tasks.tasks.logic.while_task import WhileTask
-from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
+from exopy.testing.util import show_and_close_widget
+from exopy.testing.tasks.util import CheckTask
+from exopy.tasks.api import RootTask
+from exopy.tasks.tasks.logic.while_task import WhileTask
+from exopy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
 with enaml.imports():
-    from ecpy.tasks.tasks.logic.views.while_view\
+    from exopy.tasks.tasks.logic.views.while_view\
         import WhileView
 
 

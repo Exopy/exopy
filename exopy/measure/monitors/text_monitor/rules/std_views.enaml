@@ -1,0 +1,149 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Edition widgets for the two standard rules : reject and format
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import re
+from textwrap import fill
+
+from atom.api import set_default
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import (PushButton, Container, Dialog, Label, Field,
+                               CheckBox)
+from enaml.validator import Validator
+
+
+from .....utils.widgets.qt_list_str_widget import QtListStrWidget
+from .....utils.widgets.qt_completers import QtLineCompleter
+from .base_views import BaseRuleView
+
+
+class SuffixesValidator(Validator):
+    """Validator that the suffixes entries is a comma separated list.
+
+    """
+    #: Message displayed when the input is invalid.
+    message = set_default(('Suffixes should be specified as a comma separated '
+                           'list.'))
+
+    def validate(self, text):
+        """Check that the proposed suffixes are a comma separated list.
+
+        """
+        return bool(self._reg.match(text))
+
+    _reg = re.compile(r'^\w(,\s*\w+)*$')
+
+
+enamldef RejectRuleView(BaseRuleView):
+    """Widget allowing to specify the suffix to match for a RejectRule.
+
+    """
+    constraints = [vbox(name_and_desc, (hbox(sufix_lab, sufix_val)))]
+
+    validate => ():
+        """Check that the user provides a suffix.
+
+        """
+        return (bool(rule.suffixes),
+                'A valid list of suffixes must be provided.')
+
+    Label: sufix_lab:
+        text = 'Suffix'
+    Field: sufix_val:
+        text << ', '.join(rule.suffixes)
+        text ::
+            rule.suffixes = [s.strip() for s in text.split(',')
+                             if s.strip()]
+        tool_tip = fill('Enter the list of suffixes to reject as a comma '
+                        'separated list.')
+        validator = SuffixesValidator()
+
+
+enamldef FormatRuleView(BaseRuleView):
+    """Widget allowing to specify the suffixes and format for a FormatRule.
+
+    """
+    constraints = [vbox(name_and_desc,
+                        hbox(suffixes_lab, spacer),
+                        suffixes_val,
+                        hbox(suff_lab, suff),
+                        hbox(for_lab, for_val),
+                        hi_box,)
+                    ]
+
+    validate => ():
+        """Check that the user provides :
+            - suffixes necessary to build the new entry.
+            - a suffix for the formatted entry
+            - a formating rule matching the specified suffixes.
+
+        """
+        if not rule.suffixes:
+           return False, 'A valid list of suffixes must be provided.'
+
+        if not rule.new_entry_suffix:
+            return False, 'A suffix must be provided to name the new entry.'
+
+        if not rule.new_entry_formatting:
+            return False, 'A formatting needs to be provided.'
+
+        f = rule.new_entry_formatting
+        if not re.match(r'^(.*\{\w+\}\s*)+.*$', f):
+            return False, 'Formatting must be of the form "xx {aaa} eee".'
+
+        used = set([p.split('}')[0] for p in f.split('{') if p])
+        declared = set(rule.suffixes)
+        if not declared == used:
+            unused = declared - used
+            unknown = used - declared
+            msg = 'Formatting issues :\n'
+            if unused:
+                msg += ('- the following declared suffixes are not used : %s' %
+                        unused)
+            if unknown:
+                msg += ('- the following suffixes are not declared : %s' %
+                        unknown)
+            return False, msg
+
+        return True, ''
+
+    Label: suffixes_lab:
+        hug_width = 'strong'
+        text = 'Suffixes'
+    Field: suffixes_val:
+        text << ', '.join(rule.suffixes)
+        text ::
+            rule.suffixes = [s.strip() for s in text.split(',')]
+        tool_tip = fill('Enter the list of suffixes to use to build the new '
+                        'entry as a comma separated list.')
+        validator = SuffixesValidator()
+
+    Label: suff_lab:
+        hug_width = 'strong'
+        text = 'New suffix'
+    Field: suff:
+        text := rule.new_entry_suffix
+
+    Label: for_lab:
+        hug_width = 'strong'
+        text = 'Formatting'
+    QtLineCompleter: for_val:
+        text := rule.new_entry_formatting
+        entries << rule.suffixes
+
+    CheckBox: hi_box:
+        text = 'Hide subpart entries'
+        tool_tip = fill('Hide the entries composing the formatted entry when '
+                        'creating the formatted entry.')
+
+        checked := rule.hide_entries

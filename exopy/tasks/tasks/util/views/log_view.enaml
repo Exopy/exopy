@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the Log Task.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import Label
+from enaml.layout.api import hbox
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ...string_evaluation import EVALUATER_TOOLTIP
+from ...base_views import BaseTaskView
+
+
+enamldef LogView(BaseTaskView):
+    """View for Log Task.
+
+    """
+    constraints = [ hbox(desc, msg) ]
+
+    Label: desc:
+        text = 'Message:'
+    QtLineCompleter: msg:
+        text := task.message
+        entries_updater = task.list_accessible_database_entries
+        tool_tip = EVALUATER_TOOLTIP

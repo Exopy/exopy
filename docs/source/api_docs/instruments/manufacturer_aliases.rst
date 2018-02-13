@@ -1,7 +1,7 @@
-ecpy.instruments.manufacturer_aliases module
+exopy.instruments.manufacturer_aliases module
 ============================================
 
-.. automodule:: ecpy.instruments.manufacturer_aliases
+.. automodule:: exopy.instruments.manufacturer_aliases
     :members:
     :undoc-members:
     :show-inheritance:

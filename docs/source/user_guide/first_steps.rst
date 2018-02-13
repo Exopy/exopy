@@ -3,7 +3,7 @@
 First steps
 ===========
 
-Once you have installed Ecpy you are ready to set it up, then prepare and run
+Once you have installed Exopy you are ready to set it up, then prepare and run
 your first measure. The following sections will take you through those steps.
 More details about the instruments and how to customize your measure will be
 given later on in this manual.
@@ -13,12 +13,12 @@ given later on in this manual.
 Starting the application
 ------------------------
 
-You can start Ecpy either using the Anaconda Launcher, or simply using the
-ecpy command at the command line::
+You can start Exopy either using the Anaconda Launcher, or simply using the
+exopy command at the command line::
 
-    $ ecpy
+    $ exopy
 
-If you are starting Ecpy for the first time, you will be prompted to choose a
+If you are starting Exopy for the first time, you will be prompted to choose a
 folder in which the application will store a number of settings and also write
 the log file. In the following of this guide this directory will be referred to
 as the **application directory**.
@@ -43,15 +43,15 @@ The next sections will detail how these panels work.
 
 .. note::
 
-    The ecpy command accepts some optional arguments. Use::
+    The exopy command accepts some optional arguments. Use::
 
-        $ ecpy -h
+        $ exopy -h
 
     To learn more about the supported options.
 
 .. note::
 
-    If you installed a broken extension package, Ecpy may fail to start. In
+    If you installed a broken extension package, Exopy may fail to start. In
     that case, the application should display a dialog explaining the
     issue. The easiest way to fix it is to uninstall the offending package
     and report the bug to its maintainer. If nothing works (and you have
@@ -60,7 +60,7 @@ The next sections will detail how these panels work.
 
 .. note::
 
-    Ecpy is made out of different plugins providing different capabilities.
+    Exopy is made out of different plugins providing different capabilities.
     To speed up the application start-up, only the needed plugin are
     actually started when launching it. When a new plugin starts, a dialog will
     show up describing the error(s) if any occurred. At any time you can access
@@ -185,7 +185,7 @@ Running a measure
 Starting the measure is straightforward as you simply have to click on the
 'Start' button. If no 'engine' is currently selected (an engine is responsible
 for executing the tasks), you will be prompted to choose one. The default one
-coming with Ecpy will add another log panel just by the one use by the
+coming with Exopy will add another log panel just by the one use by the
 application.
 
 For each enqueued measure, the execution will happen as follow:
@@ -201,7 +201,7 @@ For each enqueued measure, the execution will happen as follow:
 
 .. note::
 
-	The engine is responsible for the execution of tasks. Ecpy comes with a 
+	The engine is responsible for the execution of tasks. Exopy comes with a 
 	builtin one executing the tasks in a different process to limit 
 	interferences between the edition and the execution of measure.
 
@@ -240,4 +240,4 @@ current measure and execute the next ones or stop everything.
 
 Those are the basics, but to be able to run a meaningful measure you will need
 to use some instruments. The next section will explain how those are handled in
-Ecpy and how to register one so that it can be used in a measure.
+Exopy and how to register one so that it can be used in a measure.

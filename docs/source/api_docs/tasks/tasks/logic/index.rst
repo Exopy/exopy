@@ -1,4 +1,4 @@
-ecpy.tasks.tasks.logic package
+exopy.tasks.tasks.logic package
 ==============================
 
 Subpackages

@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Editor using the task views.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from time import sleep
+from enaml.widgets.api import Container, ScrollArea
+
+from ...tasks.tasks.base_views import RootTaskView
+from .base_editor import BaseEditor
+
+
+enamldef StandardEditor(BaseEditor): main:
+    """Standard editor displaying the selected task using the task view.
+
+    """
+    #: Reference to the application workbench needed to query views from the
+    #: task manager.
+    attr workbench
+
+    #: View of the root task managing the view cache.
+    attr root_view
+
+    title = 'Standard editor'
+
+    func set_view_for(task):
+        """Set the currently displayed widget to match the selected view.
+
+        """
+        if not root_view:
+            core = workbench.get_plugin('enaml.workbench.core')
+            main.root_view = RootTaskView(core=core, task=task.root)
+
+        if task:
+            view = root_view.view_for(task)
+            # HINT this is needed because otherwise we try to relayout tasks
+            # that should not be relaid out because there are not diplayed
+            # anymore and should be the layout parent of the displayed task.
+            # (RootTask for a complex one).
+            # This is Qt specific
+            if view.proxy_is_active:
+                view.proxy.layout_container = None
+            # HINT force the refreshing of the parent, this handles the case
+            # of moving selection back and forth between 2 tasks at the same
+            # depth
+            view.set_parent(None)
+            view.set_parent(scroll)
+            # HINT attempt at fixing the issue in which a task widget is
+            # displayed before being given a parent.
+            sleep(0.001)
+            view.refresh()
+            view.show()
+
+    selected_task ::
+        set_view_for(change['value'])
+
+    initialized ::
+        if selected_task:
+            set_view_for(selected_task)
+
+    Container:
+        ScrollArea: scroll:
+            pass

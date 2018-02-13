@@ -1,4 +1,4 @@
-ecpy.app package
+exopy.app package
 ================
 
 Subpackages

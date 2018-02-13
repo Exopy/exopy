@@ -1,7 +1,7 @@
-ecpy.measure.engines.process_engine.engine_declaration module
+exopy.measure.engines.process_engine.engine_declaration module
 =============================================================
 
-.. automodule:: ecpy.measure.engines.process_engine.engine_declaration
+.. automodule:: exopy.measure.engines.process_engine.engine_declaration
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,7 @@
-ecpy.utils.configobj_ops module
+exopy.utils.configobj_ops module
 ===============================
 
-.. automodule:: ecpy.utils.configobj_ops
+.. automodule:: exopy.utils.configobj_ops
     :members:
     :undoc-members:
     :show-inheritance:

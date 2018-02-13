@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -21,16 +21,16 @@ import pytest
 import enaml
 from enaml.widgets.api import Container
 
-from ecpy.tasks.tasks.base_tasks import RootTask, ComplexTask
+from exopy.tasks.tasks.base_tasks import RootTask, ComplexTask
 with enaml.imports():
-    from ecpy.tasks.tasks.base_views import RootTaskView
-    from ecpy.tasks.widgets.building import BuilderView
+    from exopy.tasks.tasks.base_views import RootTaskView
+    from exopy.tasks.widgets.building import BuilderView
 
-from ecpy.testing.util import (show_widget, process_app_events, handle_dialog,
+from exopy.testing.util import (show_widget, process_app_events, handle_dialog,
                                get_window)
 
 
-pytest_plugins = str('ecpy.testing.tasks.fixtures'),
+pytest_plugins = str('exopy.testing.tasks.fixtures'),
 
 
 @pytest.mark.ui
@@ -49,7 +49,7 @@ def test_root_path_edition(windows, task_workbench, dialog_sleep,
     def choose_path(cls, **kwargs):
         return 'test/path'
     with enaml.imports():
-        from ecpy.tasks.tasks.base_views import FileDialogEx
+        from exopy.tasks.tasks.base_views import FileDialogEx
     monkeypatch.setattr(FileDialogEx, 'get_existing_directory',
                         choose_path)
 
@@ -91,7 +91,7 @@ def test_root_view(windows, task_workbench, dialog_sleep):
 
     def answer_dialog(dial):
         selector = dial.selector
-        selector.selected_task = 'ecpy.ComplexTask'
+        selector.selected_task = 'exopy.ComplexTask'
         dial.config.task_name = TASK_NAME
         process_app_events()
 

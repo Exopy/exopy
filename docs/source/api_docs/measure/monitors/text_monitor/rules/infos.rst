@@ -1,7 +1,7 @@
-ecpy.measure.monitors.text_monitor.rules.infos module
+exopy.measure.monitors.text_monitor.rules.infos module
 =====================================================
 
-.. automodule:: ecpy.measure.monitors.text_monitor.rules.infos
+.. automodule:: exopy.measure.monitors.text_monitor.rules.infos
     :members:
     :undoc-members:
     :show-inheritance:

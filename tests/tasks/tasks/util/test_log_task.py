@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,11 +16,11 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.tasks.base_tasks import RootTask
-from ecpy.tasks.tasks.util.log_task import LogTask
+from exopy.testing.util import show_and_close_widget
+from exopy.tasks.tasks.base_tasks import RootTask
+from exopy.tasks.tasks.util.log_task import LogTask
 with enaml.imports():
-    from ecpy.tasks.tasks.util.views.log_view import LogView
+    from exopy.tasks.tasks.util.views.log_view import LogView
 
 
 class TestLogTask(object):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,9 +14,9 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 
-from ecpy.tasks.api import ComplexTask, SimpleTask
-from ecpy.tasks.infos import TaskInfos
-from ecpy.tasks.filters import (TaskFilter, GroupTaskFilter,
+from exopy.tasks.api import ComplexTask, SimpleTask
+from exopy.tasks.infos import TaskInfos
+from exopy.tasks.filters import (TaskFilter, GroupTaskFilter,
                                 SubclassTaskFilter, MetadataTaskFilter)
 
 

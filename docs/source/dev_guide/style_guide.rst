@@ -4,7 +4,7 @@ Style guide
 ===========
 
 The uniformity of the coding style in a large project is of paramount 
-importance to make maintenance easier. Ecpy follows closely PEP8 
+importance to make maintenance easier. Exopy follows closely PEP8 
 recommendations which can be found here (`PEP8`_). One can automatically 
 format code using the autopep8 tool. Some of those rules and some additional
 remarks are detailed below.
@@ -16,13 +16,13 @@ remarks are detailed below.
 Header
 ------
 
-All files part of the Ecpy should start with the following header :
+All files part of the Exopy should start with the following header :
 
 .. code-block:: python
 
 	# -*- coding: utf-8 -*-
 	# -----------------------------------------------------------------------------
-	# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+	# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 	#
 	# Distributed under the terms of the BSD license.
 	#
@@ -39,7 +39,7 @@ Line length
 -----------
 
 `PEP8`_ specifies that lines should at most 79 characters long and this 
-rule is strictly enforced throughout Ecpy (in code and in comments). 
+rule is strictly enforced throughout Exopy (in code and in comments). 
 This makes the code much easier to read and on work on (one does not have to 
 resize its editor window to accommodate long lines).
 
@@ -65,7 +65,7 @@ Docstrings
 ----------
 
 All functions, classes and methods should have a docstring (even private 
-methods). Ecpy use the `Numpy-style`_ docstrings which are human readable.
+methods). Exopy use the `Numpy-style`_ docstrings which are human readable.
 
 As most classes inherits from Atom and must therefore declare explicitly their
 members, those should be documented using a comment above them starting by 
@@ -111,7 +111,7 @@ Imports of .enaml files should come after any other imports.
 Python version compatibility
 ----------------------------
 
-At the time being Ecpy is tied to Python 2 because of Enaml. But as this is 
+At the time being Exopy is tied to Python 2 because of Enaml. But as this is 
 likely to change in the future all code should be written in a Python 2/3 
 compatible manner. All module should have the following line after their 
 docstring :

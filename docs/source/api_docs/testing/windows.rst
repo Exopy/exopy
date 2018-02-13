@@ -1,7 +1,7 @@
-ecpy.testing.windows module
+exopy.testing.windows module
 ===========================
 
-.. automodule:: ecpy.testing.windows
+.. automodule:: exopy.testing.windows
     :members:
     :undoc-members:
     :show-inheritance:

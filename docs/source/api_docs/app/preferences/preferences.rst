@@ -1,7 +1,7 @@
-ecpy.app.preferences.preferences module
+exopy.app.preferences.preferences module
 =======================================
 
-.. automodule:: ecpy.app.preferences.preferences
+.. automodule:: exopy.app.preferences.preferences
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,0 +1,293 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Editor allowing to extend the accessibility of database entries.
+
+By default database entries are only uvailable to task on the same level or
+to children task. By using access exceptions one can go round those
+limitations.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from time import sleep
+from collections import OrderedDict
+
+from enaml.widgets.api import (Container, GroupBox, ScrollArea, Menu, Action,
+                               Label, FlowArea, FlowItem, PushButton)
+from enaml.core.api import Looper, Conditional
+from enaml.layout.api import vbox, spacer
+from enaml.styling import StyleSheet, Style, Setter
+
+from ....tasks.tasks.task_editor import FoldableTaskEditor
+from ..base_editor import BaseEditor
+from .editor_model import EditorModel
+
+
+enamldef BlueLabel(StyleSheet):
+    """Style sheet setting the background to lighblue
+
+    For unclear reasons this gives more consistent results than setting the
+    background member.
+
+    """
+    Style:
+        style_class = 'blue'
+        Setter:
+            field = 'background'
+            value = 'lightblue'
+
+
+
+enamldef NodeEditor(GroupBox): main:
+    """Access editor for a NodeModel.
+
+    """
+    #: Reference to the NodeModel driving this view.
+    attr node
+
+    #: Reference to the root view holding the cache.
+    attr root
+
+    #: Should the children be shown
+    attr show_children : bool = True
+
+    #: Reference to the nodes view in the proper order
+    attr _nodes = OrderedDict()
+
+    title << node.task.name if node else ''
+
+    tool_tip = ('Right click an entry to add an access exception, allowing \n'
+                'to access an entry from a node higer in the hierarchy.\n'
+                'Entries for which an exception exists are colored in blue\n'
+                'and exceptions are colored in green.')
+
+    func refresh():
+        """Function making sure that the editor is displayed correctly.
+
+        """
+        # First update the children before showing the widget
+        for ed in _nodes.values():
+            ed.set_parent(c_nodes)
+            ed.refresh()
+        c_nodes.request_relayout()
+        self.show()
+
+    func populate_nodes(change=None):
+        """Refresh the editors for the included nodes.
+
+        """
+        nodes = node.children
+        added = set(nodes) - set(self._nodes)
+        removed = set(self._nodes) - set(nodes)
+        self._nodes = OrderedDict([(n, root.view_for(n)) for n in nodes])
+
+        for n in removed:
+            root.discard_view(n)
+
+        for n in added:
+            _nodes[n].set_parent(c_nodes)
+
+        c_nodes.request_relayout()
+
+    initialized ::
+        node.observe('children', self.populate_nodes)
+        populate_nodes()
+
+    BlueLabel:
+        pass
+
+    FlowArea:
+        resist_height = 'ignore'
+        hug_height = 'medium'
+        hug_width = 'ignore'
+
+        Looper:
+            iterable << sorted(node.entries)
+            FlowItem:
+                Container:
+                    padding = 0
+                    Label:
+                        text << loop_item
+                        style_class << ('blue'
+                                        if loop_item in node.has_exceptions
+                                        else '')
+                        Conditional:
+                            condition << (node.task.depth != 0 and
+                                          loop_item not in node.has_exceptions)
+                            Menu:
+                                context_menu = True
+                                Action:
+                                    text = 'Add access exception'
+                                    triggered ::
+                                        node.add_exception(loop_item)
+
+        Looper:
+            iterable << sorted(node.exceptions)
+            FlowItem:
+                Container:
+                    padding = 0
+                    Label:
+                        text << loop_item
+                        background = 'lightgreen'
+                        Menu:
+                            context_menu = True
+                            Conditional:
+                                condition << node.task.depth != 0
+                                Action:
+                                    text = 'Move up'
+                                    triggered ::
+                                        e = root.database_model
+                                        t = node.task
+                                        p = t.path + '/' + t.name
+                                        e.increase_exc_level(p, loop_item)
+                            Action:
+                                text = 'Move down'
+                                tool_tip = ('Move the exception to a lower '
+                                            'node, if necessary removing it '
+                                            'completetly')
+                                triggered ::
+                                    e = root.database_model
+                                    t = node.task
+                                    p = (t.path + '/' + t.name if t.depth
+                                         else t.path)
+                                    e.decrease_exc_level(p, loop_item)
+
+    PushButton:
+        text << '-' if show_children else '+'
+        constraints = [height == 10]
+        clicked ::
+            main.show_children = not show_children
+            c_nodes.request_relayout()
+
+    Container: c_nodes:
+        padding = 1
+        visible << show_children
+
+        layout_constraints => ():
+            """Setup the constraints for the children.
+
+            This is necessary to avoid that the widget takes more space than
+            necessary.
+
+            """
+            if show_children:
+                views = _nodes.values()
+                constraints = [vbox(*(tuple(views) + (spacer,)))]
+                for child in children:
+                    constraints.append(child.left == contents_left)
+                return constraints
+            else:
+                return []
+
+
+enamldef DatabaseAccessEditor(BaseEditor): main:
+    """Editor allowing to extend the accessibility of database entries.
+
+    """
+    #: Model keeping track of the declared execution pools.
+    attr database_model
+
+    title = 'Database access editor'
+
+    func view_for(node):
+        """Create a widget for the specified node.
+
+        The view is initialized but given no parent.
+
+        """
+        if node not in _cache:
+            _cache[node] = NodeEditor(node=node, root=self)
+
+        return _cache[node]
+
+    func discard_view(node):
+        """Take care of destroying the view associated with a given node.
+
+        """
+        try:
+            view = _cache.pop(node)
+            # Make sure all children are parented and will hence be properly
+            # destroyed
+            view.refresh()
+            view.set_parent(None)
+            view.destroy()
+        except KeyError:
+            pass
+        else:
+            # Remove all views that have been destroyed because their
+            # parent was just destroyed
+            self._cache = {k: v for k, v in _cache.items()
+                           if not v.is_destroyed}
+
+    func set_view_for(task):
+        """Set the currently displayed widget to match the selected view.
+
+        """
+        if not main.database_model:
+            main.database_model = EditorModel(root=task.root)
+
+        if task:
+            if task.name == 'Root':
+                node = database_model.nodes['root']
+            else:
+                node = database_model.nodes[task.path + '/' + task.name]
+            view = view_for(node)
+            # HINT this is needed because otherwise we try to relayout tasks
+            # that should not be relaid out because there are not displayed
+            # anymore and should be the layout parent of the displayed task.
+            # (RootTask for a complex one).
+            # This is Qt specific
+            if view.proxy_is_active:
+                view.proxy.layout_container = None
+            # HINT force the refreshing of the parent, this handles the case
+            # of moving selection back and forth between 2 tasks at the same
+            # depth
+            view.set_parent(None)
+            view.set_parent(scroll)
+            # HINT attempt at fixing the issue in which a task widget is
+            # displayed before being given a parent.
+            sleep(0.001)
+            view.refresh()
+            view.show()
+
+    selected_task ::
+        set_view_for(change['value'])
+
+    initialized ::
+        if selected_task:
+            set_view_for(selected_task)
+
+    ended ::
+        # When this view is destroyed it must destroy all the view in the cache
+        # Do it by depth order to always destroy the parent first, should allow
+        # to speed up a bit the process.
+        nodes = sorted(_cache, key=lambda n: n.task.depth)
+        for n in nodes:
+            view = _cache.pop(n)
+            if not view.is_destroyed:
+                view.destroy()
+            # Manually breaking the reference cycles reduce the gc work
+            n.task = None
+            view.root = None
+        # Manually breaking the reference cycles reduce the gc work
+        if database_model:
+            database_model.root = None
+            self.database_model = None
+
+    Container:
+        ScrollArea: scroll:
+            pass
+
+    # =========================================================================
+    # --- Private API ---------------------------------------------------------
+    # =========================================================================
+
+    #: Dictionary used to store the view associated with each task.
+    attr _cache : dict = {}

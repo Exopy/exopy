@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -33,13 +33,13 @@ from enaml.widgets.api import (Window, Container, PushButton, Field,
 from enaml.layout.api import vbox, hbox, spacer
 from future.builtins import str
 
-# Assume that the test is run against an installed version of ecpy and if not
+# Assume that the test is run against an installed version of exopy and if not
 # prepend path to sys.path.
 try:
-    from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+    from exopy.utils.widgets.qt_list_str_widget import QtListStrWidget
 except ImportError:
     sys.path.insert(0, os.path.abspath(os.path.join(*(['..']*3))))
-    from ecpy.utils.widgets.qt_list_str_widget import QtListStrWidget
+    from exopy.utils.widgets.qt_list_str_widget import QtListStrWidget
 
 
 def repr_item(item):

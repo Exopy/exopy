@@ -1,0 +1,268 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Dummy contributions to the measure plugin used for testing purposes.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import DockItem
+from enaml.layout.api import InsertItem, RemoveItem
+from enaml.workbench.api import PluginManifest, Extension
+from exopy.app.dependencies.api import (BuildDependency,
+                                       RuntimeDependencyAnalyser,
+                                       RuntimeDependencyCollector)
+from exopy.measure.editors.api import Editor
+from exopy.measure.hooks.api import PreExecutionHook, PostExecutionHook
+from exopy.measure.engines.api import Engine
+from exopy.measure.monitors.api import Monitor, BaseMonitorItem
+
+
+from enaml.widgets.api import Container, Field
+class Flags(object):
+
+    BUILD_FAIL_ANALYSE = False
+
+    BUILD_FAIL_COLLECT = False
+
+    RUNTIME1_FAIL_ANALYSE = False
+
+    RUNTIME2_FAIL_ANALYSE = False
+
+    RUNTIME1_UNAVAILABLE = False
+
+    RUNTIME1_FAIL_COLLECT = False
+
+    RUNTIME2_UNAVAILABLE = False
+
+    RUNTIME2_FAIL_COLLECT = False
+
+    MONITOR_FAIL_WIDGET = False
+
+
+enamldef MonitorTestItem(BaseMonitorItem):
+    Container:
+        Field:
+            pass
+
+
+enamldef MeasureTestManifest(PluginManifest):
+    """Manifest contributing dummy extensions to measure plugin.
+
+    """
+    id = 'test.measure'
+
+    Extension:
+        id = 'editor'
+        point = 'exopy.measure.editors'
+        Editor:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyEditor
+                return DummyEditor(declaration=self)
+
+            is_meant_for => (workbench, selected_task):
+                return True
+
+    Extension:
+        id = 'engines'
+        point = 'exopy.measure.engines'
+        Engine:
+            name = 'dummy_engine'
+            id = 'dummy'
+            description = 'This is a dummy'
+
+            attr selected
+            attr workspace_contributing
+            new => (workbench, default=True):
+                from .dummies import DummyEngine
+                return DummyEngine(declaration=self)
+
+            react_to_selection => (workbench):
+                self.selected = True
+
+            react_to_unselection => (workbench):
+                self.selected = False
+
+            contribute_to_workspace => (workspace):
+                # Add the log panel to the dock area at the right of the main log panel
+                area = workspace.dock_area
+                dock = DockItem(name='dummy')
+                op = InsertItem(item='dummy', target='main_log',
+                                position='right')
+                area.update_layout(op)
+                self.workspace_contributing = True
+
+            clean_workspace => (workspace):
+                # Remove the log panel from the dock area.
+                area = workspace.dock_area
+                if area:
+                    for item in area.dock_items():
+                        if item.name == 'dummy':
+                            item.destroy()
+                self.workspace_contributing = False
+
+    Extension:
+        id = 'pre-hook'
+        point = 'exopy.measure.pre-execution'
+        PreExecutionHook:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPreHook
+                return DummyPreHook(declaration=self)
+        PreExecutionHook:
+            id = 'dummy2'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPreHook
+                return DummyPreHook(declaration=self)
+
+    Extension:
+        id = 'monitors'
+        point = 'exopy.measure.monitors'
+        Monitor:
+            id  = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
+                return MonitorTestItem(area, name=self.id)
+
+        Monitor:
+            id  = 'dummy2'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
+                return MonitorTestItem(area, name=self.id, float_default=True)
+
+        Monitor:
+            id  = 'dummy3'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                if Flags.MONITOR_FAIL_WIDGET:
+                    raise RuntimeError()
+                return MonitorTestItem(area, name=self.id)
+
+        Monitor:
+            id  = 'dummy4'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyMonitor
+                return DummyMonitor(declaration=self)
+
+            create_item => (workbench, area):
+                raise RuntimeError()
+
+    Extension:
+        id = 'post-hook'
+        point = 'exopy.measure.post-execution'
+        PostExecutionHook:
+            id = 'dummy'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPostHook
+                return DummyPostHook(declaration=self)
+        PostExecutionHook:
+            id = 'dummy2'
+            description = 'This is a dummy'
+            new => (workbench, default=True):
+                from .dummies import DummyPostHook
+                return DummyPostHook(declaration=self)
+
+    Extension:
+        id = 'build-dep'
+        point = 'exopy.app.dependencies.build'
+        BuildDependency:
+            id = 'dummy'
+            analyse => (workbench, obj, getter, dependencies, errors):
+                if Flags.BUILD_FAIL_ANALYSE:
+                    raise Exception()
+                else:
+                    dependencies.add('test')
+                    return ['dummy1']
+            validate => (workbench, dependencies, errors):
+                pass
+            collect => (workbench, dependencies, errors):
+                if Flags.BUILD_FAIL_COLLECT:
+                    raise Exception()
+                else:
+                    dependencies['test'] = 1
+
+    Extension:
+        id = 'runtime-dep'
+        point = 'exopy.app.dependencies.runtime_analyse'
+        RuntimeDependencyAnalyser:
+            id = 'dummy1'
+            collector_id = 'dummy1'
+            analyse => (workbench, obj, dependencies, errors):
+                if Flags.RUNTIME1_FAIL_ANALYSE:
+                    raise Exception()
+                else:
+                    dependencies.add('test')
+
+    Extension:
+        id = 'runtime-dep-bis'
+        point = 'exopy.app.dependencies.runtime_collect'
+        RuntimeDependencyCollector:
+            name = 'runtime_dummy1'
+            id = 'dummy1'
+            attr collected
+            validate => (workbench, dependencies, errors):
+                pass
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                if Flags.RUNTIME1_FAIL_COLLECT:
+                    raise Exception()
+                elif Flags.RUNTIME1_UNAVAILABLE:
+                    unavailable.add('test')
+                else:
+                    self.collected = True
+                    dependencies['test'] = 1
+            release => (workbench, owner, dependencies):
+                self.collected = False
+                if 'test' in dependencies:
+                    dependencies['test'] = None
+
+    Extension:
+        id = 'runtime-dep2'
+        point = 'exopy.app.dependencies.runtime_collect'
+        RuntimeDependencyCollector:
+            name = 'runtime_dummy2'
+            id = 'dummy2'
+            attr collected
+            attr called
+            validate => (workbench, dependencies, errors):
+                pass
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                self.called = True
+                if Flags.RUNTIME2_FAIL_COLLECT:
+                    raise Exception()
+                elif Flags.RUNTIME2_UNAVAILABLE:
+                    unavailable.add('test')
+                else:
+                    self.collected = True
+                    dependencies['test'] = 1
+            release => (workbench, owner, dependencies):
+                self.collected = False
+                if 'test' in dependencies:
+                    dependencies['test'] = None

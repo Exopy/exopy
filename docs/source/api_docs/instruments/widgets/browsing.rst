@@ -1,7 +1,7 @@
-ecpy.instruments.widgets.browsing module
+exopy.instruments.widgets.browsing module
 ========================================
 
-.. automodule:: ecpy.instruments.widgets.browsing
+.. automodule:: exopy.instruments.widgets.browsing
     :members:
     :undoc-members:
     :show-inheritance:

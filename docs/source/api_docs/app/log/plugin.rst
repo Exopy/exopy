@@ -1,7 +1,7 @@
-ecpy.app.log.plugin module
+exopy.app.log.plugin module
 ==========================
 
-.. automodule:: ecpy.app.log.plugin
+.. automodule:: exopy.app.log.plugin
     :members:
     :undoc-members:
     :show-inheritance:

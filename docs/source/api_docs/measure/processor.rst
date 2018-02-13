@@ -1,7 +1,7 @@
-ecpy.measure.processor module
+exopy.measure.processor module
 =============================
 
-.. automodule:: ecpy.measure.processor
+.. automodule:: exopy.measure.processor
     :members:
     :undoc-members:
     :show-inheritance:

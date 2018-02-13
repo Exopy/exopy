@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,16 +19,16 @@ import pytest
 from future.builtins import str
 from threading import Thread
 
-from ecpy.measure.measure import Measure
-from ecpy.tasks.api import RootTask
+from exopy.measure.measure import Measure
+from exopy.tasks.api import RootTask
 
-from ecpy.testing.util import ErrorDialogException, process_app_events
+from exopy.testing.util import ErrorDialogException, process_app_events
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
 
-    from ecpy.tasks.manifest import TasksManagerManifest
-    from ecpy.testing.measure.contributions import Flags
+    from exopy.tasks.manifest import TasksManagerManifest
+    from exopy.testing.measure.contributions import Flags
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def processor(windows, measure_workbench, measure):
     # measure ensures that contributions are there
     measure_workbench.register(UIManifest())
     measure_workbench.register(TasksManagerManifest())
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
     plugin.selected_engine = 'dummy'
 
     return plugin.processor
@@ -136,12 +136,12 @@ def test_starting_measure_thread_not_dying(processor, measure):
 
     processor._thread = FalseThread(processor)
     core = processor.plugin.workbench.get_plugin('enaml.workbench.core')
-    core.invoke_command('ecpy.app.errors.enter_error_gathering')
+    core.invoke_command('exopy.app.errors.enter_error_gathering')
     processor.start_measure(None)
     sleep(0.1)
     process_app_events()
     with pytest.raises(ErrorDialogException):
-        core.invoke_command('ecpy.app.errors.exit_error_gathering')
+        core.invoke_command('exopy.app.errors.exit_error_gathering')
 
 
 @pytest.mark.timeout(60)
@@ -150,7 +150,7 @@ def test_running_full_measure(app, processor, measure_with_tools, windows,
     """Test running a complete measure with pre/post-hooks and monitor.
 
     """
-    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
+    plugin = processor.plugin.workbench.get_plugin('exopy.measure')
     measure2 = Measure(plugin=plugin, root_task=RootTask(),
                        name='Dummy', id='002')
     processor.plugin.enqueued_measures.add(measure2)
@@ -459,7 +459,7 @@ def test_stopping_processing(processor, measure_with_tools):
     """Test stopping processing while running the main task..
 
     """
-    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
+    plugin = processor.plugin.workbench.get_plugin('exopy.measure')
     measure2 = Measure(plugin=plugin, root_task=RootTask(),
                        name='Dummy', id='002')
     processor.plugin.enqueued_measures.add(measure2)
@@ -498,7 +498,7 @@ def test_stopping_processing_in_hook(processor, measure_with_tools):
     """Test stopping processing while running a hook.
 
     """
-    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
+    plugin = processor.plugin.workbench.get_plugin('exopy.measure')
     measure2 = Measure(plugin=plugin, root_task=RootTask(),
                        name='Dummy', id='002')
     processor.plugin.enqueued_measures.add(measure2)
@@ -533,7 +533,7 @@ def test_stopping_processing_while_in_pause(processor, measure_with_tools):
     """Test stopping processing while in pause before starting main.
 
     """
-    plugin = processor.plugin.workbench.get_plugin('ecpy.measure')
+    plugin = processor.plugin.workbench.get_plugin('exopy.measure')
     measure2 = Measure(plugin=plugin, root_task=RootTask(),
                        name='Dummy', id='002')
     processor.plugin.enqueued_measures.add(measure2)

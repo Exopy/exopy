@@ -1,7 +1,7 @@
-ecpy.measure.container module
+exopy.measure.container module
 =============================
 
-.. automodule:: ecpy.measure.container
+.. automodule:: exopy.measure.container
     :members:
     :undoc-members:
     :show-inheritance:

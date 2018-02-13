@@ -25,7 +25,7 @@ before_install:
   # Setup environment
   - travis_retry conda update --yes conda
   - conda config --set always_yes yes
-  - conda config --append channels ecpy
+  - conda config --append channels exopy
   - conda install conda-build anaconda-client -q
   - conda info -a
   - conda create -n travisci python=$PYTHON pip
@@ -39,7 +39,7 @@ before_install:
   - cd conda-bld-out
   - export CONDA_BLD_PATH=$(pwd)
 
-  # Install ecpy dependencies
+  # Install exopy dependencies
   - $CONDA_INSTALL pyqt=$QT_VERSION future numpy configobj watchdog "enaml>=0.10.0.dev" qtawesome
   - $PIP_INSTALL pyvisa
 
@@ -53,10 +53,10 @@ before_install:
 
 install:
 
-  # Install ecpy (check that build script is not broken
+  # Install exopy (check that build script is not broken
   - cd $TRAVIS_BUILD_DIR
   - conda build conda -q  # Package building does run only very minimal tests)
-  - conda install ecpy --use-local -q --override-channels
+  - conda install exopy --use-local -q --override-channels
   - cd ~
 
 before_script:
@@ -65,10 +65,10 @@ before_script:
 - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1400x900x24 -ac +extension GLX +render
 
 script:
-  # Run the Ecpy test suite
+  # Run the Exopy test suite
   - cd $TRAVIS_BUILD_DIR
   - export QT_API=pyqt$QT_VERSION
-  - py.test tests --cov ecpy --cov-report xml -v --log-cli-level CRITICAL
+  - py.test tests --cov exopy --cov-report xml -v --log-cli-level CRITICAL
 
 after_success:
   - cd $TRAVIS_BUILD_DIR

@@ -1,4 +1,4 @@
-ecpy.instruments.settings package
+exopy.instruments.settings package
 =================================
 
 Submodules

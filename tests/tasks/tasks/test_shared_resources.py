@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ check that in single thread things work.
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from ecpy.tasks.tasks.shared_resources import SharedCounter, SharedDict
+from exopy.tasks.tasks.shared_resources import SharedCounter, SharedDict
 
 
 def test_shared_counter():

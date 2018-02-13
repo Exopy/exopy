@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,11 +17,11 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.testing.util import (show_and_close_widget, show_widget,
+from exopy.testing.util import (show_and_close_widget, show_widget,
                                process_app_events)
-from ecpy.tasks.configs.loop_config import (LoopTaskConfig)
+from exopy.tasks.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
-    from ecpy.tasks.configs.loop_config_view import LoopConfigView
+    from exopy.tasks.configs.loop_config_view import LoopConfigView
 
 
 @pytest.mark.ui
@@ -29,10 +29,10 @@ def test_loop_config(app, task_workbench):
     """Test the loop config.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('ecpy.LoopTask'))
+                            task_class=plugin.get_task('exopy.LoopTask'))
 
     assert config.task_name
     assert config.ready
@@ -47,7 +47,7 @@ def test_loop_config(app, task_workbench):
 
     plugin.auto_task_names = []
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('ecpy.LoopTask'))
+                            task_class=plugin.get_task('exopy.LoopTask'))
 
     assert not config.task_name
     assert not config.ready
@@ -61,10 +61,10 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
     """Test the loop config.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('ecpy.LoopTask'),
+                            task_class=plugin.get_task('exopy.LoopTask'),
                             task_name='Test')
 
     show_widget(LoopConfigView(config=config))
@@ -76,7 +76,7 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
     process_app_events()
     sleep(dialog_sleep)
 
-    config.subtask = 'ecpy.BreakTask'
+    config.subtask = 'exopy.BreakTask'
     assert config.ready
     process_app_events()
     sleep(dialog_sleep)
@@ -98,7 +98,7 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
     sleep(dialog_sleep)
 
     config.use_subtask = True
-    config.subtask = 'ecpy.ContinueTask'
+    config.subtask = 'exopy.ContinueTask'
     task = config.build_task()
     assert task.name == 'Bis'
     assert type(task.task).__name__ == 'ContinueTask'

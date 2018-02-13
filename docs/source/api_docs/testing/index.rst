@@ -1,4 +1,4 @@
-ecpy.testing package
+exopy.testing package
 ====================
 
 Subpackages

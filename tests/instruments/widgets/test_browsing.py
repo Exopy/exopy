@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,12 +19,12 @@ import enaml
 from enaml.widgets.api import Container
 from configobj import ConfigObj
 
-from ecpy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox
-    from ecpy.instruments.widgets.browsing import BrowsingDialog
-    from ecpy.instruments.widgets.profile_edition import ProfileEditionDialog
+    from exopy.instruments.widgets.browsing import BrowsingDialog
+    from exopy.instruments.widgets.profile_edition import ProfileEditionDialog
 
 
 def test_browsing_dialog_instruments(prof_plugin, process_and_sleep):

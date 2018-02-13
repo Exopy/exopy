@@ -1,7 +1,7 @@
-ecpy.tasks.filters module
+exopy.tasks.filters module
 =========================
 
-.. automodule:: ecpy.tasks.filters
+.. automodule:: exopy.tasks.filters
     :members:
     :undoc-members:
     :show-inheritance:

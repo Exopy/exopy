@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.util.formula_task module
+exopy.tasks.tasks.util.formula_task module
 =========================================
 
-.. automodule:: ecpy.tasks.tasks.util.formula_task
+.. automodule:: exopy.tasks.tasks.util.formula_task
     :members:
     :undoc-members:
     :show-inheritance:

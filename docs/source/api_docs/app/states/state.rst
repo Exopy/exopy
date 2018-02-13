@@ -1,7 +1,7 @@
-ecpy.app.states.state module
+exopy.app.states.state module
 ============================
 
-.. automodule:: ecpy.app.states.state
+.. automodule:: exopy.app.states.state
     :members:
     :undoc-members:
     :show-inheritance:

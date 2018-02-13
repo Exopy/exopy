@@ -1,7 +1,7 @@
-ecpy.measure.monitors.text_monitor.plugin module
+exopy.measure.monitors.text_monitor.plugin module
 ================================================
 
-.. automodule:: ecpy.measure.monitors.text_monitor.plugin
+.. automodule:: exopy.measure.monitors.text_monitor.plugin
     :members:
     :undoc-members:
     :show-inheritance:

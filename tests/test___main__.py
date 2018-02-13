@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,11 +15,11 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 from pkg_resources import EntryPoint
 
-from ecpy.__main__ import ArgParser, main
-from ecpy.testing.util import handle_dialog
+from exopy.__main__ import ArgParser, main
+from exopy.testing.util import handle_dialog
 
 
-pytest_plugins = str('ecpy.testing.fixtures'),
+pytest_plugins = str('exopy.testing.fixtures'),
 
 
 def test_parser_add_argument():
@@ -42,17 +42,17 @@ def test_parser_adding_choice_and_arg_with_choice():
 
     """
     parser = ArgParser()
-    parser.add_choice('workspaces', 'ecpy.measure.workspace', 'measure')
+    parser.add_choice('workspaces', 'exopy.measure.workspace', 'measure')
     parser.add_argument("-w", "--workspace",
                         help='Select start-up workspace',
                         default='measure', choices='workspaces')
-    parser.add_choice('workspaces', 'ecpy.measure.dummy', 'measure')
+    parser.add_choice('workspaces', 'exopy.measure.dummy', 'measure')
 
     vals = parser.parse_args('-w measure'.split(' '))
-    assert vals.workspace == 'ecpy.measure.workspace'
+    assert vals.workspace == 'exopy.measure.workspace'
 
-    vals = parser.parse_args('-w ecpy.measure.dummy'.split(' '))
-    assert vals.workspace == 'ecpy.measure.dummy'
+    vals = parser.parse_args('-w exopy.measure.dummy'.split(' '))
+    assert vals.workspace == 'exopy.measure.dummy'
 
 
 def test_running_main_error_in_loading(windows, monkeypatch):
@@ -60,7 +60,7 @@ def test_running_main_error_in_loading(windows, monkeypatch):
     modifier.
 
     """
-    import ecpy.__main__ as em
+    import exopy.__main__ as em
 
     def false_iter(arg):
 
@@ -85,7 +85,7 @@ def test_running_main_error_in_parser_modifying(windows, monkeypatch):
     arguments.
 
     """
-    import ecpy.__main__ as em
+    import exopy.__main__ as em
 
     def false_iter(arg):
 
@@ -127,7 +127,7 @@ def test_running_main_error_in_app_startup(windows, monkeypatch):
     startups.
 
     """
-    from ecpy.app.app_plugin import AppPlugin
+    from exopy.app.app_plugin import AppPlugin
 
     def false_run_startup(self, args):
         raise Exception('Fail to run start up')

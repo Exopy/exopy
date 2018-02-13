@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,11 +14,11 @@ from __future__ import (division, unicode_literals, print_function,
 
 import enaml
 
-from ecpy.testing.util import set_preferences, process_app_events
+from exopy.testing.util import set_preferences, process_app_events
 with enaml.imports():
     from .contributions import (ThemeContributor, ThemeExtensionContributor,
                                 ThemeContributor2, ThemeExtensionContributor2,
-                                TestIconWindow)
+                                IconWindowTest)
 
 
 def test_lifecyle(app, icon_workbench, caplog):
@@ -28,9 +28,9 @@ def test_lifecyle(app, icon_workbench, caplog):
     icon_workbench.register(ThemeContributor())
     icon_workbench.register(ThemeExtensionContributor())
 
-    pl = icon_workbench.get_plugin('ecpy.app.icons')
-    assert pl.current_theme == 'ecpy.FontAwesome'
-    assert pl.fallback_theme == 'ecpy.FontAwesome'
+    pl = icon_workbench.get_plugin('exopy.app.icons')
+    assert pl.current_theme == 'exopy.FontAwesome'
+    assert pl.fallback_theme == 'exopy.FontAwesome'
     assert 'dummy' in pl.icon_themes
     pl.current_theme = 'dummy'
     assert pl.get_icon('dumb1') is not None
@@ -60,7 +60,7 @@ def test_lifecyle(app, icon_workbench, caplog):
     icon_workbench.unregister('dummy.theme_extension2')
     assert pl.get_icon('dumb3') is None
 
-    icon_workbench.unregister('ecpy.app.icons')
+    icon_workbench.unregister('exopy.app.icons')
 
 
 def test_overriding_preferences_if_absent(icon_workbench):
@@ -68,13 +68,14 @@ def test_overriding_preferences_if_absent(icon_workbench):
     preferences does not exist.
 
     """
-    set_preferences(icon_workbench, {'ecpy.app.icons': {'current_theme': '_d_',
-                                                        'fallback_theme': '_f'}
+    set_preferences(icon_workbench, {'exopy.app.icons':
+                                     {'current_theme': '_d_',
+                                      'fallback_theme': '_f'}
                                      }
                     )
-    pl = icon_workbench.get_plugin('ecpy.app.icons')
+    pl = icon_workbench.get_plugin('exopy.app.icons')
     assert pl.current_theme == pl.icon_themes[0]
-    assert pl.fallback_theme == 'ecpy.FontAwesome'
+    assert pl.fallback_theme == 'exopy.FontAwesome'
 
 
 def test_get_icon_handling_errors(icon_workbench, caplog):
@@ -83,7 +84,7 @@ def test_get_icon_handling_errors(icon_workbench, caplog):
     """
     icon_workbench.register(ThemeContributor())
     icon_workbench.register(ThemeExtensionContributor())
-    pl = icon_workbench.get_plugin('ecpy.app.icons')
+    pl = icon_workbench.get_plugin('exopy.app.icons')
     pl.current_theme = 'dummy'
     pl.fallback_theme = 'dummy'
 
@@ -101,10 +102,10 @@ def test_fontawesome(icon_workbench, windows, process_and_sleep):
     """Test getting and using a FontAwesome icon.
 
     """
-    pl = icon_workbench.get_plugin('ecpy.app.icons')
-    pl.current_theme = 'ecpy.FontAwesome'
+    pl = icon_workbench.get_plugin('exopy.app.icons')
+    pl.current_theme = 'exopy.FontAwesome'
     assert pl.get_icon('folder-open')
-    w = TestIconWindow(btn_icon=pl.get_icon('folder-open'))
+    w = IconWindowTest(btn_icon=pl.get_icon('folder-open'))
     w.show()
     process_app_events()
     process_and_sleep()
@@ -113,10 +114,10 @@ def test_fontawesome(icon_workbench, windows, process_and_sleep):
 def test_elusiveicon(icon_workbench, windows, process_and_sleep):
     """Test getting and using an ElusiveIcon icon
     """
-    pl = icon_workbench.get_plugin('ecpy.app.icons')
-    pl.current_theme = 'ecpy.ElusiveIcon'
+    pl = icon_workbench.get_plugin('exopy.app.icons')
+    pl.current_theme = 'exopy.ElusiveIcon'
     assert pl.get_icon('folder-open')
-    w = TestIconWindow(btn_icon=pl.get_icon('folder-open'))
+    w = IconWindowTest(btn_icon=pl.get_icon('folder-open'))
     w.show()
     process_app_events()
     process_and_sleep()

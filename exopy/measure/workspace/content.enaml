@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Definition of the workspace content.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (Container, DockArea, DockItem, Menu, Action,
+                               PopupView, Label, FocusTracker)
+from enaml.layout.api import HSplitLayout, VSplitLayout
+
+from ...utils.widgets.qt_autoscroll_html import QtAutoscrollHtml
+from .measure_execution import ExecutionDockItem
+
+
+enamldef MeasureContent(Container): main:
+    """Central window content when the measure workspace is active.
+
+    """
+    #: Reference to the workspace driving this widget.
+    attr workspace
+
+    FocusTracker:
+        focused_widget ::
+            if change['value']:
+                workspace._selection_tracker.enqueue(change['value'])
+
+    DockArea:
+        # 'meas_0' is included here to avoid some nasty bug.
+        layout = VSplitLayout('meas_0', 'meas_exec', 'main_log')
+
+        style = 'metro'
+
+        ExecutionDockItem:
+            stretch = 1
+            workspace = main.workspace
+
+        DockItem:
+            name = 'main_log'
+            title = 'Main logger'
+            closable = False
+            stretch = 0
+
+            Container:
+                hug_height = 'strong'
+                QtAutoscrollHtml:
+                    text << workspace.log_model.text
+                    Menu:
+                        context_menu = True
+                        Action:
+                            text = 'Clear'
+                            triggered ::
+                                workspace.log_model.text = ''

@@ -1,7 +1,7 @@
-ecpy.app.app_extensions module
+exopy.app.app_extensions module
 ==============================
 
-.. automodule:: ecpy.app.app_extensions
+.. automodule:: exopy.app.app_extensions
     :members:
     :undoc-members:
     :show-inheritance:

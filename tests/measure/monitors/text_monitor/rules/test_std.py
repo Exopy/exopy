@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,17 +17,17 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.measure.monitors.text_monitor.rules.std_rules import (RejectRule,
+from exopy.measure.monitors.text_monitor.rules.std_rules import (RejectRule,
                                                                 FormatRule)
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.measure.monitors.text_monitor.rules.std_views\
+    from exopy.measure.monitors.text_monitor.rules.std_views\
         import SuffixesValidator, RejectRuleView, FormatRuleView
-    from ecpy.testing.windows import ContainerTestingWindow
+    from exopy.testing.windows import ContainerTestingWindow
 
 
-pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
+pytest_plugins = str('exopy.testing.measure.monitors.text_monitor.fixtures'),
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def plugin(text_monitor_workbench):
     """Text monitor plugin.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    p = text_monitor_workbench.get_plugin('exopy.measure.monitors.text_monitor')
     return p
 
 

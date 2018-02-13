@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,7 +16,7 @@ from functools import partial
 from atom.api import Atom, Str
 from enaml.workbench.api import PluginManifest, Extension
 
-from ecpy.app.app_extensions import AppStartup, AppClosing, AppClosed
+from exopy.app.app_extensions import AppStartup, AppClosing, AppClosed
 
 # --- Start up ----------------------------------------------------------------
 
@@ -41,7 +41,7 @@ enamldef NestedStartupContributor(PluginManifest):
 
     Extension:
         id = 'startup'
-        point = 'ecpy.app.startup'
+        point = 'exopy.app.startup'
         AppStartup:
             id = 'test_nested.startup1'
             run => (workbench, cmd_args):
@@ -70,7 +70,7 @@ enamldef StartupContributor(PluginManifest):
 
         Extension:
             id = 'startup'
-            point = 'ecpy.app.startup'
+            point = 'exopy.app.startup'
             AppStartup:
                 id = 'test.startup1'
                 run => (workbench, cmd_args):
@@ -97,7 +97,7 @@ enamldef ClosingContributor(PluginManifest): man:
 
     Extension:
         id = 'closing'
-        point = 'ecpy.app.closing'
+        point = 'exopy.app.closing'
         AppClosing:
             id = id_
             validate => (window, event):
@@ -145,7 +145,7 @@ enamldef NestedClosedContributor(PluginManifest):
 
     Extension:
         id = 'closed'
-        point = 'ecpy.app.closed'
+        point = 'exopy.app.closed'
         AppClosed:
             id = 'test_nested.closed1'
             clean => (workbench):
@@ -173,7 +173,7 @@ enamldef ClosedContributor(PluginManifest):
 
     Extension:
         id = 'startup'
-        point = 'ecpy.app.closed'
+        point = 'exopy.app.closed'
         AppClosed:
             id = 'test.closed1'
             clean => (workbench):

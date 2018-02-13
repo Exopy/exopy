@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,10 +17,10 @@ import os
 import pytest
 import enaml
 
-from ecpy.testing.util import set_preferences, ErrorDialogException
+from exopy.testing.util import set_preferences, ErrorDialogException
 
 with enaml.imports():
-    from ecpy.testing.measure.contributions import MeasureTestManifest
+    from exopy.testing.measure.contributions import MeasureTestManifest
 
 
 def test_lifecycle(measure_workbench, app_dir):
@@ -32,7 +32,7 @@ def test_lifecycle(measure_workbench, app_dir):
       - check that public are correctly updated.
 
     """
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     assert plugin.path == os.path.join(app_dir, 'measure', 'saved_measures')
     assert os.path.isdir(plugin.path)
@@ -40,21 +40,21 @@ def test_lifecycle(measure_workbench, app_dir):
     assert plugin.engines
     assert plugin.pre_hooks
     assert plugin.monitors
-    assert plugin.default_monitors == ['ecpy.text_monitor']
+    assert plugin.default_monitors == ['exopy.text_monitor']
 
     measure_workbench.register(MeasureTestManifest())
 
     for c in ['editors', 'engines', 'pre_hooks', 'post_hooks', 'monitors']:
         assert 'dummy' in getattr(plugin, c)
 
-    measure_workbench.unregister('ecpy.measure')
+    measure_workbench.unregister('exopy.measure')
 
 
 def test_getting_declarations(measure_workbench):
     """Test accessing some declarations through the plugin.
 
     """
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     for c in ['editor', 'engine', 'pre-hook', 'post-hook', 'monitor']:
         names = sorted(getattr(plugin, c.replace('-', '_')+'s'))
@@ -68,7 +68,7 @@ def test_creating_tools(measure_workbench):
     """Test creating tools.
 
     """
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
     measure_workbench.register(MeasureTestManifest())
 
     for c in ['editor', 'engine', 'pre-hook', 'post-hook', 'monitor']:
@@ -86,7 +86,7 @@ def test_selecting_engine(measure_workbench):
 
     """
     measure_workbench.register(MeasureTestManifest())
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     decl = plugin.get_declarations('engine', ['dummy'])['dummy']
 
@@ -102,9 +102,9 @@ def test_starting_with_a_default_selected_engine(measure_workbench):
     """
     measure_workbench.register(MeasureTestManifest())
     set_preferences(measure_workbench,
-                    {'ecpy.measure': {'selected_engine': 'dummy'}})
+                    {'exopy.measure': {'selected_engine': 'dummy'}})
 
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     decl = plugin.get_declarations('engine', ['dummy'])['dummy']
 
@@ -118,9 +118,9 @@ def test_starting_with_default_tools(measure_workbench):
     """
     measure_workbench.register(MeasureTestManifest())
     set_preferences(measure_workbench,
-                    {'ecpy.measure': {'default_monitors': "['dummy']"}})
+                    {'exopy.measure': {'default_monitors': "['dummy']"}})
 
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     assert plugin.default_monitors
 
@@ -130,21 +130,21 @@ def test_handling_not_found_default_tools(measure_workbench):
 
     """
     set_preferences(measure_workbench,
-                    {'ecpy.measure': {'default_monitors': "['dummy']"}})
+                    {'exopy.measure': {'default_monitors': "['dummy']"}})
 
     with pytest.raises(ErrorDialogException):
-        measure_workbench.get_plugin('ecpy.measure')
+        measure_workbench.get_plugin('exopy.measure')
 
 
 def test_find_next_measure(measure_workbench):
     """Test finding the next valid measure in the queue.
 
     """
-    from ecpy.testing.measure.fixtures import measure
+    from exopy.testing.measure.fixtures import measure
     m1 = measure(measure_workbench)
     m2 = measure(measure_workbench)
     m3 = measure(measure_workbench)
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
     plugin.enqueued_measures.add(m1)
     plugin.enqueued_measures.add(m2)
     plugin.enqueued_measures.add(m3)

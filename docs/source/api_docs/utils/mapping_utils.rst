@@ -1,7 +1,7 @@
-ecpy.utils.mapping_utils module
+exopy.utils.mapping_utils module
 ===============================
 
-.. automodule:: ecpy.utils.mapping_utils
+.. automodule:: exopy.utils.mapping_utils
     :members:
     :undoc-members:
     :show-inheritance:

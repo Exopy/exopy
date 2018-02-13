@@ -1,7 +1,7 @@
-ecpy.app.dependencies.dependencies module
+exopy.app.dependencies.dependencies module
 =========================================
 
-.. automodule:: ecpy.app.dependencies.dependencies
+.. automodule:: exopy.app.dependencies.dependencies
     :members:
     :undoc-members:
     :show-inheritance:

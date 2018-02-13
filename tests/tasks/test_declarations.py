@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,8 +18,8 @@ import pytest
 import enaml
 from atom.api import Atom, Dict, List
 
-from ecpy.tasks.infos import TaskInfos, InterfaceInfos
-from ecpy.tasks.declarations import Task, Tasks, Interface, TaskConfig
+from exopy.tasks.infos import TaskInfos, InterfaceInfos
+from exopy.tasks.declarations import Task, Tasks, Interface, TaskConfig
 
 
 class _DummyCollector(Atom):
@@ -40,23 +40,23 @@ def collector():
 
 @pytest.fixture
 def task_decl():
-    return Task(task='ecpy.tasks.tasks.base_tasks:RootTask',
-                view='ecpy.tasks.tasks.base_views:RootTaskView')
+    return Task(task='exopy.tasks.tasks.base_tasks:RootTask',
+                view='exopy.tasks.tasks.base_views:RootTaskView')
 
 
 def test_register_task_decl1(collector, task_decl):
     """Test registering the root task.
 
     """
-    parent = Tasks(group='test', path='ecpy.tasks.tasks')
+    parent = Tasks(group='test', path='exopy.tasks.tasks')
     parent.insert_children(None, [task_decl])
     task_decl.task = 'base_tasks:RootTask'
     task_decl.view = 'base_views:RootTaskView'
     parent.register(collector, {})
-    infos = collector.contributions['ecpy.RootTask']
-    from ecpy.tasks.tasks.base_tasks import RootTask
+    infos = collector.contributions['exopy.RootTask']
+    from exopy.tasks.tasks.base_tasks import RootTask
     with enaml.imports():
-        from ecpy.tasks.tasks.base_views import RootTaskView
+        from exopy.tasks.tasks.base_views import RootTaskView
     assert infos.cls is RootTask
     assert infos.view is RootTaskView
     assert infos.metadata['group'] == 'test'
@@ -66,14 +66,14 @@ def test_regsitering_a_task_with_instruments(collector, task_decl):
     """Test registering a task supporting instruments.
 
     """
-    parent = Tasks(group='test', path='ecpy.tasks.tasks')
+    parent = Tasks(group='test', path='exopy.tasks.tasks')
     parent.insert_children(None, [task_decl])
     task_decl.task = 'base_tasks:RootTask'
     task_decl.view = 'base_views:RootTaskView'
     task_decl.dependencies = ['dummy.dep']
     task_decl.instruments = ['DummyInstrument']
     parent.register(collector, {})
-    infos = collector.contributions['ecpy.RootTask']
+    infos = collector.contributions['exopy.RootTask']
     assert len(infos.dependencies) == 3
 
 
@@ -81,12 +81,12 @@ def test_register_task_decl_extend1(collector, task_decl):
     """Test extending a task.
 
     """
-    collector.contributions['ecpy.Task'] = TaskInfos()
-    task_decl.task = 'ecpy.Task'
+    collector.contributions['exopy.Task'] = TaskInfos()
+    task_decl.task = 'exopy.Task'
     task_decl.instruments = ['test']
     task_decl.dependencies = ['dep']
     task_decl.register(collector, {})
-    infos = collector.contributions['ecpy.Task']
+    infos = collector.contributions['exopy.Task']
     assert infos.instruments == set(['test'])
     assert infos.dependencies == set(['dep'])
 
@@ -95,7 +95,7 @@ def test_register_task_decl_extend2(collector, task_decl):
     """Test extending a yet to be defined task.
 
     """
-    task_decl.task = 'ecpy.Task'
+    task_decl.task = 'exopy.Task'
     task_decl.register(collector, {})
     assert collector._delayed == [task_decl]
 
@@ -105,11 +105,11 @@ def test_register_task_decl_extend3(collector, task_decl):
 
     """
     tb = {}
-    collector.contributions['ecpy.Task'] = TaskInfos()
-    task_decl.task = 'ecpy.Task'
+    collector.contributions['exopy.Task'] = TaskInfos()
+    task_decl.task = 'exopy.Task'
     task_decl.insert_children(None, [Task()])
     task_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb
+    assert 'exopy.Task' in tb
 
 
 def test_register_task_decl_path_1(collector, task_decl):
@@ -120,7 +120,7 @@ def test_register_task_decl_path_1(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks'
+    task_decl.task = 'exopy.tasks'
     task_decl.register(collector, tb)
     assert task_decl in collector._delayed
 
@@ -130,30 +130,30 @@ def test_register_task_decl_path2(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks:tasks:Task'
+    task_decl.view = 'exopy.tasks:tasks:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb
+    assert 'exopy.RootTask' in tb
 
 
 def test_register_task_decl_duplicate1(collector, task_decl):
     """Test handling duplicate : in collector.
 
     """
-    collector.contributions['ecpy.Task'] = None
+    collector.contributions['exopy.Task'] = None
     tb = {}
-    task_decl.task = 'ecpy.tasks:Task'
+    task_decl.task = 'exopy.tasks:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.Task_duplicate1' in tb
+    assert 'exopy.Task_duplicate1' in tb
 
 
 def test_register_task_decl_duplicate2(collector, task_decl):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'ecpy.Task': 'rr'}
-    task_decl.task = 'ecpy.tasks:Task'
+    tb = {'exopy.Task': 'rr'}
+    task_decl.task = 'exopy.tasks:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.Task_duplicate1' in tb
+    assert 'exopy.Task_duplicate1' in tb
 
 
 def test_register_task_decl_taskcls1(collector, task_decl):
@@ -161,9 +161,9 @@ def test_register_task_decl_taskcls1(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks.foo:Task'
+    task_decl.task = 'exopy.tasks.foo:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'import' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'import' in tb['exopy.Task']
 
 
 def test_register_task_decl_taskcls1_bis(collector, task_decl):
@@ -171,9 +171,9 @@ def test_register_task_decl_taskcls1_bis(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.testing.broken_module:Task'
+    task_decl.task = 'exopy.testing.broken_module:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'NameError' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'NameError' in tb['exopy.Task']
 
 
 def test_register_task_decl_taskcls2(collector, task_decl):
@@ -181,9 +181,9 @@ def test_register_task_decl_taskcls2(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks.tasks.base_tasks:Task'
+    task_decl.task = 'exopy.tasks.tasks.base_tasks:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'attribute' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'attribute' in tb['exopy.Task']
 
 
 def test_register_task_decl_taskcls3(collector, task_decl):
@@ -191,9 +191,9 @@ def test_register_task_decl_taskcls3(collector, task_decl):
 
     """
     tb = {}
-    task_decl.task = 'ecpy.tasks.tasks.database:TaskDatabase'
+    task_decl.task = 'exopy.tasks.tasks.database:TaskDatabase'
     task_decl.register(collector, tb)
-    assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
+    assert 'exopy.TaskDatabase' in tb and 'subclass' in tb['exopy.TaskDatabase']
 
 
 def test_register_task_decl_view1(collector, task_decl):
@@ -201,9 +201,9 @@ def test_register_task_decl_view1(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks.foo:Task'
+    task_decl.view = 'exopy.tasks.foo:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'import' in tb['ecpy.RootTask']
+    assert 'exopy.RootTask' in tb and 'import' in tb['exopy.RootTask']
 
 
 def test_register_task_decl_view1_bis(collector, task_decl):
@@ -211,11 +211,11 @@ def test_register_task_decl_view1_bis(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.testing.broken_enaml:Task'
+    task_decl.view = 'exopy.testing.broken_enaml:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb
-    assert ('AttributeError' in tb['ecpy.RootTask'] or
-            'NameError' in tb['ecpy.RootTask'])
+    assert 'exopy.RootTask' in tb
+    assert ('AttributeError' in tb['exopy.RootTask'] or
+            'NameError' in tb['exopy.RootTask'])
 
 
 def test_register_task_decl_view2(collector, task_decl):
@@ -223,9 +223,9 @@ def test_register_task_decl_view2(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks.tasks.base_views:Task'
+    task_decl.view = 'exopy.tasks.tasks.base_views:Task'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'import' in tb['ecpy.RootTask']
+    assert 'exopy.RootTask' in tb and 'import' in tb['exopy.RootTask']
 
 
 def test_register_task_decl_view3(collector, task_decl):
@@ -233,9 +233,9 @@ def test_register_task_decl_view3(collector, task_decl):
 
     """
     tb = {}
-    task_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
+    task_decl.view = 'exopy.tasks.tasks.database:TaskDatabase'
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'subclass' in tb['ecpy.RootTask']
+    assert 'exopy.RootTask' in tb and 'subclass' in tb['exopy.RootTask']
 
 
 def test_register_task_decl_children(collector, task_decl):
@@ -245,7 +245,7 @@ def test_register_task_decl_children(collector, task_decl):
     tb = {}
     task_decl.insert_children(0, [Task()])
     task_decl.register(collector, tb)
-    assert 'ecpy.RootTask' in tb and 'Interface' in tb['ecpy.RootTask']
+    assert 'exopy.RootTask' in tb and 'Interface' in tb['exopy.RootTask']
 
 
 def test_unregister_task_decl1(collector, task_decl):
@@ -271,14 +271,14 @@ def test_unregister_task_decl3(collector, task_decl):
     """Test unregistering a task simply contributing instruments.
 
     """
-    collector.contributions['ecpy.Task'] = TaskInfos()
+    collector.contributions['exopy.Task'] = TaskInfos()
     task_decl.task = 'Task'
     task_decl.instruments = ['test']
     task_decl.dependencies = ['dep']
     task_decl.register(collector, {})
     task_decl.unregister(collector)
-    assert not collector.contributions['ecpy.Task'].instruments
-    assert not collector.contributions['ecpy.Task'].dependencies
+    assert not collector.contributions['exopy.Task'].instruments
+    assert not collector.contributions['exopy.Task'].dependencies
 
 
 def test_unregister_task_decl4(collector, task_decl):
@@ -286,7 +286,7 @@ def test_unregister_task_decl4(collector, task_decl):
 
     """
     task_decl.register(collector, {})
-    infos = collector.contributions['ecpy.RootTask']
+    infos = collector.contributions['exopy.RootTask']
     i = InterfaceInfos(parent=infos)
     infos.interfaces['i'] = i
     task_decl.unregister(collector)
@@ -307,7 +307,7 @@ def test_str_task(task_decl):
 
 @pytest.fixture
 def int_decl():
-    tasks = Tasks(path='ecpy.tasks.tasks.logic')
+    tasks = Tasks(path='exopy.tasks.tasks.logic')
     task = Task(task='loop_task:LoopTask', view='views.loop_view:LoopView')
     tasks.insert_children(None, [task])
     i = Interface(interface='loop_iterable_interface:IterableLoopInterface',
@@ -373,16 +373,16 @@ def test_register_interface_extend_interface1(collector, int_decl):
     """
     infos = TaskInfos()
     infos.interfaces['Test'] = InterfaceInfos()
-    collector.contributions['ecpy.Task'] = infos
+    collector.contributions['exopy.Task'] = infos
 
     task, interface = int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     interface.interface = 'Test'
     interface.instruments = ['test']
     interface.dependencies = ['dep']
 
     task.register(collector, {})
-    interface = collector.contributions['ecpy.Task'].interfaces['Test']
+    interface = collector.contributions['exopy.Task'].interfaces['Test']
     assert interface.instruments == {'test'}
     assert 'dep' in interface.dependencies
     assert len(interface.dependencies) == 3
@@ -392,10 +392,10 @@ def test_register_interface_extend_interface2(collector, int_decl):
     """Test extending an interface not yet declared.
 
     """
-    collector.contributions['ecpy.Task'] = TaskInfos()
+    collector.contributions['exopy.Task'] = TaskInfos()
 
     task, interface = int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     interface.interface = 'Test'
     interface.instruments = ['test']
 
@@ -407,11 +407,11 @@ def test_register_interface_extend_task(collector, int_decl):
     """Test extending a task by adding interfaces.
 
     """
-    collector.contributions['ecpy.Task'] = TaskInfos()
+    collector.contributions['exopy.Task'] = TaskInfos()
     task, _ = int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     task.register(collector, {})
-    assert collector.contributions['ecpy.Task'].interfaces
+    assert collector.contributions['exopy.Task'].interfaces
 
 
 def test_register_interface_decl_missing_ext(collector):
@@ -431,7 +431,7 @@ def test_register_interface_decl_path_1(int_decl, collector):
     task, i = int_decl
     i.interface = 'foo.tt'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:foo.tt'
+    assert 'exopy.LoopTask:foo.tt'
 
 
 def test_register_interface_decl_path2(int_decl, collector):
@@ -442,7 +442,7 @@ def test_register_interface_decl_path2(int_decl, collector):
     task, i = int_decl
     i.views = 'foo:bar:foo'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_duplicate1(int_decl, collector):
@@ -451,20 +451,20 @@ def test_register_interface_decl_duplicate1(int_decl, collector):
     """
     tb = {}
     task, i = int_decl
-    infos = TaskInfos(interfaces={'ecpy.IterableLoopInterface': None})
+    infos = TaskInfos(interfaces={'exopy.IterableLoopInterface': None})
     collector.contributions[task.id] = infos
     i.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_duplicate1' in tb
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface_duplicate1' in tb
 
 
 def test_register_interface_decl_duplicate2(int_decl, collector):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'ecpy.LoopTask:ecpy.IterableLoopInterface': ''}
+    tb = {'exopy.LoopTask:exopy.IterableLoopInterface': ''}
     task, i = int_decl
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_duplicate1' in tb
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface_duplicate1' in tb
 
 
 def test_register_interface_decl_cls1(int_decl, collector):
@@ -477,8 +477,8 @@ def test_register_interface_decl_cls1(int_decl, collector):
     task.register(collector, tb)
     err_name = ('ImportError' if sys.version_info < (3, 6) else
                 'ModuleNotFoundError')
-    assert ('ecpy.LoopTask:ecpy.baz' in tb and
-            err_name in tb['ecpy.LoopTask:ecpy.baz'])
+    assert ('exopy.LoopTask:exopy.baz' in tb and
+            err_name in tb['exopy.LoopTask:exopy.baz'])
 
 
 def test_register_interface_decl_cls1_bis(collector):
@@ -486,15 +486,15 @@ def test_register_interface_decl_cls1_bis(collector):
 
     """
     tb = {}
-    task = Task(task='ecpy.tasks.tasks.logic.loop_task:LoopTask',
-                view='ecpy.tasks.tasks.logic.views.loop_view:LoopView')
+    task = Task(task='exopy.tasks.tasks.logic.loop_task:LoopTask',
+                view='exopy.tasks.tasks.logic.views.loop_view:LoopView')
     i = Interface(interface='loop_iterable_interface:IterableLoopInterface',
                   views=['views.loop_iterable_view:IterableLoopLabel'])
     task.insert_children(None, [i])
-    i.interface = 'ecpy.testing.broken_module:Test'
+    i.interface = 'exopy.testing.broken_module:Test'
     task.register(collector, tb)
-    assert ('ecpy.LoopTask:ecpy.Test' in tb and
-            'NameError' in tb['ecpy.LoopTask:ecpy.Test'])
+    assert ('exopy.LoopTask:exopy.Test' in tb and
+            'NameError' in tb['exopy.LoopTask:exopy.Test'])
 
 
 def test_register_interface_decl_cls2(int_decl, collector):
@@ -505,7 +505,7 @@ def test_register_interface_decl_cls2(int_decl, collector):
     task, i = int_decl
     i.interface = 'loop_iterable_interface:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.baz' in tb
+    assert 'exopy.LoopTask:exopy.baz' in tb
 
 
 def test_register_interface_decl_cls3(collector, int_decl):
@@ -516,8 +516,8 @@ def test_register_interface_decl_cls3(collector, int_decl):
     task, i = int_decl
     i.interface = 'loop_task:LoopTask'
     task.register(collector, tb)
-    assert ('ecpy.LoopTask:ecpy.LoopTask' in tb and
-            'subclass' in tb['ecpy.LoopTask:ecpy.LoopTask'])
+    assert ('exopy.LoopTask:exopy.LoopTask' in tb and
+            'subclass' in tb['exopy.LoopTask:exopy.LoopTask'])
 
 
 def test_register_interface_decl_view1(int_decl, collector):
@@ -528,7 +528,7 @@ def test_register_interface_decl_view1(int_decl, collector):
     task, i = int_decl
     i.views = 'foo.bar:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_view1_bis(int_decl, collector):
@@ -536,15 +536,15 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
 
     """
     tb = {}
-    task = Task(task='ecpy.tasks.tasks.logic.loop_task:LoopTask',
-                view='ecpy.tasks.tasks.logic.views.loop_view:LoopView')
-    i = Interface(interface='ecpy.tasks.tasks.logic.loop_iterable_interface:IterableLoopInterface',
-                  views=['_dumy__:Test', 'ecpy.testing.broken_enaml:Task'])
+    task = Task(task='exopy.tasks.tasks.logic.loop_task:LoopTask',
+                view='exopy.tasks.tasks.logic.views.loop_view:LoopView')
+    i = Interface(interface='exopy.tasks.tasks.logic.loop_iterable_interface:IterableLoopInterface',
+                  views=['_dumy__:Test', 'exopy.testing.broken_enaml:Task'])
     task.insert_children(None, [i])
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface_1' in tb
-    assert ('AttributeError' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface_1'] or
-            'NameError' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface_1'])
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface_1' in tb
+    assert ('AttributeError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'] or
+            'NameError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'])
 
 def test_register_interface_decl_view2(int_decl, collector):
     """Test handling view issues : undefined in module.
@@ -554,7 +554,7 @@ def test_register_interface_decl_view2(int_decl, collector):
     task, i = int_decl
     i.views = 'views.loop_iterable_view:baz'
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface' in tb
 
 
 def test_register_interface_decl_children1(int_decl, collector):
@@ -565,8 +565,8 @@ def test_register_interface_decl_children1(int_decl, collector):
     task, i = int_decl
     i.insert_children(None, [Task()])
     task.register(collector, tb)
-    assert 'ecpy.LoopTask:ecpy.IterableLoopInterface' in tb and\
-        'Interface' in tb['ecpy.LoopTask:ecpy.IterableLoopInterface']
+    assert 'exopy.LoopTask:exopy.IterableLoopInterface' in tb and\
+        'Interface' in tb['exopy.LoopTask:exopy.IterableLoopInterface']
 
 
 def test_register_interface_decl_children2(int_decl, collector):
@@ -575,17 +575,17 @@ def test_register_interface_decl_children2(int_decl, collector):
     """
     infos = TaskInfos()
     infos.interfaces['Test'] = InterfaceInfos()
-    collector.contributions['ecpy.Task'] = infos
+    collector.contributions['exopy.Task'] = infos
 
     task, interface = int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     interface.interface = 'Test'
     interface.insert_children(None, [Task()])
 
     tb = {}
     task.register(collector, tb)
-    assert ('ecpy.Task:Test' in tb and
-            'Interface' in tb['ecpy.Task:Test'])
+    assert ('exopy.Task:Test' in tb and
+            'Interface' in tb['exopy.Task:Test'])
 
 
 def test_unregister_interface_decl(int_decl, collector):
@@ -595,7 +595,7 @@ def test_unregister_interface_decl(int_decl, collector):
     task, i = int_decl
     task.register(collector, {})
     i.unregister(collector)
-    assert not collector.contributions['ecpy.LoopTask'].interfaces
+    assert not collector.contributions['exopy.LoopTask'].interfaces
 
 
 def test_unregister_interface_decl_bis(int_decl, collector):
@@ -625,7 +625,7 @@ def test_unregister_interface_decl3(collector, int_decl):
     """
     task, i = int_decl
     task.register(collector, {})
-    collector.contributions['ecpy.LoopTask'].interfaces = {}
+    collector.contributions['exopy.LoopTask'].interfaces = {}
     i.unregister(collector)
     # Would raise an error if the error was not properly catched.
 
@@ -636,16 +636,16 @@ def test_unregister_interface_decl4(collector, int_decl):
     """
     infos = TaskInfos()
     infos.interfaces['Test'] = InterfaceInfos()
-    collector.contributions['ecpy.Task'] = infos
+    collector.contributions['exopy.Task'] = infos
 
     task, interface = int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     interface.interface = 'Test'
     interface.instruments = ['test']
     interface.dependencies = ['dep']
 
     task.register(collector, {})
-    interface = collector.contributions['ecpy.Task'].interfaces['Test']
+    interface = collector.contributions['exopy.Task'].interfaces['Test']
     assert interface.instruments == {'test'}
     task.unregister(collector)
     assert not interface.instruments
@@ -658,7 +658,7 @@ def test_unregister_interface_decl5(collector, int_decl):
     """
     task, i = int_decl
     task.register(collector, {})
-    t_infos = collector.contributions['ecpy.LoopTask']
+    t_infos = collector.contributions['exopy.LoopTask']
     infos = list(t_infos.interfaces.values())[0]
     i = InterfaceInfos(parent=infos)
     infos.interfaces['i'] = i
@@ -684,8 +684,8 @@ def test_nested_interfaces_register(nested_int_decl, collector):
     task, interface = nested_int_decl
     task.register(collector, {})
 
-    interfaces = collector.contributions['ecpy.LoopTask'].interfaces
-    assert interfaces['ecpy.IterableLoopInterface'].interfaces
+    interfaces = collector.contributions['exopy.LoopTask'].interfaces
+    assert interfaces['exopy.IterableLoopInterface'].interfaces
     interface.parent.unregister(collector)
 
 
@@ -697,16 +697,16 @@ def test_nested_interfaces_extend1(nested_int_decl, collector):
     infos = TaskInfos()
     infos.interfaces['Test'] = InterfaceInfos(interfaces={'Nested':
                                                           InterfaceInfos()})
-    collector.contributions['ecpy.Task'] = infos
+    collector.contributions['exopy.Task'] = infos
 
     task, interface = nested_int_decl
-    task.task = 'ecpy.Task'
+    task.task = 'exopy.Task'
     interface.parent.interface = 'Test'
     interface.interface = 'Nested'
     interface.instruments = ['test']
 
     task.register(collector, {})
-    i = collector.contributions['ecpy.Task'].interfaces['Test']
+    i = collector.contributions['exopy.Task'].interfaces['Test']
     assert i.interfaces['Nested'].instruments == {'test'}
     interface.parent.unregister(collector)
 
@@ -723,12 +723,12 @@ def test_str_interface(int_decl):
 def config_decl():
     class Config(TaskConfig):
         def get_task_class(self):
-            from ecpy.tasks.tasks.base_tasks import BaseTask
+            from exopy.tasks.tasks.base_tasks import BaseTask
             return BaseTask
 
     return Config(
-        config='ecpy.tasks.configs.base_configs:PyTaskConfig',
-        view='ecpy.tasks.configs.base_config_views:PyConfigView')
+        config='exopy.tasks.configs.base_configs:PyTaskConfig',
+        view='exopy.tasks.configs.base_config_views:PyConfigView')
 
 
 def test_register_config_decl(collector, config_decl):
@@ -736,11 +736,11 @@ def test_register_config_decl(collector, config_decl):
 
     """
     config_decl.register(collector, {})
-    from ecpy.tasks.tasks.base_tasks import BaseTask
+    from exopy.tasks.tasks.base_tasks import BaseTask
     infos = collector.contributions[BaseTask]
-    from ecpy.tasks.configs.base_configs import PyTaskConfig
+    from exopy.tasks.configs.base_configs import PyTaskConfig
     with enaml.imports():
-        from ecpy.tasks.configs.base_config_views import PyConfigView
+        from exopy.tasks.configs.base_config_views import PyConfigView
     assert infos.cls is PyTaskConfig
     assert infos.view is PyConfigView
 
@@ -755,7 +755,7 @@ def test_register_config_fail_to_get_task(collector, config_decl):
         raise Exception()
     type(config_decl).get_task_class = dummy
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb
+    assert 'exopy.PyTaskConfig' in tb
 
 
 def test_register_config_decl_path_1(collector, config_decl):
@@ -763,9 +763,9 @@ def test_register_config_decl_path_1(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks'
+    config_decl.config = 'exopy.tasks'
     config_decl.register(collector, tb)
-    assert 'ecpy.tasks' in tb
+    assert 'exopy.tasks' in tb
 
 
 def test_register_config_decl_path2(collector, config_decl):
@@ -773,27 +773,27 @@ def test_register_config_decl_path2(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks:tasks:Task'
+    config_decl.view = 'exopy.tasks:tasks:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb
+    assert 'exopy.PyTaskConfig' in tb
 
 
 def test_register_config_decl_duplicate1(collector, config_decl):
     """Test handling duplicate config for a task.
 
     """
-    from ecpy.tasks.tasks.base_tasks import BaseTask
+    from exopy.tasks.tasks.base_tasks import BaseTask
     collector.contributions[BaseTask] = None
     tb = {}
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb
+    assert 'exopy.PyTaskConfig' in tb
 
 
 def test_register_config_decl_duplicate2(collector, config_decl):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'ecpy.PyTaskConfig': 'rr'}
+    tb = {'exopy.PyTaskConfig': 'rr'}
     config_decl.register(collector, tb)
     assert 'PyTaskConfig_duplicate1' in tb
 
@@ -803,9 +803,9 @@ def test_register_config_decl_cls1(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks.foo:Task'
+    config_decl.config = 'exopy.tasks.foo:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'import' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'import' in tb['exopy.Task']
 
 
 def test_register_config_decl_cls1_bis(collector, config_decl):
@@ -813,9 +813,9 @@ def test_register_config_decl_cls1_bis(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.testing.broken_module:Task'
+    config_decl.config = 'exopy.testing.broken_module:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'NameError' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'NameError' in tb['exopy.Task']
 
 
 def test_register_task_decl_cls2(collector, config_decl):
@@ -823,9 +823,9 @@ def test_register_task_decl_cls2(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks.tasks.base_tasks:Task'
+    config_decl.config = 'exopy.tasks.tasks.base_tasks:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.Task' in tb and 'attribute' in tb['ecpy.Task']
+    assert 'exopy.Task' in tb and 'attribute' in tb['exopy.Task']
 
 
 def test_register_task_decl_cls3(collector, config_decl):
@@ -833,9 +833,9 @@ def test_register_task_decl_cls3(collector, config_decl):
 
     """
     tb = {}
-    config_decl.config = 'ecpy.tasks.tasks.database:TaskDatabase'
+    config_decl.config = 'exopy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
-    assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
+    assert 'exopy.TaskDatabase' in tb and 'subclass' in tb['exopy.TaskDatabase']
 
 
 def test_register_config_decl_view1(collector, config_decl):
@@ -843,9 +843,9 @@ def test_register_config_decl_view1(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks.foo:Task'
+    config_decl.view = 'exopy.tasks.foo:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb and 'import' in tb['ecpy.PyTaskConfig']
+    assert 'exopy.PyTaskConfig' in tb and 'import' in tb['exopy.PyTaskConfig']
 
 
 def test_register_config_decl_view1bis(collector, config_decl):
@@ -853,9 +853,9 @@ def test_register_config_decl_view1bis(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.testing.broken_module:Task'
+    config_decl.view = 'exopy.testing.broken_module:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb and 'NameError' in tb['ecpy.PyTaskConfig']
+    assert 'exopy.PyTaskConfig' in tb and 'NameError' in tb['exopy.PyTaskConfig']
 
 
 def test_register_config_decl_view2(collector, config_decl):
@@ -863,9 +863,9 @@ def test_register_config_decl_view2(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks.tasks.base_views:Task'
+    config_decl.view = 'exopy.tasks.tasks.base_views:Task'
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb and 'import' in tb['ecpy.PyTaskConfig']
+    assert 'exopy.PyTaskConfig' in tb and 'import' in tb['exopy.PyTaskConfig']
 
 
 def test_register_config_decl_view3(collector, config_decl):
@@ -873,9 +873,9 @@ def test_register_config_decl_view3(collector, config_decl):
 
     """
     tb = {}
-    config_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
+    config_decl.view = 'exopy.tasks.tasks.database:TaskDatabase'
     config_decl.register(collector, tb)
-    assert 'ecpy.PyTaskConfig' in tb and 'subclass' in tb['ecpy.PyTaskConfig']
+    assert 'exopy.PyTaskConfig' in tb and 'subclass' in tb['exopy.PyTaskConfig']
 
 
 def test_unregister_config_decl1(collector, config_decl):

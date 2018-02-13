@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,11 +16,11 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.api import RootTask
-from ecpy.tasks.tasks.util.sleep_task import SleepTask
+from exopy.testing.util import show_and_close_widget
+from exopy.tasks.api import RootTask
+from exopy.tasks.tasks.util.sleep_task import SleepTask
 with enaml.imports():
-    from ecpy.tasks.tasks.util.views.sleep_view import SleepView
+    from exopy.tasks.tasks.util.views.sleep_view import SleepView
 
 
 class TestSleepTask(object):

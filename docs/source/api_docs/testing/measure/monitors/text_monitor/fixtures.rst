@@ -1,7 +1,7 @@
-ecpy.testing.measure.monitors.text_monitor.fixtures module
+exopy.testing.measure.monitors.text_monitor.fixtures module
 ==========================================================
 
-.. automodule:: ecpy.testing.measure.monitors.text_monitor.fixtures
+.. automodule:: exopy.testing.measure.monitors.text_monitor.fixtures
     :members:
     :undoc-members:
     :show-inheritance:

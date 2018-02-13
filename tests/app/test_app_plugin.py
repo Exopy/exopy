@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,8 +19,8 @@ import enaml
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
 
-    from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.app_manifest import AppManifest
+    from exopy.app.errors.manifest import ErrorsManifest
+    from exopy.app.app_manifest import AppManifest
     from .app_helpers import (StartupContributor, ClosingContributor1,
                               ClosingContributor2, ClosedContributor)
 
@@ -52,12 +52,12 @@ class TestAppPlugin(object):
         """
         manifest = StartupContributor()
         self.workbench.register(manifest)
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         plugin.run_app_startup(object())
 
         assert manifest.called == ['test_nested.startup1', 'test.startup2',
                                    'test_nested.startup2']
-        self.workbench.unregister('ecpy.app')
+        self.workbench.unregister('exopy.app')
 
     def test_closing(self):
         """Test that validation stops as soon as the event is rejected.
@@ -70,7 +70,7 @@ class TestAppPlugin(object):
 
         window = FalseWindow(self.workbench)
 
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         ev = CloseEvent()
         plugin.validate_closing(window, ev)
 
@@ -91,7 +91,7 @@ class TestAppPlugin(object):
         """
         manifest = ClosedContributor()
         self.workbench.register(manifest)
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         plugin.run_app_cleanup()
 
         assert manifest.called == ['test_nested.closed1', 'test.closed2',
@@ -104,7 +104,7 @@ class TestAppPlugin(object):
         manifest = StartupContributor()
         self.workbench.register(manifest)
 
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         assert len(plugin.startup.contributions) == 2
         assert len(plugin._start_heap) == 2
 
@@ -120,7 +120,7 @@ class TestAppPlugin(object):
         manifest = ClosingContributor1()
         self.workbench.register(manifest)
 
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         assert len(plugin.closing.contributions) == 1
 
         self.workbench.unregister(manifest.id)
@@ -134,7 +134,7 @@ class TestAppPlugin(object):
         manifest = ClosedContributor()
         self.workbench.register(manifest)
 
-        plugin = self.workbench.get_plugin('ecpy.app')
+        plugin = self.workbench.get_plugin('exopy.app')
         assert len(plugin.closed.contributions) == 2
         assert len(plugin._clean_heap) == 2
 

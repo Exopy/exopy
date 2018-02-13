@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 from enaml.widgets.api import Window
 
-from ecpy.utils.enaml_destroy_hook import add_destroy_hook
+from exopy.utils.enaml_destroy_hook import add_destroy_hook
 
 
 def test_destroy_hook():

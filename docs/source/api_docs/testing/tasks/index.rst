@@ -1,4 +1,4 @@
-ecpy.testing.tasks package
+exopy.testing.tasks package
 ==========================
 
 Submodules

@@ -1,7 +1,7 @@
-ecpy.utils.plugin_tools module
+exopy.utils.plugin_tools module
 ==============================
 
-.. automodule:: ecpy.utils.plugin_tools
+.. automodule:: exopy.utils.plugin_tools
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,7 @@
-ecpy.app.errors.plugin module
+exopy.app.errors.plugin module
 =============================
 
-.. automodule:: ecpy.app.errors.plugin
+.. automodule:: exopy.app.errors.plugin
     :members:
     :undoc-members:
     :show-inheritance:

@@ -147,6 +147,6 @@ so that the measure does not crash because of it, which is why it should not
 try to plot all the data acquired by the measure but leave this work to
 external programs.
 
-Ecpy comes with a built-in monitor which can display the values of the database
+Exopy comes with a built-in monitor which can display the values of the database
 entries. It can perform some minimal formatting on those entries and you can
 build new ones with custom formatting. It is attached by default to all measures.

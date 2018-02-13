@@ -3,7 +3,7 @@
 Instruments
 ===========
 
-Instruments are at the root of every physical measurement. In order for Ecpy to
+Instruments are at the root of every physical measurement. In order for Exopy to
 be able to work with an instrument, it needs :
 
 - a driver, which is the layer responsible for transferring the instruction 
@@ -14,7 +14,7 @@ be able to work with an instrument, it needs :
  
 Assuming that somebody wrote the driver for the instrument all you will have
 to do will be to provide the information needed by the profile. The next 
-sections will explain you how to provide those informations and how Ecpy
+sections will explain you how to provide those informations and how Exopy
 manages them.
 
 .. contents::
@@ -94,4 +94,4 @@ currently using instruments. Note that currently only one part of the
 application can use instruments at any given time.
 
 Typically when starting a measure the instruments used in the measure should
-go from unused to used by the 'ecpy.measure' plugin.
+go from unused to used by the 'exopy.measure' plugin.

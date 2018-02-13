@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,12 +18,12 @@ import pytest
 from configobj import ConfigObj
 from enaml.widgets.api import Dialog
 
-from ecpy.tasks.api import RootTask, ComplexTask
+from exopy.tasks.api import RootTask, ComplexTask
 
-from ecpy.testing.util import handle_dialog, process_app_events, get_window
+from exopy.testing.util import handle_dialog, process_app_events, get_window
 
 
-CMD = 'ecpy.tasks.save'
+CMD = 'exopy.tasks.save'
 
 
 @pytest.fixture
@@ -48,12 +48,12 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
     """Test saving a task as a template.
 
     """
-    from ecpy.tasks.utils import saving
+    from exopy.tasks.utils import saving
 
     monkeypatch.setattr(saving.TemplateViewer, 'exec_',
                         saving.TemplateViewer.show)
 
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     plugin.templates = {'test': ''}
 
     def answer_dialog(dialog):
@@ -83,7 +83,7 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
     """Test saving a task as a template : fail to save.
 
     """
-    from ecpy.tasks.utils import saving
+    from exopy.tasks.utils import saving
 
     def false_save(path, data, doc):
         raise OSError()
@@ -97,7 +97,7 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
     # set.
     monkeypatch.setattr(saving, 'critical', false_critical)
 
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     plugin.templates = {'test': ''}
 
     def answer_dialog(dialog):

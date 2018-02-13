@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,17 +17,17 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.testing.util import process_app_events, handle_dialog
-from ecpy.measure.monitors.text_monitor.rules.std_rules import RejectRule
+from exopy.testing.util import process_app_events, handle_dialog
+from exopy.measure.monitors.text_monitor.rules.std_rules import RejectRule
 
 with enaml.imports():
-    from ecpy.measure.monitors.text_monitor.rules.edition_views\
+    from exopy.measure.monitors.text_monitor.rules.edition_views\
          import CreateRuleDialog, EditRulesView
 
 
-pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
+pytest_plugins = str('exopy.testing.measure.monitors.text_monitor.fixtures'),
 
-PLUGIN_ID = 'ecpy.measure.monitors.text_monitor'
+PLUGIN_ID = 'exopy.measure.monitors.text_monitor'
 
 
 @pytest.fixture(params=[True, False])
@@ -48,12 +48,12 @@ def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep,
     sleep(dialog_sleep)
 
     d.central_widget().widgets()[0].selected_tab = \
-        'ecpy.measure.monitors.text_monitor.create_rule'
+        'exopy.measure.monitors.text_monitor.create_rule'
     page = d.central_widget().widgets()[0].pages()[1]
     page_content = page.page_widget().widgets
 
     # Select rule type
-    page_content()[0].selected = 'ecpy.RejectRule'
+    page_content()[0].selected = 'exopy.RejectRule'
     process_app_events()
     assert d.rule is page.rule
     assert isinstance(page.rule, RejectRule)
@@ -76,7 +76,7 @@ def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep,
     assert ok_btn.enabled
     d.rule.suffixes = []
     with enaml.imports():
-        from ecpy.measure.monitors.text_monitor.rules import edition_views
+        from exopy.measure.monitors.text_monitor.rules import edition_views
 
     called = []
 

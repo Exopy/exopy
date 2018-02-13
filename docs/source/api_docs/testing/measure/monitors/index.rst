@@ -1,4 +1,4 @@
-ecpy.testing.measure.monitors package
+exopy.testing.measure.monitors package
 =====================================
 
 Subpackages

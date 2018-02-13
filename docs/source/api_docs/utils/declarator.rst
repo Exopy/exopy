@@ -1,7 +1,7 @@
-ecpy.utils.declarator module
+exopy.utils.declarator module
 ============================
 
-.. automodule:: ecpy.utils.declarator
+.. automodule:: exopy.utils.declarator
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,11 +16,11 @@ from time import sleep
 
 import enaml
 
-from ecpy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import process_app_events, handle_dialog
 
 with enaml.imports():
-    from ecpy.testing.windows import DockItemTestingWindow
-    from ecpy.measure.workspace.tools_edition import (ToolSelector,
+    from exopy.testing.windows import DockItemTestingWindow
+    from exopy.measure.workspace.tools_edition import (ToolSelector,
                                                       ToolsEditorDockItem)
 
 
@@ -118,7 +118,7 @@ def test_manipulating_tools(measure, windows, dialog_sleep):
 #        dial.selected_decl.id = '__'
 #
 #    with enaml.imports():
-#        from ecpy.app.errors.widgets import ErrorsDialog
+#        from exopy.app.errors.widgets import ErrorsDialog
 #
 #    with handle_dialog(cls=ErrorsDialog):
 #        with handle_dialog(custom=add_tool_2):

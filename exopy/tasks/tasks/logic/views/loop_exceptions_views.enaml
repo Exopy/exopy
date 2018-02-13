@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the BreakTask and ContinueTask.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.widgets.api import (GroupBox, Label)
+from enaml.layout.api import hbox, align
+from inspect import cleandoc
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ...string_evaluation import EVALUATER_TOOLTIP
+from ...base_views import BaseTaskView
+
+
+enamldef BreakView(BaseTaskView):
+    """View for the BreakTask.
+
+    """
+    constraints = [hbox(cond_lab, cond_val),
+                   align('v_center', cond_lab, cond_val)]
+
+    Label: cond_lab:
+        text = 'Condition'
+        tool_tip = 'Will break out of the loop when evaluates to True.'
+    QtLineCompleter: cond_val:
+        text := task.condition
+        entries_updater << task.list_accessible_database_entries
+        tool_tip = EVALUATER_TOOLTIP
+
+
+enamldef ContinueView(BaseTaskView):
+    """View for the ContinueTask.
+
+    """
+
+    constraints = [hbox(cond_lab, cond_val),
+                   align('v_center', cond_lab, cond_val)]
+
+    Label: cond_lab:
+        text = 'Condition'
+        tool_tip = cleandoc('''Will skip the following task in the loop when
+                            evaluates to True.''')
+    QtLineCompleter: cond_val:
+        text := task.condition
+        entries_updater << task.list_accessible_database_entries
+        tool_tip = EVALUATER_TOOLTIP

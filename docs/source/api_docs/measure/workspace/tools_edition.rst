@@ -1,7 +1,7 @@
-ecpy.measure.workspace.tools_edition module
+exopy.measure.workspace.tools_edition module
 ===========================================
 
-.. automodule:: ecpy.measure.workspace.tools_edition
+.. automodule:: exopy.measure.workspace.tools_edition
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,4 +1,4 @@
-ecpy.instruments.connections package
+exopy.instruments.connections package
 ====================================
 
 Submodules

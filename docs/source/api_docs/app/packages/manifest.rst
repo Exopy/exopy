@@ -1,7 +1,7 @@
-ecpy.app.packages.manifest module
+exopy.app.packages.manifest module
 =================================
 
-.. automodule:: ecpy.app.packages.manifest
+.. automodule:: exopy.app.packages.manifest
     :members:
     :undoc-members:
     :show-inheritance:

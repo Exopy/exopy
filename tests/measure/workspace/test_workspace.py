@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Ditextibuted under the terms of the BSD license.
 #
@@ -19,17 +19,17 @@ import enaml
 from enaml.widgets.api import Window
 from future.builtins import str as text
 
-from ecpy.testing.util import process_app_events, handle_dialog, ObjectTracker
+from exopy.testing.util import process_app_events, handle_dialog, ObjectTracker
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
     from enaml.stdlib.message_box import MessageBox
-    from ecpy.app.log.manifest import LogManifest
-    from ecpy.tasks.manifest import TasksManagerManifest
-    from ecpy.testing.measure.contributions import Flags
+    from exopy.app.log.manifest import LogManifest
+    from exopy.tasks.manifest import TasksManagerManifest
+    from exopy.testing.measure.contributions import Flags
 
 
-pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
+pytest_plugins = str('exopy.testing.measure.workspace.fixtures'),
 
 
 @pytest.fixture
@@ -40,12 +40,12 @@ def workspace(measure_workbench, measure, windows):
     measure_workbench.register(UIManifest())
     measure_workbench.register(LogManifest())
     measure_workbench.register(TasksManagerManifest())
-    measure_plugin = measure_workbench.get_plugin('ecpy.measure')
+    measure_plugin = measure_workbench.get_plugin('exopy.measure')
     measure_plugin.selected_engine = 'dummy'
     measure_plugin.default_monitors = ['dummy']
     core = measure_workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.select_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
 
     return measure_plugin.workspace
 
@@ -57,16 +57,16 @@ def test_workspace_lifecycle(workspace, tmpdir):
     process_app_events()
 
     workbench = workspace.plugin.workbench
-    log = workbench.get_plugin('ecpy.app.logging')
+    log = workbench.get_plugin('exopy.app.logging')
     # Check UI creation
     assert workspace._selection_tracker._thread
     assert workspace.last_selected_measure
     assert workspace.content
     assert workspace.dock_area
-    assert workbench.get_manifest('ecpy.measure.workspace.menus')
+    assert workbench.get_manifest('exopy.measure.workspace.menus')
 
     # Check log handling
-    assert 'ecpy.measure.workspace' in log.handler_ids
+    assert 'exopy.measure.workspace' in log.handler_ids
 
     # Check engine handling
     engine = workbench.get_manifest('test.measure').find('dummy_engine')
@@ -105,17 +105,17 @@ def test_workspace_lifecycle(workspace, tmpdir):
     # Test stopping the workspace
     core = workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.close_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
 
     assert workspace.plugin.workspace is None
     assert not engine.workspace_contributing
-    assert workbench.get_manifest('ecpy.measure.workspace.menus') is None
-    assert 'ecpy.measure.workspace' not in log.handler_ids
+    assert workbench.get_manifest('exopy.measure.workspace.menus') is None
+    assert 'exopy.measure.workspace' not in log.handler_ids
     assert not workspace._selection_tracker._thread.is_alive()
 
     # Test restarting now that we have two edited measure.
     cmd = 'enaml.workbench.ui.select_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
     assert len(workspace.plugin.edited_measures.measures) == 2
 
     # Check that all dock items have been restored.
@@ -131,7 +131,7 @@ def test_workspace_lifecycle(workspace, tmpdir):
     # Stop again
     core = workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.close_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
     process_app_events()
 
     assert not workspace.plugin.processor.monitors_window.visible
@@ -146,13 +146,13 @@ def test_handling_missing_measure_in_state(workspace):
     # Test stopping the workspace
     core = workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.close_workspace'
-    core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+    core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
 
     workspace.plugin._workspace_state['measure_panels'] = {}
 
     with pytest.raises(RuntimeError):
         cmd = 'enaml.workbench.ui.select_workspace'
-        core.invoke_command(cmd, {'workspace': 'ecpy.measure.workspace'})
+        core.invoke_command(cmd, {'workspace': 'exopy.measure.workspace'})
 
 
 @pytest.mark.timeout(30)
@@ -162,8 +162,8 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
     """
     process_app_events()
 
-    from ecpy.measure.measure import Measure
-    from ecpy.tasks.api import RootTask
+    from exopy.measure.measure import Measure
+    from exopy.tasks.api import RootTask
 
     measure_tracker = ObjectTracker(Measure, False)
     root_tracker = ObjectTracker(RootTask, False)
@@ -180,7 +180,7 @@ def test_creating_saving_loading_measure(workspace, monkeypatch, tmpdir):
 
         d = tmpdir.mkdir('measure_save')
         f = d.join('test')
-        from ecpy.measure.workspace.workspace import FileDialogEx
+        from exopy.measure.workspace.workspace import FileDialogEx
 
         # Test handling an empty answer.
         @classmethod
@@ -320,7 +320,7 @@ def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
     """
     m = workspace.plugin.edited_measures.measures[0]
     m.root_task.default_path = text(tmpdir)
-    from ecpy.measure.workspace.workspace import os
+    from exopy.measure.workspace.workspace import os
     m.add_tool('pre-hook', 'dummy')
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
 
@@ -346,7 +346,7 @@ def test_enqueueing_and_reenqueueing_measure(workspace, monkeypatch, tmpdir):
 
     # Test re-enqueuing
     m2.status = 'COMPLETED'
-    from ecpy.measure.measure import Measure
+    from exopy.measure.measure import Measure
 
     def e(m):
         m.name = 'R'
@@ -399,7 +399,7 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir):
     """
     m = workspace.plugin.edited_measures.measures[0]
     m.root_task.default_path = text(tmpdir)
-    from ecpy.measure.measure import Measure
+    from exopy.measure.measure import Measure
 
     witness = []
 
@@ -426,7 +426,7 @@ def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir):
     """
     m = workspace.plugin.edited_measures.measures[0]
     m.root_task.default_path = text(tmpdir)
-    from ecpy.measure.measure import Measure
+    from exopy.measure.measure import Measure
 
     witness = []
 
@@ -497,7 +497,7 @@ def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir):
     """
     m = workspace.plugin.edited_measures.measures[0]
     m.root_task.default_path = text(tmpdir)
-    from ecpy.measure.measure import Measure
+    from exopy.measure.measure import Measure
 
     witness = []
 
@@ -524,7 +524,7 @@ def test_measure_execution(workspace):
     are piped to the processor.
 
     """
-    from ecpy.measure.processor import MeasureProcessor
+    from exopy.measure.processor import MeasureProcessor
     from atom.api import Unicode, Dict
 
     class P(MeasureProcessor):

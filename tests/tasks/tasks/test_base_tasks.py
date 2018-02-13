@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import pytest
 from atom.api import Value, List
-from ecpy.tasks.tasks.base_tasks import RootTask, SimpleTask, ComplexTask
+from exopy.tasks.tasks.base_tasks import RootTask, SimpleTask, ComplexTask
 
 
 class SignalListener(object):
@@ -342,7 +342,7 @@ def test_build_complex_from_config():
               'children_0': {'name': 'test_child',
                              'task_id': 'SimpleTask'}}
     task = ComplexTask.build_from_config(config,
-                                         {'ecpy.task':
+                                         {'exopy.task':
                                              {'SimpleTask': SimpleTask}})
     assert task.name == 'test'
     assert len(task.children) == 1
@@ -362,7 +362,7 @@ def test_build_root_from_config():
               'children_0': {'name': 'test_child',
                              'task_id': 'DummyTask'}}
     task = RootTask.build_from_config(config,
-                                      {'ecpy.task':
+                                      {'exopy.task':
                                           {'DummyTask': DummyTask}})
     assert task.name == 'Root'
     assert len(task.children) == 1

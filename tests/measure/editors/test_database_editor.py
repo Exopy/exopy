@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,18 +18,18 @@ import pytest
 import enaml
 from enaml.widgets.api import FlowArea, Menu
 
-from ecpy.utils.container_change import ContainerChange
-from ecpy.tasks.api import RootTask, ComplexTask, SimpleTask
-from ecpy.measure.editors.api import Editor
-from ecpy.measure.editors.database_access_editor.editor_model import\
+from exopy.utils.container_change import ContainerChange
+from exopy.tasks.api import RootTask, ComplexTask, SimpleTask
+from exopy.measure.editors.api import Editor
+from exopy.measure.editors.database_access_editor.editor_model import\
      EditorModel
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.measure.editors.database_access_editor import\
+    from exopy.measure.editors.database_access_editor import\
         DatabaseAccessEditor
-    from ecpy.testing.windows import PageTestingWindow
+    from exopy.testing.windows import PageTestingWindow
 
 
 @pytest.fixture
@@ -236,7 +236,7 @@ def test_editor_widget(windows, task, dialog_sleep):
 
     task_with_exs = task.children[1].children[1].children[0]
 
-    editor = DatabaseAccessEditor(declaration=Editor(id='ecpy.database'),
+    editor = DatabaseAccessEditor(declaration=Editor(id='exopy.database'),
                                   selected_task=task)
     window = PageTestingWindow(widget=editor)
     window.show()

@@ -1,7 +1,7 @@
-ecpy.measure.manifest module
+exopy.measure.manifest module
 ============================
 
-.. automodule:: ecpy.measure.manifest
+.. automodule:: exopy.measure.manifest
     :members:
     :undoc-members:
     :show-inheritance:

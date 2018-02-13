@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import os
 from configobj import ConfigObj
 
-from ecpy.utils.configobj_ops import traverse_config, include_configobj
+from exopy.utils.configobj_ops import traverse_config, include_configobj
 
 
 def test_include():

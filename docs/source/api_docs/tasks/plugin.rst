@@ -1,7 +1,7 @@
-ecpy.tasks.plugin module
+exopy.tasks.plugin module
 ========================
 
-.. automodule:: ecpy.tasks.plugin
+.. automodule:: exopy.tasks.plugin
     :members:
     :undoc-members:
     :show-inheritance:

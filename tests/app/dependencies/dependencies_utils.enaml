@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,16 +14,16 @@ from __future__ import (division, unicode_literals, print_function,
 
 from enaml.workbench.api import PluginManifest, Extension
 
-from ecpy.app.dependencies.dependencies import (BuildDependency,
+from exopy.app.dependencies.dependencies import (BuildDependency,
                                                 RuntimeDependencyCollector,
                                                 RuntimeDependencyAnalyser)
 
 
-BUILD_DEP_POINT = 'ecpy.app.dependencies.build'
+BUILD_DEP_POINT = 'exopy.app.dependencies.build'
 
-RUNTIME_DEP_COLLECT_POINT = 'ecpy.app.dependencies.runtime_collect'
+RUNTIME_DEP_COLLECT_POINT = 'exopy.app.dependencies.runtime_collect'
 
-RUNTIME_DEP_ANALYSE_POINT = 'ecpy.app.dependencies.runtime_analyse'
+RUNTIME_DEP_ANALYSE_POINT = 'exopy.app.dependencies.runtime_analyse'
 
 
 enamldef BuildDep(PluginManifest):

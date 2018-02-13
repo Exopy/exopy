@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,9 +17,9 @@ import logging
 from atom.api import List, Subclass, Dict
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 
-from ecpy.measure.monitors.text_monitor.rules.base\
+from exopy.measure.monitors.text_monitor.rules.base\
      import Rules, RuleType, RuleConfig, BaseRule
-from ecpy.measure.monitors.text_monitor.rules.base_views import BaseRuleView
+from exopy.measure.monitors.text_monitor.rules.base_views import BaseRuleView
 
 
 class Contributed(BaseRule):
@@ -33,7 +33,7 @@ enamldef ContributedView(BaseRuleView):
 # --- Manifest ----------------------------------------------------------------
 # =============================================================================
 
-module = 'tests.measure.monitors.text_monitor.contributed_rules'
+module = 'measure.monitors.text_monitor.contributed_rules'
 
 enamldef RulesManifest(PluginManifest): man:
     """Plugin handling the storing of rules for the TextMonitor.
@@ -47,17 +47,17 @@ enamldef RulesManifest(PluginManifest): man:
 
     Extension:
         id = 'rule_types'
-        point = 'ecpy.measure.monitors.text_monitor.rules.type'
+        point = 'exopy.measure.monitors.text_monitor.rules.type'
         RuleType:
             rule = module + ':Contributed'
             view = module + ':ContributedView'
 
     Extension:
         id = 'rule_configs'
-        point = 'ecpy.measure.monitors.text_monitor.rules.config'
+        point = 'exopy.measure.monitors.text_monitor.rules.config'
         RuleConfig:
             id = 'contributed'
             description = 'Reject all the entries provided by the measure'
-            rule_type = 'ecpy.RejectRule'
+            rule_type = 'exopy.RejectRule'
             config = {'suffixes': ['meas_name', 'meas_id', 'meas_date']}
 

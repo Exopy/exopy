@@ -1,4 +1,4 @@
-ecpy.measure.engines package
+exopy.measure.engines package
 ============================
 
 Subpackages

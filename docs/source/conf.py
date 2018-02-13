@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Ecpy documentation build configuration file, created by
-# sphinx-quickstart on Mon Apr 27 20:35:05 2015.
+# Exopy documentation build configuration file, created by
+# sphinx-quickstart on Mon Apr 27 20:35:05 2015-2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -55,13 +55,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Ecpy'
-copyright = u'2015, Ecpy team'
+project = u'Exopy'
+copyright = u'2015-2018, Exopy team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-from ecpy.version import version_info
+from exopy.version import version_info
 
 # The short X.Y version.
 version = '{0}.{1}'.format(*version_info)
@@ -212,7 +212,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Ecpydoc'
+htmlhelp_basename = 'Exopydoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -232,8 +232,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Ecpy.tex', u'Ecpy Documentation',
-   u'Ecpy team', 'manual'),
+  ('index', 'Exopy.tex', u'Exopy Documentation',
+   u'Exopy team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -262,8 +262,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'ecpy', u'Ecpy Documentation',
-     [u'Ecpy team'], 1)
+    ('index', 'exopy', u'Exopy Documentation',
+     [u'Exopy team'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -276,8 +276,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Ecpy', u'Ecpy Documentation',
-   u'Ecpy team', 'Ecpy', 'One line description of project.',
+  ('index', 'Exopy', u'Exopy Documentation',
+   u'Exopy team', 'Exopy', 'One line description of project.',
    'Miscellaneous'),
 ]
 

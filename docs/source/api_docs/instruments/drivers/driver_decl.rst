@@ -1,7 +1,7 @@
-ecpy.instruments.drivers.driver_decl module
+exopy.instruments.drivers.driver_decl module
 ===========================================
 
-.. automodule:: ecpy.instruments.drivers.driver_decl
+.. automodule:: exopy.instruments.drivers.driver_decl
     :members:
     :undoc-members:
     :show-inheritance:

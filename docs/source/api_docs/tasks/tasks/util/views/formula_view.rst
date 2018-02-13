@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.util.views.formula_view module
+exopy.tasks.tasks.util.views.formula_view module
 ===============================================
 
-.. automodule:: ecpy.tasks.tasks.util.views.formula_view
+.. automodule:: exopy.tasks.tasks.util.views.formula_view
     :members:
     :undoc-members:
     :show-inheritance:

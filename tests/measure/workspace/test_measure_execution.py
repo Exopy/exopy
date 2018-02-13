@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,17 +17,17 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.testing.measure.fixtures import measure as m_build
-from ecpy.testing.util import process_app_events, handle_dialog, CallSpy
+from exopy.testing.measure.fixtures import measure as m_build
+from exopy.testing.util import process_app_events, handle_dialog, CallSpy
 
 with enaml.imports():
-    from ecpy.testing.windows import (ContainerTestingWindow,
+    from exopy.testing.windows import (ContainerTestingWindow,
                                       DockItemTestingWindow)
-    from ecpy.measure.workspace.measure_execution import (MeasView,
+    from exopy.measure.workspace.measure_execution import (MeasView,
                                                           ExecutionDockItem)
 
 
-pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
+pytest_plugins = str('exopy.testing.measure.workspace.fixtures'),
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def execution_view(measure_workbench, workspace, windows):
     """Start plugins and add measures before creating the execution view.
 
     """
-    pl = measure_workbench.get_plugin('ecpy.measure')
+    pl = measure_workbench.get_plugin('exopy.measure')
     pl.enqueued_measures.add(m_build(measure_workbench))
     pl.enqueued_measures.add(m_build(measure_workbench))
     pl.enqueued_measures.measures[1].name = 'dummy_test'
@@ -74,7 +74,7 @@ def test_measure_view(measure, windows, dialog_sleep, monkeypatch, workspace):
     process_app_events()
     measure.plugin.processor.active = False
 
-    from ecpy.measure.workspace.workspace import MeasureSpace
+    from exopy.measure.workspace.workspace import MeasureSpace
     spy = CallSpy()
     monkeypatch.setattr(MeasureSpace, 'process_single_measure', spy)
     view.widgets()[-1].clicked = True
@@ -131,7 +131,7 @@ def test_start_button(execution_view, monkeypatch, dialog_sleep):
 
     item = execution_view.widget
 
-    from ecpy.measure.workspace.workspace import MeasureSpace
+    from exopy.measure.workspace.workspace import MeasureSpace
     spies = {}
     for n in ('start_processing_measures', 'resume_current_measure',
               'pause_current_measure'):
@@ -179,12 +179,12 @@ def test_stop_button(execution_view, monkeypatch, dialog_sleep):
 
     item = execution_view.widget
 
-    from ecpy.measure.workspace.workspace import MeasureSpace
+    from exopy.measure.workspace.workspace import MeasureSpace
     spy = CallSpy()
     monkeypatch.setattr(MeasureSpace, 'stop_current_measure', spy)
 
     with enaml.imports():
-        from ecpy.measure.workspace import measure_execution
+        from exopy.measure.workspace import measure_execution
     qspy = CallSpy()
     monkeypatch.setattr(measure_execution, 'question', qspy)
     st_btn = item.dock_widget().widgets()[2]
@@ -310,7 +310,7 @@ def test_show_monitors(execution_view, dialog_sleep):
     assert not mon_btn.enabled
 
     with enaml.imports():
-        from ecpy.measure.workspace.monitors_window import MonitorsWindow
+        from exopy.measure.workspace.monitors_window import MonitorsWindow
 
     meas = item.workspace.plugin.enqueued_measures.measures[0]
     mon_win = MonitorsWindow(item, measure=meas)

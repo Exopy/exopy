@@ -1,7 +1,7 @@
-ecpy.utils.widgets.qt_autoscroll_html module
+exopy.utils.widgets.qt_autoscroll_html module
 ============================================
 
-.. automodule:: ecpy.utils.widgets.qt_autoscroll_html
+.. automodule:: exopy.utils.widgets.qt_autoscroll_html
     :members:
     :undoc-members:
     :show-inheritance:

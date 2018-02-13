@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.decorators module
+exopy.tasks.tasks.decorators module
 ==================================
 
-.. automodule:: ecpy.tasks.tasks.decorators
+.. automodule:: exopy.tasks.tasks.decorators
     :members:
     :undoc-members:
     :show-inheritance:

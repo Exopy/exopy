@@ -1,0 +1,533 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Instrument manager plugin manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import logging
+from collections import Mapping
+from ast import literal_eval
+
+import enaml
+from future.builtins import str
+from enaml.widgets.api import MultilineField
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+from ..app.preferences.api import Preferences
+from ..app.states.api import State
+from ..app.dependencies.api import RuntimeDependencyCollector
+from ..app.errors.api import ErrorHandler
+from ..app.errors.widgets import BasicErrorsDisplay
+from ..utils.plugin_tools import make_handler
+
+from .manufacturer_aliases import ManufacturerAlias
+from .connections.visa_connections import VisaConnection
+
+PLUGIN_ID = 'exopy.instruments'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def manager_plugin_factory():
+    """ Factory funcion for the instr manager plugin.
+
+    """
+    from .plugin import InstrumentManagerPlugin
+    return InstrumentManagerPlugin()
+
+
+# =============================================================================
+# --- Handlers ----------------------------------------------------------------
+# =============================================================================
+
+def select_instrument_handler(event):
+    """Handler for the exopy.instruments.select_instrument command.
+
+    """
+    import enaml
+    with enaml.imports():
+        from .widgets.profile_selection import ProfileSelectionDialog
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    dial_kw = {}
+    profile = event.parameters.get('profile')
+    if profile in plugin._profiles:
+        dial_kw['profile'] = profile
+        infos = plugin._profiles[profile]
+
+        d = event.parameters.get('driver')
+        if d in {d.id for d in infos.model.drivers}:
+            dial_kw['driver'] = d
+
+        c = event.parameters.get('connection')
+        if c in infos.connections:
+            dial_kw['connection'] = c
+
+        s = event.parameters.get('settings')
+        if s in infos.settings:
+            dial_kw['settings'] = s
+
+    for n in ('filter_profiles', 'filter_drivers'):
+        if n in event.parameters:
+            dial_kw[n] = event.parameters[n]
+
+    dial = ProfileSelectionDialog(plugin=plugin, **dial_kw)
+    if dial.exec_():
+        return (dial.profile, dial.driver, dial.connection, dial.settings)
+    else:
+        return None
+
+
+def open_browser_dialog_handler(event):
+    """Open the instrument browsing dialog.
+
+    """
+    # Get the application window if any
+    ui = event.workbench.get_plugin('enaml.workbench.ui')
+    instr = event.workbench.get_plugin('exopy.instruments')
+    with enaml.imports():
+        from .widgets.browsing import BrowsingDialog
+    BrowsingDialog(ui.window, plugin=instr).exec_()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+DRIVERS_DES =\
+"""Plugins can contributes Drivers or Driver to this point to add new driver
+implementations.
+
+"""
+
+CONNECTIONS_DESC =\
+"""Plugin can contribute Connection to this point to add new type of connection
+informations. Connections information are used to open a connection to an
+instrument.
+
+"""
+
+SETTINGS_DESC =\
+"""Plugin can contribute Settings to this point to add new type of settings
+for a driver architecture. Settings are used to pass additional informations
+to a driver when opening a connection.
+
+"""
+
+STARTERS_DESC =\
+"""Plugin can contribute Starter to this point to add new instrument starters.
+Starters are used to abstract the initialisation/finalisation of a driver. They
+allow to present a single API for instrument users needing to establish a
+connection to an instrument.
+
+"""
+
+USERS_DESC =\
+"""Plugins can contribute InstrUser to this point to declare that a plugin is
+susceptible to require the privilege to use an instrument.
+
+"""
+
+MANUFACTURER_ALIAS_DESC =\
+"""Plugins can contribute ManufacturerAlias to this point to declare that an
+instrument manufacturer is known under different names. When registering a
+driver the "master" name should be used.
+
+"""
+
+
+VISA_RS232 =\
+"""Visa connection informations necessary to open a serial connection to an
+instrument.
+
+"""
+
+VISA_GPIB =\
+"""Visa connection informations necessary to open a GPIB connection to an
+instrument.
+
+Defaults
+--------
+secondary_address : int
+    Secondary address to use.
+
+"""
+
+VISA_TCPIP=\
+"""Visa connection informations necessary to open a TCPIP connection to an
+instrument. The connection can use the INSTR or SOCKET protocol.
+
+Defaults
+--------
+resource_class : {'INSTR', 'SOCKET'}
+    Communication protocol to use
+
+LAN_device_name : str
+    Lan device name to use (INSTR protocol only)
+
+port : int
+    Port on which to connect (SOCKET mode only)
+
+"""
+
+VISA_USB =\
+"""Visa connection informations necessary to open a USB connection to an
+instrument. The connection can use the INSTR or RAW protocol.
+
+Defaults
+--------
+resource_class : {'INSTR', 'RAW'}
+    Protocol to use.
+
+manufacturer_ID : str
+    Manufacturer ID (first part of the USB address).
+
+model_code : str
+    Model code (second part of the USB address).
+
+"""
+
+VISA_RAW =\
+"""Visa connection informations necessary to open a conection without making
+any assumption on the kind of connection. This is in particular useful for
+handling visa aliases.
+
+"""
+
+DRIVER_VALIDATION =\
+"""Error handler formatting and displaying the unknown starters, connections,
+settings for each driver.
+
+"""
+
+GET_DRIVERS_DESCRIPTION =\
+"""Query drivers class and the associated starters.
+
+Parameters
+----------
+drivers : list
+    List of driver ids for which the matching class should be returned.
+
+Returns
+-------
+drivers : dict
+    Requested drivers and associated starter indexed by id.
+
+missing : list
+    List of ids which do not correspond to any known valid driver.
+
+"""
+
+GET_PROFILES_DESCRIPTION =\
+"""Query profiles for use by a declared user.
+
+Parameters
+----------
+user_id : unicode
+    Id of the user which request the authorization to use the
+    instrument.
+
+profile_id : list
+    Ids of the instrument profiles which are requested.
+
+try_release : bool, optional
+    Should we attempt to release currently used profiles.
+
+partial : bool, optional
+    Should only a subset of the requested profiles be returned if some
+    profiles are not available.
+
+Returns
+-------
+profiles : dict
+    Requested profiles as a dictionary.
+
+unavailable : list
+    List of profiles that are not currently available and cannot be
+    released.
+
+"""
+
+RELEASE_PROFILES_DESCRIPTION =\
+"""Release some previously acquired profiles.
+
+The user should not maintain any communication with the instruments
+whose profiles have been released after calling this method.
+
+Parameters
+----------
+user_id : unicode
+    Id of the user releasing the profiles.
+
+profiles : iterable
+    Profiles (ids) which are no longer needed by the user.
+
+"""
+
+SELECT_INSTRUMENT_DESCRIPTION =\
+"""Select an instrument (profile, driver, connection, settings).
+
+Parameters
+----------
+profile : unicode, optional
+    Id of the previously selected profile
+
+driver : unicode, optional
+    Id of the previously selected driver.
+
+connection : unicode, optional
+    Id of the prviously selected connection.
+
+settings : unicode, optional
+    Id of the previously selected settings.
+
+Returns
+-------
+result : tuple(4) or None
+    Tuple containing the four afor mentionned ids or None if the selection
+    was cancelled.
+
+"""
+
+
+OPEN_BROWSER_DESCRIPTION =\
+"""Open the instrument browser dialog.
+
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef InstrumentManagerManifest(PluginManifest):
+    """Manifest for the task manager.
+
+    """
+    id = PLUGIN_ID
+    factory = manager_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'drivers'
+        description = DECLARATIONS_DESC
+
+    ExtensionPoint:
+        id = 'connections'
+        description = CONNECTIONS_DESC
+
+    ExtensionPoint:
+        id = 'settings'
+        description = SETTINGS_DESC
+
+    ExtensionPoint:
+        id = 'starters'
+        description = STARTERS_DESC
+
+    ExtensionPoint:
+        id = 'users'
+        description = USERS_DESC
+
+    ExtensionPoint:
+        id = 'manufacturer_aliases'
+        description = MANUFACTURER_ALIAS_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'default_connections'
+        point = 'exopy.instruments.connections'
+        VisaConnection:
+            id = 'VisaRaw'
+            description = VISA_RAW
+        VisaConnection:
+            id = 'VisaRS232'
+            description = VISA_RS232
+        VisaConnection:
+            id = 'VisaGPIB'
+            description = VISA_GPIB
+        VisaConnection:
+            id = 'VisaUSB'
+            description = VISA_USB
+        VisaConnection:
+            id = 'VisaTCPIP'
+            description = VISA_TCPIP
+
+    Extension:
+        id = 'manufacturer_alias'
+        point = 'exopy.instruments.manufacturer_aliases'
+        ManufacturerAlias:
+            id = 'Keysight'
+            aliases = ['Agilent', 'HP']
+
+    Extension:
+        id = 'runtime_deps'
+        point = 'exopy.app.dependencies.runtime_collect'
+        RuntimeDependencyCollector:
+            id = 'exopy.instruments.profiles'
+            validate => (workbench, dependencies, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                unknown = [d for d in dependencies
+                           if d not in plugin.profiles]
+                if unknown:
+                    m = 'The following profile ids do not match any known id:'
+                    m += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-profiles'] = m
+
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                known = [d for d in dependencies
+                         if d in plugin.profiles]
+                if owner not in plugin.users:
+                    errors['unknown-user'] =\
+                        '%s is not a registered user.' % owner
+                    return
+                p, u = plugin.get_profiles(owner, known, try_release=True,
+                                           partial=False)
+                if known != list(dependencies):
+                    unknown = [d for d in dependencies
+                               if d not in plugin.profiles]
+                    m = 'The following profile ids do not match any known id:'
+                    m += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-profiles'] = m
+                unavailable.update(u)
+                dependencies.update(p)
+
+            release => (workbench, owner, dependencies):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                plugin.release_profiles(owner, dependencies)
+
+        RuntimeDependencyCollector:
+            id = 'exopy.instruments.drivers'
+            validate => (workbench, dependencies, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                unknown = [d for d in dependencies
+                           if d not in plugin._drivers.contributions]
+                if unknown:
+                    msg = 'The following driver ids do not match any known id:'
+                    msg += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-drivers'] = msg
+
+            collect => (workbench, owner, dependencies, unavailable, errors):
+                plugin = workbench.get_plugin(PLUGIN_ID)
+                drivers, unknown = plugin.get_drivers(dependencies)
+                if unknown:
+                    msg = 'The following driver ids do not match any known id:'
+                    msg += '\n- ' + '\n- '.join(unknown)
+                    errors['unknown-drivers'] = msg
+
+                dependencies.update(drivers)
+
+    Extension:
+        id = 'prefs'
+        point = 'exopy.app.preferences.plugin'
+        Preferences:
+            pass
+
+    Extension:
+        id = 'state'
+        point = 'exopy.app.states.state'
+        State:
+            id = 'exopy.instruments'
+            description = 'Globally available state of the instrument plugin.'
+            sync_members = ['profiles', 'instruments', 'users', 'starters',
+                            'connections', 'settings', 'used_profiles']
+
+    Extension:
+        id = 'errors'
+        point = 'exopy.app.errors.handler'
+        ErrorHandler:
+            attr errors = {}
+            id = 'exopy.driver-validation'
+            description = DRIVER_VALIDATION
+            handle => (workbench, infos):
+                msg = 'The following errors occurred while validating drivers:'
+                if isinstance(infos, Mapping):
+                    infos = (infos,)
+
+                new_errors = {}
+                for i in infos:
+                    formatted = self._format(i['details'])
+                    msg += '\n'.join(['\nValidating %s:\n' % d + v
+                                      for d, v in formatted.items()])
+                    new_errors.update(formatted)
+
+                logging.getLogger(__name__).debug(msg)
+                errors.update(new_errors)
+                return BasicErrorsDisplay(kind='Driver information validation',
+                                          errors=new_errors)
+
+            report => (workbench):
+                if errors:
+                    title = 'Driver information validation'
+                    return BasicErrorsDisplay(errors=errors, kind=title)
+                else:
+                    msg = 'No driver infos validation error occured.'
+                    return MultilineField(text=msg)
+
+            func _format(infos):
+                """Format the validation infos for the logger.
+
+                """
+                formatted = {}
+                for d, details in infos.items():
+                    msg = ''
+                    if 'starter' in details:
+                        msg += '- Unknown starter : %s' % details['starter']
+                    if 'connections' in details:
+                        msg += ('\n- Unknown connections : %s' %
+                                details['connections'])
+                    if 'settings' in details:
+                        msg += ('\n- Unknown settings : %s' %
+                                details['settings'])
+                    formatted[d] = msg.strip()
+                return formatted
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.instruments.get_drivers'
+            description = GET_DRIVERS_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_drivers')
+        Command:
+            id = 'exopy.instruments.get_profiles'
+            description = GET_PROFILES_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'get_profiles')
+        Command:
+            id = 'exopy.instruments.release_profiles'
+            description = RELEASE_PROFILE_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'release_profiles')
+        Command:
+            id = 'exopy.instruments.select_instrument'
+            description = SELECT_INSTRUMENT_DESCRIPTION
+            handler = select_instrument_handler
+        Command:
+            id = 'exopy.instruments.open_browser'
+            description = OPEN_BROWSER_DESCRIPTION
+            handler = open_browser_dialog_handler
+
+    Extension:
+        id = 'ui-menus'
+        point = 'enaml.workbench.ui.actions'
+        MenuItem:
+            path = 'tools/instruments'
+            label = 'Instruments'
+        ActionItem:
+            path = 'tools/instruments/browser'
+            label = 'Open browser'
+            command = 'exopy.instruments.open_browser'

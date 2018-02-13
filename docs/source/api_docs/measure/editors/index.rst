@@ -1,4 +1,4 @@
-ecpy.measure.editors package
+exopy.measure.editors package
 ============================
 
 Subpackages

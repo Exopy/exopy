@@ -1,7 +1,7 @@
-ecpy.measure.monitors.text_monitor.rules.edition_views module
+exopy.measure.monitors.text_monitor.rules.edition_views module
 =============================================================
 
-.. automodule:: ecpy.measure.monitors.text_monitor.rules.edition_views
+.. automodule:: exopy.measure.monitors.text_monitor.rules.edition_views
     :members:
     :undoc-members:
     :show-inheritance:

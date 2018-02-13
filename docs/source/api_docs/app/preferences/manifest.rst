@@ -1,7 +1,7 @@
-ecpy.app.preferences.manifest module
+exopy.app.preferences.manifest module
 ====================================
 
-.. automodule:: ecpy.app.preferences.manifest
+.. automodule:: exopy.app.preferences.manifest
     :members:
     :undoc-members:
     :show-inheritance:

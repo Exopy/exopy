@@ -1,0 +1,296 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Workspace used for editing and executing measures.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import os
+from functools import partial
+
+from enaml.application import deferred_call
+from enaml.core.api import Looper, Conditional
+from enaml.layout.api import hbox, spacer, vbox, factory
+from enaml.widgets.api import (PushButton, Menu, Action, Container, CheckBox,
+                               DockItem, Label, GroupBox, Field)
+from enaml.stdlib.message_box import question, information
+
+
+from ...utils.widgets.list_editor import ListEditor
+from ..engines.selection import EngineSelector
+from .measure_edition import MeasureEditorDialog
+
+enamldef MeasView(GroupBox): widget:
+    """Simple visual summary of a measure.
+
+    """
+    #: Refrence to the measure driving this view.
+    attr model
+
+    title << model.name + '-' + model.id
+
+    layout_constraints => ():
+        meas = widget.model
+        widgets = widget.visible_widgets()
+        if meas.status == 'READY':
+            return [vbox(hbox(widgets[0], widgets[1], spacer),
+                         hbox(widgets[2], spacer, widgets[3]))]
+        elif meas.status in ('COMPLETED', 'INTERRUPTED', 'FAILED'):
+            return [vbox(hbox(widgets[0], widgets[1], spacer),
+                         widgets[2])]
+        else:
+            return [hbox(widgets[0], widgets[1], spacer)]
+
+    Label:
+        text = 'Status :'
+    Label:
+        text << model.status
+        tool_tip << model.infos
+
+    Conditional: cd1:
+        condition << bool(model.status in ('READY', 'EDITING'))
+        PushButton: edit:
+            text = 'Edit'
+            clicked ::
+                kwargs = {'parent': widget, 'measure': model,
+                          'workspace': model.plugin.workspace}
+                meas_editor = MeasureEditorDialog(**kwargs)
+                model.status = 'EDITING'
+                meas_editor.exec_()
+
+                model.status = 'READY'
+
+        PushButton: process:
+            text = 'Process'
+            enabled << not model.plugin.processor.active
+            clicked ::
+                model.plugin.workspace.process_single_measure(model)
+
+    Conditional: cd2:
+        condition << bool(model.status in ('COMPLETED', 'INTERRUPTED',
+                                           'FAILED'))
+        PushButton:
+            text = 'Re-enqueue'
+            clicked::
+                model.plugin.workspace.reenqueue_measure(model)
+
+
+def label_maker(running, paused):
+    """ Helper determining the proper label for the start button.
+
+    """
+    if not running:
+        return 'Start'
+    else:
+        if paused:
+            return 'Resume'
+        else:
+            return 'Pause'
+
+
+def _set_enabled(widget, workspace, change):
+    """Determine wheter or not to enable a widget based on the state of the
+    of the enqueued measures.
+
+    """
+    widget.enabled = (not workspace.plugin.processor.active and
+                      bool(workspace.plugin.enqueued_measures.measures))
+
+
+enamldef ExecutionDockItem(DockItem):
+    """Dock item presenting the currently enqueued measures.
+
+    """
+    #: Refrence to the measure workspace.
+    attr workspace
+
+    closable = False
+    name = 'meas_exec'
+    title = 'Enqueued measures'
+
+    func move_measure(old, new):
+        queue = workspace.plugin.enqueued_measures
+        status = ('READY', 'COMPLETED', 'SKIPPED', 'INTERRUPTED', 'FAILED')
+        if (queue.measures[old].status not in status or
+            queue.measures[new].status not in status):
+            information(self, title="Can't move measure",
+                        text=('Can only move measures whose status is one of:'
+                              '\n ' + ', '.join(status)))
+        else:
+            queue.move(old, new)
+
+    func remove_measure(index):
+        queue = workspace.plugin.enqueued_measures
+        measure = queue.measures[index]
+        status = ('READY', 'COMPLETED', 'INTERRUPTED', 'SKIPPED', 'FAILED')
+        if measure.status not in status:
+            information(self, title="Can't delete measure",
+                        text=('Can only delete measures whose status is one '
+                              'of:\n ' + ', '.join(status)))
+        else:
+            queue.remove(measure)
+
+    Container:
+        constraints << [vbox(ed,
+                             hbox(start, stop, spacer, mon),
+                             hbox(clean, spacer, proc_all),
+                             en)]
+
+        ListEditor(MeasView): ed:
+            ed.model = workspace.plugin.enqueued_measures
+            ed.iterable_name = 'measures'
+            ed.signal_name = 'changed'
+            ed.operations = {'move': move_measure,
+                             'remove': remove_measure}
+
+        PushButton: start:
+            #: Flag indicating the measure is running.
+            attr running << workspace.plugin.processor.active
+
+            #: Refrence to the currently running measure
+            attr running_meas << workspace.plugin.processor.running_measure
+
+            #: Flag indicating the measure is in the process of pausing.
+            attr pausing << (running and running_meas and
+                             running_meas.status == 'PAUSING')
+
+            #: Flag indicating the measure is in pause.
+            attr paused << (running and running_meas and
+                            running_meas.status == 'PAUSED')
+
+            text << label_maker(running, paused)
+            enabled << bool(workspace.plugin.enqueued_measures) and not pausing
+
+            clicked ::
+                if not running:
+                    workspace.start_processing_measures()
+                else:
+                    if paused:
+                        workspace.resume_current_measure()
+                    else:
+                        workspace.pause_current_measure()
+
+        PushButton: stop:
+
+            #: Refrence to the currently running measure
+            attr running_meas << workspace.plugin.processor.running_measure
+
+            #: Flag indicating that we are stopping.
+            attr stopping << (running_meas and
+                              running_meas.status == 'STOPPING')
+
+            text << 'Stop' if not stopping else 'Force stop'
+            enabled << workspace.plugin.processor.active
+
+            func should_process_all():
+                if not workspace.plugin.processor.continuous_processing:
+                    return
+
+                if not workspace.plugin.find_next_measure():
+                    return
+
+                res = question(parent=stop,
+                               title='Should process following measures ?',
+                               text=('Do you want to process the next '
+                                     'measures in the queue ?'))
+                if not res or res.text == 'No':
+                    workspace.plugin.processor.continuous_processing = False
+
+            Menu:
+                Action:
+                    text = 'Skip post execution'
+                    triggered ::
+                        should_process_all()
+                        workspace.stop_current_measure(no_post_exec=True,
+                                                       force=stopping)
+
+
+                Action:
+                    text = 'Run post execution'
+                    triggered ::
+                        should_process_all()
+                        workspace.stop_current_measure(force=stopping)
+
+        CheckBox: proc_all:
+            text = 'Process all'
+            tool_tip = ('When checked all measures in the queue are processed '
+                        'in order otherwise execution will stop at the end of '
+                        'the execution of the currently/next executed measure.'
+                        )
+            checked := workspace.plugin.processor.continuous_processing
+
+        PushButton: clean:
+            text = 'Clean'
+            tool_tip = 'Remove all measure which have already been processed'
+            enabled << (not workspace.plugin.processor.active and
+                        bool(workspace.plugin.enqueued_measures.measures))
+            clicked ::
+                workspace.remove_processed_measures()
+
+            initialized ::
+                handler = partial(_set_enabled, clean, workspace)
+                workspace.plugin.enqueued_measures.observe('changed', handler)
+
+        PushButton: mon:
+            text = 'Show monitors'
+            enabled << bool(workspace.plugin.processor.monitors_window)
+            clicked::
+                window = workspace.plugin.processor.monitors_window
+                window.show()
+                window.restore()
+                window.send_to_front()
+
+        GroupBox: en:
+
+            # Reference to the processor (easier access)
+            attr proc = workspace.plugin.processor
+
+            # Flag keeping track of engine status, always updated in main
+            # thread.
+            attr eng_status = ''
+
+            title = 'Engine'
+            visible << bool(proc.engine)
+
+            constraints = [hbox(en_st, en_st_val, en_sh)]
+
+            initialized ::
+                proc.observe('engine', observe_status)
+                if proc.engine:
+                    update_status({'value': proc.engine.status})
+
+            # This is necessary an the engine status can be updated by a thread
+            # which is not the main one.
+            func observe_status(change):
+                old = change.get('oldvalue')
+                if old:
+                    old.unobserve('status', update_status)
+                new = change['value']
+                if new:
+                    new.observe('status', update_status)
+
+            func update_status(change):
+                deferred_call(setattr, self, 'eng_status', change['value'])
+
+            Label: en_st:
+                text = 'Status'
+
+            Field: en_st_val:
+                text << eng_status
+                read_only = True
+
+            PushButton: en_sh:
+                text << ('Shut down' if eng_status != 'Shutting down' else
+                         'Force shut down')
+                tool_tip = ('Completetly stops the engine used to perform '
+                            'measures.')
+                enabled << not proc.active and eng_status != 'Stopped'
+                clicked ::
+                    proc.engine.shutdown(force=eng_status == 'Shutting down')

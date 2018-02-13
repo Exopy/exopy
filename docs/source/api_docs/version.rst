@@ -1,7 +1,7 @@
-ecpy.version module
+exopy.version module
 ===================
 
-.. automodule:: ecpy.version
+.. automodule:: exopy.version
     :members:
     :undoc-members:
     :show-inheritance:

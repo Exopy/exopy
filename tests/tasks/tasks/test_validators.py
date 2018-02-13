@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,9 +18,9 @@ from multiprocessing import Event
 import pytest
 from atom.api import Unicode
 
-from ecpy.tasks.api import RootTask, validators
-from ecpy.tasks.tasks.logic.loop_task import LoopTask
-from ecpy.testing.tasks.util import CheckTask
+from exopy.tasks.api import RootTask, validators
+from exopy.tasks.tasks.logic.loop_task import LoopTask
+from exopy.testing.tasks.util import CheckTask
 
 
 @pytest.fixture

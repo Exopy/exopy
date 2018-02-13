@@ -1,4 +1,4 @@
-ecpy.measure.monitors.text_monitor.rules package
+exopy.measure.monitors.text_monitor.rules package
 ================================================
 
 Submodules

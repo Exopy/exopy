@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,7 +19,7 @@ from future.utils import python_2_unicode_compatible
 from atom.api import Bool
 from enaml.core.api import Declarative
 
-from ecpy.utils.declarator import Declarator, GroupDeclarator, import_and_get
+from exopy.utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
 @python_2_unicode_compatible
@@ -137,18 +137,18 @@ def test_import_and_get():
     """Test the behavior of the import and get utility function.
 
     """
-    assert (import_and_get('ecpy.utils.declarator', 'Declarator', {}, '') is
+    assert (import_and_get('exopy.utils.declarator', 'Declarator', {}, '') is
             Declarator)
 
     tb = {}
-    import_and_get('___ecpy', 'r', tb, 'test')
+    import_and_get('___exopy', 'r', tb, 'test')
     if sys.version_info < (3, 6):
         assert 'ImportError' in tb['test']
     else:
         assert 'ModuleNotFoundError' in tb['test']
 
-    import_and_get('ecpy.testing.broken_enaml', 'r', tb, 'test')
+    import_and_get('exopy.testing.broken_enaml', 'r', tb, 'test')
     assert 'AttributeError' in tb['test'] or 'NameError' in tb['test']
 
-    import_and_get('ecpy.utils.declarator', '___D', tb, 'test')
+    import_and_get('exopy.utils.declarator', '___D', tb, 'test')
     assert 'AttributeError' in tb['test']

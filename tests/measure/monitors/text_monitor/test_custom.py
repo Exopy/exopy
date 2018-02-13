@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,14 +17,14 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.measure.monitors.text_monitor.entry import MonitoredEntry
-from ecpy.testing.util import process_app_events
+from exopy.measure.monitors.text_monitor.entry import MonitoredEntry
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.measure.monitors.text_monitor.custom_entry_edition\
+    from exopy.measure.monitors.text_monitor.custom_entry_edition\
         import EntryDialog
 
-pytest_plugins = str('ecpy.testing.measure.monitors.text_monitor.fixtures'),
+pytest_plugins = str('exopy.testing.measure.monitors.text_monitor.fixtures'),
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def monitor(text_monitor_workbench):
     """Bare text monitor as created by the plugin.
 
     """
-    p = text_monitor_workbench.get_plugin('ecpy.measure.monitors.text_monitor')
+    p = text_monitor_workbench.get_plugin('exopy.measure.monitors.text_monitor')
     m = p.create_monitor(False)
     m.handle_database_entries_change(('added', 'root/test', 0))
     m.handle_database_entries_change(('added', 'root/simp/test', 0))

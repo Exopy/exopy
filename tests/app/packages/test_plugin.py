@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,18 +16,18 @@ import pytest
 import enaml
 from atom.api import Atom, Bool, Value, Unicode
 
-from ecpy.testing.util import handle_dialog, process_app_events
+from exopy.testing.util import handle_dialog, process_app_events
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.packages.manifest import PackagesManifest
+    from exopy.app.app_manifest import AppManifest
+    from exopy.app.errors.manifest import ErrorsManifest
+    from exopy.app.packages.manifest import PackagesManifest
     from .packages_utils import Manifest1, Manifest2
 
 
-APP_ID = 'ecpy.app'
-PACKAGES_ID = 'ecpy.app.packages'
+APP_ID = 'exopy.app'
+PACKAGES_ID = 'exopy.app.packages'
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def patch_pkg(monkey, answer):
     """Patch the pkg_resources.iter_entry_points function.
 
     """
-    from ecpy.app.packages.plugin import pkg_resources
+    from exopy.app.packages.plugin import pkg_resources
     monkey.setattr(pkg_resources, 'iter_entry_points', lambda x: answer)
 
 
@@ -90,19 +90,19 @@ def test_collecting_registering_and_stopping(monkeypatch, pack_workbench,
 
     assert 'test' in plugin.packages
     assert 'test2' in plugin.packages
-    assert 'ecpy.test1' in plugin.packages['test']
-    assert 'ecpy.test2' in plugin.packages['test']
-    assert (100, 0, 'ecpy.test1') in plugin._registered
-    assert (0, 1, 'ecpy.test2') in plugin._registered
-    assert pack_workbench.get_plugin('ecpy.test1')
-    assert pack_workbench.get_plugin('ecpy.test2')
+    assert 'exopy.test1' in plugin.packages['test']
+    assert 'exopy.test2' in plugin.packages['test']
+    assert (100, 0, 'exopy.test1') in plugin._registered
+    assert (0, 1, 'exopy.test2') in plugin._registered
+    assert pack_workbench.get_plugin('exopy.test1')
+    assert pack_workbench.get_plugin('exopy.test2')
 
     pack_workbench.unregister(PACKAGES_ID)
 
     with pytest.raises(ValueError):
-        pack_workbench.get_plugin('ecpy.test1')
+        pack_workbench.get_plugin('exopy.test1')
     with pytest.raises(ValueError):
-        pack_workbench.get_plugin('ecpy.test2')
+        pack_workbench.get_plugin('exopy.test2')
 
 
 @pytest.mark.ui
@@ -189,7 +189,7 @@ def test_registering_issue(monkeypatch, pack_workbench, app):
 
     assert 'test' in plugin.packages
     assert 'test2' in plugin.packages
-    assert 'ecpy.test1' in plugin.packages['test']
+    assert 'exopy.test1' in plugin.packages['test']
     assert len(plugin.packages['test']) == 1
 
 
@@ -197,7 +197,7 @@ def test_reporting_single_package_error(pack_workbench):
     """Check handling a single package error.
 
     """
-    plugin = pack_workbench.get_plugin('ecpy.app.errors')
+    plugin = pack_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['package']
 
     assert handler.handle(pack_workbench, {'id': 'test', 'message': 'test'})
@@ -210,7 +210,7 @@ def test_reporting_multiple_package_error(pack_workbench):
     """Check handling multiple package errors.
 
     """
-    plugin = pack_workbench.get_plugin('ecpy.app.errors')
+    plugin = pack_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['package']
 
     assert handler.handle(pack_workbench, [{'id': 'test', 'message': 'test'}])

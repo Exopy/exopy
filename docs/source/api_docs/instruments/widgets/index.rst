@@ -1,4 +1,4 @@
-ecpy.instruments.widgets package
+exopy.instruments.widgets package
 ================================
 
 Submodules

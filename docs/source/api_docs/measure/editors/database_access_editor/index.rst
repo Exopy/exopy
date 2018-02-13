@@ -1,4 +1,4 @@
-ecpy.measure.editors.database_access_editor package
+exopy.measure.editors.database_access_editor package
 ===================================================
 
 Submodules

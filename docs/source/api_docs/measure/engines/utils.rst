@@ -1,7 +1,7 @@
-ecpy.measure.engines.utils module
+exopy.measure.engines.utils module
 =================================
 
-.. automodule:: ecpy.measure.engines.utils
+.. automodule:: exopy.measure.engines.utils
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,12 +18,12 @@ import pytest
 import enaml
 from future.builtins import str
 
-from ecpy.measure.measure import Measure
-from ecpy.tasks.api import RootTask
+from exopy.measure.measure import Measure
+from exopy.tasks.api import RootTask
 
 with enaml.imports():
-    from ecpy.tasks.manifest import TasksManagerManifest
-    from ecpy.testing.measure.contributions import Flags
+    from exopy.tasks.manifest import TasksManagerManifest
+    from exopy.testing.measure.contributions import Flags
 
 
 @pytest.mark.parametrize('kind', ['pre-hook', 'monitor', 'post-hook'])
@@ -76,7 +76,7 @@ def test_measure_persistence(measure_workbench, measure, tmpdir, monkeypatch):
 
     """
     measure_workbench.register(TasksManagerManifest())
-    plugin = measure_workbench.get_plugin('ecpy.measure')
+    plugin = measure_workbench.get_plugin('exopy.measure')
 
     for m_e in ('meas_name', 'meas_id', 'meas_date'):
         assert m_e in measure.root_task.database_entries
@@ -150,7 +150,7 @@ def test_running_checks(measure_workbench, measure):
     # Check that the internal hook does run the root_task tests.
     res, errors = measure.run_checks()
     assert not res
-    assert 'ecpy.internal_checks' in errors
+    assert 'exopy.internal_checks' in errors
 
     # Check an ideal case
     measure.root_task.default_path = os.path.dirname(__file__)

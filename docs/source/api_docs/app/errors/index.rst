@@ -1,4 +1,4 @@
-ecpy.app.errors package
+exopy.app.errors package
 =======================
 
 Submodules

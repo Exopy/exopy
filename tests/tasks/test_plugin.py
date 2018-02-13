@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,18 +18,18 @@ from time import sleep
 import pytest
 import enaml
 
-from ecpy.tasks.infos import TaskInfos, InterfaceInfos
+from exopy.tasks.infos import TaskInfos, InterfaceInfos
 
 
 def test_lifecycle(task_workbench):
     """Test the task manager life cycle.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
-    assert 'ecpy.ComplexTask' in plugin._tasks.contributions
+    assert 'exopy.ComplexTask' in plugin._tasks.contributions
     assert 'All' in plugin._filters.contributions
-    from ecpy.tasks.tasks.base_tasks import BaseTask
+    from exopy.tasks.tasks.base_tasks import BaseTask
     assert BaseTask in plugin._configs.contributions
     assert 'All' in plugin.filters
 
@@ -42,13 +42,13 @@ def test_observer_error(task_workbench, monkeypatch):
     """Test handling an error when trying to join the observer.
 
     """
-    from ecpy.tasks.plugin import Observer
+    from exopy.tasks.plugin import Observer
 
     def false_join(self):
         raise RuntimeError
     monkeypatch.setattr(Observer, 'join', false_join)
 
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
     plugin.stop()
 
@@ -60,10 +60,10 @@ def test_template_observation(task_workbench, app_dir, monkeypatch):
 
     """
     from watchdog.observers.polling import PollingObserver
-    from ecpy.tasks import plugin
+    from exopy.tasks import plugin
     monkeypatch.setattr(plugin, 'Observer', PollingObserver)
 
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
     template = os.path.join(app_dir, 'tasks', 'templates', 'test.task.ini')
     with open(template, 'wb'):
@@ -80,7 +80,7 @@ def test_handle_wrong_template_dir(task_workbench, caplog):
     """Test that an incorrect path in _profiles_dirs does not crash anything.
 
     """
-    p = task_workbench.get_plugin('ecpy.tasks')
+    p = task_workbench.get_plugin('exopy.tasks')
 
     p._template_folders = ['dummy']
     p._refresh_templates()
@@ -94,25 +94,25 @@ def test_list_tasks(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    tasks = task_workbench.get_plugin('ecpy.tasks')
+    tasks = task_workbench.get_plugin('exopy.tasks')
     tasks.templates['test'] = ''
 
-    cmd = 'ecpy.tasks.list_tasks'
+    cmd = 'exopy.tasks.list_tasks'
     t = core.invoke_command(cmd)
     assert 'test' in t
-    assert 'ecpy.ComplexTask' in t
+    assert 'exopy.ComplexTask' in t
 
     t = core.invoke_command(cmd, dict(filter='Logic'))
     assert 'test' not in t
-    assert 'ecpy.ComplexTask' not in t
+    assert 'exopy.ComplexTask' not in t
 
     t = core.invoke_command(cmd, dict(filter='Templates'))
     assert 'test' in t
-    assert 'ecpy.ComplexTask' not in t
+    assert 'exopy.ComplexTask' not in t
 
     t = core.invoke_command(cmd, dict(filter='Python'))
     assert 'test' not in t
-    assert 'ecpy.ComplexTask' in t
+    assert 'exopy.ComplexTask' in t
 
 
 def test_available_filters_update(task_workbench):
@@ -120,7 +120,7 @@ def test_available_filters_update(task_workbench):
     contributions are.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
 
     filters = {'rr': 'r'}
     plugin._filters.contributions = filters
@@ -133,10 +133,10 @@ def test_get_task_infos(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_task_infos'
-    t = core.invoke_command(cmd, dict(task='ecpy.ComplexTask'))
+    cmd = 'exopy.tasks.get_task_infos'
+    t = core.invoke_command(cmd, dict(task='exopy.ComplexTask'))
     assert isinstance(t, TaskInfos)
-    from ecpy.tasks.api import ComplexTask
+    from exopy.tasks.api import ComplexTask
     assert t.cls is ComplexTask
 
     assert core.invoke_command(cmd, dict(task='')) is None
@@ -147,12 +147,12 @@ def test_get_task(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_task'
-    t = core.invoke_command(cmd, dict(task='ecpy.ComplexTask', view=True))
-    from ecpy.tasks.api import ComplexTask
+    cmd = 'exopy.tasks.get_task'
+    t = core.invoke_command(cmd, dict(task='exopy.ComplexTask', view=True))
+    from exopy.tasks.api import ComplexTask
     assert t[0] is ComplexTask
     with enaml.imports():
-        from ecpy.tasks.tasks.base_views import ComplexTaskView
+        from exopy.tasks.tasks.base_views import ComplexTaskView
     assert t[1] is ComplexTaskView
 
     assert core.invoke_command(cmd, dict(task='')) is None
@@ -163,14 +163,14 @@ def test_get_tasks(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_tasks'
-    t = core.invoke_command(cmd, dict(tasks=['ecpy.LoopTask',
-                                             'ecpy.ComplexTask', '']))
+    cmd = 'exopy.tasks.get_tasks'
+    t = core.invoke_command(cmd, dict(tasks=['exopy.LoopTask',
+                                             'exopy.ComplexTask', '']))
     assert len(t[0]) == 2
     assert t[1] == ['']
 
 
-LINSPACE_INTERFACE = 'ecpy.LoopTask:ecpy.LinspaceLoopInterface'
+LINSPACE_INTERFACE = 'exopy.LoopTask:exopy.LinspaceLoopInterface'
 
 
 def test_get_interface_infos(task_workbench):
@@ -178,15 +178,15 @@ def test_get_interface_infos(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_interface_infos'
+    cmd = 'exopy.tasks.get_interface_infos'
     t = core.invoke_command(cmd, dict(interface=LINSPACE_INTERFACE))
     assert isinstance(t, InterfaceInfos)
-    from ecpy.tasks.tasks.logic.loop_linspace_interface\
+    from exopy.tasks.tasks.logic.loop_linspace_interface\
         import LinspaceLoopInterface
     assert t.cls is LinspaceLoopInterface
 
     assert core.invoke_command(cmd, dict(interface=':')) is None
-    assert (core.invoke_command(cmd, dict(interface='ecpy.LoopTask:'))
+    assert (core.invoke_command(cmd, dict(interface='exopy.LoopTask:'))
             is None)
 
 
@@ -195,10 +195,10 @@ def test_get_interface(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_interface'
+    cmd = 'exopy.tasks.get_interface'
     t = core.invoke_command(cmd,
                             dict(interface=LINSPACE_INTERFACE, views=True))
-    from ecpy.tasks.tasks.logic.loop_linspace_interface\
+    from exopy.tasks.tasks.logic.loop_linspace_interface\
         import LinspaceLoopInterface
     assert t[0] is LinspaceLoopInterface
     assert len(t[1]) == 1
@@ -211,7 +211,7 @@ def test_get_interfaces(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_interfaces'
+    cmd = 'exopy.tasks.get_interfaces'
     t = core.invoke_command(cmd, dict(interfaces=[LINSPACE_INTERFACE,
                                                   ':']))
     assert len(t[0]) == 1
@@ -223,8 +223,8 @@ def test_get_config_from_name(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_config'
-    c = core.invoke_command(cmd, dict(task_id='ecpy.LoopTask'))
+    cmd = 'exopy.tasks.get_config'
+    c = core.invoke_command(cmd, dict(task_id='exopy.LoopTask'))
     assert type(c[0]).__name__ == 'LoopTaskConfig'
 
 
@@ -232,11 +232,11 @@ def test_get_config_for_template(task_workbench):
     """Test getting a config for a template.
 
     """
-    tasks = task_workbench.get_plugin('ecpy.tasks')
+    tasks = task_workbench.get_plugin('exopy.tasks')
     tasks.templates['test'] = ''
 
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_config'
+    cmd = 'exopy.tasks.get_config'
     c = core.invoke_command(cmd, dict(task_id='test'))
     assert type(c[0]).__name__ == 'TemplateTaskConfig'
 
@@ -246,7 +246,7 @@ def test_get_config_for_unknown(task_workbench):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    cmd = 'ecpy.tasks.get_config'
+    cmd = 'exopy.tasks.get_config'
     c = core.invoke_command(cmd, dict(task_id=''))
     assert c == (None, None)
 
@@ -255,7 +255,7 @@ def test_load_auto_task_names1(task_workbench):
     """Test loading of  default task names.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     assert plugin.auto_task_names
 
 
@@ -263,9 +263,9 @@ def test_load_auto_task_names2(task_workbench, windows):
     """Test automatic loading of default task names: wrong path.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.app.preferences')
-    plugin._prefs['ecpy.tasks'] = {}
-    plugin._prefs['ecpy.tasks']['auto_task_path'] = '__'
+    plugin = task_workbench.get_plugin('exopy.app.preferences')
+    plugin._prefs['exopy.tasks'] = {}
+    plugin._prefs['exopy.tasks']['auto_task_path'] = '__'
 
     with pytest.raises(Exception):
-        task_workbench.get_plugin('ecpy.tasks')
+        task_workbench.get_plugin('exopy.tasks')

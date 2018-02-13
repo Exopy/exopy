@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.util.declarations module
+exopy.tasks.tasks.util.declarations module
 =========================================
 
-.. automodule:: ecpy.tasks.tasks.util.declarations
+.. automodule:: exopy.tasks.tasks.util.declarations
     :members:
     :undoc-members:
     :show-inheritance:

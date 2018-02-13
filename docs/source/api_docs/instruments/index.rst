@@ -1,4 +1,4 @@
-ecpy.instruments package
+exopy.instruments package
 ========================
 
 Subpackages

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 from future.builtins import str
 
-from ecpy.tasks.api import RootTask
+from exopy.tasks.api import RootTask
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def test_attempt_to_overwrite(fake_meas, tmpdir):
     fake_meas.dependencies.collect_runtimes()
     res, err = fake_meas.run_checks()
     assert res
-    assert 'ecpy.internal_checks' in err
+    assert 'exopy.internal_checks' in err
 
 
 def test_fail_build_collection(fake_meas, tmpdir, monkeypatch):
@@ -59,10 +59,10 @@ def test_fail_build_collection(fake_meas, tmpdir, monkeypatch):
 
     import enaml
     with enaml.imports():
-        from ecpy.testing.measure.contributions import Flags
+        from exopy.testing.measure.contributions import Flags
     monkeypatch.setattr(Flags, 'BUILD_FAIL_COLLECT', True)
 
     fake_meas.dependencies.collect_runtimes()
     res, err = fake_meas.run_checks()
     assert not res
-    assert 'ecpy.internal_checks' in err
+    assert 'exopy.internal_checks' in err

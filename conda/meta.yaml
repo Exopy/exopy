@@ -1,5 +1,5 @@
 package:
-  name: ecpy
+  name: exopy
   version: {{ environ.get('GIT_DESCRIBE_TAG', '') +
              ( '' if environ.get('GIT_DESCRIBE_NUMBER', '0')  == '0' else
               ('.post' + environ.get('GIT_DESCRIBE_NUMBER', '0' )
@@ -12,7 +12,7 @@ source:
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 1) }}
   entry_points:
-    - ecpy = ecpy.__main__:main
+    - exopy = exopy.__main__:main
   osx_is_app: True
 
 requirements:
@@ -34,16 +34,16 @@ requirements:
 
 test:
   commands:
-    - ecpy --help
+    - exopy --help
   imports:
-    - ecpy
+    - exopy
 
 app:
-  entry: ecpy
-  summary: 'Ecpy application'
+  entry: exopy
+  summary: 'Exopy application'
 
 about:
-  home: https://github.com/Ecpy/ecpy
+  home: https://github.com/Exopy/exopy
   license: BSD
   license_file: LICENSE
   summary: High level experiment automation program

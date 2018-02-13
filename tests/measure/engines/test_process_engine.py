@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -21,21 +21,21 @@ import enaml
 from atom.api import Value, Bool, Unicode
 from future.builtins import str as text
 
-from ecpy.measure.engines.api import ExecutionInfos
-from ecpy.tasks.api import RootTask, SimpleTask
-from ecpy.tasks.infos import TaskInfos
-from ecpy.measure.engines.process_engine.subprocess import TaskProcess
+from exopy.measure.engines.api import ExecutionInfos
+from exopy.tasks.api import RootTask, SimpleTask
+from exopy.tasks.infos import TaskInfos
+from exopy.measure.engines.process_engine.subprocess import TaskProcess
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.measure.engines.process_engine.engine_declaration import\
+    from exopy.measure.engines.process_engine.engine_declaration import\
         ProcFilter
-    from ecpy.app.log.manifest import LogManifest
-    from ecpy.tasks.manifest import TasksManagerManifest
+    from exopy.app.log.manifest import LogManifest
+    from exopy.tasks.manifest import TasksManagerManifest
 
 
-pytest_plugins = str('ecpy.testing.measure.workspace.fixtures'),
+pytest_plugins = str('exopy.testing.measure.workspace.fixtures'),
 
 
 class WaitingTask(SimpleTask):
@@ -81,8 +81,8 @@ class ExecThread(Thread):
 def process_engine(measure_workbench):
     measure_workbench.register(LogManifest())
     measure_workbench.register(TasksManagerManifest())
-    plugin = measure_workbench.get_plugin('ecpy.measure')
-    return plugin.create('engine', 'ecpy.process_engine')
+    plugin = measure_workbench.get_plugin('exopy.measure')
+    return plugin.create('engine', 'exopy.process_engine')
 
 
 @pytest.yield_fixture
@@ -145,8 +145,9 @@ def sync_server():
 def exec_infos(measure_workbench, measure, tmpdir, process_engine,
                sync_server):
 
-    tp = measure_workbench.get_plugin('ecpy.tasks')
-    tp._tasks.contributions['tests.WaitingTask'] = TaskInfos(cls=WaitingTask)
+    tp = measure_workbench.get_plugin('exopy.tasks')
+    tp._tasks.contributions['measure.WaitingTask'] =\
+        TaskInfos(cls=WaitingTask)
 
     r = RootTask(default_path=text(tmpdir))
     r.add_child_task(0, WaitingTask(name='test1', sock_id='test1',
@@ -191,18 +192,18 @@ def test_workspace_contribution(workspace):
     when selected.
 
     """
-    workspace.plugin.selected_engine = 'ecpy.process_engine'
+    workspace.plugin.selected_engine = 'exopy.process_engine'
     process_app_events()
-    assert workspace.dock_area.find('ecpy.subprocess_log')
+    assert workspace.dock_area.find('exopy.subprocess_log')
 
-    log = workspace.plugin.workbench.get_plugin('ecpy.app.logging')
-    assert 'ecpy.measure.engines.process_engine' in log.handler_ids
-    assert 'ecpy.measure.engines.process_engine' in log.filter_ids
-    assert 'ecpy.measure.workspace.process_engine' in log.filter_ids
+    log = workspace.plugin.workbench.get_plugin('exopy.app.logging')
+    assert 'exopy.measure.engines.process_engine' in log.handler_ids
+    assert 'exopy.measure.engines.process_engine' in log.filter_ids
+    assert 'exopy.measure.workspace.process_engine' in log.filter_ids
 
     workspace.plugin.selected_engine = ''
     process_app_events()
-    assert not workspace.dock_area.find('ecpy.subprocess_log')
+    assert not workspace.dock_area.find('exopy.subprocess_log')
 
 
 @pytest.mark.timeout(30)
@@ -289,7 +290,7 @@ def test_handling_unpected_death_of_subprocess(process_engine, exec_infos,
     """Test handling a death of the subprocess at startup.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine, 'TaskProcess', DummyP)
     t = ExecThread(process_engine, exec_infos)
@@ -314,7 +315,7 @@ def test_handling_unexpected_closing_of_pipe1(process_engine, exec_infos,
     """Test handling pipe closing while expecting answer after sending task.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine, 'TaskProcess', DummyP1)
     t = ExecThread(process_engine, exec_infos)
@@ -340,7 +341,7 @@ def test_handling_unexpected_closing_of_pipe2(process_engine, exec_infos,
     """Test handling pipe closing while expecting execution result.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine, 'TaskProcess', DummyP2)
     t = ExecThread(process_engine, exec_infos)
@@ -374,7 +375,7 @@ def test_handling_unexpected_exception_in_sub_process(process_engine,
     """Test handling pipe closing while expecting execution result.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
                         build_subprocess_infos)
@@ -411,7 +412,7 @@ def test_handling_pickling_error_in_sending_meas_infos(process_engine,
     """Test handling a failed serialization of measure infos.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
                         unserializable_infos)
@@ -456,7 +457,7 @@ def test_handling_unpickling_error_in_sending_meas_infos(process_engine,
     """Test handling a failed deserialization of measure infos.
 
     """
-    from ecpy.measure.engines.process_engine import engine
+    from exopy.measure.engines.process_engine import engine
 
     monkeypatch.setattr(engine.ProcessEngine, '_build_subprocess_args',
                         undeserializable_infos)

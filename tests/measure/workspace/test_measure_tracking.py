@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Ditextibuted under the terms of the BSD license.
 #
@@ -20,14 +20,14 @@ import enaml
 from atom.api import Value
 from enaml.core.object import Object
 
-from ecpy.measure.workspace.measure_tracking import MeasureTracker
-from ecpy.testing.measure.fixtures import measure
+from exopy.measure.workspace.measure_tracking import MeasureTracker
+from exopy.testing.measure.fixtures import measure
 
 with enaml.imports():
-    from ecpy.measure.workspace.measure_edition import MeasureEditorDockItem
+    from exopy.measure.workspace.measure_edition import MeasureEditorDockItem
 
 
-pytest_plugins = str('ecpy.testing.measure.fixtures'),
+pytest_plugins = str('exopy.testing.measure.fixtures'),
 
 
 class FalseObject(Object):

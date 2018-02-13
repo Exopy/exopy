@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,10 +16,10 @@ from time import sleep
 
 import enaml
 
-from ecpy.testing.util import process_app_events, handle_question
+from exopy.testing.util import process_app_events, handle_question
 
 with enaml.imports():
-    from ecpy.measure.workspace.checks_display import ChecksDisplay
+    from exopy.measure.workspace.checks_display import ChecksDisplay
 
 
 def test_checks_display_not_warning(windows, dialog_sleep):

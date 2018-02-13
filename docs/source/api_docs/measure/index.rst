@@ -1,4 +1,4 @@
-ecpy.measure package
+exopy.measure package
 ====================
 
 Subpackages

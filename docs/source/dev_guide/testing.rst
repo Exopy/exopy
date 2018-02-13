@@ -6,7 +6,7 @@ Writing and running tests
 =========================
 
 Unit tests are one of the few ways to discover bugs beforehand and to prevent
-regressions when updating the code base. Ecpy aims at being covered at 100%
+regressions when updating the code base. Exopy aims at being covered at 100%
 (meaning that tests must run every single line of code at least once). Coverage
 is not always a perfect metric as it is not because a line does not crash that
 the code does what it is meant to but it is a good indicator. Actually GUI
@@ -35,7 +35,7 @@ tested nonetheless.
 Writing test using pytest
 -------------------------
 
-The library used for writing the tests for Ecpy is pytest. Writing a test is as
+The library used for writing the tests for Exopy is pytest. Writing a test is as
 easy as creating a module whose name starts by 'test\_' and inside write
 functions themselves prefixed by 'test\_'. Inside a test function the correct
 behaviour of the program should be tested (using assertions as described in the
@@ -71,9 +71,9 @@ handler to handle this case.
         with pytest.raises(ValueError):
             my_other_funtion(-1)
 
-Another case which often arises in Ecpy if the need to handle a dialog opened
+Another case which often arises in Exopy if the need to handle a dialog opened
 by the function. To handle this case one can use the |handle_dialog| context
-manager found in 'ecpy.testing.util' (note a bunch of other useful function
+manager found in 'exopy.testing.util' (note a bunch of other useful function
 are defined in this module):
 
 .. code-block:: python
@@ -127,13 +127,13 @@ Pytest provides some useful fixtures :
 - tmpdir : a temporary directory (should be converted to unicode before passing
   it to 'os' module functions)
 
-Ecpy add some other :
+Exopy add some other :
 
 - app : fixture ensuring that the Application is running (mandatory for testing
   widgets).
 - windows : fixtures closing all opened windows after a test.
 - app_dir : return the automatically set path for the application
-- dialog_sleep : return the time to sleep as specified by the --ecpy-sleep
+- dialog_sleep : return the time to sleep as specified by the --exopy-sleep
   option
 
 The other fixtures can be found in the testing package. Each subpackage usually
@@ -151,7 +151,7 @@ package.
     the module containing fixtures to load (modules should be specified using
     their full path).
 
-    ex : pytest_plugins = [str('ecpy.testing.instruments.fixtures')]
+    ex : pytest_plugins = [str('exopy.testing.instruments.fixtures')]
 
 .. note::
 
@@ -164,8 +164,8 @@ Running the test suite
 ----------------------
 
 To run the test suite, one should invoke pytest from the command line. First
-the command line should be made to point at the root of the 'ecpy' folder
-(containing both the 'ecpy' and the 'tests' packages). Then one can invoke
+the command line should be made to point at the root of the 'exopy' folder
+(containing both the 'exopy' and the 'tests' packages). Then one can invoke
 pytest using the 'py.test tests' command.
 
 To run only tests linked to a limited part of the application one can specify
@@ -181,7 +181,7 @@ name of the module and separate them using '::'.
 Of course pytest can take command line arguments, please refer to the pytest
 `documentation_` for more details.
 
-Currently, Ecpy add a single argument '--ecpy-sleep' which fix the time return
+Currently, Exopy add a single argument '--exopy-sleep' which fix the time return
 by the dialog_sleep feature and can hence allow to visually test GUI elements.
 
     .. _documentation: http://pytest.org/latest/contents.html#
@@ -193,7 +193,7 @@ Checking coverage is just a matter of invoking pytest with the right arguments.
 First one should specify the packages/modules whose coverage should be
 monitored. This is done using the '--cov' argument as follow :
 
->>> py.test tests --cov ecpy
+>>> py.test tests --cov exopy
 
 By default the format under which coverage is reported is not extremely useful,
 so one should specify '--cov-report' to be either 'term-missing' (that will
@@ -201,4 +201,4 @@ list the line not covered by the tests in the console) or 'html' which will
 produce a report in html which can be access by opening the created index.html
 file.
 
->>> py.test tests --cov ecpy --cov-report term-missing
+>>> py.test tests --cov exopy --cov-report term-missing

@@ -1,7 +1,7 @@
-ecpy.utils.transformers module
+exopy.utils.transformers module
 ==============================
 
-.. automodule:: ecpy.utils.transformers
+.. automodule:: exopy.utils.transformers
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.util.views.log_view module
+exopy.tasks.tasks.util.views.log_view module
 ===========================================
 
-.. automodule:: ecpy.tasks.tasks.util.views.log_view
+.. automodule:: exopy.tasks.tasks.util.views.log_view
     :members:
     :undoc-members:
     :show-inheritance:

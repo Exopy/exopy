@@ -1,4 +1,4 @@
-ecpy.instruments.starters package
+exopy.instruments.starters package
 =================================
 
 Submodules

@@ -1,7 +1,7 @@
-ecpy.testing.measure.dummies module
+exopy.testing.measure.dummies module
 ===================================
 
-.. automodule:: ecpy.testing.measure.dummies
+.. automodule:: exopy.testing.measure.dummies
     :members:
     :undoc-members:
     :show-inheritance:

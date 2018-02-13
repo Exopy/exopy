@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,9 +17,9 @@ from pickle import dumps
 
 import pytest
 
-from ecpy.tasks.tasks.database import TaskDatabase
-from ecpy.measure.engines.api import BaseEngine
-from ecpy.measure.engines.utils import MeasureSpy, ThreadMeasureMonitor
+from exopy.tasks.tasks.database import TaskDatabase
+from exopy.measure.engines.api import BaseEngine
+from exopy.measure.engines.utils import MeasureSpy, ThreadMeasureMonitor
 
 
 def test_spy(caplog):

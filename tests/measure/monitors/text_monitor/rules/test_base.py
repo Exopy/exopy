@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,7 +16,7 @@ import pytest
 import enaml
 from atom.api import Atom, Dict, List
 
-from ecpy.measure.monitors.text_monitor.rules.base import (Rules, RuleType,
+from exopy.measure.monitors.text_monitor.rules.base import (Rules, RuleType,
                                                            BaseRule)
 
 
@@ -37,10 +37,10 @@ def test_building_class_id():
 
     """
     r = BaseRule()
-    assert r.class_id == 'ecpy.BaseRule'
+    assert r.class_id == 'exopy.BaseRule'
 
 
-PATH = 'ecpy.measure.monitors.text_monitor.rules'
+PATH = 'exopy.measure.monitors.text_monitor.rules'
 
 
 @pytest.fixture
@@ -56,15 +56,15 @@ def test_register_rule_decl1(collector, rule_decl):
     """
     tb = {}
     parent = Rules(group='test',
-                   path='ecpy.measure.monitors.text_monitor.rules')
+                   path='exopy.measure.monitors.text_monitor.rules')
     parent.insert_children(None, [rule_decl])
     rule_decl.rule = 'std_rules:RejectRule'
     rule_decl.view = 'std_views:RejectRuleView'
     parent.register(collector, tb)
-    infos = collector.contributions['ecpy.RejectRule']
-    from ecpy.measure.monitors.text_monitor.rules.std_rules import RejectRule
+    infos = collector.contributions['exopy.RejectRule']
+    from exopy.measure.monitors.text_monitor.rules.std_rules import RejectRule
     with enaml.imports():
-        from ecpy.measure.monitors.text_monitor.rules.std_views\
+        from exopy.measure.monitors.text_monitor.rules.std_views\
             import RejectRuleView
     assert infos.cls is RejectRule
     assert infos.view is RejectRuleView
@@ -78,7 +78,7 @@ def test_register_rule_decl_path_1(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.rule = 'ecpy.tasks'
+    rule_decl.rule = 'exopy.tasks'
     rule_decl.register(collector, tb)
     assert 'Error 0' in tb
 
@@ -88,29 +88,29 @@ def test_register_rule_decl_path_2(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.view = 'ecpy.tasks:tasks:Task'
+    rule_decl.view = 'exopy.tasks:tasks:Task'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule' in tb
+    assert 'exopy.RejectRule' in tb
 
 
 def test_register_rule_decl_duplicate1(collector, rule_decl):
     """Test handling duplicate : in collector.
 
     """
-    collector.contributions['ecpy.RejectRule'] = None
+    collector.contributions['exopy.RejectRule'] = None
     tb = {}
-    rule_decl.rule = 'ecpy.tasks:RejectRule'
+    rule_decl.rule = 'exopy.tasks:RejectRule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule_duplicate1' in tb
+    assert 'exopy.RejectRule_duplicate1' in tb
 
 
 def test_register_rule_decl_duplicate2(collector, rule_decl):
     """Test handling duplicate : in traceback.
 
     """
-    tb = {'ecpy.RejectRule': 'rr'}
+    tb = {'exopy.RejectRule': 'rr'}
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule_duplicate1' in tb
+    assert 'exopy.RejectRule_duplicate1' in tb
 
 
 def test_register_rule_decl_taskcls1(collector, rule_decl):
@@ -118,9 +118,9 @@ def test_register_rule_decl_taskcls1(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.rule = 'ecpy.tasks.foo:Rule'
+    rule_decl.rule = 'exopy.tasks.foo:Rule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.Rule' in tb and 'import' in tb['ecpy.Rule']
+    assert 'exopy.Rule' in tb and 'import' in tb['exopy.Rule']
 
 
 def test_register_rule_decl_taskcls1_bis(collector, rule_decl):
@@ -128,9 +128,9 @@ def test_register_rule_decl_taskcls1_bis(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.rule = 'ecpy.testing.broken_module:Rule'
+    rule_decl.rule = 'exopy.testing.broken_module:Rule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.Rule' in tb and 'NameError' in tb['ecpy.Rule']
+    assert 'exopy.Rule' in tb and 'NameError' in tb['exopy.Rule']
 
 
 def test_register_rule_decl_taskcls2(collector, rule_decl):
@@ -140,7 +140,7 @@ def test_register_rule_decl_taskcls2(collector, rule_decl):
     tb = {}
     rule_decl.rule = PATH + ':Rule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.Rule' in tb and 'attribute' in tb['ecpy.Rule']
+    assert 'exopy.Rule' in tb and 'attribute' in tb['exopy.Rule']
 
 
 def test_register_rule_decl_taskcls3(collector, rule_decl):
@@ -148,9 +148,9 @@ def test_register_rule_decl_taskcls3(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.rule = 'ecpy.tasks.tasks.database:TaskDatabase'
+    rule_decl.rule = 'exopy.tasks.tasks.database:TaskDatabase'
     rule_decl.register(collector, tb)
-    assert 'ecpy.TaskDatabase' in tb and 'subclass' in tb['ecpy.TaskDatabase']
+    assert 'exopy.TaskDatabase' in tb and 'subclass' in tb['exopy.TaskDatabase']
 
 
 def test_register_rule_decl_view1(collector, rule_decl):
@@ -160,7 +160,7 @@ def test_register_rule_decl_view1(collector, rule_decl):
     tb = {}
     rule_decl.view = PATH + ':RuleView'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule' in tb and 'import' in tb['ecpy.RejectRule']
+    assert 'exopy.RejectRule' in tb and 'import' in tb['exopy.RejectRule']
 
 
 def test_register_rule_decl_view1_bis(collector, rule_decl):
@@ -168,9 +168,9 @@ def test_register_rule_decl_view1_bis(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.view = 'ecpy.testing.broken_enaml:Rule'
+    rule_decl.view = 'exopy.testing.broken_enaml:Rule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule' in tb and 'NameError' in tb['ecpy.RejectRule']
+    assert 'exopy.RejectRule' in tb and 'NameError' in tb['exopy.RejectRule']
 
 
 def test_register_rule_decl_view2(collector, rule_decl):
@@ -180,7 +180,7 @@ def test_register_rule_decl_view2(collector, rule_decl):
     tb = {}
     rule_decl.view = PATH + '.std_views:RejectRule'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule' in tb and 'attribute' in tb['ecpy.RejectRule']
+    assert 'exopy.RejectRule' in tb and 'attribute' in tb['exopy.RejectRule']
 
 
 def test_register_rule_decl_view3(collector, rule_decl):
@@ -188,9 +188,9 @@ def test_register_rule_decl_view3(collector, rule_decl):
 
     """
     tb = {}
-    rule_decl.view = 'ecpy.tasks.tasks.database:TaskDatabase'
+    rule_decl.view = 'exopy.tasks.tasks.database:TaskDatabase'
     rule_decl.register(collector, tb)
-    assert 'ecpy.RejectRule' in tb and 'subclass' in tb['ecpy.RejectRule']
+    assert 'exopy.RejectRule' in tb and 'subclass' in tb['exopy.RejectRule']
 
 
 def test_unregister_rule_decl1(collector, rule_decl):
