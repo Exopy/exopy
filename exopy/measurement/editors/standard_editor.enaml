@@ -42,13 +42,6 @@ enamldef StandardEditor(BaseEditor): main:
 
         if task:
             view = root_view.view_for(task)
-            # HINT this is needed because otherwise we try to relayout tasks
-            # that should not be relaid out because there are not diplayed
-            # anymore and should be the layout parent of the displayed task.
-            # (RootTask for a complex one).
-            # This is Qt specific
-            if view.proxy_is_active:
-                view.proxy.layout_container = None
             # HINT force the refreshing of the parent, this handles the case
             # of moving selection back and forth between 2 tasks at the same
             # depth
