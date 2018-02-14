@@ -34,7 +34,7 @@ def add_profile(workbench, profile_config, names):
     p._unbind_observers()
     # Test observation of profiles folders
     for n in names:
-        with open(os.path.join(p._profiles_folders[0],  n + '.instr.ini'),
+        with open(os.path.join(p._profiles_folders[0], n + '.instr.ini'),
                   'wb') as f:
             profile_config.write(f)
     p._refresh_profiles()

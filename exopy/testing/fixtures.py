@@ -29,7 +29,7 @@ from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
                    exopy_path, process_app_events)
 
 #: Global variable storing the application folder path
-Exopy = ''
+EXOPY = ''
 
 
 #: Global variable linked to the --exopy-sleep cmd line option.
@@ -83,8 +83,8 @@ def sys_path():
     if os.path.isfile(app_dir) and not os.path.isfile(new):
         os.rename(app_dir, new)
 
-    global Exopy
-    Exopy = path
+    global EXOPY
+    EXOPY = path
 
     yield
 

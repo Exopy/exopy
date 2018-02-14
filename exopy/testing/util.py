@@ -37,9 +37,9 @@ def exopy_path():
     """Get the exopy path as determined by the sys_path fixture.
 
     """
-    from .fixtures import Exopy
-    assert Exopy
-    return Exopy
+    from .fixtures import EXOPY
+    assert EXOPY
+    return EXOPY
 
 
 def process_app_events():
