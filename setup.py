@@ -7,18 +7,18 @@ import os.path
 import sys
 
 sys.path.insert(0, os.path.abspath('.'))
-from ecpy.version import __version__
+from exopy.version import __version__
 
 
 setup(
-    name='ecpy',
+    name='exopy',
     description='Experiment control application',
     version=__version__,
     long_description='',
-    author='Ecpy Developers (see AUTHORS)',
+    author='Exopy Developers (see AUTHORS)',
     author_email='m.dartiailh@gmail.com',
-    url='http://github.com/ecpy/ecpy',
-    download_url='http://github.com/ecpy/ecpy/tarball/master',
+    url='http://github.com/exopy/exopy',
+    download_url='http://github.com/exopy/exopy/tarball/master',
     keywords='experiment automation GUI',
     license='BSD',
     classifiers=[
@@ -42,5 +42,5 @@ setup(
     install_requires=['setuptools', 'future', 'atom>=0.4.1',
                       'enaml>=0.10.2', 'kiwisolver>=1.0.0', 'configobj',
                       'watchdog', 'qtawesome', 'numpy'],
-    entry_points={'gui_scripts': 'ecpy = ecpy.__main__:main'},
+    entry_points={'gui_scripts': 'exopy = exopy.__main__:main'},
 )

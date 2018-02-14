@@ -1,16 +1,16 @@
-.._measure_edition:
+.._measurement_edition:
 
-Measure edition
+Measurement edition
 ===============
 
 So far this guide has only covered the basic edition of the tasks using the
 tree view of the hierarchy and the standard editor. The following sections will
-go further and explain how other editors can allow to fine tune the measure and
+go further and explain how other editors can allow to fine tune the measurement and
 how to use the tools that are pre/post-execution hooks and the monitors.
 
 .. contents::
 
-.. measure_edition_editors:
+.. measurement_edition_editors:
 
 Advanced use of editors
 -----------------------
@@ -51,7 +51,7 @@ be executed. Three parameters are editable :
   execute python code at any time. However this constrained is released when
   calling C code (typically when performing IO operations such as writing into
   a file or communicating with an instrument). So if your experiment needs to
-  set multiple instruments states before performing a measure you may gain
+  set multiple instruments states before performing a measurement you may gain
   time by doing the settings 'in parallel'. When executing a task in parallel
   it should be associated with a pool. A pool is nothing else than an id that
   will be used for synchronisation.
@@ -66,7 +66,7 @@ Task pools
 """"""""""
 
 A pool simply consist in a user-defined group of tasks.
-In a measure, each task can be associated with a pool from the dropdown menu
+In a measurement, each task can be associated with a pool from the dropdown menu
 of the execution editor. To define a new pool, right click on the menu and
 enter a name. You will then be able to select one or multiple of you defined
 pool(s) in the wait or no wait options.
@@ -98,7 +98,7 @@ stored in the same node it is storing its data or a higher node (the into which
 its parent task is writing). However in some cases this can be restrictive,
 lets give a more concrete example.
 
-Consider a measure made of two parts:
+Consider a measurement made of two parts:
 
 - first a loop is run to acquire some data stored in an array.
 - second the maximum of that array is extracted and use to an instrument before
@@ -120,17 +120,17 @@ In the previous example we would simply have added an exception for the array
 and we could have accessed it.
 
 
-.. _measure_monitors_and_tools:
+.. _measurement_monitors_and_tools:
 
 Monitors and tools
 ------------------
 
 As briefly mentionned previously, pre/post execution hooks and monitors can be
-added to a measure. To manage those 'tools', you must open the dedicated panel
+added to a measurement. To manage those 'tools', you must open the dedicated panel
 by clicking on the 'Edit tools' button.
 
-By default a single pre-hook is attached to the measure: the one responsible
-for running the tests of the measure, it cannot be removed.
+By default a single pre-hook is attached to the measurement: the one responsible
+for running the tests of the measurement, it cannot be removed.
 
 As usual you can add new tools using the add button and edit them when they are
 selected. The use of pre/post hooks being pretty straightforward it will not be
@@ -143,10 +143,10 @@ change in way that lets the user know what is currently going on. First please
 note that this kind of notification can be time consuming and hence it is
 better not to observe values inside tight loops (whose each iteration is around
 30 ms). Second a monitor should strive for stability and low memory consumption
-so that the measure does not crash because of it, which is why it should not
-try to plot all the data acquired by the measure but leave this work to
+so that the measurement does not crash because of it, which is why it should not
+try to plot all the data acquired by the measurement but leave this work to
 external programs.
 
-Ecpy comes with a built-in monitor which can display the values of the database
+Exopy comes with a built-in monitor which can display the values of the database
 entries. It can perform some minimal formatting on those entries and you can
 build new ones with custom formatting. It is attached by default to all measures.

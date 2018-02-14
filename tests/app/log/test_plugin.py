@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,17 +19,17 @@ from enaml.workbench.api import Workbench
 import enaml
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.states.manifest import StateManifest
-    from ecpy.app.preferences.manifest import PreferencesManifest
-    from ecpy.app.log.manifest import LogManifest
+    from exopy.app.app_manifest import AppManifest
+    from exopy.app.states.manifest import StateManifest
+    from exopy.app.preferences.manifest import PreferencesManifest
+    from exopy.app.log.manifest import LogManifest
 
-from ecpy.app.log.tools import (LogModel, GuiHandler, StreamToLogRedirector)
+from exopy.app.log.tools import (LogModel, GuiHandler, StreamToLogRedirector)
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 
-PLUGIN_ID = 'ecpy.app.logging'
+PLUGIN_ID = 'exopy.app.logging'
 
 
 class CMDArgs(object):
@@ -57,7 +57,7 @@ class TestLogPlugin(object):
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
         handler = GuiHandler(model=LogModel())
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'handler': handler, 'logger': 'test'},
                             self)
         log_plugin = self.workbench.get_plugin(PLUGIN_ID)
@@ -66,7 +66,7 @@ class TestLogPlugin(object):
         assert handler in logger.handlers
         assert log_plugin._handlers == {'ui': (handler, 'test')}
 
-        core.invoke_command('ecpy.app.logging.remove_handler',
+        core.invoke_command('exopy.app.logging.remove_handler',
                             {'id': 'ui'}, self)
 
         assert log_plugin.handler_ids == []
@@ -78,7 +78,7 @@ class TestLogPlugin(object):
 
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'mode': 'ui', 'logger': 'test'},
                             self)
         log_plugin = self.workbench.get_plugin(PLUGIN_ID)
@@ -86,7 +86,7 @@ class TestLogPlugin(object):
         assert log_plugin.handler_ids == [u'ui']
         assert logger.handlers
 
-        core.invoke_command('ecpy.app.logging.remove_handler',
+        core.invoke_command('exopy.app.logging.remove_handler',
                             {'id': 'ui'}, self)
 
         assert log_plugin.handler_ids == []
@@ -97,7 +97,7 @@ class TestLogPlugin(object):
 
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'logger': 'test'},
                             self)
         log_plugin = self.workbench.get_plugin(PLUGIN_ID)
@@ -111,7 +111,7 @@ class TestLogPlugin(object):
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
         handler = GuiHandler(model=LogModel())
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'handler': handler, 'logger': 'test'},
                             self)
 
@@ -122,7 +122,7 @@ class TestLogPlugin(object):
 
         test_filter = Filter()
 
-        core.invoke_command('ecpy.app.logging.add_filter',
+        core.invoke_command('exopy.app.logging.add_filter',
                             {'id': 'filter', 'filter': test_filter,
                              'handler_id': 'ui'},
                             self)
@@ -132,7 +132,7 @@ class TestLogPlugin(object):
         assert log_plugin.filter_ids == [u'filter']
         assert log_plugin._filters == {u'filter': (test_filter, u'ui')}
 
-        core.invoke_command('ecpy.app.logging.remove_filter',
+        core.invoke_command('exopy.app.logging.remove_filter',
                             {'id': 'filter'}, self)
 
         assert log_plugin.filter_ids == []
@@ -144,7 +144,7 @@ class TestLogPlugin(object):
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
         handler = GuiHandler(model=LogModel())
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'handler': handler, 'logger': 'test'},
                             self)
 
@@ -155,7 +155,7 @@ class TestLogPlugin(object):
 
         test_filter = Filter()
 
-        core.invoke_command('ecpy.app.logging.add_filter',
+        core.invoke_command('exopy.app.logging.add_filter',
                             {'id': 'filter', 'filter': test_filter,
                              'handler_id': 'ui'},
                             self)
@@ -165,7 +165,7 @@ class TestLogPlugin(object):
         assert log_plugin.filter_ids == [u'filter']
         assert log_plugin._filters == {u'filter': (test_filter, u'ui')}
 
-        core.invoke_command('ecpy.app.logging.remove_handler',
+        core.invoke_command('exopy.app.logging.remove_handler',
                             {'id': 'ui'}, self)
 
         assert log_plugin.filter_ids == []
@@ -177,7 +177,7 @@ class TestLogPlugin(object):
         """
         core = self.workbench.get_plugin(u'enaml.workbench.core')
 
-        core.invoke_command('ecpy.app.logging.add_filter',
+        core.invoke_command('exopy.app.logging.add_filter',
                             {'id': 'filter', 'filter': object(),
                              'handler_id': 'ui'},
                             self)
@@ -193,7 +193,7 @@ class TestLogPlugin(object):
             def filter(self, record):
                 return True
 
-        core.invoke_command('ecpy.app.logging.add_filter',
+        core.invoke_command('exopy.app.logging.add_filter',
                             {'id': 'filter', 'filter': Filter(),
                              'handler_id': 'ui'},
                             self)
@@ -205,12 +205,12 @@ class TestLogPlugin(object):
         core = self.workbench.get_plugin(u'enaml.workbench.core')
         model = LogModel()
         handler = GuiHandler(model=model)
-        core.invoke_command('ecpy.app.logging.add_handler',
+        core.invoke_command('exopy.app.logging.add_handler',
                             {'id': 'ui', 'handler': handler, 'logger': 'test'},
                             self)
 
         formatter = logging.Formatter('test : %(message)s')
-        core.invoke_command('ecpy.app.logging.set_formatter',
+        core.invoke_command('exopy.app.logging.set_formatter',
                             {'formatter': formatter, 'handler_id': 'ui'},
                             self)
 
@@ -227,7 +227,7 @@ class TestLogPlugin(object):
         core = self.workbench.get_plugin(u'enaml.workbench.core')
 
         formatter = logging.Formatter('test : %(message)s')
-        core.invoke_command('ecpy.app.logging.set_formatter',
+        core.invoke_command('exopy.app.logging.set_formatter',
                             {'formatter': formatter,
                              'handler_id': 'non-existing'},
                             self)
@@ -242,14 +242,14 @@ class TestLogPlugin(object):
         cmd_args.nocapture = False
         old = sys.stdout
 
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
         app.run_app_startup(cmd_args)
         plugin = self.workbench.get_plugin(PLUGIN_ID)
 
         try:
             assert os.path.isdir(os.path.join(app_dir, 'logs'))
-            assert 'ecpy.file_log' in plugin.handler_ids
-            assert 'ecpy.gui_log' in plugin.handler_ids
+            assert 'exopy.file_log' in plugin.handler_ids
+            assert 'exopy.gui_log' in plugin.handler_ids
             assert plugin.gui_model
             assert isinstance(sys.stdout, StreamToLogRedirector)
             assert isinstance(sys.stderr, StreamToLogRedirector)
@@ -264,14 +264,14 @@ class TestLogPlugin(object):
         cmd_args.nocapture = True
         old = sys.stdout
 
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
         app.run_app_startup(cmd_args)
         plugin = self.workbench.get_plugin(PLUGIN_ID)
 
         try:
             assert os.path.isdir(os.path.join(app_dir, 'logs'))
-            assert 'ecpy.file_log' in plugin.handler_ids
-            assert 'ecpy.gui_log' in plugin.handler_ids
+            assert 'exopy.file_log' in plugin.handler_ids
+            assert 'exopy.gui_log' in plugin.handler_ids
             assert plugin.gui_model
             # Fail in no capture mode (unknown reason).
             assert not isinstance(sys.stdout, StreamToLogRedirector)

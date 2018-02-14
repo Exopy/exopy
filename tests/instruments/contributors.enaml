@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,7 +16,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Dict
 from enaml.workbench.api import PluginManifest, Extension
 
-from ecpy.instruments.api import (Driver, Connection, Settings, Starter,
+from exopy.instruments.api import (Driver, Connection, Settings, Starter,
                                   ManufacturerAlias, InstrUser,
                                   BaseConnection, BaseSettings,
                                   Drivers)
@@ -43,18 +43,18 @@ enamldef InstrContributor1(PluginManifest):
     """Basic contributor providing all contributions required for testing.
 
     """
-    id = 'ecpy.instr_contrib1'
+    id = 'exopy.instr_contrib1'
 
     Extension:
         id = 'drivers'
-        point = 'ecpy.instruments.drivers'
+        point = 'exopy.instruments.drivers'
         Drivers:
             Driver:
                 manufacturer = 'dummy'
                 model = '001'
                 architecture = 'test'
                 starter = 'false_starter'
-                driver = 'tests.instruments.false_driver:FalseDriver'
+                driver = 'instruments.false_driver:FalseDriver'
                 connections = {'false_connection': {'slot': 1},
                                'false_connection2': {'slot': 1},
                                'false_connection3': {'slot': 1}}
@@ -66,7 +66,7 @@ enamldef InstrContributor1(PluginManifest):
             model = '001'
             architecture = 'test'
             starter = 'false_starter'
-            driver = 'tests.instruments.false_driver:FalseDriver2'
+            driver = 'instruments.false_driver:FalseDriver2'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
         Driver:
@@ -75,7 +75,7 @@ enamldef InstrContributor1(PluginManifest):
             architecture = 'test'
             serie = 'dumb'
             starter = 'false_starter'
-            driver = 'tests.instruments.false_driver:FalseDriver3'
+            driver = 'instruments.false_driver:FalseDriver3'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
         Driver:
@@ -84,7 +84,7 @@ enamldef InstrContributor1(PluginManifest):
             serie = 'dumb'
             architecture = 'test'
             starter = 'false_starter'
-            driver = 'tests.instruments.false_driver:FalseDriver4'
+            driver = 'instruments.false_driver:FalseDriver4'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
         Driver:
@@ -93,13 +93,13 @@ enamldef InstrContributor1(PluginManifest):
             architecture = 'test'
             starter = 'false_starter'
             kind = 'Lock-in'
-            driver = 'tests.instruments.false_driver:FalseDriver5'
+            driver = 'instruments.false_driver:FalseDriver5'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
 
     Extension:
         id = 'connections'
-        point = 'ecpy.instruments.connections'
+        point = 'exopy.instruments.connections'
         Connection:
             id = 'false_connection'
             description = 'False connection 1'
@@ -123,7 +123,7 @@ enamldef InstrContributor1(PluginManifest):
 
     Extension:
         id = 'settings'
-        point = 'ecpy.instruments.settings'
+        point = 'exopy.instruments.settings'
         Settings:
             id = 'false_settings'
             description = 'False settings 1'
@@ -150,7 +150,7 @@ enamldef InstrContributor1(PluginManifest):
 
     Extension:
         id = 'starters'
-        point = 'ecpy.instruments.starters'
+        point = 'exopy.instruments.starters'
         Starter:
             id = 'false_starter'
             description = 'False starter'
@@ -158,7 +158,7 @@ enamldef InstrContributor1(PluginManifest):
 
     Extension:
         id = 'users'
-        point = 'ecpy.instruments.users'
+        point = 'exopy.instruments.users'
         InstrUser:
             id = 'tests'
             policy = 'releasable'
@@ -177,7 +177,7 @@ enamldef InstrContributor1(PluginManifest):
 
     Extension:
         id = 'aliases'
-        point = 'ecpy.instruments.manufacturer_aliases'
+        point = 'exopy.instruments.manufacturer_aliases'
         ManufacturerAlias:
             id = 'Dummy'
             aliases = ['dummy']
@@ -187,11 +187,11 @@ enamldef InstrContributor2(PluginManifest):
     """Additional contributor to test dynamic updates.
 
     """
-    id = 'ecpy.instr_contrib2'
+    id = 'exopy.instr_contrib2'
 
     Extension:
         id = 'connections'
-        point = 'ecpy.instruments.connections'
+        point = 'exopy.instruments.connections'
         Connection:
             id = 'false_connection_bis'
             description = 'False connection'
@@ -200,7 +200,7 @@ enamldef InstrContributor2(PluginManifest):
 
     Extension:
         id = 'settings'
-        point = 'ecpy.instruments.settings'
+        point = 'exopy.instruments.settings'
         Settings:
             id = 'false_settings_bis'
             description = 'False settings'
@@ -209,7 +209,7 @@ enamldef InstrContributor2(PluginManifest):
 
     Extension:
         id = 'starters'
-        point = 'ecpy.instruments.starters'
+        point = 'exopy.instruments.starters'
         Starter:
             id = 'false_starter_bis'
             description = 'False starter'
@@ -217,7 +217,7 @@ enamldef InstrContributor2(PluginManifest):
 
     Extension:
         id = 'users'
-        point = 'ecpy.instruments.users'
+        point = 'exopy.instruments.users'
         InstrUser:
             id = 'tests_'
             policy = 'releasable'
@@ -229,17 +229,17 @@ enamldef InstrContributor3(PluginManifest):
     """Additional contributor to test driver validation issue.
 
     """
-    id = 'ecpy.instr_contrib3'
+    id = 'exopy.instr_contrib3'
 
     Extension:
         id = 'drivers'
-        point = 'ecpy.instruments.drivers'
+        point = 'exopy.instruments.drivers'
         Driver:
             manufacturer = 'dummy'
             model = '001'
             architecture = 'test'
             starter = '__starter__'
-            driver = 'tests.instruments.false_driver:FalseDriver'
+            driver = 'instruments.false_driver:FalseDriver'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}
 
@@ -248,11 +248,11 @@ enamldef InstrContributor4(PluginManifest):
     """Additional contributor to test driver validation issue.
 
     """
-    id = 'ecpy.instr_contrib3'
+    id = 'exopy.instr_contrib3'
 
     Extension:
         id = 'drivers'
-        point = 'ecpy.instruments.drivers'
+        point = 'exopy.instruments.drivers'
         # Validate that a wrong kind cannot crash the whole app.
         Driver:
             manufacturer = 'dummy2'
@@ -260,6 +260,6 @@ enamldef InstrContributor4(PluginManifest):
             architecture = 'test'
             starter = 'false_starter'
             kind = '__XXX__'
-            driver = 'tests.instruments.false_driver:FalseDriver6'
+            driver = 'instruments.false_driver:FalseDriver6'
             connections = {'false_connection': {'slot': 1}}
             settings = {'false_settings': {'host': 'local'}}

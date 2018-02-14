@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,14 +17,14 @@ from operator import getitem
 import pytest
 from future.builtins import str
 
-from ecpy.app.dependencies.api import (BuildDependency,
-                                       RuntimeDependencyAnalyser)
-from ecpy.tasks.api import ComplexTask, InstrumentTask, TaskInterface
-from ecpy.tasks.infos import (TaskInfos, InterfaceInfos,
-                              INSTR_RUNTIME_TASK_DRIVERS_ID,
-                              INSTR_RUNTIME_TASK_PROFILES_ID,
-                              INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
-                              INSTR_RUNTIME_INTERFACE_PROFILES_ID)
+from exopy.app.dependencies.api import (BuildDependency,
+                                        RuntimeDependencyAnalyser)
+from exopy.tasks.api import ComplexTask, InstrumentTask, TaskInterface
+from exopy.tasks.infos import (TaskInfos, InterfaceInfos,
+                               INSTR_RUNTIME_TASK_DRIVERS_ID,
+                               INSTR_RUNTIME_TASK_PROFILES_ID,
+                               INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
+                               INSTR_RUNTIME_INTERFACE_PROFILES_ID)
 
 
 @pytest.fixture
@@ -32,11 +32,11 @@ def task_dep_collector(task_workbench):
     """Collector for task dependencies.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'build_deps'][0]
     return [b for b in dep_ext.get_children(BuildDependency)
-            if b.id == 'ecpy.task'][0]
+            if b.id == 'exopy.task'][0]
 
 
 @pytest.fixture
@@ -44,11 +44,11 @@ def interface_dep_collector(task_workbench):
     """Collector for interface dependencies.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'build_deps'][0]
     return [b for b in dep_ext.get_children(BuildDependency)
-            if b.id == 'ecpy.tasks.interface'][0]
+            if b.id == 'exopy.tasks.interface'][0]
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def driver_dep_collector(task_workbench):
     having the proper selected_intrument member.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
@@ -70,7 +70,7 @@ def profile_dep_collector(task_workbench):
     having the proper selected_intrument member.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
@@ -84,7 +84,7 @@ def i_driver_dep_collector(task_workbench):
     that does.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
@@ -98,7 +98,7 @@ def i_profile_dep_collector(task_workbench):
     that does.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     dep_ext = [e for e in plugin.manifest.extensions
                if e.id == 'runtime_deps'][0]
     return [b for b in dep_ext.get_children(RuntimeDependencyAnalyser)
@@ -111,8 +111,8 @@ def test_analysing_task_dependencies(monkeypatch, task_workbench,
 
     """
     runtime = {'test'}
-    plugin = task_workbench.get_plugin('ecpy.tasks')
-    monkeypatch.setattr(plugin.get_task_infos('ecpy.ComplexTask'),
+    plugin = task_workbench.get_plugin('exopy.tasks')
+    monkeypatch.setattr(plugin.get_task_infos('exopy.ComplexTask'),
                         'dependencies', runtime)
 
     dep = set()
@@ -121,7 +121,7 @@ def test_analysing_task_dependencies(monkeypatch, task_workbench,
                                      dep, errors)
 
     assert run == runtime
-    assert 'ecpy.ComplexTask' in dep
+    assert 'exopy.ComplexTask' in dep
     assert not errors
 
     dep = set()
@@ -138,8 +138,8 @@ def test_validating_task_dependencies(task_workbench, task_dep_collector):
     """
     errors = {}
     task_dep_collector.validate(task_workbench,
-                                {'ecpy.ComplexTask', '__dummy__'}, errors)
-    assert 'ecpy.ComplexTask' not in errors
+                                {'exopy.ComplexTask', '__dummy__'}, errors)
+    assert 'exopy.ComplexTask' not in errors
     assert '__dummy__' in errors
 
 
@@ -147,10 +147,10 @@ def test_collecting_task_dependencies(task_workbench, task_dep_collector):
     """Test collecting the dependencies found in a task.
 
     """
-    dependencies = dict.fromkeys(['ecpy.ComplexTask', '__dummy__'])
+    dependencies = dict.fromkeys(['exopy.ComplexTask', '__dummy__'])
     errors = {}
     task_dep_collector.collect(task_workbench, dependencies, errors)
-    assert 'ecpy.ComplexTask' in dependencies
+    assert 'exopy.ComplexTask' in dependencies
     assert '__dummy__' in errors
 
 
@@ -160,8 +160,8 @@ def test_analysing_interface_dependencies(monkeypatch, task_workbench,
 
     """
     runtime = {'test'}
-    interface = 'ecpy.LoopTask:ecpy.LinspaceLoopInterface'
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    interface = 'exopy.LoopTask:exopy.LinspaceLoopInterface'
+    plugin = task_workbench.get_plugin('exopy.tasks')
     monkeypatch.setattr(plugin.get_interface_infos(interface), 'dependencies',
                         runtime)
 
@@ -193,9 +193,9 @@ def test_validating_interface_dependencies(task_workbench,
     errors = {}
     interface_dep_collector.validate(
         task_workbench,
-        {'ecpy.LoopTask:ecpy.LinspaceLoopInterface',
+        {'exopy.LoopTask:exopy.LinspaceLoopInterface',
          'LoopTask:__dummy__'}, errors)
-    assert 'ecpy.LoopTask:ecpy.LinspaceLoopInterface' not in errors
+    assert 'exopy.LoopTask:exopy.LinspaceLoopInterface' not in errors
     assert 'LoopTask:__dummy__' in errors
 
 
@@ -204,11 +204,11 @@ def test_collecting_interface_dependencies(task_workbench,
     """Test collecting the dependencies found in an interface.
 
     """
-    dependencies = dict.fromkeys(['ecpy.LoopTask:ecpy.LinspaceLoopInterface',
+    dependencies = dict.fromkeys(['exopy.LoopTask:exopy.LinspaceLoopInterface',
                                   'LoopTask:__dummy__'])
     errors = {}
     interface_dep_collector.collect(task_workbench, dependencies, errors)
-    assert 'ecpy.LoopTask:ecpy.LinspaceLoopInterface' in dependencies
+    assert 'exopy.LoopTask:exopy.LinspaceLoopInterface' in dependencies
     assert 'LoopTask:__dummy__' in errors
 
 
@@ -219,8 +219,8 @@ def test_analysing_instr_task_dependencies(monkeypatch, task_workbench,
     """Test analysing the dependencies of a task.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.tasks')
-    plugin._tasks.contributions['ecpy.InstrumentTask'] =\
+    plugin = task_workbench.get_plugin('exopy.tasks')
+    plugin._tasks.contributions['exopy.InstrumentTask'] =\
         TaskInfos(cls=InstrumentTask, instruments=['test'])
 
     dep = set()
@@ -229,9 +229,9 @@ def test_analysing_instr_task_dependencies(monkeypatch, task_workbench,
     run = task_dep_collector.analyse(task_workbench, t, getattr,
                                      dep, errors)
 
-    assert run == {'ecpy.tasks.instruments.drivers',
-                   'ecpy.tasks.instruments.profiles'}
-    assert 'ecpy.InstrumentTask' in dep
+    assert run == {'exopy.tasks.instruments.drivers',
+                   'exopy.tasks.instruments.profiles'}
+    assert 'exopy.InstrumentTask' in dep
     assert not errors
 
     dep.clear()
@@ -256,10 +256,10 @@ def test_analysing_instr_interface_dependencies(monkeypatch, task_workbench,
 
             __slots__ = ('__dict__')
 
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     p_infos = TaskInfos(cls=InstrumentTask, instruments=['test'])
-    plugin._tasks.contributions['ecpy.InstrumentTask'] = p_infos
-    p_infos.interfaces['tests.FalseI'] =\
+    plugin._tasks.contributions['exopy.InstrumentTask'] = p_infos
+    p_infos.interfaces['tasks.FalseI'] =\
         InterfaceInfos(cls=FalseI, instruments=['test'], parent=p_infos)
 
     dep = set()
@@ -272,7 +272,7 @@ def test_analysing_instr_interface_dependencies(monkeypatch, task_workbench,
 
     assert run == {INSTR_RUNTIME_INTERFACE_DRIVERS_ID,
                    INSTR_RUNTIME_INTERFACE_PROFILES_ID}
-    assert 'ecpy.InstrumentTask:tests.FalseI' in dep
+    assert 'exopy.InstrumentTask:tasks.FalseI' in dep
     assert not errors
 
     dep.clear()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,8 +17,8 @@ import enaml
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.preferences.manifest import PreferencesManifest
-    from ecpy.app.icons.manifest import IconManagerManifest
+    from exopy.app.preferences.manifest import PreferencesManifest
+    from exopy.app.icons.manifest import IconManagerManifest
 
 
 @pytest.yield_fixture
@@ -32,7 +32,7 @@ def icon_workbench(workbench, app_dir):
 
     yield workbench
 
-    for m_id in ('ecpy.app.icons', 'ecpy.app.preferences'):
+    for m_id in ('exopy.app.icons', 'exopy.app.preferences'):
         try:
             workbench.unregister(m_id)
         except Exception:

@@ -1,4 +1,4 @@
-ecpy.measure.monitors.text_monitor package
+exopy.measurement.monitors.text_monitor package
 ==========================================
 
 Subpackages

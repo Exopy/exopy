@@ -1,4 +1,4 @@
-ecpy.tasks.tasks.logic.views package
+exopy.tasks.tasks.logic.views package
 ====================================
 
 Submodules

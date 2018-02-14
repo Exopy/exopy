@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,18 +19,18 @@ from configobj import ConfigObj
 from future.builtins import str
 from enaml.workbench.api import Workbench
 
-from ecpy.testing.util import (handle_dialog, ecpy_path, APP_DIR_CONFIG,
-                               APP_PREFERENCES)
+from exopy.testing.util import (handle_dialog, exopy_path, APP_DIR_CONFIG,
+                                APP_PREFERENCES)
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.preferences.manifest import PreferencesManifest
+    from exopy.app.app_manifest import AppManifest
+    from exopy.app.errors.manifest import ErrorsManifest
+    from exopy.app.preferences.manifest import PreferencesManifest
     from .pref_utils import (PrefContributor, BadPrefContributor,
                              PrefContributor2)
 
-PLUGIN_ID = 'ecpy.app.preferences'
+PLUGIN_ID = 'exopy.app.preferences'
 
 
 class TestPreferencesPlugin(object):
@@ -53,14 +53,14 @@ class TestPreferencesPlugin(object):
 
         # Remove any trash app_directory.ini file. The global fixture ensure
         # that it cannot be a user file.
-        app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+        app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
         if os.path.isfile(app_pref):
             os.remove(app_pref)
 
         # Start the app and fake a user answer.
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
 
-        app_dir = str(tmpdir.join('ecpy'))
+        app_dir = str(tmpdir.join('exopy'))
 
         with handle_dialog(custom=lambda x: setattr(x, 'path', app_dir)):
             app.run_app_startup(object())
@@ -79,12 +79,12 @@ class TestPreferencesPlugin(object):
 
         # Remove any trash app_directory.ini file. The global fixture ensure
         # that it cannot be a user file.
-        app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+        app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
         if os.path.isfile(app_pref):
             os.remove(app_pref)
 
         # Start the app and fake a user answer.
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
 
         with pytest.raises(SystemExit):
             with handle_dialog('reject'):
@@ -100,8 +100,8 @@ class TestPreferencesPlugin(object):
         # Create a trash app_directory.ini file. The global fixture ensure
         # that it cannot be a user file. Don't use app_dir fixture as I need to
         # test directory creation.
-        app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
-        app_dir = str(tmpdir.join('ecpy'))
+        app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+        app_dir = str(tmpdir.join('exopy'))
         conf = ConfigObj(encoding='utf8')
         conf.filename = app_pref
         conf['app_path'] = app_dir
@@ -110,7 +110,7 @@ class TestPreferencesPlugin(object):
         assert not os.path.isdir(app_dir)
 
         # Start the app and fake a user answer.
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
 
         app.run_app_startup(object())
 
@@ -123,10 +123,10 @@ class TestPreferencesPlugin(object):
         manifest = PreferencesManifest()
         self.workbench.register(manifest)
 
-        app_dir = str(tmpdir.join('ecpy'))
+        app_dir = str(tmpdir.join('exopy'))
 
         # Add a app_directory.ini file.
-        app_pref = os.path.join(ecpy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+        app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
         if not os.path.isfile(app_pref):
             conf = ConfigObj(encoding='utf8')
             conf.filename = app_pref
@@ -134,7 +134,7 @@ class TestPreferencesPlugin(object):
             conf.write()
 
         # Start the app and fake a user answer.
-        app = self.workbench.get_plugin('ecpy.app')
+        app = self.workbench.get_plugin('exopy.app')
 
         class DummyArgs(object):
 
@@ -161,17 +161,17 @@ class TestPreferencesPlugin(object):
         assert prefs.app_directory == app_dir
         assert os.path.isdir(os.path.join(app_dir, 'preferences'))
         core = self.workbench.get_plugin('enaml.workbench.core')
-        assert core.invoke_command('ecpy.app.preferences.get',
+        assert core.invoke_command('exopy.app.preferences.get',
                                    dict(plugin_id='test.prefs')) is not None
 
         self.workbench.register(PrefContributor2())
-        assert core.invoke_command('ecpy.app.preferences.get',
+        assert core.invoke_command('exopy.app.preferences.get',
                                    dict(plugin_id='test.prefs2')) is not None
 
         # Stopping
         self.workbench.unregister(c_man.id)
         with pytest.raises(KeyError):
-            core.invoke_command('ecpy.app.preferences.get',
+            core.invoke_command('exopy.app.preferences.get',
                                 dict(plugin_id='test.prefs'))
         self.workbench.unregister(pref_man.id)
         assert not prefs._prefs
@@ -253,7 +253,7 @@ class TestPreferencesPlugin(object):
         contrib.string = 'test_save'
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.save', {}, self)
+        core.invoke_command('exopy.app.preferences.save', {}, self)
 
         path = os.path.join(app_dir, 'preferences', 'default.ini')
         ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
@@ -273,7 +273,7 @@ class TestPreferencesPlugin(object):
 
         path = os.path.join(app_dir, 'preferences', 'custom.ini')
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.save', {'path': path})
+        core.invoke_command('exopy.app.preferences.save', {'path': path})
 
         ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
         assert os.path.isfile(path)
@@ -298,11 +298,11 @@ class TestPreferencesPlugin(object):
             return path
 
         with enaml.imports():
-            from ecpy.app.preferences.manifest import FileDialogEx
+            from exopy.app.preferences.manifest import FileDialogEx
         monkeypatch.setattr(FileDialogEx, 'get_save_file_name', answer)
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.save', {'path': prefs_path,
-                                                          'ask_user': True})
+        core.invoke_command('exopy.app.preferences.save', {'path': prefs_path,
+                                                           'ask_user': True})
 
         ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
         assert os.path.isfile(path)
@@ -328,7 +328,7 @@ class TestPreferencesPlugin(object):
         conf.write()
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.load', {})
+        core.invoke_command('exopy.app.preferences.load', {})
         assert self.workbench.get_plugin(c_man.id, False) is None
         contrib = self.workbench.get_plugin(c_man.id)
 
@@ -342,7 +342,7 @@ class TestPreferencesPlugin(object):
         self.workbench.register(PrefContributor())
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.load',
+        core.invoke_command('exopy.app.preferences.load',
                             {'path': ''}, self)
 
         assert not self.workbench.get_plugin(PLUGIN_ID)._prefs
@@ -365,7 +365,7 @@ class TestPreferencesPlugin(object):
         assert contrib.string == ''
 
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.load',
+        core.invoke_command('exopy.app.preferences.load',
                             {'path': path}, self)
 
         assert contrib.string == 'test'
@@ -393,10 +393,10 @@ class TestPreferencesPlugin(object):
             return path
 
         with enaml.imports():
-            from ecpy.app.preferences.manifest import FileDialogEx
+            from exopy.app.preferences.manifest import FileDialogEx
         monkeypatch.setattr(FileDialogEx, 'get_open_file_name', answer)
         core = self.workbench.get_plugin('enaml.workbench.core')
-        core.invoke_command('ecpy.app.preferences.load',
+        core.invoke_command('exopy.app.preferences.load',
                             {'path': prefs_path, 'ask_user': True}, self)
 
         assert contrib.string == 'test'
@@ -412,5 +412,5 @@ def test_api_import():
     """Test importing the api module.
 
     """
-    from ecpy.app.preferences import api
+    from exopy.app.preferences import api
     assert api.__all__

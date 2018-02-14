@@ -1,7 +1,7 @@
-ecpy.testing.tasks.util module
+exopy.testing.tasks.util module
 ==============================
 
-.. automodule:: ecpy.testing.tasks.util
+.. automodule:: exopy.testing.tasks.util
     :members:
     :undoc-members:
     :show-inheritance:

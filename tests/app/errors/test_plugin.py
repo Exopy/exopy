@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,19 +17,19 @@ import enaml
 from enaml.widgets.api import MultilineField
 from future.utils import python_2_unicode_compatible
 
-from ecpy.testing.util import handle_dialog, get_window, show_and_close_widget
+from exopy.testing.util import handle_dialog, get_window, show_and_close_widget
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from enaml.workbench.ui.ui_manifest import UIManifest
-    from ecpy.app.app_manifest import AppManifest
-    from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.errors.widgets import HierarchicalErrorsDisplay
-    from ecpy.app.packages.manifest import PackagesManifest
+    from exopy.app.app_manifest import AppManifest
+    from exopy.app.errors.manifest import ErrorsManifest
+    from exopy.app.errors.widgets import HierarchicalErrorsDisplay
+    from exopy.app.packages.manifest import PackagesManifest
 
 
-APP_ID = 'ecpy.app'
-ERRORS_ID = 'ecpy.app.errors'
+APP_ID = 'exopy.app'
+ERRORS_ID = 'exopy.app.errors'
 
 
 @pytest.fixture
@@ -85,12 +85,12 @@ def test_signal_command_with_unknown(err_workbench, windows):
     core = err_workbench.get_plugin('enaml.workbench.core')
 
     with handle_dialog():
-        core.invoke_command('ecpy.app.errors.signal',
+        core.invoke_command('exopy.app.errors.signal',
                             {'kind': 'stupid', 'msg': None})
 
     with handle_dialog():
         fail = FailedFormat()
-        core.invoke_command('ecpy.app.errors.signal',
+        core.invoke_command('exopy.app.errors.signal',
                             {'kind': 'stupid', 'msg': fail})
 
     assert getattr(fail, 'called', None)
@@ -120,14 +120,14 @@ def test_gathering_mode(err_workbench, windows):
 
     """
     core = err_workbench.get_plugin('enaml.workbench.core')
-    core.invoke_command('ecpy.app.errors.enter_error_gathering')
+    core.invoke_command('exopy.app.errors.enter_error_gathering')
 
-    core.invoke_command('ecpy.app.errors.signal',
+    core.invoke_command('exopy.app.errors.signal',
                         {'kind': 'stupid', 'msg': None})
     assert get_window() is None
 
     with handle_dialog():
-        core.invoke_command('ecpy.app.errors.exit_error_gathering')
+        core.invoke_command('exopy.app.errors.exit_error_gathering')
 
 
 @pytest.mark.ui
@@ -137,13 +137,13 @@ def test_report_command(err_workbench, windows):
     """
     core = err_workbench.get_plugin('enaml.workbench.core')
     with handle_dialog():
-        core.invoke_command('ecpy.app.errors.report')
+        core.invoke_command('exopy.app.errors.report')
 
     with handle_dialog():
-        core.invoke_command('ecpy.app.errors.report', dict(kind='error'))
+        core.invoke_command('exopy.app.errors.report', dict(kind='error'))
 
     with handle_dialog():
-        core.invoke_command('ecpy.app.errors.report', dict(kind='stupid'))
+        core.invoke_command('exopy.app.errors.report', dict(kind='stupid'))
 
 
 @pytest.mark.ui
@@ -157,7 +157,7 @@ def test_install_excepthook(err_workbench, windows):
     err_workbench.register(UIManifest())
     err_workbench.register(AppManifest())
     core = err_workbench.get_plugin('enaml.workbench.core')
-    core.invoke_command('ecpy.app.errors.install_excepthook')
+    core.invoke_command('exopy.app.errors.install_excepthook')
 
     new_hook = sys.excepthook
     sys.excepthook = old_hook
@@ -179,7 +179,7 @@ def test_reporting_single_error(err_workbench):
     """Check handling a single error.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['error']
 
     assert handler.handle(err_workbench, {'message': 'test'})
@@ -191,7 +191,7 @@ def test_reporting_multiple_errors(err_workbench):
     """Check handling multiple errors.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['error']
 
     assert handler.handle(err_workbench, [{'message': 'test'}])
@@ -207,7 +207,7 @@ def test_reporting_single_registering_error(err_workbench):
     """Check handling a single registering error.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['registering']
 
     assert handler.handle(err_workbench, {'id': 'test', 'message': 'test'})
@@ -220,7 +220,7 @@ def test_reporting_multiple_registering_errors(err_workbench):
     """Check handling multiple package errors.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['registering']
 
     assert handler.handle(err_workbench, [{'id': 'test', 'message': 'test'}])
@@ -237,7 +237,7 @@ def test_handling_single_extension_error(err_workbench):
     """Check handling a single extension error.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
     assert handler.handle(err_workbench, {'point': 'test', 'errors': {}})
@@ -250,7 +250,7 @@ def test_handling_multiple_extension_errors(err_workbench):
     """Check handling multiple extension errors.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
     assert handler.handle(err_workbench, [{'point': 'test', 'errors': {}}])
@@ -263,7 +263,7 @@ def test_reporting_on_extension_errors(err_workbench):
     """Check reporting extension errors.
 
     """
-    plugin = err_workbench.get_plugin('ecpy.app.errors')
+    plugin = err_workbench.get_plugin('exopy.app.errors')
     handler = plugin._errors_handlers.contributions['extensions']
 
     widget = handler.report(err_workbench)
@@ -285,5 +285,5 @@ def test_api_import():
     """Test importing the api module.
 
     """
-    from ecpy.app.errors import api
+    from exopy.app.errors import api
     assert api.__all__

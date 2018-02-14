@@ -1,7 +1,7 @@
-ecpy.testing.measure.workspace.fixtures module
+exopy.testing.measurement.workspace.fixtures module
 ==============================================
 
-.. automodule:: ecpy.testing.measure.workspace.fixtures
+.. automodule:: exopy.testing.measurement.workspace.fixtures
     :members:
     :undoc-members:
     :show-inheritance:

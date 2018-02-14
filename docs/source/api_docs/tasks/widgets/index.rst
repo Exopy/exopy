@@ -1,4 +1,4 @@
-ecpy.tasks.widgets package
+exopy.tasks.widgets package
 ==========================
 
 Submodules

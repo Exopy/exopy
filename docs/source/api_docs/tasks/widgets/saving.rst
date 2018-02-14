@@ -1,7 +1,7 @@
-ecpy.tasks.widgets.saving module
+exopy.tasks.widgets.saving module
 ================================
 
-.. automodule:: ecpy.tasks.widgets.saving
+.. automodule:: exopy.tasks.widgets.saving
     :members:
     :undoc-members:
     :show-inheritance:

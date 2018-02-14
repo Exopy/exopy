@@ -1,7 +1,7 @@
-ecpy.tasks.configs.base_configs module
+exopy.tasks.configs.base_configs module
 ======================================
 
-.. automodule:: ecpy.tasks.configs.base_configs
+.. automodule:: exopy.tasks.configs.base_configs
     :members:
     :undoc-members:
     :show-inheritance:

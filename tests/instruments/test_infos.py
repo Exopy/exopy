@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,11 +17,11 @@ import os
 import pytest
 from configobj import ConfigObj
 
-from ecpy.instruments.infos import (DriverInfos, InstrumentModelInfos,
-                                    SeriesInfos, ManufacturerInfos,
-                                    ManufacturersHolder, ProfileInfos,
-                                    validate_profile_infos)
-from ecpy.instruments.manufacturer_aliases import ManufacturerAlias
+from exopy.instruments.infos import (DriverInfos, InstrumentModelInfos,
+                                     SeriesInfos, ManufacturerInfos,
+                                     ManufacturersHolder, ProfileInfos,
+                                     validate_profile_infos)
+from exopy.instruments.manufacturer_aliases import ManufacturerAlias
 
 
 def test_driver():

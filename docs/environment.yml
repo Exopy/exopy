@@ -1,5 +1,5 @@
 channels:
-- ecpy
+- exopy
 - defaults
 
 dependencies:

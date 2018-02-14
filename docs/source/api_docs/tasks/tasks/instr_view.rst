@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.instr_view module
+exopy.tasks.tasks.instr_view module
 ==================================
 
-.. automodule:: ecpy.tasks.tasks.instr_view
+.. automodule:: exopy.tasks.tasks.instr_view
     :members:
     :undoc-members:
     :show-inheritance:

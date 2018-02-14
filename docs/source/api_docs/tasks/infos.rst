@@ -1,7 +1,7 @@
-ecpy.tasks.infos module
+exopy.tasks.infos module
 =======================
 
-.. automodule:: ecpy.tasks.infos
+.. automodule:: exopy.tasks.infos
     :members:
     :undoc-members:
     :show-inheritance:

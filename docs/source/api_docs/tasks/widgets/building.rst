@@ -1,7 +1,7 @@
-ecpy.tasks.widgets.building module
+exopy.tasks.widgets.building module
 ==================================
 
-.. automodule:: ecpy.tasks.widgets.building
+.. automodule:: exopy.tasks.widgets.building
     :members:
     :undoc-members:
     :show-inheritance:

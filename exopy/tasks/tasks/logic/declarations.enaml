@@ -1,0 +1,51 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Logic tasks declarations included in the task manager manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from ...api import Tasks, Task, Interface
+
+
+enamldef LogicTasks(Tasks):
+    """Logic tasks declarations.
+
+    """
+    path = 'exopy.tasks.tasks.logic'
+    group = 'logic'
+    Task:
+        task = 'conditional_task:ConditionalTask'
+        view = 'views.conditional_view:ConditionalView'
+
+    Task:
+        task = 'loop_exceptions_tasks:BreakTask'
+        view = 'views.loop_exceptions_views:BreakView'
+
+    Task:
+        task = 'loop_exceptions_tasks:ContinueTask'
+        view = 'views.loop_exceptions_views:ContinueView'
+
+    Task:
+        task = 'while_task:WhileTask'
+        view = 'views.while_view:WhileView'
+
+    Task:
+        task = 'loop_task:LoopTask'
+        view = 'views.loop_view:LoopView'
+
+        Interface:
+            interface = 'loop_iterable_interface:IterableLoopInterface'
+            views = ['views.loop_iterable_view:IterableLoopLabel',
+                     'views.loop_iterable_view:IterableLoopField']
+
+        Interface:
+            interface = 'loop_linspace_interface:LinspaceLoopInterface'
+            views = ['views.loop_linspace_view:LinspaceLoopView']

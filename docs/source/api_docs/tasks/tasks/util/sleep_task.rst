@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.util.sleep_task module
+exopy.tasks.tasks.util.sleep_task module
 =======================================
 
-.. automodule:: ecpy.tasks.tasks.util.sleep_task
+.. automodule:: exopy.tasks.tasks.util.sleep_task
     :members:
     :undoc-members:
     :show-inheritance:

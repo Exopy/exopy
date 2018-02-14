@@ -1,0 +1,171 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""App plugin manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import Extension, PluginManifest, ExtensionPoint
+from enaml.workbench.ui.api import ActionItem, Branding, MenuItem, ItemGroup
+from enaml.workbench.ui.workbench_window import WorkbenchWindow
+from enaml.icon import IconImage, Icon
+from enaml.image import Image
+import os
+
+#ICON_PATH = os.path.join(os.path.dirname(__file__), '..', 'icons', 'exopy.png')
+#ICON = Image(data=open(ICON_PATH, 'rb').read())
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def app_plugin_factory():
+    """Factory function for the app plugin.
+
+    """
+    from .app_plugin import AppPlugin
+    return AppPlugin()
+
+
+def application_factory():
+    """Factory function for the QtApplication used by Exopy.
+
+    Simply set the application icon and on Windows make sure the application
+    is not seen as a simple python interpreter.
+
+    """
+    from enaml.qt.qt_application import QtApplication
+    from enaml.qt import QtGui, QtCore
+    import sys
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
+    if not QtApplication.instance():
+        QtApplication()  # pragma: no cover
+    app = QtApplication.instance()
+    # TODO handle icons
+    #app._qapp.setWindowIcon(QtGui.QIcon(ICON_PATH))
+    if sys.platform == 'win32':
+        import ctypes
+        myappid = 'exopy.main_app' # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+    return app
+
+
+enamldef AppWindow(WorkbenchWindow):
+    """Custom window checking that no plugin veto the closing before closing.
+
+    """
+    closing ::
+        plugin = self.workbench.get_plugin('exopy.app')
+        plugin.validate_closing(self, change['value'])
+    closed ::
+        core = workbench.get_plugin('enaml.workbench.core')
+        core.invoke_command('enaml.workbench.ui.close_workspace',
+                            {}, workbench)
+        plugin = self.workbench.get_plugin('exopy.app')
+        plugin.run_app_cleanup()
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+STARTUP_EXT_DESC =\
+'''Plugins can contribute AppStartup to this point to customize the application
+start up. This is for example used by the preferences plugin to check that the
+user has defined a directory in which to store application data.'''
+
+CLOSING_EXT_DESC =\
+'''Plugins can contribute AppClosing to this point to add additional checks
+before closing the application. This is for example used by the measurement
+plugin to ensure that the user does not close the application while a measurement
+is running.'''
+
+CLOSED_EXT_DESC =\
+'''Plugins can contribute AppClosed to this point to add perform some clean up
+before starting to unregister plugin. This should ONLY be used when the logic
+cannot be implemented in the stop method of the plugin because the presence
+of other plugins is mandatory.'''
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef AppManifest(PluginManifest):
+    """Exopy app plugin manifest.
+
+    """
+    id = 'exopy.app'
+    factory = app_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'startup'
+        description = STARTUP_EXT_DESC
+
+    ExtensionPoint:
+        id = 'closing'
+        description = CLOSING_EXT_DESC
+
+    ExtensionPoint:
+        id = 'closed'
+        description = CLOSED_EXT_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'branding'
+        point = 'enaml.workbench.ui.branding'
+        Branding:
+            title = 'Exopy'
+#            icon = Icon(images=[IconImage(image=ICON)])
+
+    Extension:
+        id = 'window_factory'
+        point = 'enaml.workbench.ui.window_factory'
+        factory = lambda workbench: AppWindow(workbench=workbench)
+
+    Extension:
+        id = 'app_factory'
+        point = 'enaml.workbench.ui.application_factory'
+        factory = application_factory
+
+    Extension:
+        id = 'actions'
+        point = 'enaml.workbench.ui.actions'
+        MenuItem:
+            path = '/file'
+            label = 'File'
+            ItemGroup:
+                id = 'user'
+        MenuItem:
+            path = '/tools'
+            label = 'Tools'
+            ItemGroup:
+                id = 'user'
+        MenuItem:
+            path = '/workspace'
+            label = 'Workspace'
+            after = 'tools'
+            ItemGroup:
+                id = 'spaces'
+        ActionItem:
+            path = '/file/close'
+            label = 'Exit'
+            command = 'enaml.workbench.ui.close_window'
+        ActionItem:
+            path = '/workspace/close'
+            label = 'Close workspace'
+            command = 'enaml.workbench.ui.close_workspace'
+

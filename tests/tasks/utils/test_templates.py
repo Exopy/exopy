@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from future.builtins import str
 from configobj import ConfigObj
 
-from ecpy.tasks.utils.templates import save_template, load_template
+from exopy.tasks.utils.templates import save_template, load_template
 
 
 def test_save_template(tmpdir):

@@ -1,7 +1,7 @@
-ecpy.utils.widgets.qt_list_str_widget module
+exopy.utils.widgets.qt_list_str_widget module
 ============================================
 
-.. automodule:: ecpy.utils.widgets.qt_list_str_widget
+.. automodule:: exopy.utils.widgets.qt_list_str_widget
     :members:
     :undoc-members:
     :show-inheritance:

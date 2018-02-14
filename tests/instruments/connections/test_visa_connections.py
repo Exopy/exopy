@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,9 +14,9 @@ from __future__ import (division, unicode_literals, print_function,
 
 import enaml
 
-from ecpy.testing.util import show_widget, process_app_events
+from exopy.testing.util import show_widget, process_app_events
 with enaml.imports():
-    from ecpy.instruments.connections.visa_connections\
+    from exopy.instruments.connections.visa_connections\
         import (VisaRaw, VisaRS232, VisaGPIB, VisaUSB, VisaTCPIP)
 
 try:

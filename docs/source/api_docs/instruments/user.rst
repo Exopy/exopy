@@ -1,7 +1,7 @@
-ecpy.instruments.user module
+exopy.instruments.user module
 ============================
 
-.. automodule:: ecpy.instruments.user
+.. automodule:: exopy.instruments.user
     :members:
     :undoc-members:
     :show-inheritance:

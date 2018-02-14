@@ -1,4 +1,4 @@
-ecpy.tasks.tasks.util.views package
+exopy.tasks.tasks.util.views package
 ===================================
 
 Submodules

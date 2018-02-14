@@ -1,7 +1,7 @@
-ecpy.tasks.utils.templates module
+exopy.tasks.utils.templates module
 =================================
 
-.. automodule:: ecpy.tasks.utils.templates
+.. automodule:: exopy.tasks.utils.templates
     :members:
     :undoc-members:
     :show-inheritance:

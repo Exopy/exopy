@@ -1,7 +1,7 @@
-ecpy.app.log.manifest module
+exopy.app.log.manifest module
 ============================
 
-.. automodule:: ecpy.app.log.manifest
+.. automodule:: exopy.app.log.manifest
     :members:
     :undoc-members:
     :show-inheritance:

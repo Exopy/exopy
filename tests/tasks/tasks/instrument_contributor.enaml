@@ -1,0 +1,184 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Instrument plugin contributor used for testing.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+
+from atom.api import Dict
+from enaml.workbench.api import PluginManifest, Extension
+
+from exopy.instruments.api import (Driver, Connection, Settings, Starter,
+                                  ManufacturerAlias, InstrUser,
+                                  BaseConnection, BaseSettings,
+                                  Drivers, BaseStarter)
+
+from .false_driver import DummyStarter
+
+
+class TestConnection(BaseConnection):
+
+    defaults = Dict()
+
+    def gather_infos(self):
+        return {}
+
+
+class TestSettings(BaseSettings):
+
+    defaults = Dict()
+
+    def gather_infos(self):
+        return BaseSettings.gather_infos(self)
+
+
+enamldef InstrContributor(PluginManifest):
+    """Basic contributor providing all contributions required for testing.
+
+    """
+    id = 'exopy.instr_contrib1'
+
+    Extension:
+        id = 'drivers'
+        point = 'exopy.instruments.drivers'
+        Drivers:
+            Driver:
+                manufacturer = 'dummy'
+                model = '001'
+                architecture = 'test'
+                starter = 'false_starter'
+                driver = 'tasks.tasks.false_driver:FalseDriver'
+                connections = {'false_connection': {'slot': 1},
+                               'false_connection2': {'slot': 1},
+                               'false_connection3': {'slot': 1}}
+                settings = {'false_settings': {'host': 'local'},
+                            'false_settings2': {'host': 'local'},
+                            'false_settings3': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '001'
+            architecture = 'test'
+            starter = 'false_starter'
+            driver = 'tasks.tasks.false_driver:FalseDriver2'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '002'
+            architecture = 'test'
+            serie = 'dumb'
+            starter = 'false_starter'
+            driver = 'tasks.tasks.false_driver:FalseDriver3'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy'
+            model = '003'
+            serie = 'dumb'
+            architecture = 'test'
+            starter = 'false_starter'
+            driver = 'tasks.tasks.false_driver:FalseDriver4'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+        Driver:
+            manufacturer = 'dummy2'
+            model = '001'
+            architecture = 'test'
+            starter = 'false_starter'
+            kind = 'Lock-in'
+            driver = 'tasks.tasks.false_driver:FalseDriver5'
+            connections = {'false_connection': {'slot': 1}}
+            settings = {'false_settings': {'host': 'local'}}
+
+    Extension:
+        id = 'connections'
+        point = 'exopy.instruments.connections'
+        Connection:
+            id = 'false_connection'
+            description = 'False connection 1'
+            new => (workbench, defaults, read_only):
+                return TestConnection(defaults=defaults,
+                                      read_only=read_only)
+        Connection:
+            id = 'false_connection2'
+            description = 'False connection 2'
+            new => (workbench, defaults, read_only):
+                return TestConnection(declaration=self,
+                                      defaults=defaults,
+                                      read_only=read_only)
+        Connection:
+            id = 'false_connection3'
+            description = 'False connection 3'
+            new => (workbench, defaults, read_only):
+                return TestConnection(declaration=self,
+                                      defaults=defaults,
+                                      read_only=read_only)
+
+    Extension:
+        id = 'settings'
+        point = 'exopy.instruments.settings'
+        Settings:
+            id = 'false_settings'
+            description = 'False settings 1'
+            new => (workbench, defaults, read_only):
+                return TestSettings(defaults=defaults,
+                                    user_id=defaults.get('user_id', 'empty'),
+                                    read_only=read_only)
+        Settings:
+            id = 'false_settings2'
+            description = 'False settings 2'
+            new => (workbench, defaults, read_only):
+                return TestSettings(declaration=self,
+                                    defaults=defaults,
+                                    user_id=defaults.get('user_id', 'empty'),
+                                    read_only=read_only)
+        Settings:
+            id = 'false_settings3'
+            description = 'False settings 3'
+            new => (workbench, defaults, read_only):
+                return TestSettings(declaration=self,
+                                    defaults=defaults,
+                                    user_id=defaults.get('user_id', 'empty'),
+                                    read_only=read_only)
+
+    Extension:
+        id = 'starters'
+        point = 'exopy.instruments.starters'
+        Starter:
+            id = 'false_starter'
+            description = 'False starter'
+            starter = DummyStarter()
+
+    Extension:
+        id = 'users'
+        point = 'exopy.instruments.users'
+        InstrUser:
+            id = 'tests'
+            policy = 'releasable'
+            release_profiles => (workbench, profiles):
+                return profiles
+        InstrUser:
+            id = 'tests2'
+            policy = 'unreleasable'
+            release_profiles => (workbench, profiles):
+                pass
+        InstrUser:
+            id = 'tests3'
+            policy = 'releasable'
+            release_profiles => (workbench, profiles):
+                return sorted(profiles)[:1]
+
+    Extension:
+        id = 'aliases'
+        point = 'exopy.instruments.manufacturer_aliases'
+        ManufacturerAlias:
+            id = 'Dummy'
+            aliases = ['dummy']

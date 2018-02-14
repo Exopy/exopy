@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.base_tasks module
+exopy.tasks.tasks.base_tasks module
 ==================================
 
-.. automodule:: ecpy.tasks.tasks.base_tasks
+.. automodule:: exopy.tasks.tasks.base_tasks
     :members:
     :undoc-members:
     :show-inheritance:

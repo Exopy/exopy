@@ -1,7 +1,7 @@
-ecpy.measure.workspace.workspace module
+exopy.measurement.workspace.workspace module
 =======================================
 
-.. automodule:: ecpy.measure.workspace.workspace
+.. automodule:: exopy.measurement.workspace.workspace
     :members:
     :undoc-members:
     :show-inheritance:

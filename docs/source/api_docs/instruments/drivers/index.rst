@@ -1,4 +1,4 @@
-ecpy.instruments.drivers package
+exopy.instruments.drivers package
 ================================
 
 Submodules

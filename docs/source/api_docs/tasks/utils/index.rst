@@ -1,4 +1,4 @@
-ecpy.tasks.utils package
+exopy.tasks.utils package
 ========================
 
 Submodules

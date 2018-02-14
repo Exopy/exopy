@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,7 +19,7 @@ from time import sleep
 
 import pytest
 
-from ecpy.utils.flags import BitFlag
+from exopy.utils.flags import BitFlag
 
 
 @pytest.fixture

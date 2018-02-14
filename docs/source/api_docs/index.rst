@@ -9,7 +9,7 @@ Subpackages
 
     app <app/index>
     instruments <instruments/index>
-    measure <measure/index>
+    measurement <measurement/index>
     tasks <tasks/index>
     testing <testing/index>
     utils <utils/index>

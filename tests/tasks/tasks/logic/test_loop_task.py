@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,24 +18,24 @@ import pytest
 import enaml
 import numpy as np
 
-from ecpy.testing.tasks.util import CheckTask
-from ecpy.testing.util import (show_and_close_widget, show_widget,
-                               process_app_events)
-from ecpy.tasks.api import RootTask
-from ecpy.tasks.tasks.logic.loop_task import LoopTask
-from ecpy.tasks.tasks.logic.loop_iterable_interface\
+from exopy.testing.tasks.util import CheckTask
+from exopy.testing.util import (show_and_close_widget, show_widget,
+                                process_app_events)
+from exopy.tasks.api import RootTask
+from exopy.tasks.tasks.logic.loop_task import LoopTask
+from exopy.tasks.tasks.logic.loop_iterable_interface\
     import IterableLoopInterface
-from ecpy.tasks.tasks.logic.loop_linspace_interface\
+from exopy.tasks.tasks.logic.loop_linspace_interface\
     import LinspaceLoopInterface
-from ecpy.tasks.tasks.logic.loop_exceptions_tasks\
+from exopy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
 with enaml.imports():
-    from ecpy.tasks.tasks.logic.views.loop_view import LoopView
-    from ecpy.tasks.tasks.base_views import RootTaskView
+    from exopy.tasks.tasks.logic.views.loop_view import LoopView
+    from exopy.tasks.tasks.base_views import RootTaskView
 
 
-pytest_plugins = str('ecpy.testing.tasks.fixtures'),
+pytest_plugins = str('exopy.testing.tasks.fixtures'),
 
 
 @pytest.fixture
@@ -226,9 +226,9 @@ class TestLoopTask(object):
 
         self.root.update_preferences_from_members()
 
-        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
-                              'ecpy.LoopTask': LoopTask,
-                              'ecpy.CheckTask': CheckTask}
+        deps = {'exopy.task': {'exopy.RootTask': RootTask,
+                               'exopy.LoopTask': LoopTask,
+                               'exopy.CheckTask': CheckTask}
                 }
         new = RootTask.build_from_config(self.root.preferences, deps)
 
@@ -239,11 +239,11 @@ class TestLoopTask(object):
         prefs = self.root.preferences
         assert prefs['children_0'].sections[1] == 'task'
         del prefs['children_0']['task']
-        deps = {'ecpy.task': {'ecpy.RootTask': RootTask,
-                              'ecpy.LoopTask': LoopTask,
-                              'ecpy.CheckTask': CheckTask},
-                'ecpy.tasks.interface':
-                    {'ecpy.LoopTask:ecpy.IterableLoopInterface':
+        deps = {'exopy.task': {'exopy.RootTask': RootTask,
+                               'exopy.LoopTask': LoopTask,
+                               'exopy.CheckTask': CheckTask},
+                'exopy.tasks.interface':
+                    {'exopy.LoopTask:exopy.IterableLoopInterface':
                         IterableLoopInterface}
                 }
         new = RootTask.build_from_config(prefs, deps)
@@ -339,7 +339,7 @@ class TestLoopTask(object):
 
         """
         self.task.interface = linspace_interface
-        import ecpy.tasks.tasks.logic.loop_linspace_interface as li
+        import exopy.tasks.tasks.logic.loop_linspace_interface as li
         monkeypatch.setattr(li.np, 'arange', lambda x: x)
 
         test, traceback = self.task.check(test_instr=True)

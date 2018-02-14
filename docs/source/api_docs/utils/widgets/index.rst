@@ -1,4 +1,4 @@
-ecpy.utils.widgets package
+exopy.utils.widgets package
 ==========================
 
 Submodules

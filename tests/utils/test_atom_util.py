@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,9 +17,10 @@ from collections import OrderedDict
 import pytest
 from atom.api import (Unicode, Float, Enum, List, Typed, Int, Value,
                       Constant)
-from ecpy.utils.atom_util import (tagged_members, member_from_pref,
-                                  member_to_pref, HasPrefAtom,
-                                  ordered_dict_from_pref, ordered_dict_to_pref)
+from exopy.utils.atom_util import (tagged_members, member_from_pref,
+                                   member_to_pref, HasPrefAtom,
+                                   ordered_dict_from_pref,
+                                   ordered_dict_to_pref)
 
 
 class _Aaux(HasPrefAtom):

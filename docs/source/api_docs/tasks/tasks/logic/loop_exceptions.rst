@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.logic.loop_exceptions module
+exopy.tasks.tasks.logic.loop_exceptions module
 =============================================
 
-.. automodule:: ecpy.tasks.tasks.logic.loop_exceptions
+.. automodule:: exopy.tasks.tasks.logic.loop_exceptions
     :members:
     :undoc-members:
     :show-inheritance:

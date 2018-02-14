@@ -1,4 +1,4 @@
-ecpy.measure.workspace package
+exopy.measurement.workspace package
 ==============================
 
 Submodules
@@ -9,9 +9,9 @@ Submodules
    checks_display
    content
    manifest
-   measure_edition
-   measure_execution
-   measure_tracking
+   measurement_edition
+   measurement_execution
+   measurement_tracking
    monitors_window
    tools_edition
    workspace

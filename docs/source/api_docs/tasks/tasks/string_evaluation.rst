@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.string_evaluation module
+exopy.tasks.tasks.string_evaluation module
 =========================================
 
-.. automodule:: ecpy.tasks.tasks.string_evaluation
+.. automodule:: exopy.tasks.tasks.string_evaluation
     :members:
     :undoc-members:
     :show-inheritance:

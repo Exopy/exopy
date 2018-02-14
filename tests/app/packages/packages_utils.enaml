@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,12 +18,12 @@ enamldef Manifest1(PluginManifest):
     """Dummy manifest not declaring a priority.
 
     """
-    id = 'ecpy.test1'
+    id = 'exopy.test1'
 
 
 enamldef Manifest2(PluginManifest):
     """Dummy manifest declaring a priority.
 
     """
-    id = 'ecpy.test2'
+    id = 'exopy.test2'
     attr priority = 0

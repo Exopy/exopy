@@ -5,14 +5,14 @@
 Tasks and interfaces
 ====================
 
-Tasks form the backbone of Ecpy measurement principle. A task represents an
-action to perform during a measure. Tasks can be assembled in a hierarchical
+Tasks form the backbone of Exopy measurement principle. A task represents an
+action to perform during a measurement. Tasks can be assembled in a hierarchical
 manner with any level of nesting. Tasks support parallel execution (using
 threads) and the associated synchronizations, they can also exchange data
 through a common database.
 
 This section will first focus on the minimal amount of work necessary to create
-a new task and register it in Ecpy. This part will introduce another important
+a new task and register it in Exopy. This part will introduce another important
 concept which is the one of interfaces whose creation will be detailed in the
 following section. Finally more details about the internals of the tasks will
 be discussed.
@@ -109,13 +109,13 @@ simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
 (formatting and evaluation) :
 
 - for formatting only the value should be True, or 'Warn' if the error does not
-  forbids to enqueue the measure.
+  forbids to enqueue the measurement.
 - for formatting and evaluation it should be a |Feval| instance. See example.
 
 .. code-block:: python
 
     import numbers
-    from ecpy.tasks.api import validators as v
+    from exopy.tasks.api import validators as v
 
     class MyTask(SimpleTask):
         """MyTask description.
@@ -183,7 +183,7 @@ almost identical tasks (up to some parameters) that basically do the same job
 leads to code duplication which is something to be avoided (twice as many
 tests, maintenance, etc).
 
-To deal with such situations, Ecpy has a notion of interfaces for the tasks.
+To deal with such situations, Exopy has a notion of interfaces for the tasks.
 The idea is to delegate the actual execution to another object: 'the interface'
 which is selected based on a parameters (the instrument to use, the method to
 build an iterator, ...). Basically every task whose behavior is likely to be
@@ -260,7 +260,7 @@ For more informations about the Enaml syntax please give a look at
     Those widgets should be integrated inside the view layout.
 
 
-At this point your task is ready to be registered in Ecpy, however writing a
+At this point your task is ready to be registered in Exopy, however writing a
 bunch of unit tests for your task making sure it works as expected and will go
 on doing so is good idea. Give a look at :doc:`testing` for more details about
 writing tests and checking that your tests do cover all th possible cases.
@@ -271,11 +271,11 @@ Registering your task
 
 The last thing you need to do is to declare your task in a plugin manifest so
 that the main application can find it. To do so your plugin should contribute
-an extension to 'ecpy.tasks.declarations' providing |Tasks| and/or |Task|
+an extension to 'exopy.tasks.declarations' providing |Tasks| and/or |Task|
 objects.
 
 Let's say we need to declare a single task named 'MyTask'. The name of our
-extension package (see :doc:`glossary`) is named 'my_ecpy_plugin'.
+extension package (see :doc:`glossary`) is named 'my_exopy_plugin'.
 Let's look at the example below:
 
 .. code-block:: enaml
@@ -285,11 +285,11 @@ Let's look at the example below:
         id = 'my_plugin_id'
 
         Extension:
-            point = 'ecpy.tasks.declarations'
+            point = 'exopy.tasks.declarations'
 
             Tasks:
                 group = 'my_group'
-                path = 'my_ecpy_plugin'
+                path = 'my_exopy_plugin'
 
                 Task:
                     task = 'my_task:MyTask'
@@ -327,7 +327,7 @@ but only two of them must be given non-default values :
 - 'dependencies' : If the task has rutime dependencies other than instruments
   the ids of the corresponding analysers should be listed here.
 
-This is it. Now when starting Ecpy your new task should be listed.
+This is it. Now when starting Exopy your new task should be listed.
 
 .. note::
 
@@ -338,7 +338,7 @@ This is it. Now when starting Ecpy your new task should be listed.
     top level package declaring it followed by the name of the task. This
     allows to declare tasks with the same name in different extension packages.
 
-    ex : ecpy.LoopTask
+    ex : exopy.LoopTask
 
 
 .. _dev_tasks_new_interface:
@@ -402,7 +402,7 @@ When to use interfaces
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The problem solved for tasks by using interfaces can be found also interfaces.
-That's why Ecpy allow to have interfaces for interfaces without depth limit.
+That's why Exopy allow to have interfaces for interfaces without depth limit.
 Declaring an interfaceable interface is done in the same way, an interfaceable
 task. The only difference is the use of the |InterfaceableInterfaceMixin| class
 instead of the |InterfaceableTaskMixin|.
@@ -440,7 +440,7 @@ it is bound.
 
 Let's say we need to declare an interface named *MyInterface*. This interface
 is linked to *MyTask*. The name of our extension package (see :doc:`glossary`)
-is 'my_ecpy_plugin'.
+is 'my_exopy_plugin'.
 Let's look at the example below:
 
 .. code-block:: enaml
@@ -450,11 +450,11 @@ Let's look at the example below:
         id = 'my_plugin_id'
 
         Extension:
-            point = 'ecpy.tasks.declarations'
+            point = 'exopy.tasks.declarations'
 
             Tasks:
                 group = 'my_group'
-                path = 'my_ecpy_plugin'
+                path = 'my_exopy_plugin'
 
                 Task:
                     task = 'my_task:MyTask'
@@ -493,15 +493,15 @@ example :
         id = 'my_plugin_id'
 
         Extension:
-            point = 'ecpy.tasks.declarations'
+            point = 'exopy.tasks.declarations'
 
             Interfaces:
-                path = 'my_ecpy_plugin.interfaces'
+                path = 'my_exopy_plugin.interfaces'
 
                 Interface:
                     interface = 'my_interface:MyInterface'
                     views = ['views.my_interface:MyInterfaceView']
-                    extended = ['ecpy.LoopTask']
+                    extended = ['exopy.LoopTask']
 
 .. note::
 
@@ -516,13 +516,13 @@ example :
 Creating your own task filter
 -----------------------------
 
-As the number of tasks available in Ecpy grows, finding the task you need might
-become a bit tedious. To make searching through tasks easier Ecpy can filter
+As the number of tasks available in Exopy grows, finding the task you need might
+become a bit tedious. To make searching through tasks easier Exopy can filter
 the tasks from which to choose from. A number a basic filters are built-in but
 one can easily add more.
 
 To add a new filter you simply need to contribute a |TaskFilter| to the
-'ecpy.tasks.filters' extension point, as in the following example :
+'exopy.tasks.filters' extension point, as in the following example :
 
 .. code-block:: enaml
 
@@ -531,7 +531,7 @@ To add a new filter you simply need to contribute a |TaskFilter| to the
         id = 'my_plugin_id'
 
         Extension:
-            point = 'ecpy.tasks.filters'
+            point = 'exopy.tasks.filters'
 
             TaskFilter:
                 id = 'MyTaskFilter'
@@ -636,7 +636,7 @@ Declaring the configurer
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finally you must declare the config in a manifest by contributing an
-extension to the 'ecpy.tasks.configs' extension point. This is identical to
+extension to the 'exopy.tasks.configs' extension point. This is identical to
 how tasks are declared but relies on the |TaskConfigs| (instead of |Tasks|) and
 |TaskConfig| (instead of |Task|) objects. The base task class for which the
 configurer is meant should be returned by the get_task_class method.

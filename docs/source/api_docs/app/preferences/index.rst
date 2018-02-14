@@ -1,4 +1,4 @@
-ecpy.app.preferences package
+exopy.app.preferences package
 ============================
 
 Submodules

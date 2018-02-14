@@ -1,7 +1,7 @@
-ecpy.tasks.manifest module
+exopy.tasks.manifest module
 ==========================
 
-.. automodule:: ecpy.tasks.manifest
+.. automodule:: exopy.tasks.manifest
     :members:
     :undoc-members:
     :show-inheritance:

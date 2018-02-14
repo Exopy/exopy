@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,18 +19,18 @@ from future.utils import python_2_unicode_compatible
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.dependencies.manifest import DependenciesManifest
+    from exopy.app.dependencies.manifest import DependenciesManifest
 
     from .dependencies_utils import (BuildDep, RuntimeDep)
 
 
-ANALYSE = 'ecpy.app.dependencies.analyse'
+ANALYSE = 'exopy.app.dependencies.analyse'
 
-VALIDATE = 'ecpy.app.dependencies.validate'
+VALIDATE = 'exopy.app.dependencies.validate'
 
-COLLECT = 'ecpy.app.dependencies.collect'
+COLLECT = 'exopy.app.dependencies.collect'
 
-RELEASE = 'ecpy.app.dependencies.release_runtimes'
+RELEASE = 'exopy.app.dependencies.release_runtimes'
 
 
 # =============================================================================
@@ -49,7 +49,7 @@ def dep_workbench(workbench):
 
     yield workbench
 
-    workbench.unregister('ecpy.app.dependencies')
+    workbench.unregister('exopy.app.dependencies')
     workbench.unregister('enaml.workbench.core')
 
 
@@ -162,7 +162,7 @@ def test_handling_analysing_errors(dep_workbench, dependent_object):
     """Test handling errors occuring when analysing dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'err', True)
@@ -186,7 +186,7 @@ def test_handling_analysing_exception_in_build(dep_workbench,
     """Test handling errors occuring when analysing dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'exc', True)
@@ -206,7 +206,7 @@ def test_handling_analysing_exception_in_runtime(dep_workbench,
     """Test handling errors occuring when analysing dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for r in plugin.run_deps_analysers.contributions.values():
         setattr(r, 'exc', True)
@@ -237,7 +237,7 @@ def test_handling_missing_runtime_analyser(dep_workbench, dependent_object):
     collector is missing.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'run', ['dummy'])
 
@@ -254,7 +254,7 @@ def test_handling_runtime_analyser_not_matching_a_collector(dep_workbench,
     collector is missing.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'run', ['run_test2'])
 
@@ -318,7 +318,7 @@ def test_handling_validating_exceptions(dep_workbench, build_deps):
     """Test dealing with unhandled exceptions.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'exc', True)
@@ -362,7 +362,7 @@ def test_collecting_runtime(dep_workbench, runtime_deps):
     """Test collecting runtime dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
     core = dep_workbench.get_plugin('enaml.workbench.core')
     dep = core.invoke_command(COLLECT, {'kind': 'runtime',
                                         'dependencies': runtime_deps,
@@ -376,7 +376,7 @@ def test_collecting_unavailable_runtime(dep_workbench, runtime_deps):
     """Test collecting unavailable runtimes.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
     core = dep_workbench.get_plugin('enaml.workbench.core')
 
     for r in plugin.run_deps_collectors.contributions.values():
@@ -399,7 +399,7 @@ def test_handling_collection_errors(dep_workbench, build_deps):
     b_dep = core.invoke_command(COLLECT,
                                 {'kind': 'build',
                                  'dependencies': build_deps,
-                                 'owner': 'ecpy.test'})
+                                 'owner': 'exopy.test'})
 
     assert 't' in b_dep.errors['test']
 
@@ -408,7 +408,7 @@ def test_handling_collection_exceptions_in_build(dep_workbench, build_deps):
     """Test handling errors occuring when collecting dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for b in plugin.build_deps.contributions.values():
         setattr(b, 'exc', True)
@@ -417,7 +417,7 @@ def test_handling_collection_exceptions_in_build(dep_workbench, build_deps):
     b_dep = core.invoke_command(COLLECT,
                                 {'kind': 'build',
                                  'dependencies': build_deps,
-                                 'owner': 'ecpy.test'})
+                                 'owner': 'exopy.test'})
 
     assert 'test' in b_dep.errors
 
@@ -427,7 +427,7 @@ def test_handling_collection_exceptions_in_runtime(dep_workbench,
     """Test handling errors occuring when collecting dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
 
     for r in plugin.run_deps_collectors.contributions.values():
         setattr(r, 'exc', True)
@@ -436,7 +436,7 @@ def test_handling_collection_exceptions_in_runtime(dep_workbench,
     r_dep = core.invoke_command(COLLECT,
                                 {'kind': 'runtime',
                                  'dependencies': runtime_deps,
-                                 'owner': 'ecpy.test'})
+                                 'owner': 'exopy.test'})
 
     assert 'test_run_collect' in r_dep.errors
 
@@ -481,7 +481,7 @@ def test_releasing_runtimes(dep_workbench, runtime_deps):
     """Test releasing runtime dependencies.
 
     """
-    plugin = dep_workbench.get_plugin('ecpy.app.dependencies')
+    plugin = dep_workbench.get_plugin('exopy.app.dependencies')
     core = dep_workbench.get_plugin('enaml.workbench.core')
     dep = core.invoke_command(COLLECT, {'kind': 'runtime',
                                         'dependencies': runtime_deps,
@@ -505,5 +505,5 @@ def test_importing_api():
     """Test importing the definitions found in the api.py file.
 
     """
-    from ecpy.app.dependencies import api
+    from exopy.app.dependencies import api
     assert api.__all__

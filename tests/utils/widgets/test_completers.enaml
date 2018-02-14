@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -32,14 +32,14 @@ from enaml.widgets.api import (Window, Container, PushButton, Field,
                                MultilineField, GroupBox)
 from enaml.layout.api import vbox, hbox, spacer
 
-# Assume that the test is run against an installed version of ecpy and if not
+# Assume that the test is run against an installed version of exopy and if not
 # prepend path to sys.path.
 try:
-    from ecpy.utils.widgets.qt_completers import (QtLineCompleter,
+    from exopy.utils.widgets.qt_completers import (QtLineCompleter,
                                                   QtTextCompleter)
 except ImportError:
     sys.path.insert(0, os.path.abspath('....'))
-    from ecpy.utils.widgets.qt_completers import (QtLineCompleter,
+    from exopy.utils.widgets.qt_completers import (QtLineCompleter,
                                                   QtTextCompleter)
 
 

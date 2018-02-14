@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -14,10 +14,10 @@ from __future__ import (division, unicode_literals, print_function,
 
 import enaml
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.instruments.widgets.profile_selection\
+    from exopy.instruments.widgets.profile_selection\
         import (ProfileSelectionDialog)
 
 
@@ -36,8 +36,8 @@ def test_selecting_profile_from_scratch(prof_plugin, process_and_sleep):
 
     d.connection = 'false_connection1'
     d.settings = 'false_settings1'
-    d.driver = 'tests.test.FalseDriver%s' % ('' if d.driver.endswith('2')
-                                             else 2)
+    d.driver = 'instruments.test.FalseDriver%s' % ('' if d.driver.endswith('2')
+                                                   else 2)
     assert not d.connection
     assert not d.settings
     process_and_sleep()
@@ -56,14 +56,15 @@ def test_editing_a_previous_selection(prof_plugin, process_and_sleep):
 
     """
     d = ProfileSelectionDialog(plugin=prof_plugin,
-                               profile='fp2', driver='tests.test.FalseDriver2',
+                               profile='fp2',
+                               driver='instruments.test.FalseDriver2',
                                connection='false_connection',
                                settings='false_settings')
     d.show()
     process_and_sleep()
 
     assert d.profile == 'fp2'
-    assert d.driver == 'tests.test.FalseDriver2'
+    assert d.driver == 'instruments.test.FalseDriver2'
     assert d.connection == 'false_connection'
     assert d.settings == 'false_settings'
 

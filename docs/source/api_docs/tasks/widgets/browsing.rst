@@ -1,7 +1,7 @@
-ecpy.tasks.widgets.browsing module
+exopy.tasks.widgets.browsing module
 ==================================
 
-.. automodule:: ecpy.tasks.widgets.browsing
+.. automodule:: exopy.tasks.widgets.browsing
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,7 @@
-ecpy.instruments.connections.visa_connections module
+exopy.instruments.connections.visa_connections module
 ====================================================
 
-.. automodule:: ecpy.instruments.connections.visa_connections
+.. automodule:: exopy.instruments.connections.visa_connections
     :members:
     :undoc-members:
     :show-inheritance:

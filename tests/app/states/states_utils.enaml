@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 from atom.api import Atom, Unicode
 from enaml.workbench.api import PluginManifest, Plugin, Extension
 
-from ecpy.app.states.state import State
+from exopy.app.states.state import State
 
 
 class _State(Plugin):
@@ -34,7 +34,7 @@ enamldef StateContributor(PluginManifest):
 
     Extension:
         id = 'state'
-        point = u'ecpy.app.states.state'
+        point = u'exopy.app.states.state'
         State:
             id = 'test.states.state'
             sync_members = ['string']

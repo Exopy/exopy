@@ -1,7 +1,7 @@
-ecpy.measure.engines.selection module
+exopy.measurement.engines.selection module
 =====================================
 
-.. automodule:: ecpy.measure.engines.selection
+.. automodule:: exopy.measurement.engines.selection
     :members:
     :undoc-members:
     :show-inheritance:

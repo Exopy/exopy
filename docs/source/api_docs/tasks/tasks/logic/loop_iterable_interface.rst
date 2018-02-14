@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.logic.loop_iterable_interface module
+exopy.tasks.tasks.logic.loop_iterable_interface module
 =====================================================
 
-.. automodule:: ecpy.tasks.tasks.logic.loop_iterable_interface
+.. automodule:: exopy.tasks.tasks.logic.loop_iterable_interface
     :members:
     :undoc-members:
     :show-inheritance:

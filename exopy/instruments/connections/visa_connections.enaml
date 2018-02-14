@@ -1,0 +1,357 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""VISA connection information edition tools.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import logging
+
+from enaml.core.api import Conditional
+from enaml.widgets.api import Field, Label, Form, CheckBox, ObjectCombo
+from enaml.layout.api import hbox, vbox, grid, align
+from enaml.stdlib.fields import IntField
+
+from .base_connection import BaseConnection, Connection
+
+logger = logging.getLogger(__name__)
+
+
+enamldef VisaRaw(BaseConnection): main:
+    """Connection allowing to enter directly the VISA resource name.
+
+    This allows to support VISA aliases.
+
+    """
+    #: Full visa resource name. Can be an attr or an address added manually.
+    attr resource_name = ''
+
+    constraints = [hbox(rn_lab, rn_val)]
+
+    Label: rn_lab:
+        text = 'Resource name'
+    Field: rn_val:
+        enabled << not main.read_only
+        text := resource_name
+
+    gather_infos => ():
+        return {'resource_name': self.resource_name}
+
+
+enamldef BaseVisaConnection(BaseConnection): main:
+    """Base class for all connection relying on the VISA protocol.
+
+    Names are expected to match the ones found in PyVISA.
+
+    """
+    #: Type of connection (GPIB, USB, etc). This should not be editable
+    attr interface_type = ''
+
+    #: Resource class used in the connection (INSTR, RAW (USB), SOCKET(TCPIP))
+    attr resource_class = ''
+
+    #: List of all the names that should be returned by gather_infos.
+    attr infos : list = ['interface_type', 'resource_class']
+
+    alias rc_lab : rc_label
+    alias rc_val : rc_value
+
+    Label: rc_label:
+        text = 'Resource class'
+
+    ObjectCombo: rc_value:
+        enabled << not main.read_only
+        items = ['INSTR']
+        selected := resource_class
+
+    gather_infos => ():
+        return {k: getattr(self, k) for k in self.infos}
+
+
+enamldef VisaRS232(BaseVisaConnection): main:
+    """Connection settings for serial instruments.
+
+    """
+    #: Serial port on which the instrument is connected. The visa address makes
+    #: it look like a board number hence the name.
+    attr board = '0'
+
+    title = 'VISA : serial'
+
+    interface_type = 'ASRL'
+    resource_class = 'INSTR'
+    rc_val.enabled = False
+
+    constraints = [grid((b_lab, b_val), (rc_lab, rc_val),
+                        row_align='v_center')]
+
+    initialized ::
+        self.infos.append('board')
+
+    Label: b_lab:
+        text = 'Board/Port'
+    IntField: b_val:
+        enabled << not main.read_only
+        minimum = 0
+        text := board
+
+
+enamldef VisaGPIB(BaseVisaConnection): main:
+    """Connection settings for GPIB instruments.
+
+    """
+    #: Index of the GPIB board to which this instrument is connected.
+    attr board = '0'
+
+    #: GPIB address of the instrument.
+    attr primary_address = '0'
+
+    #: Secondary GPIB address to use.
+    attr secondary_address = '0'
+
+    title = 'VISA : GPIB'
+
+    interface_type = 'GPIB'
+    resource_class = 'INSTR'
+    rc_val.enabled = False
+
+    constraints << ([grid((a_lab, a_val), (rc_lab, rc_val), (adv,),
+                          *list(zip(adv_wid.items[0::2], adv_wid.items[1::2])),
+                          row_align='v_center')
+                     ])
+
+    initialized ::
+        self.infos.extend(['board', 'primary_address', 'secondary_address'])
+
+    Label: a_lab:
+        text = 'Address'
+    IntField: a_val:
+        enabled << not main.read_only
+        minimum = 0
+        maximum = 30
+        text := primary_address
+
+    CheckBox: adv:
+        text = 'Advanced settings'
+
+    Conditional: adv_wid:
+        condition << adv.checked
+
+        Label: b_lab:
+            text = 'Board'
+            tool_tip = ('Index of the board to use. Meaningful only if\n'
+                        'multiple GPIB board are connected to the computer.')
+        IntField: b_val:
+            enabled << not main.read_only
+            minimum = 0
+            tool_tip = b_lab.tool_tip
+            text := board
+
+        Label: sa_lab:
+            text = 'Secondary address'
+        IntField: sa_val:
+            enabled << not main.read_only
+            minimum = 0
+            text := secondary_address
+
+
+enamldef VisaUSB(BaseVisaConnection): main:
+    """Connection settings for USB instruments.
+
+    """
+    #: Index of the USB board to which this instrument is connected.
+    attr board = '0'
+
+    #: Manufacturer ID (first part of the USB address).
+    attr manufacturer_id = ''
+
+    #: Model code (second part of the USB address).
+    attr model_code = ''
+
+    #: Serial number of the instrument (third part of the address)
+    attr serial_number = ''
+
+    #: USB interface number.
+    attr usb_interface_number = '0'
+
+    attr address_format = ('A USB address is of the following format :\n'
+                           '{manufacturer ID}::{model code}::{serial number}')
+
+    title = 'VISA : USB'
+
+    interface_type = 'USB'
+    resource_class = 'INSTR'
+    rc_val.items = ['INSTR', 'RAW']
+
+    constraints << ([grid((m_lab, m_val), (mc_lab, mc_val), (sr_lab, sr_val),
+                          (rc_lab, rc_val), (adv,),
+                          *list(zip(adv_wid.items[0::2], adv_wid.items[1::2])),
+                          row_align='v_center')
+                    ])
+
+    initialized ::
+        self.infos.extend(['board', 'manufacturer_id', 'model_code',
+                           'serial_number', 'usb_interface_number'])
+
+    Label: m_lab:
+        text = 'Manufacturer ID'
+    Field: m_val:
+        enabled << not main.read_only
+        tool_tip = address_format
+        text := manufacturer_id
+
+    Label: mc_lab:
+        text = 'Model code'
+    Field: mc_val:
+        enabled << not main.read_only
+        tool_tip = address_format
+        text := model_code
+
+    Label: sr_lab:
+        text = 'Serial number'
+    Field: sr_val:
+        enabled << not main.read_only
+        tool_tip = address_format
+        text := serial_number
+
+    CheckBox: adv:
+        text = 'Advanced settings'
+
+    Conditional: adv_wid:
+        condition << adv.checked
+
+        Label: b_lab:
+            text = 'Board'
+            tool_tip = ('Index of the board to use. Meaningful only if\n'
+                        'multiple USB boards are connected to the computer.')
+        IntField:
+            minimum = 0
+            enabled << not main.read_only
+            tool_tip = b_lab.tool_tip
+            text := board
+
+        Label:
+            text = 'USB interface number'
+        IntField:
+            enabled << not main.read_only
+            minimum = 0
+            text := usb_interface_number
+
+
+enamldef VisaTCPIP(BaseVisaConnection): main:
+    """Connection settings for USB instruments.
+
+    """
+    #: Index of the ethernet board to which this instrument is connected.
+    attr board = '0'
+
+    #: IP address of the instrument.
+    attr host_address = ''
+
+    #: LAN device name of the instrument (INSTR resource class only)
+    attr lan_device_name = 'inst0'
+
+    #: Port to which open the socket connection (SOCKET resource class only)
+    attr port = '0'
+
+    title = 'VISA : TCPIP'
+
+    interface_type = 'TCPIP'
+    resource_class = 'INSTR'
+    rc_val.items = ['INSTR', 'SOCKET']
+
+    layout_constraints => ():
+        rows = [(a_lab, a_val)]
+        if resource_class == 'SOCKET':
+            rows.append((p_lab, p_val))
+        rows.append((rc_lab, rc_val))
+        rows.append((adv,))
+        if adv.checked:
+            end = 4 if resource_class == 'INSTR' else 2
+            widgets = self.widgets()
+            length = len(widgets)
+            rows.extend(zip(widgets[length-end:length:2],
+                            widgets[length-end+1:length:2]))
+
+        return [grid(*rows, row_align='v_center')]
+
+    initialized ::
+        self.infos.extend(['board', 'host_address', 'lan_device_name', 'port'])
+
+    gather_infos => ():
+        infos = BaseVisaConnection.gather_infos(self)
+        if resource_class == 'INSTR':
+            del infos['port']
+        else:
+            del infos['lan_device_name']
+        return infos
+
+    Label: a_lab:
+        text = 'IP address'
+    Field: a_val:
+        enabled << not main.read_only
+        text := host_address
+
+    Label: p_lab:
+        visible << resource_class == 'SOCKET'
+        text = 'Port'
+    IntField: p_val:
+        visible << resource_class == 'SOCKET'
+        enabled << not main.read_only
+        minimum = 0
+        text := port
+
+    CheckBox: adv:
+        text = 'Advanced settings'
+
+    Conditional: adv_wid:
+        condition << adv.checked
+
+        Label: b_lab:
+            text = 'Board'
+            tool_tip = ('Index of the board to use. Meaningful only if\n'
+                        'multiple ethernet boards are connected to the\n'
+                        'computer.')
+        IntField:
+            minimum = 0
+            tool_tip = b_lab.tool_tip
+            enabled << not main.read_only
+            text := board
+
+        Conditional:
+            condition << resource_class == 'INSTR'
+
+            Label:
+                text = 'LAN device name'
+            Field:
+                enabled << not main.read_only
+                text := lan_device_name
+
+
+enamldef VisaConnection(Connection):
+    """Convenience class to declare a VISA connection.
+
+    """
+    new => (workbench, defaults, read_only):
+        from . import visa_connections
+        cls = getattr(visa_connections, self.id)
+        obj = cls()
+        obj.initialize()
+        allowed = set(obj.gather_infos())
+        unknown = set(defaults) - allowed
+        if unknown:
+            msg = ('When creating %s connection had to remove unknown '
+                   'arguments %s.')
+            logger.info(msg % (self.id, unknown))
+            defaults = {k: v for k, v in defaults.items() if k in allowed}
+
+        conn = cls(declaration=self, **defaults)
+        conn.read_only = read_only
+        return conn

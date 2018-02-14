@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,12 +16,12 @@ import pytest
 import enaml
 from multiprocessing import Event
 
-from ecpy.testing.tasks.util import CheckTask
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.api import RootTask
-from ecpy.tasks.tasks.logic.conditional_task import ConditionalTask
+from exopy.testing.tasks.util import CheckTask
+from exopy.testing.util import show_and_close_widget
+from exopy.tasks.api import RootTask
+from exopy.tasks.tasks.logic.conditional_task import ConditionalTask
 with enaml.imports():
-    from ecpy.tasks.tasks.logic.views.conditional_view import ConditionalView
+    from exopy.tasks.tasks.logic.views.conditional_view import ConditionalView
 
 
 class TestConditionTask(object):

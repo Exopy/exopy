@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.logic.while_task module
+exopy.tasks.tasks.logic.while_task module
 ========================================
 
-.. automodule:: ecpy.tasks.tasks.logic.while_task
+.. automodule:: exopy.tasks.tasks.logic.while_task
     :members:
     :undoc-members:
     :show-inheritance:

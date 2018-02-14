@@ -1,0 +1,222 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Log plugin manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import os
+import sys
+import atexit
+import logging
+from enaml.workbench.api import PluginManifest, Extension
+from enaml.workbench.core.api import Command
+
+from ...utils.plugin_tools import make_handler
+from ..api import AppStartup
+from ..states.api import State
+from .tools import (DayRotatingTimeHandler, StreamToLogRedirector)
+
+PLUGIN_ID ='exopy.app.logging'
+
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def log_plugin_factory():
+    """ Factory function for the LogPlugin.
+
+    """
+    from .plugin import LogPlugin
+    return LogPlugin()
+
+
+# =============================================================================
+# --- Startup handler ---------------------------------------------------------
+# =============================================================================
+
+def start_logging(workbench, cmd_args):
+    """Start logging system and register default handlers.
+
+    """
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    core = workbench.get_plugin('enaml.workbench.core')
+    state = core.invoke_command('exopy.app.states.get',
+                                {'state_id': 'exopy.app.directory'})
+
+    log_dir = os.path.join(state.app_directory, 'logs')
+    # Create log dir if it does not exist.
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+
+    log_plugin = workbench.get_plugin(PLUGIN_ID)
+
+    # Add day rotating handler to the root logger.
+    handler = DayRotatingTimeHandler(os.path.join(log_dir, 'exopy.log'))
+    handler.setLevel(logging.DEBUG)
+    aux = '%(asctime)s | %(processName)s | %(levelname)s | %(message)s'
+    formatter = logging.Formatter(aux)
+    handler.setFormatter(formatter)
+    log_plugin.add_handler('exopy.file_log', handler)
+
+    # Add GUI handler to root logger and store model.
+    log_plugin.gui_model = log_plugin.add_handler('exopy.gui_log', mode='ui')[0]
+
+    # Automatic redirection of stdout and stderr to the log system if requested
+    if not cmd_args.nocapture:
+        redir_stdout = StreamToLogRedirector(logger)
+        redir_stderr = StreamToLogRedirector(logger, stream_type='stderr')
+        sys.stdout = redir_stdout
+        sys.stderr = redir_stderr
+
+    logger.info('Log system started.')
+    # Clean up upon application exit.
+    atexit.register(logging.shutdown)
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+ADD_HANDLER_DESCRIPTION = \
+"""Add a handler to the specified logger.
+
+Parameters
+----------
+id : unicode
+    Id of the new handler. This id should be unique.
+
+handler : logging.Handler, optional
+    Handler to add.
+
+logger : unicode, optional
+    Name of the logger to which the handler should be added. By default
+    the handler is added to the root logger.
+
+mode : {'ui', }, optional
+    Conveninence to add a simple logger. If this argument is specified,
+    handler will be ignored and the command will return useful
+    references (the model to which can be connected a ui for the 'ui'
+    mode).
+
+Returns
+-------
+refs : list
+    List of useful reference, empty if no mode is selected.
+
+"""
+
+REMOVE_HANDLER_DESCRIPTION = \
+"""Remove the specified handler.
+
+Parameters
+----------
+id : unicode
+    Id of the handler to remove.
+
+"""
+
+ADD_FILTER_DESCRIPTION = \
+"""Add a filter to the specified handler.
+
+Parameters
+----------
+id : unicode
+    Id of the filter to add.
+
+filter : object
+    Filter to add to the specified handler (object implemeting a filter
+    method).
+
+handler_id : unicode
+    Id of the handler to which this filter should be added
+
+"""
+
+REMOVE_FILTER_DESCRIPTION = \
+"""Remove the specified filter.
+
+Parameters
+----------
+id : unicode
+    Id of the filter to remove.
+
+"""
+
+SET_FORMATTER_DESCRIPTION = \
+"""Set the formatter of the specified handler.
+
+Parameters
+----------
+handler_id : unicode
+    Id of the handler whose formatter shoudl be set.
+
+formatter : Formatter
+    Formatter for the handler.
+
+"""
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef LogManifest(PluginManifest):
+    """Manifest for the plugin handling logging for an application.
+
+    """
+    id = PLUGIN_ID
+    factory = log_plugin_factory
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+    Extension:
+        id = 'startup'
+        point = 'exopy.app.startup'
+        AppStartup:
+            id = 'exopy.app.logging'
+            priority = 1
+            run => (workbench, cmd_args):
+                start_logging(workbench, cmd_args)
+
+    Extension:
+        id = 'state'
+        point = 'exopy.app.states.state'
+        State:
+            id = 'exopy.app.logging'
+            sync_members = ['handler_ids', 'filter_ids', 'gui_model']
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.app.logging.add_handler'
+            description = ADD_HANDLER_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'add_handler')
+        Command:
+            id = 'exopy.app.logging.remove_handler'
+            description = REMOVE_HANDLER_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'remove_handler')
+        Command:
+            id = 'exopy.app.logging.add_filter'
+            description = ADD_FILTER_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'add_filter')
+        Command:
+            id = 'exopy.app.logging.remove_filter'
+            description = REMOVE_FILTER_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'remove_filter')
+        Command:
+            id = 'exopy.app.logging.set_formatter'
+            description = SET_FORMATTER_DESCRIPTION
+            handler =  make_handler(PLUGIN_ID, 'set_formatter')

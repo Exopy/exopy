@@ -1,7 +1,7 @@
-ecpy.tasks.tasks.validators module
+exopy.tasks.tasks.validators module
 ==================================
 
-.. automodule:: ecpy.tasks.tasks.validators
+.. automodule:: exopy.tasks.tasks.validators
     :members:
     :undoc-members:
     :show-inheritance:

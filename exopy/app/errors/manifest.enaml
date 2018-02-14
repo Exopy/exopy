@@ -1,0 +1,236 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Plugin centralizing the application error handling.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import logging
+from pprint import pformat
+from collections import defaultdict, Mapping
+
+from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem
+from enaml.widgets.api import MultilineField
+
+from .errors import ErrorHandler
+from ..states.state import State
+from .widgets import BasicErrorsDisplay, HierarchicalErrorsDisplay
+from ...utils.traceback import format_exc
+from ...utils.mapping_utils import recursive_update
+from ...utils.plugin_tools import make_handler
+
+PLUGIN_ID ='exopy.app.errors'
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def errors_plugin_factory():
+    """ Factory function for the LogPlugin.
+
+    """
+    from .plugin import ErrorsPlugin
+    return ErrorsPlugin()
+
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+HANDLER_EXT_DESCRIPTION = \
+"""Plugins can contribute ErrorHandler to this point to add a new way of
+signaling errors.
+
+"""
+
+
+SIGNAL_HANDLER_DESCRIPTION = \
+"""Signal that an error occured.
+
+Parameters
+----------
+kind : unicode
+    The kind of the error which occured. It should match a registered
+    ErrorHandler id.
+
+**kwargs :
+    Keyword arguments depending on the handler, refer to the handler
+    description for more details.
+
+"""
+
+
+REPORT_HANDLER_DESCRIPTION = \
+"""Display a report of all the errors.
+
+Parameters
+----------
+kind : unicode, optional
+    A kind of error to which restrict the report.
+
+"""
+
+
+ENTER_ERROR_GATHERING_DESCRIPTION =\
+"""Start gathering errors to generate a single report.
+
+"""
+
+
+EXIT_ERROR_GATHERING_DESCRIPTION =\
+"""Exit gathering mode when called as many times as enter, errors are processed
+and reported.
+
+"""
+
+
+INSTALL_EXCEPTHOOK_DESCRIPTION =\
+"""Setup a sys.excepthook providing nicer user experience.
+
+"""
+
+
+ERROR_DESCRIPTION =\
+"""Generic error handler, log and warn user (popup window).
+
+The handler expect to find a 'message' key in the passed infos.
+
+"""
+
+
+EXTENSION_ERR_DESCRIPTION =\
+"""Specific handler for extension loading errors.
+
+The handler expects the 'point' to which the extension was contributing and
+an 'errors' dictionary describing the errors that occured.
+
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef ErrorsManifest(PluginManifest):
+    """Plugin centralizing the handling of errors.
+
+    """
+    id = PLUGIN_ID
+    factory = errors_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'handler'
+        description = HANDLER_EXT_DESC
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.app.errors.signal'
+            description = SIGNAL_HANDLER_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'signal')
+        Command:
+            id = 'exopy.app.errors.report'
+            description = REPORT_HANDLER_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'report')
+        Command:
+            id = 'exopy.app.errors.enter_error_gathering'
+            description = ENTER_ERROR_GATHERING_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'enter_error_gathering')
+        Command:
+            id = 'exopy.app.errors.exit_error_gathering'
+            description = EXIT_ERROR_GATHERING_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'exit_error_gathering')
+        Command:
+            id = 'exopy.app.errors.install_excepthook'
+            description = INSTALL_EXCEPTHOOK_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'install_excepthook')
+
+    Extension:
+        id = 'menus'
+        point = 'enaml.workbench.ui.actions'
+        ActionItem:
+            path = 'tools/errors'
+            label = 'Show errors report'
+            command = 'exopy.app.errors.report'
+
+    Extension:
+        id = 'state'
+        point = 'exopy.app.states.state'
+        State:
+            id = 'exopy.app.errors'
+            description = 'Give access to the registered handlers ids.'
+            sync_members = ['errors']
+
+    Extension:
+        id = 'err_handlers'
+        point = 'exopy.app.errors.handler'
+        ErrorHandler:
+            id = 'error'
+            description = ERROR_DESCRIPTION
+            handle => (workbench, infos):
+                if not isinstance(infos, Mapping):
+                    msg = '\n\n'.join([self._format(i) for i in infos])
+                    msg = 'Errors occured :\n' + msg
+                else:
+                    msg = self._format(infos)
+
+                logger.debug(msg)
+                return MultilineField(read_only=True, text=msg)
+
+            func _format(infos):
+                def_msg =  'No message found, infos are {}'
+                return infos.get('message', def_msg.format(pformat(infos)))
+
+        # Standard error handlers for plugin tools.
+        ErrorHandler:
+            attr errors = defaultdict(dict)
+            id = 'extensions'
+            description = EXTENSION_ERR_DESCRIPTION
+            handle => (workbench, infos):
+                if not isinstance(infos, Mapping):
+                    err = {}
+                    for i in infos:
+                        recursive_update(err, self._format(i))
+                else:
+                    err = self._format(infos)
+
+                logger.debug('Errors occured when loading extensions for '
+                             'the following extension points:\n%s',
+                             pformat(err))
+
+                recursive_update(errors, err)
+                if len(err) == 1:
+                    kind = list(err)[0]
+                    return BasicErrorsDisplay(errors=err[kind],
+                                              kind=kind)
+                else:
+                    return HierarchicalErrorsDisplay(errors=err,
+                                                     kind='Extensions')
+
+            report => (workbench):
+                if errors:
+                    return HierarchicalErrorsDisplay(errors=errors,
+                                                    kind='Extensions')
+
+                msg = 'No extensions registering error occured.'
+                return MultilineField(text=msg)
+
+            func _format(infos):
+                return {infos['point']: infos['errors']}

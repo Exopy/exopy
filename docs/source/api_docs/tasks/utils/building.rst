@@ -1,7 +1,7 @@
-ecpy.tasks.utils.building module
+exopy.tasks.utils.building module
 ================================
 
-.. automodule:: ecpy.tasks.utils.building
+.. automodule:: exopy.tasks.utils.building
     :members:
     :undoc-members:
     :show-inheritance:

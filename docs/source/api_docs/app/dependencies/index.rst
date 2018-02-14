@@ -1,4 +1,4 @@
-ecpy.app.dependencies package
+exopy.app.dependencies package
 =============================
 
 Submodules

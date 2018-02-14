@@ -1,7 +1,7 @@
-ecpy.measure.workspace.measure_tracking module
+exopy.measurement.workspace.measurement_tracking module
 ==============================================
 
-.. automodule:: ecpy.measure.workspace.measure_tracking
+.. automodule:: exopy.measurement.workspace.measurement_tracking
     :members:
     :undoc-members:
     :show-inheritance:

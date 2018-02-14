@@ -1,14 +1,14 @@
-.. _dev_measure:
+.. _dev_measurement:
 
 .. include:: ../substitutions.sub
 
-Measure and tools
+Measurement and tools
 =================
 
-The measure system is at the heart of Ecpy. At the centre of a measure one
+The measurement system is at the heart of Exopy. At the centre of a measurement one
 finds a hierarchy of tasks, but around it revolves a number of tools allowing
 to customize its execution. This section will present the possibility of
-extension Ecpy offers as far as the measure system is concerned.
+extension Exopy offers as far as the measurement system is concerned.
 
 .. note::
 
@@ -22,7 +22,7 @@ Tools
 
 Tools allow to customize what happens before and after the execution of the
 task hierarchy when a task is run, they can also be used to report to the user
-the progress of the measure.
+the progress of the measurement.
 
 .. note::
 
@@ -31,7 +31,7 @@ the progress of the measure.
 Pre_execution hooks
 ^^^^^^^^^^^^^^^^^^^
 
-A pre-execution hook is run before the tasks attached to a measure. Actually a
+A pre-execution hook is run before the tasks attached to a measurement. Actually a
 pre-hook can have two purposes :
 
 - extend the checks performed by the tasks. Some checks might requires to
@@ -40,26 +40,26 @@ pre-hook can have two purposes :
   is free to walk it.
 - perform some custom actions before the task hierarchy is executed. It can for
   example run some initialisation procedure or query the state of some other
-  part of the application before running the core of the measure.
+  part of the application before running the core of the measurement.
 
 Adding a pre-hook requires to :
 
 - implement the logic by subclassing |BasePreExecutionHook|. The methods that can be
   overridden are :
 
-  - check: make sure that the measure is in a proper state to be executed.
+  - check: make sure that the measurement is in a proper state to be executed.
   - run: execute any custom logic. If any task is to be executed it should be
     executed by passing to the active engine.
   - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
-  - list_runtimes: let the measure know the runtime dependencies (such as
+  - list_runtimes: let the measurement know the runtime dependencies (such as
     instrument drivers) if any.
 
   Additionally if any entry is contributed to the task hierarchy they should
   be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PreExecutionHook| to the
-  'ecpy.measure.pre-execution' extension point. The declaration should
+  'exopy.measurement.pre-execution' extension point. The declaration should
   re-declare the functions :
 
   - new: which should create a new instance of the tool.
@@ -73,7 +73,7 @@ Adding a pre-hook requires to :
 Monitors
 ^^^^^^^^
 
-Monitors are used to follow the progress of a measure. They specify a number of
+Monitors are used to follow the progress of a measurement. They specify a number of
 database entries they are interested in and will receive notifications when
 the concerned entry is updated during the execution of the task hierarchy.
 
@@ -98,7 +98,7 @@ Adding a monitor requires to :
   Additionally the database entries to observe should be stored using their
   full path in the 'monitored_entries' member.
 
-- declare it by contributing a |Monitor| to the 'ecpy.measure.monitors'
+- declare it by contributing a |Monitor| to the 'exopy.measurement.monitors'
   extension point. The declaration should re-declare the functions :
 
   - new: which should create a new instance of the monitor.
@@ -113,8 +113,8 @@ Adding a monitor requires to :
 Post-execution hooks
 ^^^^^^^^^^^^^^^^^^^^
 
-A post-execution hook is run after the tasks attached to a measure, and this no
-matter the execution succeeded or not (save if the user stopped the measure and
+A post-execution hook is run after the tasks attached to a measurement, and this no
+matter the execution succeeded or not (save if the user stopped the measurement and
 asked not to run them). They are hence perfectly fitted to run clean up.
 
 Adding a post-hook requires to :
@@ -122,21 +122,21 @@ Adding a post-hook requires to :
 - implement the logic by subclassing |BasePostExecutionHook|. The methods that can be
   overridden are :
 
-  - check: make sure that the measure is in a proper state to be executed.
+  - check: make sure that the measurement is in a proper state to be executed.
   - run: execute any custom logic. If any task is to be executed it should be
     executed by passing to the active engine. The post hook can inspect the
-    measure it belongs to to identify whether the execution finished correctly
+    measurement it belongs to to identify whether the execution finished correctly
     ('task_execution_result' member).
   - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
-  - list_runtimes: let the measure know the runtime dependencies (such as
+  - list_runtimes: let the measurement know the runtime dependencies (such as
     instrument drivers) if any.
 
   Additionally if any entry is contributed to the task hierarchy they should
   be added when the tool is linked (or later during edition of the tool).
 
 - declare it by contributing a |PostExecutionHook| to the
-  'ecpy.measure.post-execution' extension point. The declaration should
+  'exopy.measurement.post-execution' extension point. The declaration should
   re-declare the functions :
 
   - new: which should create a new instance of the tool.
@@ -155,9 +155,9 @@ Adding a post-hook requires to :
       format.
     - set_state: restore the state of a tool based of the parameters found
       in an .ini file
-    - link_to_measure: method called when the tool is added to a measure.
-    - unlink_from_measure: method called when the tool is removed from a
-      measure.
+    - link_to_measurement: method called when the tool is added to a measurement.
+    - unlink_from_measurement: method called when the tool is removed from a
+      measurement.
 
 Editors
 -------
@@ -180,7 +180,7 @@ Adding an editor requires to :
   Additionally one can specify whether to hide/disabled the tree widget used
   to select the task when the editor is selected.
 
-- declare it by contributing an |Editor| to the 'ecpy.measure.editors'
+- declare it by contributing an |Editor| to the 'exopy.measurement.editors'
   extension point. The declaration should re-declare the functions :
 
   - new : which should create a new instance of the tool.
@@ -206,14 +206,14 @@ Adding an engine requires to :
   - stop: which stops the execution.
   - shutdown: which stops the engine.
 
-- declare it by contributing an |Editor| to the 'ecpy.measure.editors'
+- declare it by contributing an |Editor| to the 'exopy.measurement.editors'
   extension point. The declaration should re-declare the functions :
 
   - new: which should create a new instance of the tool.
   - react_to_selection: which should handle the fact that the engine has been
-    selected to be used by the measure plugin.
+    selected to be used by the measurement plugin.
   - react_to_unselection: which should handle the fact that the engine is no
-    longer the one used by the measure plugin.
+    longer the one used by the measurement plugin.
   - contribute_to_workspace: which can add GUI elements to the workspace.
   - clean_workspace: which should remove the any contributions from the
     workspace.

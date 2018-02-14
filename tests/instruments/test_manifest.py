@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,9 +17,9 @@ from time import sleep
 import enaml
 from enaml.widgets.api import MultilineField
 
-from ecpy.app.errors.widgets import BasicErrorsDisplay
-from ecpy.instruments.infos import DriverInfos
-from ecpy.testing.util import handle_dialog, show_and_close_widget
+from exopy.app.errors.widgets import BasicErrorsDisplay
+from exopy.instruments.infos import DriverInfos
+from exopy.testing.util import handle_dialog, show_and_close_widget
 
 with enaml.imports():
     from .contributors import InstrContributor1
@@ -30,19 +30,19 @@ def test_driver_validation_error_handler(windows, instr_workbench):
 
     """
     core = instr_workbench.get_plugin('enaml.workbench.core')
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
     d = DriverInfos(starter='starter', connections={'c1': {}, 'c2': {}},
                     settings={'s2': {}, 's3': {}})
-    cmd = 'ecpy.app.errors.signal'
+    cmd = 'exopy.app.errors.signal'
 
     def check_dialog(dial):
-        w = dial.errors['ecpy.driver-validation']
+        w = dial.errors['exopy.driver-validation']
         assert 'd' in w.errors
         for err in ('starter', 'connections', 'settings'):
             assert err in w.errors['d']
 
     with handle_dialog('accept', check_dialog):
-        core.invoke_command(cmd, {'kind': 'ecpy.driver-validation',
+        core.invoke_command(cmd, {'kind': 'exopy.driver-validation',
                                   'details': {'d': d.validate(p)[1]}})
 
 
@@ -50,8 +50,8 @@ def test_reporting_on_extension_errors(windows, instr_workbench):
     """Check reporting extension errors.
 
     """
-    plugin = instr_workbench.get_plugin('ecpy.app.errors')
-    handler = plugin._errors_handlers.contributions['ecpy.driver-validation']
+    plugin = instr_workbench.get_plugin('exopy.app.errors')
+    handler = plugin._errors_handlers.contributions['exopy.driver-validation']
 
     widget = handler.report(instr_workbench)
     assert isinstance(widget, MultilineField)
@@ -70,14 +70,15 @@ def test_validate_runtime_dependencies_driver(instr_workbench):
     """
     instr_workbench.register(InstrContributor1())
 
-    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+    d_p = instr_workbench.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.drivers']
 
     err = {}
     d_c.validate(instr_workbench, ('tests.test.FalseDriver', 'dummy'), err)
 
     assert len(err) == 1
-    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert ('instruments.test.FalseDriver' not in
+            err['unknown-drivers'])
     assert 'dummy' in err['unknown-drivers']
 
 
@@ -87,21 +88,21 @@ def test_collect_runtime_dependencies_driver(instr_workbench):
     """
     instr_workbench.register(InstrContributor1())
 
-    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+    d_p = instr_workbench.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.drivers']
 
-    dep = dict.fromkeys(('tests.test.FalseDriver', 'dummy'))
+    dep = dict.fromkeys(('instruments.test.FalseDriver', 'dummy'))
     err = {}
     un = set()
     d_c.collect(instr_workbench, 'tests', dep, un, err)
 
     assert len(err) == 1
-    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert 'instruments.test.FalseDriver' not in err['unknown-drivers']
     assert 'dummy' in err['unknown-drivers']
 
     assert not un
 
-    assert dep['tests.test.FalseDriver'] is not None
+    assert dep['instruments.test.FalseDriver'] is not None
     assert dep['dummy'] is None
 
 
@@ -111,8 +112,8 @@ def test_validate_runtime_dependencies_profiles(prof_plugin):
     """
     w = prof_plugin.workbench
 
-    d_p = w.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+    d_p = w.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.profiles']
 
     err = {}
     d_c.validate(w, ('fp1', 'dummy'), err)
@@ -128,8 +129,8 @@ def test_collect_release_runtime_dependencies_profiles(prof_plugin):
     """
     w = prof_plugin.workbench
 
-    d_p = w.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+    d_p = w.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.profiles']
 
     dep = dict.fromkeys(('fp1', 'dummy'))
     err = {}
@@ -172,18 +173,18 @@ def test_select_instrument_profile_command(prof_plugin):
     """
     core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
     with handle_dialog('reject'):
-        res = core.invoke_command('ecpy.instruments.select_instrument')
+        res = core.invoke_command('exopy.instruments.select_instrument')
 
     assert res is None
 
     with handle_dialog('accept'):
-        res = core.invoke_command('ecpy.instruments.select_instrument',
+        res = core.invoke_command('exopy.instruments.select_instrument',
                                   dict(profile='fp1',
-                                       driver='tests.test.FalseDriver',
+                                       driver='instruments.test.FalseDriver',
                                        connection='false_connection3',
                                        settings='false_settings3'))
 
-    assert res == ('fp1', 'tests.test.FalseDriver', 'false_connection3',
+    assert res == ('fp1', 'instruments.test.FalseDriver', 'false_connection3',
                    'false_settings3')
 
 
@@ -196,4 +197,4 @@ def test_open_browser_command(prof_plugin):
     prof_plugin.workbench.register(UIManifest())
     core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
     with handle_dialog():
-        core.invoke_command('ecpy.instruments.open_browser')
+        core.invoke_command('exopy.instruments.open_browser')

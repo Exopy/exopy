@@ -1,4 +1,4 @@
-ecpy.app.states package
+exopy.app.states package
 =======================
 
 Submodules

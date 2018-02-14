@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,10 +16,10 @@ from time import sleep
 
 import enaml
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
-    from ecpy.instruments.widgets.instrument_selection\
+    from exopy.instruments.widgets.instrument_selection\
         import ModelSelectionDialog
     from ..contributors import InstrContributor1
 
@@ -33,7 +33,7 @@ def test_model_selection_widget(windows, instr_workbench, dialog_sleep):
         sleep(dialog_sleep)
 
     instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     h = p._manufacturers
 

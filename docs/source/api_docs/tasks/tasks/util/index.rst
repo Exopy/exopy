@@ -1,4 +1,4 @@
-ecpy.tasks.tasks.util package
+exopy.tasks.tasks.util package
 =============================
 
 Subpackages

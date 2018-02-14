@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -15,7 +15,7 @@ from __future__ import (division, unicode_literals, print_function,
 import pytest
 from atom.api import Atom, Dict
 
-from ecpy.instruments.drivers.driver_decl import Drivers, Driver
+from exopy.instruments.drivers.driver_decl import Drivers, Driver
 
 
 class _DummyCollector(Atom):
@@ -29,7 +29,7 @@ def collector():
 
 
 def make_decl(members):
-    d = Driver(driver='tests.instruments.false_driver:FalseDriver',
+    d = Driver(driver='instruments.false_driver:FalseDriver',
                model='E8257D')
     for m, v in members:
         parent = Drivers(**{m: v})
@@ -62,7 +62,7 @@ def test_register_driver_decl1(collector, driver_decl):
 
     assert not tb
     assert len(collector.contributions) == 1
-    d = collector.contributions['tests.lantz.FalseDriver']
+    d = collector.contributions['instruments.lantz.FalseDriver']
     for m, v in DEFAULT_MEMBERS:
         try:
             assert getattr(d, m) == v
@@ -83,7 +83,7 @@ def test_handling_missing_non_required_members(collector):
     decl.register(collector, tb)
     assert not tb
     assert len(collector.contributions) == 1
-    d = collector.contributions['tests.lantz.FalseDriver']
+    d = collector.contributions['instruments.lantz.FalseDriver']
     for m, v in (('kind', 'Other'), ('serie', ''), ('settings', {})):
         try:
             assert getattr(d, m) == v
@@ -102,12 +102,12 @@ def test_handling_missing_non_required_members2(collector):
     del m['serie']
     del m['kind']
     del m['settings']
-    decl = Driver(driver='tests.instruments.false_driver:FalseDriver',
+    decl = Driver(driver='instruments.false_driver:FalseDriver',
                   model='E8257D', parent=None, **m)
     decl.register(collector, tb)
     assert not tb
     assert len(collector.contributions) == 1
-    d = collector.contributions['tests.lantz.FalseDriver']
+    d = collector.contributions['instruments.lantz.FalseDriver']
     for m, v in (('kind', 'Other'), ('serie', ''), ('settings', {})):
         try:
             assert getattr(d, m) == v
@@ -127,7 +127,7 @@ def test_overriding_parent_member_in_decl(collector, driver_decl):
 
     assert not tb
     assert len(collector.contributions) == 1
-    d = collector.contributions['tests.lantz.FalseDriver']
+    d = collector.contributions['instruments.lantz.FalseDriver']
     assert d.infos['manufacturer'] == 'Agilent'
 
 
@@ -140,7 +140,7 @@ def test_handling_missing_architecture(collector):
     del m['architecture']
     decl = make_decl(m.items())
     decl.register(collector, tb)
-    assert 'tests.instruments.false_driver:FalseDriver' in tb
+    assert 'instruments.false_driver:FalseDriver' in tb
 
 
 def test_handling_missing_required_member(collector):
@@ -152,7 +152,7 @@ def test_handling_missing_required_member(collector):
     del m['manufacturer']
     decl = make_decl(m.items())
     decl.register(collector, tb)
-    assert 'tests.lantz.FalseDriver' in tb
+    assert 'instruments.lantz.FalseDriver' in tb
 
 
 def test_register_driver_decl_path_1(collector, driver_decl):
@@ -161,19 +161,19 @@ def test_register_driver_decl_path_1(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'ecpy.tasks'
+    d.driver = 'exopy.tasks'
     driver_decl.register(collector, tb)
-    assert 'ecpy.tasks' in tb
+    assert 'exopy.tasks' in tb
 
 
 def test_register_driver_decl_duplicate1(collector, driver_decl):
     """Test handling duplicate : in collector.
 
     """
-    collector.contributions['tests.lantz.FalseDriver'] = None
+    collector.contributions['instruments.lantz.FalseDriver'] = None
     tb = {}
     driver_decl.register(collector, tb)
-    assert 'tests.lantz.FalseDriver_duplicate1' in tb
+    assert 'instruments.lantz.FalseDriver_duplicate1' in tb
 
 
 def test_register_driver_decl_duplicate2(collector, driver_decl):
@@ -181,10 +181,10 @@ def test_register_driver_decl_duplicate2(collector, driver_decl):
 
     """
     # Ensure that we can deal with multiple duplicate.
-    tb = {'tests.lantz.FalseDriver': 'rr',
-          'tests.lantz.FalseDriver_duplicate1': 'tt'}
+    tb = {'instruments.lantz.FalseDriver': 'rr',
+          'instruments.lantz.FalseDriver_duplicate1': 'tt'}
     driver_decl.register(collector, tb)
-    assert 'tests.lantz.FalseDriver_duplicate1' in tb
+    assert 'instruments.lantz.FalseDriver_duplicate1' in tb
 
 
 def test_register_driver_decl_cls1(collector, driver_decl):
@@ -193,9 +193,9 @@ def test_register_driver_decl_cls1(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'ecpy.tasks.foo:Task'
+    d.driver = 'exopy.tasks.foo:Task'
     driver_decl.register(collector, tb)
-    assert 'ecpy.lantz.Task' in tb and 'import' in tb['ecpy.lantz.Task']
+    assert 'exopy.lantz.Task' in tb and 'import' in tb['exopy.lantz.Task']
 
 
 def test_register_driver_decl_drivercls1_bis(collector, driver_decl):
@@ -204,9 +204,9 @@ def test_register_driver_decl_drivercls1_bis(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'ecpy.testing.broken_module:Task'
+    d.driver = 'exopy.testing.broken_module:Task'
     driver_decl.register(collector, tb)
-    assert 'ecpy.lantz.Task' in tb and 'NameError' in tb['ecpy.lantz.Task']
+    assert 'exopy.lantz.Task' in tb and 'NameError' in tb['exopy.lantz.Task']
 
 
 def test_register_driver_decl_drivercls2(collector, driver_decl):
@@ -215,9 +215,9 @@ def test_register_driver_decl_drivercls2(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'ecpy.tasks.tasks.base_tasks:Task'
+    d.driver = 'exopy.tasks.tasks.base_tasks:Task'
     driver_decl.register(collector, tb)
-    assert 'ecpy.lantz.Task' in tb and 'attribute' in tb['ecpy.lantz.Task']
+    assert 'exopy.lantz.Task' in tb and 'attribute' in tb['exopy.lantz.Task']
 
 
 def test_register_driver_decl_drivercls3(collector, driver_decl):
@@ -226,10 +226,10 @@ def test_register_driver_decl_drivercls3(collector, driver_decl):
     """
     tb = {}
     d = list(driver_decl.traverse())[-1]
-    d.driver = 'tests.instruments.test_driver_decl:DEFAULT_MEMBERS'
+    d.driver = 'instruments.test_driver_decl:DEFAULT_MEMBERS'
     driver_decl.register(collector, tb)
-    assert ('tests.lantz.DEFAULT_MEMBERS' in tb and
-            'callable' in tb['tests.lantz.DEFAULT_MEMBERS'])
+    assert ('instruments.lantz.DEFAULT_MEMBERS' in tb and
+            'callable' in tb['instruments.lantz.DEFAULT_MEMBERS'])
 
 
 def test_unregister_driver_decl1(collector, driver_decl):

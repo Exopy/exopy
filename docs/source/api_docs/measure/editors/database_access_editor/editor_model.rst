@@ -1,7 +1,7 @@
-ecpy.measure.editors.database_access_editor.editor_model module
+exopy.measurement.editors.database_access_editor.editor_model module
 ===============================================================
 
-.. automodule:: ecpy.measure.editors.database_access_editor.editor_model
+.. automodule:: exopy.measurement.editors.database_access_editor.editor_model
     :members:
     :undoc-members:
     :show-inheritance:

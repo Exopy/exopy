@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,12 +17,12 @@ import enaml
 from multiprocessing import Event
 from collections import OrderedDict
 
-from ecpy.testing.util import show_and_close_widget
-from ecpy.tasks.tasks.base_tasks import RootTask
-from ecpy.tasks.tasks.util.formula_task import FormulaTask
-from ecpy.utils.atom_util import (ordered_dict_from_pref)
+from exopy.testing.util import show_and_close_widget
+from exopy.tasks.tasks.base_tasks import RootTask
+from exopy.tasks.tasks.util.formula_task import FormulaTask
+from exopy.utils.atom_util import (ordered_dict_from_pref)
 with enaml.imports():
-    from ecpy.tasks.tasks.util.views.formula_view import FormulaView
+    from exopy.tasks.tasks.util.views.formula_view import FormulaView
 
 
 class TestFormulaTask(object):
@@ -54,8 +54,10 @@ class TestFormulaTask(object):
 
         """
         self.task.write_in_database('pi', 3.1)
-        self.task.formulas = ordered_dict_from_pref(self, self.task.formulas,
-            "[(u'key1', '1.0+3.0'), (u'key2', '3.0 + {Test_pi}')]")
+        self.task.formulas = \
+            ordered_dict_from_pref(self, self.task.formulas,
+                                   ("[(u'key1', '1.0+3.0'), "
+                                    "(u'key2', '3.0 + {Test_pi}')]"))
         self.root.prepare()
 
         self.task.perform()

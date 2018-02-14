@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -16,13 +16,13 @@ import pytest
 import enaml
 from enaml.workbench.workbench import Workbench
 
-from ecpy.testing.util import process_app_events
+from exopy.testing.util import process_app_events
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
     from enaml.workbench.ui.ui_manifest import UIManifest
-    from ecpy.app.errors.manifest import ErrorsManifest
-    from ecpy.app.app_manifest import AppManifest
+    from exopy.app.errors.manifest import ErrorsManifest
+    from exopy.app.app_manifest import AppManifest
     from .app_helpers import (ClosingContributor1, ClosedContributor)
 
 

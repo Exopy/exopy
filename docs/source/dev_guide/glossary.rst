@@ -5,7 +5,7 @@
 Glossary and principle
 ======================
 
-Ecpy is built a a plugin-application. Each functionality is contributed by a
+Exopy is built a a plugin-application. Each functionality is contributed by a
 plugin which is mounted at application start-up (or later) and can be
 unmounted. This adds a bit of complexity to the application but a lot of
 flexibility. This section will introduce some notions and definitions which
@@ -13,18 +13,18 @@ will be used in the following of this guide.
 
 .. contents::
 
-Set up ecpy in developper mode
+Set up exopy in developper mode
 ------------------------------
 
-Here we describe a simple workflow for developpers to contribute to ecpy.  It
+Here we describe a simple workflow for developpers to contribute to exopy.  It
 is convenient to use a git GUI such as smartgit. Then, create a repository on
-your computer and clone all the ecpy repositories (ecpy,
-ecpy_hqc_legacy, ecpy_pulses, etc). On your command terminal, navigate to the
+your computer and clone all the exopy repositories (exopy,
+exopy_hqc_legacy, exopy_pulses, etc). On your command terminal, navigate to the
 folder of each repository, and type the following command:
 
     $ python setup.py develop
     
-this install allows ecpy components to be well detected while directly taking
+this install allows exopy components to be well detected while directly taking
 account any change made to the code. When you want to add a development, use
 your git GUI to create a branch from master, and give it a consistent name.
 When you finish your development, rebase to master, and then push your branch.
@@ -33,7 +33,7 @@ which means you incorporate all the changes on master up to that day, and this
 forces you to deal with potential conflicts. Note that pushing rebased branches
 implies rewriting the history of the remote branch, and hence you will need to 
 force push your changes. You can now open a pull request. Your code will be
-discussed among the ecpy contributors, and when judged adequate, it will be
+discussed among the exopy contributors, and when judged adequate, it will be
 merged onto the master branch.
 
 .. note:: 
@@ -76,7 +76,7 @@ contribute new capabilities to existing plugin.
 
 The manifest of a plugin is written in an enaml file (.enaml). It must be given
 an id (which must be unique and is a dot separated string, ex:
-'ecpy.app.logging') and can have a two kind of children :
+'exopy.app.logging') and can have a two kind of children :
 
 - |ExtensionPoint| children are used to declare points to which other plugin 
   can contribute to extend the plugin capabilities. The extension point needs
@@ -87,7 +87,7 @@ an id (which must be unique and is a dot separated string, ex:
   point id. The nature of the children of an extension depends on the
   extension point to which the extension contributes.
 
-For example the 'ecpy.instruments' plugin is responsible for collecting
+For example the 'exopy.instruments' plugin is responsible for collecting
 drivers for instruments (which can be contributed by other plugins) and
 managing the access authorisation to each instrument to avoid conflict between
 different part of the application.
@@ -95,7 +95,7 @@ different part of the application.
 
 .. note::
 
-    The plugin architecture used in Ecpy comes from the `Enaml`_ library which
+    The plugin architecture used in Exopy comes from the `Enaml`_ library which
     is also used for building the graphical user interface (GUI). If you want
     to know more about the way plugins works in `Enaml`_ you can look at
     `this document`_.
@@ -106,14 +106,14 @@ different part of the application.
 Extension packages
 ------------------
 
-In order to load the plugin you want to add to Ecpy the application needs a way
-to detect it. To do so at start up Ecpy scan installed python packages looking
-for the the following setuptools entry point : 'ecpy_package_extension', which
+In order to load the plugin you want to add to Exopy the application needs a way
+to detect it. To do so at start up Exopy scan installed python packages looking
+for the the following setuptools entry point : 'exopy_package_extension', which
 must point  to a function taking  no arguments. This function must return an
 iterable of manifests which will be registered.
 
-This means that whatever you want to contribute to Ecpy you must make it an
-installable python package. The Ecpy organisation on `Github`_ has a dummy
+This means that whatever you want to contribute to Exopy you must make it an
+installable python package. The Exopy organisation on `Github`_ has a dummy
 `repository`_ that you can use as a template when creating your own package. It
 has the basic structure you need, you simply need to change the name of the
 package (in setup.py and the folder) and make the bootstrap function
@@ -131,12 +131,12 @@ can modify them and directly see the result without re-installing anything.
 .. note:
 
 	An extension package can also contribute new command line arguments by
-	adding an extension to the 'ecpy_cmdline_args' entry point. Contribution
+	adding an extension to the 'exopy_cmdline_args' entry point. Contribution
 	should be a pair (function, priority). The function will receive an
 	|ArgParser| instance and can use it to add new (optional) arguments or
 	choices. Choices are used to allow to add acceptable values for an
 	argument. For example, '--workspace' expect a valid workspace id and the
 	choices are stored in the 'workspaces' choices.
 
-.. _Github: https://github.com/Ecpy
-.. _repository: https://github.com/Ecpy/ecpy_ext_demo
+.. _Github: https://github.com/Exopy
+.. _repository: https://github.com/Exopy/exopy_ext_demo

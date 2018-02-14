@@ -1,8 +1,8 @@
 [run]
 omit =
-    */ecpy/testing/*
-    *ecpy/version.py
-    */ecpy/utils/widgets/*
+    */exopy/testing/*
+    *exopy/version.py
+    */exopy/utils/widgets/*
     */__init__.py
 plugins =
     enaml_coverage_plugin

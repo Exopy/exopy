@@ -1,7 +1,7 @@
-ecpy.tasks.configs.base_config_views module
+exopy.tasks.configs.base_config_views module
 ===========================================
 
-.. automodule:: ecpy.tasks.configs.base_config_views
+.. automodule:: exopy.tasks.configs.base_config_views
     :members:
     :undoc-members:
     :show-inheritance:

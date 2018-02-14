@@ -1,7 +1,7 @@
-ecpy.app.states.manifest module
+exopy.app.states.manifest module
 ===============================
 
-.. automodule:: ecpy.app.states.manifest
+.. automodule:: exopy.app.states.manifest
     :members:
     :undoc-members:
     :show-inheritance:

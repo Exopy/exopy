@@ -1,7 +1,7 @@
-ecpy.utils.widgets.dict_editor module
+exopy.utils.widgets.dict_editor module
 =====================================
 
-.. automodule:: ecpy.utils.widgets.dict_editor
+.. automodule:: exopy.utils.widgets.dict_editor
     :members:
     :undoc-members:
     :show-inheritance:

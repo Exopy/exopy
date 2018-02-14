@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget used to represent nested dict as a tree.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from collections import Mapping
+
+from atom.api import Atom, Typed, Value, Unicode, ForwardTyped, List
+
+from .qt_tree_widget import QtTreeWidget
+from .tree_nodes import TreeNode
+
+
+class Leaf(Atom):
+    """Class representing a non-mapping value associated with a name.
+
+    """
+    #: Key under which the value is stored.
+    name = Unicode()
+
+    #: Value associated with the name.
+    value = Value()
+
+
+class Node(Atom):
+    """Class representing a mapping value.
+
+    """
+    #: Key under which the mapping is stored or blank if this is the root node.
+    name = Unicode()
+
+    #: Nodes generated from the key/value pairs of the mapping.
+    nodes = List()
+
+    #: Reference to the parent node or None if this is the root node.
+    parent = ForwardTyped(lambda : Node)
+
+    # --- Private API ---------------------------------------------------------
+
+    #: Mapping used to generate the nodes.
+    _mapping = Typed(dict)
+
+    def _default_nodes(self):
+        """Lazy creation of nodes from mapping.
+
+        """
+        nodes = []
+        for k, v in self._mapping.items():
+            if isinstance(v, Mapping):
+                nodes.append(Node(name=k, _mapping=v))
+            else:
+                nodes.append(Leaf(name=k, value=v))
+        return nodes
+
+
+enamldef DictTreeView(QtTreeWidget):
+    """Widget used to represent a nested dict as a tree.
+
+    """
+    #: Mapping from which to build the tree.
+    attr mapping
+
+    root_node = Node(_mapping=mapping)
+
+    hide_root = True
+    drag_drop = False
+
+    TreeNode:
+        node_for = [Node]
+        label = 'name'
+        children_member = 'nodes'
+        rename = False
+        rename_me = False
+        delete = False
+        delete_me = False
+
+    TreeNode:
+        node_for = [Leaf]
+        label = 'name'

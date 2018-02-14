@@ -1,7 +1,7 @@
-ecpy.measure.hooks.internal_checks module
+exopy.measurement.hooks.internal_checks module
 =========================================
 
-.. automodule:: ecpy.measure.hooks.internal_checks
+.. automodule:: exopy.measurement.hooks.internal_checks
     :members:
     :undoc-members:
     :show-inheritance:

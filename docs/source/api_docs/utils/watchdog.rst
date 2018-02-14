@@ -1,7 +1,7 @@
-ecpy.utils.watchdog module
+exopy.utils.watchdog module
 ==========================
 
-.. automodule:: ecpy.utils.watchdog
+.. automodule:: exopy.utils.watchdog
     :members:
     :undoc-members:
     :show-inheritance:

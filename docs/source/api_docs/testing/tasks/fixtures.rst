@@ -1,7 +1,7 @@
-ecpy.testing.tasks.fixtures module
+exopy.testing.tasks.fixtures module
 ==================================
 
-.. automodule:: ecpy.testing.tasks.fixtures
+.. automodule:: exopy.testing.tasks.fixtures
     :members:
     :undoc-members:
     :show-inheritance:

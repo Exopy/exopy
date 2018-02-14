@@ -1,7 +1,7 @@
-ecpy.tasks.utils.saving module
+exopy.tasks.utils.saving module
 ==============================
 
-.. automodule:: ecpy.tasks.utils.saving
+.. automodule:: exopy.tasks.utils.saving
     :members:
     :undoc-members:
     :show-inheritance:

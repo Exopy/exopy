@@ -1,0 +1,602 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widgets used to edit an instrument profile.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from atom.api import Coerced, Bool
+from enaml.validator import Validator
+from enaml.layout.api import hbox, vbox, spacer, Pos
+from enaml.core.api import Conditional, Include
+from enaml.widgets.api import (Notebook, Page, Label, Field, PushButton,
+                               Dialog, MultilineField, ObjectCombo, Form,
+                               PopupView, Container, Menu, Action,
+                               Window)
+
+from ...utils.traceback import format_exc
+from ...utils.widgets.qt_list_str_widget import QtListStrWidget
+from ...utils.transformers import ids_to_unique_names
+from ...utils.enaml_destroy_hook import add_destroy_hook
+from .instrument_selection import ModelSelectionDialog
+
+
+class SetValidator(Validator):
+    """Validator allowing names which does not yet exist.
+
+    """
+    #: Already existing names which are then not allowed.
+    existing = Coerced(set)
+
+    #: Flag indicating whether or not the last validation went right
+    valid = Bool(True)
+
+    def validate(self, text):
+        """Check that the name does yet exist.
+
+        """
+        res = text not in self.existing
+        self.valid = res
+        return res
+
+
+def clean_name(name):
+    """Clean a name connection.
+
+    """
+    return name.replace('_', ' ')
+
+
+def trim_description(desc):
+    """Trim a connection or settings description.
+
+    The Defaults section useful to developper is suppressed.
+
+    """
+    if 'Default' in desc:
+        desc = desc.split('Default', 1)[0].replace('\n', ' ')
+        return desc.strip()
+    else:
+        return desc
+
+
+enamldef ConnectionCreationDialog(Dialog): dial:
+    """Dialog allowing the user to select the connection to add to the profile.
+
+    """
+    #: Reference to the instrument plugin
+    attr plugin
+
+    #: Instrument model infos for which to create the connection
+    attr model_infos
+
+    #: Already existing connections (ids) for the profile.
+    attr existing
+
+    #: Currently selected connection declaration.
+    attr connection
+
+    #: Not yet existing connections
+    attr _connections = ids_to_unique_names([c for c in model_infos.connections
+                                             if c not in existing],
+                                             clean_name)
+
+    func create_connection():
+        """Create the connection editor corresponding to selected connection.
+
+        """
+        c_id = _connections[conns.selected_item]
+        infos = model_infos.connections[c_id]
+        self.connection = plugin.create_connection(c_id, infos)
+
+    title = 'Select a connection'
+
+    initialized ::
+        create_connection()
+
+    Container:
+
+        constraints = [vbox(hbox(conns, vbox(lab, desc, spacer)),
+                            hbox(spacer, can, ok))]
+
+        QtListStrWidget: conns:
+            items = sorted(_connections)
+            selected_item ::
+                create_connection()
+
+        Label: lab:
+            text << connection.declaration.id if connection else ''
+
+        MultilineField: desc:
+            text << (trim_description(connection.declaration.description)
+                     if connection  else '')
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            clicked ::
+                dial.accept()
+
+
+enamldef ConnectionValidationWindow(Window): dial:
+    """Dialog allowing the user to test that the provided information allow to
+    open the connection.
+
+    """
+    #: Reference to the instrument plugin.
+    attr plugin = editor.plugin
+
+    #: Reference to the editor that opened this window.
+    attr editor
+
+    #: Profile infos that should be tested.
+    attr profile_infos = editor.profile_infos
+
+    #: Currently selected driver infos.
+    attr driver = profile_infos.model.drivers[0]
+
+    #: Currently selected connection.
+    attr connection = editor.connections[0]
+
+    #: Currently selected settings.
+    attr settings
+
+    title = 'Profile validation'
+
+    Container:
+
+        constraints = [vbox(inf, test, infos, cls),
+                       test.right == contents_right,
+                       cls.right == contents_right]
+
+        Form: inf:
+            Conditional:
+                condition = len(profile_infos.model.drivers) > 1
+
+                Label:
+                    text = 'Driver'
+                ObjectCombo:
+                    attr d_map = {'%s <%s>' %
+                                  (d.infos['architecture'], d.id): d
+                                  for d in profile_infos.model.drivers}
+                    items = list(d_map)
+                    tool_tip = 'What driver should be used for testing.'
+                    selected << '%s <%s>' % (driver.infos['architecture'],
+                                             driver.id)
+                    selected ::
+                        dial.driver = d_map[selected_item]
+
+            Label:
+                text='Connection'
+            ObjectCombo:
+                items << ([c.declaration.id for c in editor.connections]
+                          if editor.connections else [])
+                tool_tip = 'Connection informations to use for the test.'
+                selected >> dial.connection
+
+            Conditional:
+                condition << bool(editor.settings)
+                Label:
+                    text = 'Settings'
+                ObjectCombo:
+                    items << ([s.user_id for s in editor.settings]
+                              if editor.settings else [])
+                    tool_tip = 'Select the settings to use during the test.'
+                    selected >> dial.settings
+
+        # TODO make this more friendly by displaying a popup
+        PushButton: test:
+            text = 'Test connection'
+            clicked ::
+                editor.sync()
+                driver_cls, starter = plugin.get_drivers([driver.id])[0][driver.id]
+                c = profile_infos.connections[connection.declaration.id]
+                s = profille_infos.settings[settings] if settings else {}
+                try:
+                    res, msg = starter.check_infos(driver_cls, c, s)
+                except Exception:
+                    res = False
+                    msg = format_exc()
+                m = ('The connection was successfully established' if res else
+                     'An error occured:\n' + msg)
+                infos.text += m + '\n'
+
+        MultilineField: infos:
+            read_only = True
+            Menu:
+                context_menu = True
+                Action:
+                    text = 'Clear'
+                    triggered :: infos.text = ''
+
+        PushButton: cls:
+            text = 'Close'
+            clicked ::
+                dial.close()
+
+
+enamldef SettingsCreationDialog(Dialog): dial:
+    """Dialog allowing the user to select the settings to add to the profile.
+
+    """
+    #: Reference to the instrument plugin
+    attr plugin
+
+    #: Instrument model infos for which to create the settings
+    attr model_infos
+
+    #: Already existing settings (name) for the profile.
+    attr existing
+
+    #: Settings instance to insert.
+    attr settings
+
+    #: Settings pretty names
+    attr _settings = ids_to_unique_names(model_infos.settings)
+
+    func create_settings():
+        s_id = _settings[setts.selected_item]
+        infos = model_infos.settings[s_id]
+        dial.settings = plugin.create_settings(s_id, infos)
+
+    title = 'Select a settings'
+
+    initialized ::
+        create_settings()
+
+    Container:
+
+        constraints = [vbox(hbox(setts, vbox(lab, desc,
+                                             hbox(n_lab, n_val), spacer)),
+                            hbox(spacer, can, ok))]
+
+        QtListStrWidget: setts:
+            items = list(_settings)
+            selected_item ::
+                create_settings()
+
+        Label: lab:
+            text << settings.declaration.id if settings else ''
+
+        MultilineField: desc:
+            text << (trim_description(settings.declaration.description)
+                     if settings  else '')
+
+        Label: n_lab:
+            text = 'Name'
+        Field: n_val:
+            submit_triggers = ['auto_sync']
+            validator = SetValidator(existing=existing)
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(n_val.text) and n_val.validator.valid
+            clicked ::
+                settings.user_id = n_val.text
+                dial.accept()
+
+
+enamldef RenameSettingsPopup(PopupView): pop:
+    """PopupView to rename a settings.
+
+    """
+    #: Settings editor whose name should be modified.
+    attr settings
+
+    #: Names of the other existing settings editor.
+    attr existing
+
+    #: Reference to the list edition widget which should refresh after
+    #: renaming
+    attr editor
+
+    window_type = 'popup'
+
+    close_on_click = False
+
+    Container:
+
+        constraints = [vbox(hbox(n_lab, n_val), hbox(spacer, can, ok))]
+
+        Label: n_lab:
+            text = 'Name'
+        Field: n_val:
+            hug_width = 'ignore'
+            text = settings.user_id
+            validator = SetValidator(existing=existing)
+            submit_triggers = ['auto_sync']
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                pop.close()
+        PushButton: ok:
+            enabled << bool(n_val.text) and n_val.validator.valid
+            text = 'Ok'
+            clicked ::
+                settings.user_id = n_val.text
+                editor.refresh_items()
+                pop.close()
+
+
+_DestroyableContainer = add_destroy_hook(Container)
+
+
+class _Include(Include):
+    """Re-implemented include to show widget after parenting.
+
+    When destroy_old is False the widget is hidden when un-parented and needs
+    to be shwon again when re-parented.
+
+    """
+    def _observe_objects(self, change):
+        super(_Include, self)._observe_objects(change)
+        if self.is_initialized and change['value']:
+            for o in self.objects:
+                o.show()
+
+
+enamldef ProfileEditionWidget(_DestroyableContainer): main:
+    """Widget dedicated to editing a profile.
+
+    """
+    #: Reference to the instrument plugin.
+    attr plugin
+
+    #: ProfileInfos driving this widget. Not that the infos are not kept in
+    #: sync at all time and one should call sync before inspecting the content
+    #: of the member.
+    attr profile_infos
+
+    #: Flag indicating that we are creating a new profile which allows for more
+    #: edition.
+    attr creation : bool = False
+
+    #: Connections editors opened.
+    attr connections : list = [plugin.create_connection(k, v, read_only)
+                               for k, v in profile_infos.connections.items()]
+
+    #: Settings editors opened.
+    attr settings : list = list(filter(None,
+                            [plugin.create_settings(v.get('id'), v, read_only)
+                            for v in profile_infos.settings.values()]))
+
+    #: Prevent edition while allowing to navigate the notebooks.
+    attr read_only : bool = False
+
+    #: Private reference to the connection validator window which is closed
+    #: when this widget is destroyed.
+    attr _validator
+
+    func sync():
+        """Synchronize the UI with the underlying model.
+
+        This is needed to update the connections and settings.
+
+        """
+        profile_infos.connections = {}
+        for c in connections:
+            profile_infos.connections[c.declaration.id] = c.gather_infos()
+
+        profile_infos.settings = {}
+        for s in settings:
+            profile_infos.settings[s.user_id] = s.gather_infos()
+
+    ended ::
+        if self._validator and self._validator.visible:
+            self._validator.close()
+
+    constraints << [vbox(hbox(id_lab, id_val),
+                         hbox(model_lab, model, m_choose),
+                         *nb.items)]
+
+    Label: id_lab:
+        text = 'Id'
+    Field: id_val:
+        text := profile_infos.id
+        validator << SetValidator(existing=plugin.profiles)
+        enabled = not read_only and creation
+        tool_tip = 'Profile name can only be edited during creation.'
+
+    # TODO : allow to select the folder in which to save the profile
+
+    Label: model_lab:
+        text = 'Instrument'
+    Field: model:
+        text << profile_infos.model.id if profile_infos.model else ''
+        read_only = True
+    PushButton: m_choose:
+        text = 'Choose'
+        visible = not read_only
+        clicked ::
+            dial = ModelSelectionDialog(parent=self, plugin=plugin,
+                                        instr_model=profile_infos.model)
+            if dial.exec_():
+                new = dial.instr_model
+                main.connections = [c for c in main.connections
+                                    if c.declaration.id in new.connections]
+                main.settings = [s for s in main.settings
+                                 if s in s.declaration.id in new.settings]
+                main.profile_infos.model = new
+
+    Conditional: nb:
+        condition << bool(profile_infos.model)
+
+        Notebook:
+            tabs_closable = False
+            tabs_movable = False
+            Page:
+                title = 'Connections'
+                name = 'connections'
+                Container:
+
+                    constraints << ([hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(add_c, del_c, val_c, spacer))]
+                                    if not read_only else
+                                    [hbox(conns,
+                                          vbox(*(tuple(s_conn.objects) +
+                                                 (spacer,))),
+                                          vbox(val_c, spacer))])
+
+                    QtListStrWidget: conns:
+                        items << main.connections or []
+                        sort = True
+                        to_string = lambda c: c.title
+                    _Include: s_conn:
+                        destroy_old = False
+                        objects << ([conns.selected_item]
+                                    if conns.selected_item else [Container()])
+                    PushButton: add_c:
+                        text = 'Add'
+                        enabled << (len(set(connections)) !=
+                                    len(set(profile_infos.model.connections)))
+                        visible = not read_only
+                        clicked ::
+                            kw = {'plugin': plugin,
+                                  'model_infos': profile_infos.model,
+                                  'existing': [c.declaration.id
+                                               for c in connections]}
+                            dial = ConnectionCreationDialog(main, **kw)
+                            if dial.exec_() and dial.connection:
+                                dial.connection.read_only = read_only
+                                main.connections = (main.connections[:] +
+                                                    [dial.connection])
+                                conns.refresh_items()
+                                conns.selected_item = dial.connection
+                    PushButton: del_c:
+                        text = 'Delete'
+                        enabled << bool(connections)
+                        visible = not read_only
+                        clicked ::
+                            s = main.connections[:]
+                            del s[conns.items.index(conns.selected_item)]
+                            main.connections = s
+                    PushButton: val_c:
+                        text = 'Validate'
+                        enabled << (not main._validator or
+                                    not main._validator.visible)
+                        clicked ::
+                            selected = conns.selected_item
+                            d = ConnectionValidationWindow(main, editor=main,
+                                                           connection=selected)
+                            d.show()
+                            if not read_only:
+                                geo = main.parent.parent.frame_geometry()
+                                d.set_position(Pos(geo.x + geo.width, geo.y))
+                            d.send_to_front()
+                            main._validator = d
+
+            Page:
+                title = 'Settings'
+                name = 'settings'
+                Container:
+
+                    constraints << ([hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))),
+                                          vbox(add_s, re_s, del_s, spacer))]
+                                    if not read_only else
+                                    [hbox(setts,
+                                          vbox(*(tuple(s_sett.objects) +
+                                                 (spacer,))))])
+
+                    QtListStrWidget: setts:
+                        items << main.settings or []
+                        selected_item << (main.settings[0] if main.settings
+                                          else None)
+                        sort = True
+                        to_string = lambda s: s.user_id
+                    _Include: s_sett:
+                        destroy_old = False
+                        objects << ([setts.selected_item]
+                                    if setts.selected_item else [Container()])
+                    PushButton: add_s:
+                        text = 'Add'
+                        enabled << bool(profile_infos.model.settings)
+                        visible = not read_only
+                        clicked ::
+                            kw = {'plugin': plugin,
+                                  'model_infos': profile_infos.model,
+                                  'existing': [s.user_id for s in settings]}
+                            dial = SettingsCreationDialog(main, **kw)
+                            if dial.exec_() and dial.settings:
+                                dial.settings.read_only = read_only
+                                main.settings = (main.settings[:] +
+                                                 [dial.settings])
+                                setts.refresh_items()
+                                setts.selected_item = dial.settings
+                    PushButton: re_s:
+                        text = 'Rename'
+                        enabled << bool(setts.selected_item)
+                        visible = not read_only
+                        clicked ::
+                            s = setts.selected_item
+                            others = set((s.user_id for s in settings))
+                            others.remove(s.user_id)
+                            popup = RenameSettingsPopup(parent=self,
+                                                        settings=s,
+                                                        existing=others,
+                                                        editor=setts)
+                            popup.show()
+                    PushButton: del_s:
+                        text = 'Delete'
+                        visible = not read_only
+                        clicked ::
+                            s = main.settings[:]
+                            del s[setts.items.index(setts.selected_item)]
+                            main.settings = s
+
+
+enamldef ProfileEditionDialog(Dialog): dial:
+    """Dialog allowing to edit a profile infos.
+
+    """
+    #: Reference to the instrument plugin.
+    alias plugin : ed.plugin
+
+    #: ProfileInfos to edit.
+    alias profile_infos : ed.profile_infos
+
+    #: Flag indicating that we are creating a new profile which allows for more
+    #: edition.
+    alias creation : ed.creation
+
+    title = 'Edit profile %s' % profile_infos.id
+
+    always_on_top = True
+
+    Container:
+
+        constraints = [vbox(ed, hbox(spacer, can, ok))]
+
+        ProfileEditionWidget: ed:
+            pass
+
+        PushButton: can:
+            text = 'Cancel'
+            clicked ::
+                dial.reject()
+
+        PushButton: ok:
+            text = 'Ok'
+            enabled << bool(profile_infos.id and profile_infos.model)
+            clicked ::
+                ed.sync()
+                dial.accept()

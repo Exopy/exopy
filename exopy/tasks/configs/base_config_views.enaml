@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Standard task configurers associated views.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.core.api import Conditional
+from enaml.layout.api import hbox, vbox, spacer
+from enaml.widgets.api import (Container, MultilineField, Field, GroupBox,
+                               Label)
+
+
+enamldef BaseConfigView(Container):
+    """Base class for all task configurer views.
+
+    """
+
+    #: Reference to the config object driving this view.
+    attr config
+
+    #: Direct access to the label
+    alias name_label : t_lab
+
+    #: Direct access to the fiald
+    alias name_field : t_f
+
+    Label: t_lab:
+        text = 'Task name'
+    Field: t_f:
+        text := config.task_name
+        submit_triggers = ['lost_focus', 'return_pressed', 'auto_sync']
+
+
+enamldef PyConfigView(BaseConfigView): main:
+    """View for the standard python task configurer.
+
+    """
+
+    #: Flag indicating whether or not the configurer is used for a task which
+    #: will be included in a loop.
+    attr loop
+
+    name_label.visible = not loop
+    name_field.visible = not loop
+
+    constraints << ([vbox(hbox(name_label, name_field), desc)] if not loop
+                    else [vbox(desc)])
+
+    GroupBox: desc:
+        title = 'Description'
+        MultilineField:
+            hug_height = 'weak'
+            read_only = True
+            text << config.task_doc
+
+
+enamldef TemplateConfigView(BaseConfigView):
+    """View for the template configurer.
+
+    """
+    constraints << [vbox(hbox(name_label, name_field),
+                         hbox(p_lab, p_val),
+                         desc)]
+
+    Label: p_lab:
+        text = 'Path'
+    Field: p_val:
+        text = config.template_path
+        read_only = True
+
+    GroupBox: desc:
+        title = 'Description'
+        MultilineField:
+            hug_height = 'weak'
+            read_only = True
+            text = config.template_doc

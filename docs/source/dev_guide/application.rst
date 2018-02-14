@@ -2,11 +2,11 @@
 
 .. include:: ../substitutions.sub
 
-Interacting with the core of Ecpy
+Interacting with the core of Exopy
 =================================
 
 This section will focus on the functionality offered by the plugins
-constituting the core of the Ecpy application and how custom plugin can use
+constituting the core of the Exopy application and how custom plugin can use
 and or extend those functionalities.
 
 .. contents::
@@ -32,10 +32,10 @@ them :
   optionally pass the invoking plugin. To know what arguments the command
   expect you should look at its description in the manifest of the plugin
   contributing it.
-- the 'ecpy.app.states' plugin is in charge of managing states which allow to
+- the 'exopy.app.states' plugin is in charge of managing states which allow to
   get access to a read-only representation of some of the attributes of a
   plugin. The state of a plugin can be requested using the Command
-  'ecpy.app.states.get' with an id parameters identifying the plugin
+  'exopy.app.states.get' with an id parameters identifying the plugin
   constituting the state. If you need to access to such a state you should
   observe the alive attribute which becomes `False` when the plugin
   contributing the state is unregistered.
@@ -59,7 +59,7 @@ Declaring a State
 ^^^^^^^^^^^^^^^^^
 
 In order to share the state of your plugin you must contribute a State object
-to the 'ecpy.app.states.state' extension point. A |State| must have :
+to the 'exopy.app.states.state' extension point. A |State| must have :
 
 - an id which must be unique and can be the id of the plugin but does not have
   to.
@@ -73,16 +73,16 @@ Customizing application start up and closing
 In some cases, a plugin needs to perform some operation at application start up
 (for example discover extension packages, or adding new logger handlers) or
 some special clean up operations when the application exits. It may also need
-to have a say so about whether or not the application can exit (if a measure
+to have a say so about whether or not the application can exit (if a measurement
 is running the application should not exit without a huge warning). The
-'ecpy.app' plugin is responsible for handling all those possibilities. It
+'exopy.app' plugin is responsible for handling all those possibilities. It
 relies on three extension points (one for each behaviour) :
 
-- 'ecpy.app.startup' accepts |AppStartup| contributions and deal with the start
+- 'exopy.app.startup' accepts |AppStartup| contributions and deal with the start
   up of the application.
-- 'ecpy.app.closing' accepts |AppClosing| contributions and deal with whether
+- 'exopy.app.closing' accepts |AppClosing| contributions and deal with whether
   or not the application can be closed.
-- 'ecpy.app.closed' accepts |AppClosed| contributions to run clean up operation
+- 'exopy.app.closed' accepts |AppClosed| contributions to run clean up operation
   before starting to unregister plugins.
 
 .. note::
@@ -98,7 +98,7 @@ Declaring an AppStartup extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to customize the application start up, you need to contribute an
-|AppStartup| object to the 'ecpy.app.startup' extension point. An |AppStartup|
+|AppStartup| object to the 'exopy.app.startup' extension point. An |AppStartup|
 must have :
 
 - an id which must be unique and can be the id of the plugin but does not have
@@ -118,7 +118,7 @@ Declaring an AppClosing extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to customize how the application determine whether or not it can exit,
-you need to contribute an |AppClosing| object to the 'ecpy.app.closing'
+you need to contribute an |AppClosing| object to the 'exopy.app.closing'
 extension point. An |AppClosing| must have :
 
 - an id which must be unique and can be the id of the plugin but does not have
@@ -134,7 +134,7 @@ Declaring an AppClosed extension
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to customize the application closing, you need to contribute an
-|AppClosed| object to the 'ecpy.app.closed' extension point. An |AppClosed|
+|AppClosed| object to the 'exopy.app.closed' extension point. An |AppClosed|
 must have :
 
 - an 'id' which must be unique and can be the id of the plugin but does not
@@ -162,7 +162,7 @@ tagged with the 'pref' metadata (use the tag method). The value of the
 metadata can be `True` or any of the values presented in :ref: TODO. All value thus
 tagged are loaded from the preference file if found, and saved when the user
 request to save the preferences. Finally, a |Preferences| object to the
-'ecpy.app.preferences.plugin' extension point. A single |Preferences| object
+'exopy.app.preferences.plugin' extension point. A single |Preferences| object
 can be contributed per plugin.
 
 .. note::
@@ -196,11 +196,11 @@ Declaring error handlers
 ------------------------
 
 During the application lifetime errors can occurs and the user needs to be
-informed about them. Ecpy provides a command to do so 'ecpy.app.errors.signal'.
+informed about them. Exopy provides a command to do so 'exopy.app.errors.signal'.
 This command expects a 'kind' keyword specifying which handler to use to for
 reporting this error. The selected handler determine the expected keywords.
 
-By default Ecpy provides the following handlers, which displays the error and
+By default Exopy provides the following handlers, which displays the error and
 log it:
 
 - 'error' : To report an error which does not deserve a more complex handler.
@@ -211,16 +211,16 @@ log it:
 
 In some situations, it is desirable to wait before reporting errors that the
 execution of some code completed. To this effect the error plugin provides
-the 'ecpy.app.errors.enter_error_gathering' which will hold the processing
-of the errors till 'ecpy.app.errors.exit_error_gathering' is called.
+the 'exopy.app.errors.enter_error_gathering' which will hold the processing
+of the errors till 'exopy.app.errors.exit_error_gathering' is called.
 
-Plugins can contribute new error handler to the 'ecpy.app.error.handler'
+Plugins can contribute new error handler to the 'exopy.app.error.handler'
 extension point. The contribution should be an |ErrorHandler| object.
 
 An |ErrorHandler| needs to declare :
 
 - 'id ': a unique id which will be used as 'kind' when calling
-  'ecpy.app.errors.signal'
+  'exopy.app.errors.signal'
 - 'handler' : a method handling the error. Note that to deal with error
   gathering it must be able to handle list of dictionary and not only
   dictionary. The handler shoudl log that an error occurred and return a widget
@@ -236,7 +236,7 @@ An |ErrorHandler| needs to declare :
 Declaring dependencies
 ----------------------
 
-When loading and transferring complex object over the network Ecpy needs to
+When loading and transferring complex object over the network Exopy needs to
 collect all the base classes needed for reconstructing the object in an
 environment lacking an active workbench. These are considered to be
 build dependencies. In the same way some resources can be necessary to execute
@@ -246,15 +246,15 @@ considered to be run-time dependencies.
 
 If your plugin introduces a new type of object which can, for example, be used
 in tasks either as a build or as a runtime dependency you need to contribute
-either a |BuildDependency| object to the 'ecpy.app.dependencies.build'
+either a |BuildDependency| object to the 'exopy.app.dependencies.build'
 extension point or a |RuntimeDependencyCollector| object to the
-'ecpy.app.dependencies.runtime_collect' extension point. In the case of
+'exopy.app.dependencies.runtime_collect' extension point. In the case of
 runtime dependencies, the collector is not responsible for the analysis of the
 dependencies of an object this is left to an associated
 |RuntimeDependencyAnalyser|, which allow to use the same kind of dependeny in
 object with totally different structures and for which the same scheme of
 analysis cannot be used. |RuntimeDependencyAnalyser| can be contributed to the
-'ecpy.app.dependencies.runtime_analyse' extension point.
+'exopy.app.dependencies.runtime_analyse' extension point.
 
 After analyses dependencies are stored into dedicated container class. Those
 containers can then be used to request the identified dependencies. Once again
@@ -305,13 +305,13 @@ the signature of the methods that need to be implemented.
 Customizing logging
 -------------------
 
-By default Ecpy use two logs:
+By default Exopy use two logs:
 
 - a log collecting all levels and directed to a file (in the application folder
   under logs) and which is rotated daily or every time the application starts.
 - a log collecting INFO log and above and stored in a string with a max of 1000
   lines. This string is meant to be used for displaying the log in the GUI, and
-  is available from the state of the log plugin ('ecpy.app.logging').
+  is available from the state of the log plugin ('exopy.app.logging').
 
 If you need to add handlers, formatters or filters, you should do so in the
 |Plugin.start| method of your plugin by calling the corresponding commands

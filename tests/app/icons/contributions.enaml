@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2016 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -17,7 +17,7 @@ from enaml.widgets.api import Window, Container, PushButton
 from atom.api import Unicode
 
 from enaml.workbench.api import Extension, PluginManifest
-from ecpy.app.icons.icon_theme import IconTheme, IconThemeExtension, Icon
+from exopy.app.icons.icon_theme import IconTheme, IconThemeExtension, Icon
 
 
 class DumbIcon(enaml.icon.Icon):
@@ -62,7 +62,7 @@ enamldef ThemeContributor(PluginManifest):
 
     Extension:
         id = 'icon_theme'
-        point = 'ecpy.app.icons.icon_theme'
+        point = 'exopy.app.icons.icon_theme'
         DummyTheme:
             pass
 
@@ -75,7 +75,7 @@ enamldef ThemeContributor2(PluginManifest):
 
     Extension:
         id = 'icon_theme'
-        point = 'ecpy.app.icons.icon_theme'
+        point = 'exopy.app.icons.icon_theme'
         DummyTheme:
             id = 'dummy2'
 
@@ -88,7 +88,7 @@ enamldef ThemeExtensionContributor(PluginManifest):
 
     Extension:
         id = 'theme_extension'
-        point = 'ecpy.app.icons.icon_theme_extension'
+        point = 'exopy.app.icons.icon_theme_extension'
         DummyThemeExtension:
             pass
 
@@ -101,7 +101,7 @@ enamldef ThemeExtensionContributor2(PluginManifest):
 
     Extension:
         id = 'theme_extension'
-        point = 'ecpy.app.icons.icon_theme_extension'
+        point = 'exopy.app.icons.icon_theme_extension'
         IconThemeExtension:
             id = 'dummy_ext2'
             theme = 'dummy'
@@ -111,7 +111,7 @@ enamldef ThemeExtensionContributor2(PluginManifest):
                     return DumbIcon(id=self.id)
 
 
-enamldef TestIconWindow(Window):
+enamldef IconWindowTest(Window):
     """Window for testing displaying an icon.
 
     """

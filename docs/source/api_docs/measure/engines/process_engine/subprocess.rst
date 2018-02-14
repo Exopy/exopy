@@ -1,7 +1,7 @@
-ecpy.measure.engines.process_engine.subprocess module
+exopy.measurement.engines.process_engine.subprocess module
 =====================================================
 
-.. automodule:: ecpy.measure.engines.process_engine.subprocess
+.. automodule:: exopy.measurement.engines.process_engine.subprocess
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -13,16 +13,17 @@ from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
 import os
-import shutil
 
 import pytest
 import enaml
-
+from configobj import ConfigObj
 
 with enaml.imports():
     from .contributors import InstrContributor1
 
-pytest_plugins = str('ecpy.testing.instruments.fixtures'),
+from exopy.testing.instruments.util import add_profile
+
+pytest_plugins = str('exopy.testing.instruments.fixtures'),
 
 PROFILE_PATH = os.path.join(os.path.dirname(__file__),
                             'fp.instr.ini')
@@ -34,12 +35,6 @@ def prof_plugin(app, instr_workbench):
 
     """
     instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
-    p._unbind_observers()
-    # Test observation of profiles folders
-    for n in ('fp1', 'fp2', 'fp3', 'fp4'):
-        shutil.copyfile(PROFILE_PATH, os.path.join(p._profiles_folders[0],
-                                                   n + '.instr.ini'))
-    p._refresh_profiles()
-    p._bind_observers()
-    return p
+    c = ConfigObj(PROFILE_PATH, encoding='utf-8')
+    add_profile(instr_workbench, c, ['fp1', 'fp2', 'fp3', 'fp4'])
+    return instr_workbench.get_plugin('exopy.instruments')

@@ -1,0 +1,100 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Manifest of the icon manager plugin.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+import os
+
+import enaml.icon
+from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
+
+from ..preferences.api import Preferences
+from .icon_theme import IconTheme
+
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def icons_plugin_factory():
+    """ Factory function for the LogPlugin.
+
+    """
+    from .plugin import IconManagerPlugin
+    return IconManagerPlugin()
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef IconManagerManifest(PluginManifest):
+    """Manifest of the icon manager plugin providing icon to the GUI.
+
+    """
+    #: Id of the plugin.
+    id = 'exopy.app.icons'
+    factory = icons_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'icon_theme'
+        description = 'Point to which plugin can contribute icon themes.'
+
+    ExtensionPoint:
+        id = 'icon_theme_extension'
+        description = ('Point to which plugin can contribute icon theme '
+                       'extensions.')
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+
+        id = 'preferences'
+        point = 'exopy.app.preferences.plugin'
+        Preferences:
+            pass
+
+    Extension:
+
+        id = 'themes'
+        point = 'exopy.app.icons.icon_theme'
+        description = 'Add the default icon themes based on qtawesome.'
+
+        IconTheme:
+            id = 'exopy.FontAwesome'
+
+            get_icon => (manager, icon_id):
+                from qtawesome import icon as qicon
+                try:
+                    icon = enaml.icon.Icon(_tkdata=qicon('fa.' + icon_id))
+                except Exception:
+                    icon = None
+
+                return icon
+
+        IconTheme:
+            id = 'exopy.ElusiveIcon'
+
+            get_icon => (manager, icon_id):
+                from qtawesome import icon as qicon
+                try:
+                    icon = enaml.icon.Icon(_tkdata=qicon('ei.' + icon_id))
+                except Exception:
+                    icon = None
+
+                return icon

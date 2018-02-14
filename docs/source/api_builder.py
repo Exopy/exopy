@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    ecpy.api_builder
+    exopy.api_builder
     ~~~~~~~~~~~~~~~~
     This is derived from the sphinx-apidoc but modified to allow generation
     of hierarchically organized .rst for the api docs.
@@ -12,7 +12,7 @@
     This is derived from the "sphinx-autopackage" script, which is:
     Copyright 2008 Société des arts technologiques (SAT),
     http://www.sat.qc.ca/
-    :copyright: Copyright 2007-2016 by the Sphinx team, see AUTHORS.
+    :copyright: Copyright 2007-2018 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 from __future__ import print_function

@@ -1,4 +1,4 @@
-ecpy.tasks.configs package
+exopy.tasks.configs package
 ==========================
 
 Submodules

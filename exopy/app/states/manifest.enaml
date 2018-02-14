@@ -1,0 +1,90 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""State plugin manifest.
+
+"""
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
+from enaml.workbench.core.api import Command
+from enaml.workbench.ui.api import ActionItem, MenuItem, ItemGroup
+
+PLUGIN_ID = 'exopy.app.states'
+
+# =============================================================================
+# --- Factories ---------------------------------------------------------------
+# =============================================================================
+
+def state_plugin_factory():
+    """ Factory function for the StatePlugin.
+
+    """
+    from .plugin import StatePlugin
+    return StatePlugin()
+
+# =============================================================================
+# --- Command handlers --------------------------------------------------------
+# =============================================================================
+
+def get_state(event):
+    """Handler for the get_state command.
+
+    """
+    plugin = event.workbench.get_plugin(PLUGIN_ID)
+    return plugin.get_state(**event.parameters)
+
+# =============================================================================
+# --- Descriptions ------------------------------------------------------------
+# =============================================================================
+
+STATES_DESCRIPTION = \
+"""Plugins which needs to give read-only access to some members should
+provide an extension to this point in the form of a State object.
+"""
+
+GET_STATE_DESCRIPTION = \
+"""Retrieve a reference to a state object.
+
+Parameters
+----------
+id : unicode
+    Id of the  state.
+
+"""
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef StateManifest(PluginManifest):
+    """Manifest of the StatesPlugin
+    """
+    id = PLUGIN_ID
+    factory = state_plugin_factory
+
+    # =========================================================================
+    # --- Extension points ----------------------------------------------------
+    # =========================================================================
+
+    ExtensionPoint:
+        id = 'state'
+        description = STATES_DESCRIPTION
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+
+    Extension:
+        id = 'commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.app.states.get'
+            description = SAVE_PREF_DESCRIPTION
+            handler = get_state

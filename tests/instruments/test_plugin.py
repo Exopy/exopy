@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -20,10 +20,10 @@ import enaml
 import pytest
 from configobj import ConfigObj
 
-from ecpy.instruments.api import Starter, BaseStarter
-from ecpy.instruments.user import InstrUser
-from ecpy.instruments.plugin import validate_user, validate_starter
-from ecpy.testing.util import process_app_events
+from exopy.instruments.api import Starter, BaseStarter
+from exopy.instruments.user import InstrUser
+from exopy.instruments.plugin import validate_user, validate_starter
+from exopy.testing.util import process_app_events
 
 from .conftest import PROFILE_PATH
 with enaml.imports():
@@ -82,13 +82,13 @@ def test_plugin_lifecycle(instr_workbench):
     instr_workbench.register(InstrContributor1())
 
     # Test starting
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     assert 'tests' in p.users
     assert 'false_starter' in p.starters
     assert 'false_connection' in p.connections
     assert 'false_settings' in p.settings
-    assert 'tests.test.FalseDriver' in p._drivers.contributions
+    assert 'instruments.test.FalseDriver' in p._drivers.contributions
     for d in p._drivers.contributions.values():
         assert d.valid
     assert p.get_aliases('Dummy')
@@ -137,7 +137,7 @@ def test_handling_crash_of_watchdog(instr_workbench, caplog):
     instr_workbench.register(InstrContributor1())
 
     # Test starting
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     o = p._observer
     j = o.join
@@ -162,7 +162,7 @@ def test_plugin_handling_driver_validation_issue(instr_workbench):
     instr_workbench.register(InstrContributor3())
 
     with pytest.raises(Exception) as execinfo:
-        instr_workbench.get_plugin('ecpy.instruments')
+        instr_workbench.get_plugin('exopy.instruments')
 
     assert 'Unexpected exceptions occured' in str(execinfo.value)
 
@@ -174,7 +174,7 @@ def test_plugin_handling_driver_kind_issue(instr_workbench):
     instr_workbench.register(InstrContributor4())
 
     with pytest.raises(Exception) as execinfo:
-        instr_workbench.get_plugin('ecpy.instruments')
+        instr_workbench.get_plugin('exopy.instruments')
 
     assert 'Unexpected exceptions occured' in str(execinfo.value)
 
@@ -183,7 +183,7 @@ def test_handle_wrong_profile_dir(instr_workbench, caplog):
     """Test that an incorrect path in _profiles_dirs does not crash anything.
 
     """
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     p._profiles_folders = ['dummy']
     p._refresh_profiles()
@@ -204,7 +204,7 @@ def test_handle_corrupted_profile(prof_plugin, caplog):
     prof_plugin._refresh_profiles()
 
     for record in caplog.records:
-        if 'ecpy' in record.name:
+        if 'exopy' in record.name:
             assert record.levelname == 'WARNING'
 
 
@@ -215,7 +215,7 @@ def test_profiles_observation(instr_workbench):
     instr_workbench.register(InstrContributor1())
 
     # Test starting
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
@@ -236,7 +236,7 @@ def test_create_connection(instr_workbench):
 
     """
     instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     d = dict((i, i**2) for i in range(10))
     c = p.create_connection('false_connection', d)
@@ -249,7 +249,7 @@ def test_create_settings(instr_workbench, caplog):
 
     """
     instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
     d = dict((i, i**2) for i in range(10))
     c = p.create_settings('false_settings', d)
@@ -267,13 +267,13 @@ def test_get_drivers(instr_workbench):
 
     """
     instr_workbench.register(InstrContributor1())
-    p = instr_workbench.get_plugin('ecpy.instruments')
+    p = instr_workbench.get_plugin('exopy.instruments')
 
-    d, m = p.get_drivers(['tests.test.FalseDriver', 'dum'])
+    d, m = p.get_drivers(['instruments.test.FalseDriver', 'dum'])
 
     assert m == ['dum']
-    assert 'tests.test.FalseDriver' in d
-    d, s = d['tests.test.FalseDriver']
+    assert 'instruments.test.FalseDriver' in d
+    d, s = d['instruments.test.FalseDriver']
     from .false_driver import FalseDriver
     assert d is FalseDriver and s.id == 'false_starter'
 
@@ -357,14 +357,15 @@ def test_validate_runtime_dependencies_driver(instr_workbench):
     """
     instr_workbench.register(InstrContributor1())
 
-    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+    d_p = instr_workbench.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.drivers']
 
     err = {}
-    d_c.validate(instr_workbench, ('tests.test.FalseDriver', 'dummy'), err)
+    d_c.validate(instr_workbench, ('instruments.test.FalseDriver', 'dummy'),
+                 err)
 
     assert len(err) == 1
-    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert 'instruments.test.FalseDriver' not in err['unknown-drivers']
     assert 'dummy' in err['unknown-drivers']
 
 
@@ -374,21 +375,21 @@ def test_collect_runtime_dependencies_driver(instr_workbench):
     """
     instr_workbench.register(InstrContributor1())
 
-    d_p = instr_workbench.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.drivers']
+    d_p = instr_workbench.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.drivers']
 
-    dep = dict.fromkeys(('tests.test.FalseDriver', 'dummy'))
+    dep = dict.fromkeys(('instruments.test.FalseDriver', 'dummy'))
     err = {}
     un = set()
     d_c.collect(instr_workbench, 'tests', dep, un, err)
 
     assert len(err) == 1
-    assert 'tests.test.FalseDriver' not in err['unknown-drivers']
+    assert 'instruments.test.FalseDriver' not in err['unknown-drivers']
     assert 'dummy' in err['unknown-drivers']
 
     assert not un
 
-    assert dep['tests.test.FalseDriver'] is not None
+    assert dep['instruments.test.FalseDriver'] is not None
     assert dep['dummy'] is None
 
 
@@ -398,8 +399,8 @@ def test_validate_runtime_dependencies_profiles(prof_plugin):
     """
     w = prof_plugin.workbench
 
-    d_p = w.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+    d_p = w.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.profiles']
 
     err = {}
     d_c.validate(w, ('fp1', 'dummy'), err)
@@ -415,8 +416,8 @@ def test_collect_release_runtime_dependencies_profiles(prof_plugin):
     """
     w = prof_plugin.workbench
 
-    d_p = w.get_plugin('ecpy.app.dependencies')
-    d_c = d_p.run_deps_collectors.contributions['ecpy.instruments.profiles']
+    d_p = w.get_plugin('exopy.app.dependencies')
+    d_c = d_p.run_deps_collectors.contributions['exopy.instruments.profiles']
 
     dep = dict.fromkeys(('fp1', 'dummy'))
     err = {}

@@ -1,4 +1,4 @@
-ecpy.app.log package
+exopy.app.log package
 ====================
 
 Submodules

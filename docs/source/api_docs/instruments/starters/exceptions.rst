@@ -1,7 +1,7 @@
-ecpy.instruments.starters.exceptions module
+exopy.instruments.starters.exceptions module
 ===========================================
 
-.. automodule:: ecpy.instruments.starters.exceptions
+.. automodule:: exopy.instruments.starters.exceptions
     :members:
     :undoc-members:
     :show-inheritance:

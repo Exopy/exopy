@@ -1,10 +1,10 @@
-.. Ecpy documentation master file, created by
-   sphinx-quickstart on Mon Apr 27 20:35:05 2015
+.. Exopy documentation master file, created by
+   sphinx-quickstart on Mon Apr 27 20:35:05 2015-2018
 
-Welcome to Ecpy's documentation!
+Welcome to Exopy's documentation!
 ================================
 
-Ecpy is data acquisition software. 
+Exopy is a versatile data acquisition software.
 
 
 .. toctree::
@@ -17,11 +17,11 @@ Ecpy is data acquisition software.
 
 - :doc:`user_guide/index`
 
-    How to set up Ecpy and use it in your lab.
+    How to set up Exopy and use it in your lab.
 
 - :doc:`dev_guide/index`
 
-   You need to extend Ecpy functionalities, you should definitively start here.
+   You need to extend Exopy functionalities, you should definitively start here.
 
 - :doc:`faqs/index`
 
@@ -31,7 +31,7 @@ Ecpy is data acquisition software.
 
     When all else fails, consult the API docs to find the answer you need.
     The API docs also include convenient links to the most definitive
-    Ecpy documentation: the source.
+    Exopy documentation: the source.
 
 
 Indices and tables

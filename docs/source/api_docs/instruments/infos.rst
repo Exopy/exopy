@@ -1,7 +1,7 @@
-ecpy.instruments.infos module
+exopy.instruments.infos module
 =============================
 
-.. automodule:: ecpy.instruments.infos
+.. automodule:: exopy.instruments.infos
     :members:
     :undoc-members:
     :show-inheritance:

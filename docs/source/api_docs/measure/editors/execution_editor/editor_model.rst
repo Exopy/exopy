@@ -1,7 +1,7 @@
-ecpy.measure.editors.execution_editor.editor_model module
+exopy.measurement.editors.execution_editor.editor_model module
 =========================================================
 
-.. automodule:: ecpy.measure.editors.execution_editor.editor_model
+.. automodule:: exopy.measurement.editors.execution_editor.editor_model
     :members:
     :undoc-members:
     :show-inheritance:

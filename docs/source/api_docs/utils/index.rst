@@ -1,4 +1,4 @@
-ecpy.utils package
+exopy.utils package
 ==================
 
 Subpackages

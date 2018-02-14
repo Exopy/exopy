@@ -1,4 +1,4 @@
-ecpy.testing.instruments package
+exopy.testing.instruments package
 ================================
 
 Submodules

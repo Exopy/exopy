@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -13,13 +13,13 @@ import pytest
 import enaml
 from enaml.workbench.api import Workbench
 
-from ecpy.utils.plugin_tools import make_extension_validator
+from exopy.utils.plugin_tools import make_extension_validator
 
-from ecpy.testing.util import handle_dialog
+from exopy.testing.util import handle_dialog
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
-    from ecpy.app.errors.manifest import ErrorsManifest
+    from exopy.app.errors.manifest import ErrorsManifest
     from .plugin_tools_testing import (ExtensionManifest,
                                        Contribution, DContribution,
                                        Contributor1, Contributor2,

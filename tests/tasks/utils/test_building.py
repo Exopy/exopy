@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015 by Ecpy Authors, see AUTHORS for more details.
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -18,9 +18,9 @@ import pytest
 from future.builtins import str
 from configobj import ConfigObj
 
-from ecpy.tasks.utils.building import build_task_from_config
+from exopy.tasks.utils.building import build_task_from_config
 
-from ecpy.testing.util import handle_dialog, process_app_events
+from exopy.testing.util import handle_dialog, process_app_events
 
 
 def test_create_task1(windows, task_workbench):
@@ -32,13 +32,13 @@ def test_create_task1(windows, task_workbench):
     def answer_dialog(dial):
         selector = dial.selector
         selector.selected_filter = 'Logic'
-        selector.selected_task = 'ecpy.WhileTask'
+        selector.selected_task = 'exopy.WhileTask'
         dial.config.task_name = 'Test'
         process_app_events()
         assert dial.config.ready
 
     with handle_dialog('accept', answer_dialog):
-        res = core.invoke_command('ecpy.tasks.create_task')
+        res = core.invoke_command('exopy.tasks.create_task')
         assert res
 
 
@@ -60,15 +60,15 @@ def test_create_task2(windows, task_workbench, dialog_sleep):
         sleep(dialog_sleep)
 
     with handle_dialog('reject', answer_dialog):
-        res = core.invoke_command('ecpy.tasks.create_task')
+        res = core.invoke_command('exopy.tasks.create_task')
 
     assert res is None
 
 
 @pytest.fixture
 def task_config():
-    return ConfigObj({'task_id': 'ecpy.ComplexTask',
-                      'dep_type': 'ecpy.task',
+    return ConfigObj({'task_id': 'exopy.ComplexTask',
+                      'dep_type': 'exopy.task',
                       'name': 'Test'})
 
 
@@ -76,10 +76,10 @@ def test_build_from_config(task_workbench, task_config):
     """Test creating a task from a config object.
 
     """
-    from ecpy.tasks.api import ComplexTask
+    from exopy.tasks.api import ComplexTask
     task = build_task_from_config(task_config,
-                                  {'ecpy.task':
-                                      {'ecpy.ComplexTask': ComplexTask}})
+                                  {'exopy.task':
+                                      {'exopy.ComplexTask': ComplexTask}})
 
     assert task.name == 'Test'
     assert isinstance(task, ComplexTask)
@@ -99,14 +99,14 @@ def test_build_from_config_collecting_dep_failure(task_workbench, task_config,
     """Test creating a task from a config object.
 
     """
-    plugin = task_workbench.get_plugin('ecpy.app.dependencies')
-    cls = type(plugin.build_deps.contributions['ecpy.task'])
+    plugin = task_workbench.get_plugin('exopy.app.dependencies')
+    cls = type(plugin.build_deps.contributions['exopy.task'])
 
     class FalseCollector(cls):
         def collect(self, kind, dependencies, owner=None):
             raise RuntimeError()
 
-    monkeypatch.setitem(plugin.build_deps.contributions, 'ecpy.task',
+    monkeypatch.setitem(plugin.build_deps.contributions, 'exopy.task',
                         FalseCollector())
     with pytest.raises(RuntimeError):
         build_task_from_config(task_config, task_workbench)
@@ -128,7 +128,7 @@ def test_build_root_from_config(task_workbench, task_config):
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
 
-    task = core.invoke_command('ecpy.tasks.build_root',
+    task = core.invoke_command('exopy.tasks.build_root',
                                dict(mode='from config', config=task_config,
                                     build_dep={}))
     assert task.name == 'Root'
@@ -139,7 +139,7 @@ def test_build_root_from_template(tmpdir, task_workbench, task_config):
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
-    plugin = task_workbench.get_plugin('ecpy.tasks')
+    plugin = task_workbench.get_plugin('exopy.tasks')
     path = str(tmpdir.join('temp.task.ini'))
     task_config.filename = path
     task_config.write()
@@ -151,6 +151,6 @@ def test_build_root_from_template(tmpdir, task_workbench, task_config):
         assert dial.path == path
 
     with handle_dialog('accept', answer_dialog):
-        task = core.invoke_command('ecpy.tasks.build_root',
+        task = core.invoke_command('exopy.tasks.build_root',
                                    dict(mode='from template'))
     assert task.name == 'Root'
