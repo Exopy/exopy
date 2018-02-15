@@ -91,8 +91,8 @@ def test_saving_as_template_fail(exopy_qtbot, tmpdir, task_workbench, task,
 
     monkeypatch.setattr(saving, 'save_template', false_save)
 
-    # Critical use Windows dialog on Windows and are then not in the windows
-    # set.
+    # We cannot easily catch a second dialog after dealing with the first
+    # so we bypass it
     monkeypatch.setattr(saving, 'critical', false_critical)
 
     plugin = task_workbench.get_plugin('exopy.tasks')

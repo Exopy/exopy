@@ -9,14 +9,12 @@
 """Test widgets related to measurement edition tasks.
 
 """
-from collections import namedtuple
-
 import pytest
 import enaml
 
 from exopy.testing.measurement.fixtures import measure as m_build
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
-                               wait_for_destruction)
+                                wait_for_destruction, handle_question)
 from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
 from exopy.utils.widgets.qt_clipboard import CLIPBOARD
 
@@ -62,7 +60,7 @@ def test_copy_action(workspace, measurement, exopy_qtbot):
     assert new.name == 'Test'
 
 
-def test_save_action(exopy_qtbot, workspace, measure):
+def test_save_action(exopy_qtbot, workspace, measurement):
     """Test that save action calls the proper commands.
 
     """
@@ -224,39 +222,32 @@ def test_closing_measure(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
     btn.clicked = True
     exopy_qtbot.wait(10)
 
-    # Monkeypatch question (handle_dialog does not work on it on Windows)
-    with enaml.imports():
-        from exopy.measurement.workspace import measurement_edition
-
-    monkeypatch.setattr(measurement_edition, 'question', lambda *args: None)
-    edition_view.widget.proxy.on_closed()
-    edition_view.widget.measurement.name = 'First'
+    with handle_question(exopy_qtbot, None):
+        edition_view.widget.proxy.on_closed()
+    edition_view.widget.measure.name = 'First'
 
     def assert_dock():
         assert len(edition_view.area.dock_items()) == 2
     exopy_qtbot.wait_until(assert_dock)
     exopy_qtbot.wait(dialog_sleep)
 
-    false_btn = namedtuple('FalseBtn', ['action'])
-    monkeypatch.setattr(measurement_edition, 'question',
-                        lambda *args: false_btn('reject'))
-    edition_view.widget.proxy.on_closed()
-    edition_view.widget.measurement.name = 'Second'
+    with handle_question(exopy_qtbot, 'no'):
+        edition_view.widget.proxy.on_closed()
+    edition_view.widget.measure.name = 'Second'
 
     exopy_qtbot.wait_until(assert_dock)
     exopy_qtbot.wait(dialog_sleep)
 
-    monkeypatch.setattr(measurement_edition, 'question',
-                        lambda *args: false_btn('accept'))
-    edition_view.widget.proxy.on_closed()
+    with handle_question(exopy_qtbot, 'yes'):
+        edition_view.widget.proxy.on_closed()
 
     def assert_dock_zero():
         assert len(edition_view.area.dock_items()) == 0
     exopy_qtbot.wait_until(assert_dock_zero)
 
 
-def test_measurement_edition_dialog(exopy_qtbot, workspace, measurement, monkeypatch,
-                                dialog_sleep):
+def test_measurement_edition_dialog(exopy_qtbot, workspace, measurement,
+                                    monkeypatch, dialog_sleep):
     """Test creating a measure edition dialog.
 
     """

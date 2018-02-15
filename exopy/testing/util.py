@@ -286,7 +286,8 @@ def handle_question(qtbot, answer):
         """Mark the right button as clicked.
 
         """
-        dial.buttons[0 if answer == 'yes' else 1].was_clicked = True
+        if answer in ('yes', 'no'):
+            dial.buttons[0 if answer == 'yes' else 1].was_clicked = True
 
     with handle_dialog(qtbot, 'accept' if answer == 'yes' else 'reject',
                        handler=answer_question, cls=MessageBox):
