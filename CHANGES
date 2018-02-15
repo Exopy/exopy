@@ -1,7 +1,14 @@
 Exopy Changelog
 ==============
 
-0.1.0 - unreleased
+
+0.2.0 - unreleased
+------------------
+
+Nothing yet
+
+
+0.1.0 - 15-02-2018
 ------------------
 
 - Project renaming : ecpy -> exopy due to a PyPI conflict
