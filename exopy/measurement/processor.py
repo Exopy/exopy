@@ -69,7 +69,7 @@ class MeasurementProcessor(Atom):
     #: Instance of the currently used engine.
     engine = Typed(BaseEngine)
 
-    #: Boolean indicating whether or not process all enqueued measures.
+    #: Boolean indicating whether or not process all enqueued measurements.
     continuous_processing = Bool(True)
 
     #: Monitors window
@@ -154,7 +154,7 @@ class MeasurementProcessor(Atom):
                 self._active_hook.stop(force)
 
     def stop_processing(self, no_post_exec=False, force=False):
-        """Stop processing the enqueued measures.
+        """Stop processing the enqueued measurements.
 
         """
         if self.running_measurement:
@@ -193,14 +193,14 @@ class MeasurementProcessor(Atom):
     _lock = Value(factory=RLock)
 
     def _run_measurements(self, measurement):
-        """Run measures (either all enqueued or only one)
+        """Run measurements (either all enqueued or only one)
 
         This code is executed by a thread (stored in _thread)
 
         Parameters
         ----------
         measurement : Measurement
-            First measurement to run. Other measures will be run in their order
+            First measurement to run. Other measurements will be run in their order
             of appearance in the queue if the user enable continuous
             processing.
 
@@ -211,7 +211,7 @@ class MeasurementProcessor(Atom):
             engine = plugin.create('engine', plugin.selected_engine)
             schedule_and_block(setattr, (self, 'engine', engine))
 
-        # Mark that we started processing measures.
+        # Mark that we started processing measurements.
         self._state.set('processing')
 
         # Process enqueued measurement as long as we are supposed to.

@@ -9,10 +9,6 @@
 """Test the behavior of the text monitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
 from operator import attrgetter
 
 import pytest
@@ -20,9 +16,9 @@ import enaml
 
 from exopy.tasks.tasks.database import TaskDatabase
 from exopy.measurement.monitors.text_monitor.entry import MonitoredEntry
-from exopy.measurement.monitors.text_monitor.rules.std_rules\
-     import FormatRule, RejectRule
-from exopy.testing.util import process_app_events, handle_dialog
+from exopy.measurement.monitors.text_monitor.rules.std_rules import (FormatRule,
+                                                                RejectRule)
+from exopy.testing.util import handle_dialog, wait_for_window_displayed
 with enaml.imports():
     from exopy.testing.windows import (ContainerTestingWindow,
                                        DockItemTestingWindow)
@@ -149,7 +145,7 @@ def test_handle_database_change2(monitor, database):
     assert not monitor.updaters
 
 
-def test_handle_database_change3(app, monitor, database):
+def test_handle_database_change3(exopy_qtbot, monitor, database):
     """ Test handling the adding of entries subject to a format rule.
 
     """
@@ -201,8 +197,10 @@ def test_handle_database_change3(app, monitor, database):
     assert entry.depend_on == ['root/test_loop', 'root/test_index']
     assert entry.formatting == '{root/test_index}/{root/test_loop}'
     entry.update(monitor._database_values)
-    process_app_events()
-    assert entry.value == '1/10'
+
+    def assert_entry_value():
+        assert entry.value == '1/10'
+    exopy_qtbot.wait_until(assert_entry_value)
 
     rule.hide_entries = False
     database.set_value('root', 'test2_loop', 10)
@@ -356,7 +354,7 @@ def test_refresh_monitored_entries(monitor, database):
     assert not monitor.hidden_entries
 
 
-def test_process_news(monitor, database):
+def test_process_news(exopy_qtbot, monitor, database):
     """ Test processing news coming from a database.
 
     """
@@ -370,14 +368,16 @@ def test_process_news(monitor, database):
     database.set_value('root', 'test_index', 1)
 
     monitor.process_news(('root/test_index', 2))
-    process_app_events()
-    assert monitor.displayed_entries[0].value == '10'
-    assert monitor.displayed_entries[1].value == '2'
-    assert monitor.displayed_entries[2].value == '2/10'
+
+    def assert_displayed_entries():
+        assert monitor.displayed_entries[0].value == '10'
+        assert monitor.displayed_entries[1].value == '2'
+        assert monitor.displayed_entries[2].value == '2/10'
+    exopy_qtbot.wait_until(assert_displayed_entries)
 
     monitor.updaters = {}
     monitor.process_news(('root/test_index', 2))
-    process_app_events()
+    exopy_qtbot.wait(10)
     # Should simply pass silently
 
 
@@ -491,7 +491,7 @@ def test_known_monitored_entries(monitor):
     assert sorted(monitor.known_monitored_entries) == sorted(test)
 
 
-def test_edition_window(text_monitor_workbench, dialog_sleep,
+def test_edition_window(exopy_qtbot, text_monitor_workbench, dialog_sleep,
                         monkeypatch):
     """Test the capabalities of the widget used to edit a text monitor.
 
@@ -516,58 +516,70 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
 
     w = ContainerTestingWindow(widget=TextMonitorEdit(monitor=m))
     w.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, w)
+    exopy_qtbot.wait(dialog_sleep)
     editor = w.widget
 
     # Test hide all
     editor.widgets()[6].clicked = True
-    process_app_events()
-    assert not m.displayed_entries
-    sleep(dialog_sleep)
+
+    def assert_displayed_entries():
+        assert not m.displayed_entries
+    exopy_qtbot.wait_until(assert_displayed_entries)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test show one
     editor.widgets()[1].selected_item = m.undisplayed_entries[0]
     editor.widgets()[5].clicked = True
-    process_app_events()
-    assert m.displayed_entries
-    sleep(dialog_sleep)
+
+    def assert_displayed_entries():
+        assert m.displayed_entries
+    exopy_qtbot.wait_until(assert_displayed_entries)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test hide one
     editor.widgets()[3].selected_item = m.displayed_entries[0]
     editor.widgets()[7].clicked = True
-    process_app_events()
-    assert not m.displayed_entries
-    sleep(dialog_sleep)
+
+    def assert_displayed_entries():
+        assert not m.displayed_entries
+    exopy_qtbot.wait_until(assert_displayed_entries)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test show all
     editor.widgets()[4].clicked = True
-    process_app_events()
-    assert not m.undisplayed_entries
-    sleep(dialog_sleep)
+
+    def assert_displayed_entries():
+        assert not m.undisplayed_entries
+    exopy_qtbot.wait_until(assert_displayed_entries)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test show hidden
     editor.widgets()[8].checked = True
-    process_app_events()
-    assert m.hidden_entries
+
+    def assert_hidden():
+        assert m.hidden_entries
+    exopy_qtbot.wait_until(assert_hidden)
+
     for e in m.hidden_entries:
         assert e in m.undisplayed_entries
 
     # Test edit rules
-    def handle_rule_edition(dialog):
+    def handle_rule_edition(bot, dialog):
         dialog.monitor.rules.append(RejectRule(id='__dummy',
                                                suffixes=['test2']))
         dialog.monitor.refresh_monitored_entries()
 
-    with handle_dialog(custom=handle_rule_edition):
+    with handle_dialog(exopy_qtbot, handler=handle_rule_edition):
         editor.widgets()[9].clicked = True
+
     assert 't_test2' not in [e.name for e in m.displayed_entries]
 
     # Test add entry
-    def handle_entry_creation(dialog):
+    def handle_entry_creation(bot, dialog):
         dialog.entry = MonitoredEntry(name='new_entry')
 
-    with handle_dialog(custom=handle_entry_creation):
+    with handle_dialog(exopy_qtbot, handler=handle_entry_creation):
         editor.widgets()[10].clicked = True
 
     assert 'new_entry' in [e.name for e in m.displayed_entries]
@@ -575,7 +587,7 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
     # Test edit entry
     e = [e for e in m.displayed_entries if e.name == 'new_entry'][0]
     editor.selected = e
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         editor.widgets()[11].clicked = True
 
     # Test delete entry
@@ -589,9 +601,11 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
 
     monkeypatch.setattr(monitor_views, 'question', false_question)
     editor.widgets()[12].clicked = True
-    process_app_events()
-    assert e in m.displayed_entries
-    sleep(dialog_sleep)
+
+    def assert_entry():
+        assert e in m.displayed_entries
+    exopy_qtbot.wait_until(assert_entry)
+    exopy_qtbot.wait(dialog_sleep)
 
     m.add_entries('undisplayed', [e])
     with enaml.imports():
@@ -605,10 +619,11 @@ def test_edition_window(text_monitor_workbench, dialog_sleep,
     monkeypatch.setattr(monitor_views, 'question', false_question)
     editor.widgets()[12].clicked = True
     assert e not in m.displayed_entries
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)
 
 
-def test_text_monitor_item(text_monitor_workbench, monitor, dialog_sleep):
+def test_text_monitor_item(exopy_qtbot, text_monitor_workbench, monitor,
+                           dialog_sleep):
     """Test that the dock item of the text monitor does display the right
     entries.
 
@@ -622,15 +637,17 @@ def test_text_monitor_item(text_monitor_workbench, monitor, dialog_sleep):
     w = DockItemTestingWindow(widget=TextMonitorItem(monitor=monitor,
                                                      name='test'))
     w.show()
-    process_app_events()
+    wait_for_window_displayed(exopy_qtbot, w)
     f = w.widget.dock_widget()
     assert (sorted([l.text for l in f.widgets()[::2]]) ==
             sorted([e.name for e in monitor.displayed_entries]))
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)
 
     e = sorted(monitor.displayed_entries, key=attrgetter('path'))[0]
     e.name = 'new'
     e.value = '1'
-    process_app_events()
-    assert f.widgets()[0].text == 'new'
-    assert f.widgets()[1].text == '1'
+
+    def assert_text():
+        assert f.widgets()[0].text == 'new'
+        assert f.widgets()[1].text == '1'
+    exopy_qtbot.wait_until(assert_text)

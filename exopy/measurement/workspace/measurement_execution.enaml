@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Workspace used for editing and executing measures.
+"""Workspace used for editing and executing measurements.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -97,7 +97,7 @@ def label_maker(running, paused):
 
 def _set_enabled(widget, workspace, change):
     """Determine wheter or not to enable a widget based on the state of the
-    of the enqueued measures.
+    of the enqueued measurements.
 
     """
     widget.enabled = (not workspace.plugin.processor.active and
@@ -105,7 +105,7 @@ def _set_enabled(widget, workspace, change):
 
 
 enamldef ExecutionDockItem(DockItem):
-    """Dock item presenting the currently enqueued measures.
+    """Dock item presenting the currently enqueued measurements.
 
     """
     #: Refrence to the measurement workspace.
@@ -121,7 +121,7 @@ enamldef ExecutionDockItem(DockItem):
         if (queue.measurements[old].status not in status or
             queue.measurements[new].status not in status):
             information(self, title="Can't move measurement",
-                        text=('Can only move measures whose status is one of:'
+                        text=('Can only move measurements whose status is one of:'
                               '\n ' + ', '.join(status)))
         else:
             queue.move(old, new)
@@ -132,7 +132,7 @@ enamldef ExecutionDockItem(DockItem):
         status = ('READY', 'COMPLETED', 'INTERRUPTED', 'SKIPPED', 'FAILED')
         if measurement.status not in status:
             information(self, title="Can't delete measurement",
-                        text=('Can only delete measures whose status is one '
+                        text=('Can only delete measurements whose status is one '
                               'of:\n ' + ', '.join(status)))
         else:
             queue.remove(measurement)
@@ -197,9 +197,9 @@ enamldef ExecutionDockItem(DockItem):
                     return
 
                 res = question(parent=stop,
-                               title='Should process following measures ?',
+                               title='Should process following measurements ?',
                                text=('Do you want to process the next '
-                                     'measures in the queue ?'))
+                                     'measurements in the queue ?'))
                 if not res or res.text == 'No':
                     workspace.plugin.processor.continuous_processing = False
 
@@ -220,7 +220,7 @@ enamldef ExecutionDockItem(DockItem):
 
         CheckBox: proc_all:
             text = 'Process all'
-            tool_tip = ('When checked all measures in the queue are processed '
+            tool_tip = ('When checked all measurements in the queue are processed '
                         'in order otherwise execution will stop at the end of '
                         'the execution of the currently/next executed measurement.'
                         )
@@ -290,7 +290,7 @@ enamldef ExecutionDockItem(DockItem):
                 text << ('Shut down' if eng_status != 'Shutting down' else
                          'Force shut down')
                 tool_tip = ('Completetly stops the engine used to perform '
-                            'measures.')
+                            'measurements.')
                 enabled << not proc.active and eng_status != 'Stopped'
                 clicked ::
                     proc.engine.shutdown(force=eng_status == 'Shutting down')

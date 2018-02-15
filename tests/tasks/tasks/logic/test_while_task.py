@@ -9,9 +9,6 @@
 """Test of the WhileTask.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from multiprocessing import Event
 
 import pytest
@@ -117,9 +114,8 @@ class TestWhileTask(object):
         assert self.task.children[0].perform_called == 1
 
 
-@pytest.mark.ui
-def test_while_view(windows):
+def test_while_view(exopy_qtbot):
     """Test the ContinueTask view.
 
     """
-    show_and_close_widget(WhileView(task=WhileTask(name='Test')))
+    show_and_close_widget(exopy_qtbot, WhileView(task=WhileTask(name='Test')))

@@ -9,13 +9,9 @@
 """Test the ErrorsPlugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from enaml.widgets.api import MultilineField
-from future.utils import python_2_unicode_compatible
 
 from exopy.testing.util import handle_dialog, get_window, show_and_close_widget
 
@@ -43,7 +39,6 @@ def err_workbench(workbench):
     return workbench
 
 
-@python_2_unicode_compatible
 class FailedFormat(object):
 
     def __str__(self):
@@ -77,18 +72,17 @@ def test_life_cycle(err_workbench):
     assert not len(plugin.errors)
 
 
-@pytest.mark.ui
-def test_signal_command_with_unknown(err_workbench, windows):
+def test_signal_command_with_unknown(err_workbench, exopy_qtbot):
     """Test the signal command with a stupid kind of error.
 
     """
     core = err_workbench.get_plugin('enaml.workbench.core')
 
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.app.errors.signal',
                             {'kind': 'stupid', 'msg': None})
 
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         fail = FailedFormat()
         core.invoke_command('exopy.app.errors.signal',
                             {'kind': 'stupid', 'msg': fail})
@@ -96,26 +90,24 @@ def test_signal_command_with_unknown(err_workbench, windows):
     assert getattr(fail, 'called', None)
 
 
-@pytest.mark.ui
-def test_handling_error_in_handlers(err_workbench, windows):
+def test_handling_error_in_handlers(err_workbench, exopy_qtbot):
     """Test handling an error occuring in a specilaized handler.
 
     """
     plugin = err_workbench.get_plugin(ERRORS_ID)
 
-    def check_dialog(dial):
+    def check_dialog(bot, dial):
         assert 'error' in dial.errors
         assert 'registering' not in dial.errors
 
-    with handle_dialog(custom=check_dialog):
+    with handle_dialog(exopy_qtbot, handler=check_dialog):
         plugin.signal('registering')
 
-    with handle_dialog(custom=check_dialog):
+    with handle_dialog(exopy_qtbot, handler=check_dialog):
         plugin.signal('registering', msg=FailedFormat())
 
 
-@pytest.mark.ui
-def test_gathering_mode(err_workbench, windows):
+def test_gathering_mode(err_workbench, exopy_qtbot):
     """Test gathering multiple errors.
 
     """
@@ -124,30 +116,30 @@ def test_gathering_mode(err_workbench, windows):
 
     core.invoke_command('exopy.app.errors.signal',
                         {'kind': 'stupid', 'msg': None})
-    assert get_window() is None
 
-    with handle_dialog():
+    with pytest.raises(AssertionError):
+        get_window(exopy_qtbot)
+
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.app.errors.exit_error_gathering')
 
 
-@pytest.mark.ui
-def test_report_command(err_workbench, windows):
+def test_report_command(err_workbench, exopy_qtbot):
     """Test generating an application errors report.
 
     """
     core = err_workbench.get_plugin('enaml.workbench.core')
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.app.errors.report')
 
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.app.errors.report', dict(kind='error'))
 
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.app.errors.report', dict(kind='stupid'))
 
 
-@pytest.mark.ui
-def test_install_excepthook(err_workbench, windows):
+def test_install_excepthook(err_workbench, exopy_qtbot):
     """Test the installation and use of the sys.excepthook.
 
     """
@@ -167,7 +159,7 @@ def test_install_excepthook(err_workbench, windows):
     try:
         raise Exception()
     except Exception:
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             new_hook(*sys.exc_info())
 
 
@@ -259,7 +251,7 @@ def test_handling_multiple_extension_errors(err_workbench):
         handler.handle(err_workbench, {})
 
 
-def test_reporting_on_extension_errors(err_workbench):
+def test_reporting_on_extension_errors(exopy_qtbot, err_workbench):
     """Check reporting extension errors.
 
     """
@@ -268,13 +260,13 @@ def test_reporting_on_extension_errors(err_workbench):
 
     widget = handler.report(err_workbench)
     assert isinstance(widget, MultilineField)
-    show_and_close_widget(widget)
+    show_and_close_widget(exopy_qtbot, widget)
 
     handler.errors = {'test': {'errror': 'msg'}}
 
     widget = handler.report(err_workbench)
     assert isinstance(widget, HierarchicalErrorsDisplay)
-    show_and_close_widget(widget)
+    show_and_close_widget(exopy_qtbot, widget)
 
 
 # =============================================================================

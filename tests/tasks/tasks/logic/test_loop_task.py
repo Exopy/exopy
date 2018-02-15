@@ -9,9 +9,6 @@
 """Test of the LoopTask.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from multiprocessing import Event
 
 import pytest
@@ -19,8 +16,7 @@ import enaml
 import numpy as np
 
 from exopy.testing.tasks.util import CheckTask
-from exopy.testing.util import (show_and_close_widget, show_widget,
-                                process_app_events)
+from exopy.testing.util import show_and_close_widget, show_widget
 from exopy.tasks.api import RootTask
 from exopy.tasks.tasks.logic.loop_task import LoopTask
 from exopy.tasks.tasks.logic.loop_iterable_interface\
@@ -668,17 +664,15 @@ class TestLoopTask(object):
 
         assert self.task.children[0].perform_called == 1
 
-    @pytest.mark.ui
-    def test_view(self, windows, task_workbench):
+    def test_view(self, exopy_qtbot, task_workbench):
         """Test the LoopTask view.
 
         """
         core = task_workbench.get_plugin('enaml.workbench.core')
         root = RootTaskView(core=core)
-        show_and_close_widget(LoopView(task=self.task, root=root))
+        show_and_close_widget(exopy_qtbot, LoopView(task=self.task, root=root))
 
-    @pytest.mark.ui
-    def test_view_interface_not_inline(self, windows, task_workbench,
+    def test_view_interface_not_inline(self, exopy_qtbot, task_workbench,
                                        linspace_interface):
         """Test the LoopTask view.
 
@@ -686,29 +680,36 @@ class TestLoopTask(object):
         core = task_workbench.get_plugin('enaml.workbench.core')
         root = RootTaskView(core=core)
         self.task.interface = linspace_interface
-        show_and_close_widget(LoopView(task=self.task, root=root))
+        show_and_close_widget(exopy_qtbot, LoopView(task=self.task, root=root))
 
-    @pytest.mark.ui
-    def test_view_with_subtask(self, windows, task_workbench):
+    def test_view_with_subtask(self, exopy_qtbot, task_workbench):
         """Test the LoopTask view.
 
         """
         core = task_workbench.get_plugin('enaml.workbench.core')
         root = RootTaskView(core=core)
         self.task.task = BreakTask(name='Aux')
-        show_and_close_widget(LoopView(task=self.task, root=root))
+        show_and_close_widget(exopy_qtbot, LoopView(task=self.task, root=root))
 
-    @pytest.mark.ui
-    def test_view_changing_interface(self, windows, task_workbench):
+    def test_view_changing_interface(self, exopy_qtbot, task_workbench):
         """Test the LoopTask view.
 
         """
         core = task_workbench.get_plugin('enaml.workbench.core')
         root = RootTaskView(core=core)
         view = LoopView(task=self.task, root=root)
-        show_widget(view)
+        show_widget(exopy_qtbot, view)
         selector = view.widgets()[2]
+        current_interface = view.task.interface
         selector.selected = selector.items[1]
-        process_app_events()
+
+        def assert_interface_changed():
+            assert view.task.interface is not current_interface
+        exopy_qtbot.wait_until(assert_interface_changed)
+
+        current_interface = view.task.interface
         selector.selected = selector.items[0]
-        process_app_events()
+
+        def assert_interface_changed():
+            assert view.task.interface is not current_interface
+        exopy_qtbot.wait_until(assert_interface_changed)

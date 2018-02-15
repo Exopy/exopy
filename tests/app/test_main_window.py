@@ -9,14 +9,9 @@
 """App plugin extensions declarations.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from enaml.workbench.workbench import Workbench
-
-from exopy.testing.util import process_app_events
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -27,7 +22,7 @@ with enaml.imports():
 
 
 @pytest.fixture
-def workbench_and_tools(windows):
+def workbench_and_tools(exopy_qtbot):
     """Create a workbench to test closing of the application window.
 
     """
@@ -44,7 +39,7 @@ def workbench_and_tools(windows):
     return workbench, closing, closed
 
 
-def test_app_window(workbench_and_tools):
+def test_app_window(exopy_qtbot, workbench_and_tools):
     """Test that closing and closed handlers are called when trying to close
     the app window.
 
@@ -53,17 +48,18 @@ def test_app_window(workbench_and_tools):
 
     ui = w.get_plugin('enaml.workbench.ui')
     ui.show_window()
-    process_app_events()
 
     ui.close_window()
-    process_app_events()
 
-    assert closing.called
+    def assert_closing_called():
+        assert closing.called
+    exopy_qtbot.wait_until(assert_closing_called)
     assert ui.window.visible
 
     closing.accept = True
     ui.close_window()
-    process_app_events()
 
+    def assert_closed_called():
+        assert closed.called
+    exopy_qtbot.wait_until(assert_closed_called)
     assert not ui.window.visible
-    assert closed.called

@@ -9,9 +9,6 @@
 """Test of the Definition task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -85,8 +82,9 @@ class TestDefinitionTask(object):
 
 
 @pytest.mark.ui
-def test_view(windows):
+def test_view(exopy_qtbot):
     """Test the FormulaTask view.
 
     """
-    show_and_close_widget(DefinitionView(task=DefinitionTask(name='Test')))
+    show_and_close_widget(exopy_qtbot,
+                          DefinitionView(task=DefinitionTask(name='Test')))

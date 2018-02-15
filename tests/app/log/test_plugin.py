@@ -9,9 +9,6 @@
 """Test for the log plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import sys
 import logging
@@ -25,8 +22,6 @@ with enaml.imports():
     from exopy.app.log.manifest import LogManifest
 
 from exopy.app.log.tools import (LogModel, GuiHandler, StreamToLogRedirector)
-
-from exopy.testing.util import process_app_events
 
 
 PLUGIN_ID = 'exopy.app.logging'
@@ -198,7 +193,7 @@ class TestLogPlugin(object):
                              'handler_id': 'ui'},
                             self)
 
-    def test_formatter(self, logger, app):
+    def test_formatter(self, logger, exopy_qtbot):
         """Test setting the formatter of a handler.
 
         """
@@ -216,11 +211,11 @@ class TestLogPlugin(object):
 
         logger.info('test')
 
-        process_app_events()
+        def assert_text():
+            assert model.text == 'test : test\n'
+        exopy_qtbot.wait_until(assert_text)
 
-        assert model.text == 'test : test\n'
-
-    def test_formatter2(self, logger, app):
+    def test_formatter2(self, logger, exopy_qtbot):
         """Test setting the formatter of a non existing handler.
 
         """
@@ -232,7 +227,7 @@ class TestLogPlugin(object):
                              'handler_id': 'non-existing'},
                             self)
 
-        process_app_events()
+        exopy_qtbot.wait(10)
 
     def test_start_logging1(self, app_dir):
         """Test startup function when redirection of sys.stdout is required

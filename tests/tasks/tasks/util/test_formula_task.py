@@ -9,9 +9,6 @@
 """Test of the Formula task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -78,8 +75,9 @@ class TestFormulaTask(object):
 
 
 @pytest.mark.ui
-def test_view(windows):
+def test_view(exopy_qtbot):
     """Test the FormulaTask view.
 
     """
-    show_and_close_widget(FormulaView(task=FormulaTask(name='Test')))
+    show_and_close_widget(exopy_qtbot,
+                          FormulaView(task=FormulaTask(name='Test')))

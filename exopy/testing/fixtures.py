@@ -16,7 +16,6 @@ import os
 from os import remove  # Avoid issue when monkeypatching it
 import logging
 from inspect import getabsfile
-from time import sleep
 
 import pytest
 from configobj import ConfigObj
@@ -26,7 +25,7 @@ from enaml.workbench.api import Workbench
 
 
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
-                   exopy_path, process_app_events)
+                   close_all_popups, exopy_path)
 
 #: Global variable storing the application folder path
 EXOPY = ''
@@ -51,7 +50,7 @@ def pytest_configure(config):
     s = config.getoption('--exopy-sleep')
     if s is not None:
         global DIALOG_SLEEP
-        DIALOG_SLEEP = s
+        DIALOG_SLEEP = s*1000
 
 
 @pytest.fixture
@@ -116,7 +115,6 @@ def app():
     """Make sure a QtApplication is active.
 
     """
-
     app = QtApplication.instance()
     if app is None:
         app = QtApplication()
@@ -127,12 +125,10 @@ def app():
 
 
 @pytest.yield_fixture
-def windows(app):
-    """Fixture making sure the app is running and closing all windows.
-
-    """
-    yield
-    close_all_windows()
+def exopy_qtbot(app, qtbot):
+    qtbot.enaml_app = app
+    with close_all_windows(qtbot), close_all_popups(qtbot):
+        yield qtbot
 
 
 @pytest.yield_fixture
@@ -162,18 +158,6 @@ def logger(caplog):
     yield logger
 
     logger.handlers = []
-
-
-@pytest.fixture
-def process_and_sleep(windows, dialog_sleep):
-    """Function to process app events and sleep.
-
-    """
-    def p():
-        process_app_events()
-        sleep(dialog_sleep)
-
-    return p
 
 
 @pytest.fixture

@@ -9,56 +9,55 @@
 """Test widgets related to measurement edition tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import enaml
 
-from exopy.testing.util import process_app_events, handle_question
+from exopy.testing.util import handle_question, wait_for_window_displayed
 
 with enaml.imports():
     from exopy.measurement.workspace.checks_display import ChecksDisplay
 
 
-def test_checks_display_not_warning(windows, dialog_sleep):
+def test_checks_display_not_warning(exopy_qtbot, dialog_sleep):
     """Test displaying checks for a situation that do not allow enqueuing.
 
     """
     dial = ChecksDisplay(errors={'test': 'dummy', 'complex': {'rr': 'tt'}})
 
     dial.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, dial)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert dial.central_widget().widgets()[-1].text == 'Force enqueue'
 
-    with handle_question('no'):
+    with handle_question(exopy_qtbot, 'no'):
         dial.central_widget().widgets()[-1].clicked = True
-    process_app_events()
-    assert not dial.result
+
+    def assert_result():
+        assert not dial.result
+    exopy_qtbot.wait_until(assert_result)
 
 
-def test_checks_display_not_warning_force_enqueue(windows, dialog_sleep):
+def test_checks_display_not_warning_force_enqueue(exopy_qtbot, dialog_sleep):
     """Test displaying checks for a situation that do not allow enqueuing.
 
     """
     dial = ChecksDisplay(errors={'test': 'dummy', 'complex': {'rr': 'tt'}})
 
     dial.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, dial)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert dial.central_widget().widgets()[-1].text == 'Force enqueue'
 
-    with handle_question('yes'):
+    with handle_question(exopy_qtbot, 'yes'):
         dial.central_widget().widgets()[-1].clicked = True
-    process_app_events()
-    assert dial.result
+
+    def assert_result():
+        assert dial.result
+    exopy_qtbot.wait_until(assert_result)
 
 
-def test_checks_display_warning(windows, dialog_sleep):
+def test_checks_display_warning(exopy_qtbot, dialog_sleep):
     """Test displaying checks that allow enqueuing.
 
     """
@@ -66,12 +65,13 @@ def test_checks_display_warning(windows, dialog_sleep):
                          is_warning=True)
 
     dial.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, dial)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert dial.central_widget().widgets()[-1].text == 'Enqueue'
 
     dial.central_widget().widgets()[-1].clicked = True
-    process_app_events()
 
-    assert dial.result
+    def assert_result():
+        assert dial.result
+    exopy_qtbot.wait_until(assert_result)

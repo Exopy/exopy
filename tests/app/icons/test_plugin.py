@@ -9,12 +9,9 @@
 """Test the icon manager plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
-from exopy.testing.util import set_preferences, process_app_events
+from exopy.testing.util import set_preferences, wait_for_window_displayed
 with enaml.imports():
     from .contributions import (ThemeContributor, ThemeExtensionContributor,
                                 ThemeContributor2, ThemeExtensionContributor2,
@@ -98,7 +95,7 @@ def test_get_icon_handling_errors(icon_workbench, caplog):
     assert 'raised' in caplog.text
 
 
-def test_fontawesome(icon_workbench, windows, process_and_sleep):
+def test_fontawesome(icon_workbench, exopy_qtbot, dialog_sleep):
     """Test getting and using a FontAwesome icon.
 
     """
@@ -107,17 +104,16 @@ def test_fontawesome(icon_workbench, windows, process_and_sleep):
     assert pl.get_icon('folder-open')
     w = IconWindowTest(btn_icon=pl.get_icon('folder-open'))
     w.show()
-    process_app_events()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, w)
 
 
-def test_elusiveicon(icon_workbench, windows, process_and_sleep):
-    """Test getting and using an ElusiveIcon icon
+def test_elusiveicon(icon_workbench, exopy_qtbot):
+    """Test getting and using an ElusiveIcon icon.
+
     """
     pl = icon_workbench.get_plugin('exopy.app.icons')
     pl.current_theme = 'exopy.ElusiveIcon'
     assert pl.get_icon('folder-open')
     w = IconWindowTest(btn_icon=pl.get_icon('folder-open'))
     w.show()
-    process_app_events()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, w)

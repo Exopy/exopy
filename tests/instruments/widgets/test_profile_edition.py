@@ -9,15 +9,10 @@
 """Tests for the instrument model selection widget.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import enaml
 import pytest
 
-from exopy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import handle_dialog, wait_for_window_displayed
 
 with enaml.imports():
     from exopy.instruments.widgets.profile_edition\
@@ -70,37 +65,48 @@ def test_trim_description():
     assert trim_description(desc) == 'test'
 
 
-def test_connection_creation_dialog(prof_plugin, model_infos,
-                                    process_and_sleep):
+def test_connection_creation_dialog(prof_plugin, model_infos, exopy_qtbot,
+                                    dialog_sleep):
     """Test the dialog dedicated to create new connections.
 
     """
     d = ConnectionCreationDialog(plugin=prof_plugin, model_infos=model_infos,
                                  existing=['false_connection2'])
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert d.connection
     assert len(d._connections) == 2
 
     ws = d.central_widget().widgets()
     ws[0].selected_item = ws[0].items[1]
-    process_and_sleep()
-    assert d.connection.declaration.id == 'false_connection3'
+
+    def assert_id():
+        assert d.connection.declaration.id == 'false_connection3'
+    exopy_qtbot.wait_until(assert_id)
     ws[-1].clicked = True  # Ok button
-    process_and_sleep()
-    assert d.result
+
+    def assert_result():
+        assert d.result
+    exopy_qtbot.wait_until(assert_result)
+    exopy_qtbot.wait(dialog_sleep)
 
     d = ConnectionCreationDialog(plugin=prof_plugin, model_infos=model_infos,
                                  existing=['false_connection2'])
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
+
     d.central_widget().widgets()[-2].clicked = True  # Cancel button
-    process_and_sleep()
-    assert not d.result
+
+    def assert_result():
+        assert not d.result
+    exopy_qtbot.wait_until(assert_result)
+    exopy_qtbot.wait(dialog_sleep)
 
 
-def test_connection_validation_window(prof_plugin, process_and_sleep,
+def test_connection_validation_window(prof_plugin, exopy_qtbot, dialog_sleep,
                                       profile_infos):
     """Test the window used to check that connection infos allows to open a
     connection.
@@ -108,10 +114,13 @@ def test_connection_validation_window(prof_plugin, process_and_sleep,
     """
     ed = ProfileEditionDialog(plugin=prof_plugin, profile_infos=profile_infos)
     ed.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, ed)
+    exopy_qtbot.wait(dialog_sleep)
+
     w = ConnectionValidationWindow(editor=ed.central_widget().widgets()[0])
     w.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, w)
+    exopy_qtbot.wait(dialog_sleep)
 
     # XXX need to select a driver
 
@@ -123,27 +132,31 @@ def test_connection_validation_window(prof_plugin, process_and_sleep,
     # XXX add a test for failed connection test
 
     widgets[-1].clicked = True
-    process_app_events()
+    exopy_qtbot.wait(10)
 
 
-def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
+def test_settings_creation_dialog(prof_plugin, model_infos, exopy_qtbot,
+                                  dialog_sleep):
     """Test the dialog dedicated to create new settings.
 
     """
     d = SettingsCreationDialog(plugin=prof_plugin, model_infos=model_infos,
                                existing=['false_settings2'])
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert d.settings
     assert len(d._settings) == 3
 
     ws = d.central_widget().widgets()
     ws[0].selected_item = ws[0].items[1]
-    process_and_sleep()
-
     ok = ws[-1]
-    assert not ok.enabled
+
+    def assert_enabled():
+        assert not ok.enabled
+    exopy_qtbot.wait_until(assert_enabled)
+    exopy_qtbot.wait(dialog_sleep)
 
     n = ws[-3]
     n.text = 'dummy'
@@ -161,26 +174,30 @@ def test_settings_creation_dialog(prof_plugin, model_infos, process_and_sleep):
     d2 = SettingsCreationDialog(plugin=prof_plugin, model_infos=model_infos,
                                 existing=['false_settings2'])
     d2.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d2)
     d2.central_widget().widgets()[-2].clicked = False  # Cancel button
-    process_and_sleep()
-    assert not d2.result
+
+    def assert_result():
+        assert not d2.result
+    exopy_qtbot.wait_until(assert_result)
 
 
-def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
+def test_rename_settings_popup(prof_plugin, profile_infos, exopy_qtbot,
+                               dialog_sleep):
     """Test the popup used to rename a settings.
 
     """
     ed = ProfileEditionDialog(plugin=prof_plugin, profile_infos=profile_infos)
     ed.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, ed)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed_widgets = ed.central_widget().widgets()
     ed_widget = ed_widgets[0]
 
     nb = ed_widget.widgets()[5]
     nb.selected_tab = 'settings'
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     c_page, s_page = nb.pages()
 
     # Open the renaming popup.
@@ -192,8 +209,11 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
     settings = p.settings
     ws = p.central_widget().widgets()
     ws[1].text = ''
-    process_and_sleep()
-    assert not ws[-1].enabled
+
+    def assert_enabled():
+        assert not ws[-1].enabled
+    exopy_qtbot.wait_until(assert_enabled)
+    exopy_qtbot.wait(dialog_sleep)
 
     ws[1].text = ed_widget.settings[1].name
     ws[1].validator.validate(ed_widget.settings[1].name)
@@ -201,20 +221,22 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
 
     ws[1].text = 'dummy'
     ws[1].validator.validate('dummy')
-    process_and_sleep()
-    assert ws[-1].enabled
+
+    def assert_enabled():
+        assert ws[-1].enabled
+    exopy_qtbot.wait_until(assert_enabled)
+    exopy_qtbot.wait(dialog_sleep)
 
     ws[-1].clicked = True
-    process_and_sleep()
 
-    assert settings.user_id == 'dummy'
+    def assert_user_id():
+        assert settings.user_id == 'dummy'
+    exopy_qtbot.wait_until(assert_user_id)
+    exopy_qtbot.wait(dialog_sleep)
 
-    i = 0
-    while i < 10 and len(RenameSettingsPopup.popup_views) != 0:
-        process_app_events()
-        sleep(0.1)
+    exopy_qtbot.wait_until(lambda: len(RenameSettingsPopup.popup_views) == 0)
 
-    # Open a new popup
+    # Open a new popup and cancel the name change
     s_page.page_widget().widgets()[3].clicked = True
 
     assert len(RenameSettingsPopup.popup_views) == 1
@@ -222,16 +244,21 @@ def test_rename_settings_popup(prof_plugin, profile_infos, process_and_sleep):
     ws = p.central_widget().widgets()
 
     ws[1].text = 'dummy2'
-    process_and_sleep()
-    assert ws[-1].enabled
+
+    def assert_enabled():
+        assert ws[-1].enabled
+    exopy_qtbot.wait_until(assert_enabled)
+    exopy_qtbot.wait(dialog_sleep)
 
     ws[-2].clicked = True
-    process_and_sleep()
 
-    assert settings.user_id == 'dummy'
+    def assert_user_id():
+        assert settings.user_id == 'dummy'
+    exopy_qtbot.wait_until(assert_user_id)
+    exopy_qtbot.wait(dialog_sleep)
 
 
-def test_profile_edition_dialog_ok(prof_plugin, process_and_sleep,
+def test_profile_edition_dialog_ok(prof_plugin, dialog_sleep, exopy_qtbot,
                                    profile_infos):
     """Test the dialog used to edit a profile.
 
@@ -242,7 +269,8 @@ def test_profile_edition_dialog_ok(prof_plugin, process_and_sleep,
 
     ed = ProfileEditionDialog(plugin=prof_plugin, profile_infos=profile_infos)
     ed.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, ed)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed_widgets = ed.central_widget().widgets()
     ed_widget = ed_widgets[0]
@@ -251,35 +279,37 @@ def test_profile_edition_dialog_ok(prof_plugin, process_and_sleep,
     c_page, s_page = nb.pages()
 
     # Add a connection
-    with handle_dialog(cls=ConnectionCreationDialog):
+    with handle_dialog(exopy_qtbot, cls=ConnectionCreationDialog):
         c_page.page_widget().widgets()[2].clicked = True
 
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     # Add a settings
-    with handle_dialog(cls=SettingsCreationDialog):
+    with handle_dialog(exopy_qtbot, cls=SettingsCreationDialog):
         s_page.page_widget().widgets()[2].clicked = True
 
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     assert len(ed_widget.connections) == 1
     assert len(ed_widget.settings) == 1
 
     ed_widgets[-1].clicked = True
-    process_app_events()
 
-    assert len(profile_infos.connections) == 1
-    assert len(profile_infos.settings) == 1
+    def assert_cn_st():
+        assert len(profile_infos.connections) == 1
+        assert len(profile_infos.settings) == 1
+    exopy_qtbot.wait_until(assert_cn_st)
 
 
-def test_profile_edition_dialog_cancel(prof_plugin, process_and_sleep,
+def test_profile_edition_dialog_cancel(prof_plugin, exopy_qtbot, dialog_sleep,
                                        profile_infos):
     """Test the dialog used to edit a profile.
 
     """
     ed = ProfileEditionDialog(plugin=prof_plugin, profile_infos=profile_infos)
     ed.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, ed)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed_widgets = ed.central_widget().widgets()
     ed_widget = ed_widgets[0]
@@ -294,15 +324,17 @@ def test_profile_edition_dialog_cancel(prof_plugin, process_and_sleep,
     # Delete a settings
     s_page.page_widget().widgets()[4].clicked = True
 
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     w = ed_widget._validator
 
     assert len(ed_widget.connections) == 2
     assert len(ed_widget.settings) == 2
 
     ed_widgets[-2].clicked = True
-    process_app_events()
-    assert not ed.visible and not w.visible
+
+    def assert_visible():
+        assert not ed.visible and not w.visible
+    exopy_qtbot.wait_until(assert_visible)
 
     assert len(profile_infos.connections) == 3
     assert len(profile_infos.settings) == 3

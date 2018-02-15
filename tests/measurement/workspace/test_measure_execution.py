@@ -9,16 +9,12 @@
 """Test measurement execution related widgets.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
 import enaml
 
-from exopy.testing.measurement.fixtures import measurement as m_build
-from exopy.testing.util import process_app_events, handle_dialog, CallSpy
+from exopy.testing.measurement.fixtures import measure as m_build
+from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
+                               CallSpy)
 
 with enaml.imports():
     from exopy.testing.windows import (ContainerTestingWindow,
@@ -31,8 +27,8 @@ pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
 
 
 @pytest.fixture
-def execution_view(measurement_workbench, workspace, windows):
-    """Start plugins and add measures before creating the execution view.
+def execution_view(measurement_workbench, workspace, exopy_qtbot):
+    """Start plugins and add measurements before creating the execution view.
 
     """
     pl = measurement_workbench.get_plugin('exopy.measurement')
@@ -47,8 +43,8 @@ def execution_view(measurement_workbench, workspace, windows):
     return DockItemTestingWindow(widget=item)
 
 
-def test_measurement_view(measurement, windows, dialog_sleep, monkeypatch,
-                          workspace):
+def test_measurement_view(measurement, exopy_qtbot, dialog_sleep, monkeypatch,
+                      workspace):
     """Test that the displayed buttons do reflect the state of the measurement.
 
     """
@@ -57,22 +53,23 @@ def test_measurement_view(measurement, windows, dialog_sleep, monkeypatch,
     w = ContainerTestingWindow(widget=view)
 
     w.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, w)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert view.widgets()[2].enabled  # cd1 inserted its children before itself
 
-    def test_state(dial):
+    def test_state(bot, dial):
         assert dial.measurement.status == 'EDITING'
 
-    with handle_dialog('reject', custom=test_state):
+    with handle_dialog(exopy_qtbot, 'reject', handler=test_state):
         view.widgets()[2].clicked = True
 
     assert view.widgets()[-1].enabled
     measurement.plugin.processor.active = True
-    process_app_events()
-    assert not view.widgets()[-1].enabled
-    process_app_events()
+
+    def assert_enabled():
+        assert not view.widgets()[-1].enabled
+    exopy_qtbot.wait_until(assert_enabled)
     measurement.plugin.processor.active = False
 
     from exopy.measurement.workspace.workspace import MeasurementSpace
@@ -82,12 +79,16 @@ def test_measurement_view(measurement, windows, dialog_sleep, monkeypatch,
     assert spy.called
 
     measurement.status = 'RUNNING'
-    process_app_events()
-    assert len(view.widgets()) == 2
+
+    def assert_widgets():
+        assert len(view.widgets()) == 2
+    exopy_qtbot.wait_until(assert_widgets)
 
     measurement.status = 'COMPLETED'
-    process_app_events()
-    assert len(view.widgets()) == 3
+
+    def assert_widgets():
+        assert len(view.widgets()) == 3
+    exopy_qtbot.wait_until(assert_widgets)
     spy = CallSpy()
     monkeypatch.setattr(MeasurementSpace, 'reenqueue_measurement', spy)
     view.widgets()[-1].clicked = True
@@ -95,40 +96,46 @@ def test_measurement_view(measurement, windows, dialog_sleep, monkeypatch,
     assert view.widgets()[1].text == 'COMPLETED'
 
 
-def test_measurement_manipulations(execution_view, dialog_sleep):
-    """Test moving/removing measurement using editor
+def test_measurement_manipulations(exopy_qtbot, execution_view, dialog_sleep):
+    """Test moving/removing measure using editor
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
 
     ed = item.dock_widget().widgets()[0]
     meas = item.workspace.plugin.enqueued_measurements.measurements
     ed.operations['move'](0, 1)
-    process_app_events()
-    assert meas[0].name == 'dummy_test'
+
+    def assert_meas_name():
+        assert meas[0].name == 'dummy_test'
+    exopy_qtbot.wait_until(assert_meas_name)
 
     ed.operations['move'](0, 1)
-    process_app_events()
-    assert meas[1].name == 'dummy_test'
+
+    def assert_meas_name():
+        assert meas[1].name == 'dummy_test'
+    exopy_qtbot.wait_until(assert_meas_name)
 
     ed.operations['remove'](0)
-    process_app_events()
-    assert meas[0].name == 'dummy_test'
+
+    def assert_meas_name():
+        assert meas[0].name == 'dummy_test'
+    exopy_qtbot.wait_until(assert_meas_name)
     assert len(meas) == 1
 
 
-def test_start_button(execution_view, monkeypatch, dialog_sleep):
+def test_start_button(exopy_qtbot, execution_view, monkeypatch, dialog_sleep):
     """Test that the start button displays the right text and called the
     appropriate method.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
 
@@ -144,39 +151,58 @@ def test_start_button(execution_view, monkeypatch, dialog_sleep):
     assert st_btn.enabled
     assert st_btn.text == 'Start'
     st_btn.clicked = True
-    process_app_events()
-    assert spies['start_processing_measurements'].called
+
+    def assert_called():
+        assert spies['start_processing_measurements'].called
+    exopy_qtbot.wait_until(assert_called)
 
     meas = item.workspace.plugin.enqueued_measurements.measurements[0]
     item.workspace.plugin.processor.running_measurement = meas
     item.workspace.plugin.processor.active = True
-    process_app_events()
-    assert st_btn.enabled
-    assert st_btn.text == 'Pause'
+
+    def assert_enabled():
+        assert st_btn.enabled
+        assert st_btn.text == 'Pause'
+    exopy_qtbot.wait_until(assert_enabled)
+
     st_btn.clicked = True
-    process_app_events()
-    assert spies['pause_current_measurement'].called
+
+    def assert_called():
+        assert spies['pause_current_measure'].called
+    exopy_qtbot.wait_until(assert_called)
 
     meas.status = 'PAUSING'
-    process_app_events()
-    assert not st_btn.enabled
+
+    def assert_enabled():
+        assert not st_btn.enabled
+    exopy_qtbot.wait_until(assert_enabled)
 
     meas.status = 'PAUSED'
-    process_app_events()
-    assert st_btn.enabled
+
+    def assert_enabled():
+        assert st_btn.enabled
     assert st_btn.text == 'Resume'
+    exopy_qtbot.wait_until(assert_enabled)
+
     st_btn.clicked = True
+<<<<<<< HEAD:tests/measurement/workspace/test_measurement_execution.py
     process_app_events()
     assert spies['resume_current_measurement'].called
+=======
+>>>>>>> d3150e2... testing: update testing tools to use pytest-qt:tests/measure/workspace/test_measurement_execution.py
+
+    def assert_called():
+        assert spies['resume_current_measure'].called
+    exopy_qtbot.wait_until(assert_called)
 
 
-def test_stop_button(execution_view, monkeypatch, dialog_sleep):
+def test_stop_button(exopy_qtbot, execution_view, monkeypatch, dialog_sleep):
     """Test the behavoir of the stop button.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
 
@@ -205,22 +231,26 @@ def test_stop_button(execution_view, monkeypatch, dialog_sleep):
     item.workspace.plugin.processor.continuous_processing = False
     skip = st_btn.children[0].children[0]
     skip.triggered = True
-    process_app_events()
-    assert spy.called
-    assert spy.kwargs['no_post_exec']
-    assert not spy.kwargs['force']
-    assert not qspy.called
+
+    def assert_called():
+        assert spy.called
+        assert spy.kwargs['no_post_exec']
+        assert not spy.kwargs['force']
+        assert not qspy.called
+    exopy_qtbot.wait_until(assert_called)
 
     # Stop and don't skip
     item.workspace.plugin.processor.continuous_processing = True
     no_skip = st_btn.children[0].children[1]
     no_skip.triggered = True
-    process_app_events()
-    assert spy.called == 2
-    assert not spy.kwargs.get('no_post_exec')
-    assert not spy.kwargs['force']
-    assert qspy.called
-    assert not item.workspace.plugin.processor.continuous_processing
+
+    def assert_called():
+        assert spy.called == 2
+        assert not spy.kwargs.get('no_post_exec')
+        assert not spy.kwargs['force']
+        assert qspy.called
+        assert not item.workspace.plugin.processor.continuous_processing
+    exopy_qtbot.wait_until(assert_called)
 
     # Check stopping behavior
     meas.status = 'STOPPING'
@@ -231,47 +261,53 @@ def test_stop_button(execution_view, monkeypatch, dialog_sleep):
     item.workspace.plugin.enqueued_measurements.remove(meas)
     qspy.called = 0
     no_skip.triggered = True
-    process_app_events()
-    assert spy.kwargs['force']
-    assert not qspy.called
+
+    def assert_called():
+        assert spy.kwargs['force']
+        assert not qspy.called
+    exopy_qtbot.wait_until(assert_called)
 
     spy.kwargs = {}
     skip.triggered = True
-    process_app_events()
-    assert spy.kwargs['force']
-    assert not qspy.called
+
+    def assert_called():
+        assert spy.kwargs['force']
+        assert not qspy.called
+    exopy_qtbot.wait_until(assert_called)
 
 
-def test_continuous_processing(execution_view, dialog_sleep):
+def test_continuous_processing(exopy_qtbot, execution_view, dialog_sleep):
     """Test that the checkbox does reflect the underlying setting.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
     ch_box = item.dock_widget().widgets()[3]
     proc = item.workspace.plugin.processor
 
-    assert ch_box.checked == proc.continuous_processing
+    def assert_checked():
+        assert ch_box.checked == proc.continuous_processing
+
+    assert_checked()
     ch_box.checked = not proc.continuous_processing
-    process_app_events()
 
-    assert ch_box.checked == proc.continuous_processing
+    exopy_qtbot.wait_until(assert_checked)
+
     proc.continuous_processing = not ch_box.checked
-    process_app_events()
 
-    assert ch_box.checked == proc.continuous_processing
+    exopy_qtbot.wait_until(assert_checked)
 
 
-def test_clear(execution_view, dialog_sleep):
-    """Test clearing the enqueued measures.
+def test_clear(exopy_qtbot, execution_view, dialog_sleep):
+    """Test clearing the enqueued measurements.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
 
@@ -287,23 +323,32 @@ def test_clear(execution_view, dialog_sleep):
     item.workspace.plugin.processor.active = False
     assert cl_btn.enabled
 
-    measures = item.workspace.plugin.enqueued_measurements.measurements
-    measures[0].status = 'COMPLETED'
-    measures[1].status = 'FAILED'
+    measurements = item.workspace.plugin.enqueued_measurements.measurements
+    measurements[0].status = 'COMPLETED'
+    measurements[1].status = 'FAILED'
 
     cl_btn.clicked = True
+<<<<<<< HEAD:tests/measurement/workspace/test_measurement_execution.py
     process_app_events()
     assert not item.workspace.plugin.enqueued_measurements.measurements
     assert not cl_btn.enabled
+=======
+>>>>>>> d3150e2... testing: update testing tools to use pytest-qt:tests/measure/workspace/test_measurement_execution.py
+
+    def assert_enabled():
+        assert not item.workspace.plugin.enqueued_measurements.measurements
+        assert not cl_btn.enabled
+
+    exopy_qtbot.wait_until(assert_enabled)
 
 
-def test_show_monitors(execution_view, dialog_sleep):
+def test_show_monitors(exopy_qtbot, execution_view, dialog_sleep):
     """Test restoring the monitor window.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
 
@@ -320,17 +365,20 @@ def test_show_monitors(execution_view, dialog_sleep):
     assert not mon_win.visible
 
     mon_btn.clicked = True
-    process_app_events()
-    assert mon_win.visible
+
+    def assert_visible():
+        assert mon_win.visible
+
+    exopy_qtbot.wait_until(assert_visible)
 
 
-def test_engine_status(execution_view, dialog_sleep):
+def test_engine_status(exopy_qtbot, execution_view, dialog_sleep):
     """Test the display of the engine status.
 
     """
     execution_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, execution_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     item = execution_view.widget
     del item.workspace.plugin.processor.engine
@@ -341,8 +389,10 @@ def test_engine_status(execution_view, dialog_sleep):
     pl = item.workspace.plugin
     pl.processor.engine = pl.create('engine', 'dummy')
     pl.processor.engine.status = 'Stopped'
-    process_app_events()
-    assert en_stat.visible
+
+    def assert_visible():
+        assert en_stat.visible
+    exopy_qtbot.wait_until(assert_visible)
 
     assert en_stat.widgets()[1].text == 'Stopped'
 

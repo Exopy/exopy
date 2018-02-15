@@ -57,10 +57,10 @@ class MeasurementPlugin(HasPreferencesPlugin):
     #: loaded/saved
     path = Unicode().tag(pref=True)
 
-    #: Currently edited measures.
+    #: Currently edited measurements.
     edited_measurements = Typed(MeasurementContainer, ())
 
-    #: Currently enqueued measures.
+    #: Currently enqueued measurements.
     enqueued_measurements = Typed(MeasurementContainer, ())
 
     #: Measurement processor responsible for measurement execution.
@@ -78,13 +78,13 @@ class MeasurementPlugin(HasPreferencesPlugin):
     #: List of currently available pre-execution hooks.
     pre_hooks = List()
 
-    #: Default pre-execution hooks to use for new measures.
+    #: Default pre-execution hooks to use for new measurements.
     default_pre_hooks = List().tag(pref=True)
 
     #: List of currently available monitors.
     monitors = List()
 
-    #: Default monitors to use for new measures.
+    #: Default monitors to use for new measurements.
     default_monitors = List(default=['exopy.text_monitor']).tag(pref=True)
 
     #: Always show monitors on measurement startup.
@@ -93,7 +93,7 @@ class MeasurementPlugin(HasPreferencesPlugin):
     #: List of currently available post-execution hooks.
     post_hooks = List()
 
-    #: Default post-execution hooks to use for new measures.
+    #: Default post-execution hooks to use for new measurements.
     default_post_hooks = List().tag(pref=True)
 
     #: List of currently available editors.

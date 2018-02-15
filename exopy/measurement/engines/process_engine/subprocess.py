@@ -27,12 +27,12 @@ from ...processor import errors_to_msg
 
 
 class TaskProcess(Process):
-    """Process taking care of performing the measures.
+    """Process taking care of performing the measurements.
 
     When started this process sets up a logger redirecting all records to a
     queue. It then redirects stdout and stderr to the logging system. Then as
     long as it is not stopped it waits for the main process to send a
-    measures through the pipe. Upon reception of the `ConfigObj` object
+    measurements through the pipe. Upon reception of the `ConfigObj` object
     describing the measurement it rebuilds it, set up a logger for that
     specific measurement and if necessary starts a spy transmitting the value
     of all monitored entries to the main process. It finally run the checks of

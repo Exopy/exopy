@@ -9,9 +9,6 @@
 """Test for the instrument task view.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 import pytest
@@ -77,11 +74,11 @@ def instr_view(instr_task_workbench):
     return i_view
 
 
-def test_instr_view_display(instr_view):
+def test_instr_view_display(instr_view, exopy_qtbot):
     """Test displaying the instyr_view.
 
     """
-    show_and_close_widget(instr_view)
+    show_and_close_widget(exopy_qtbot, instr_view)
 
 
 def test_profile_filtering(instr_task_workbench, instr_view):
@@ -129,7 +126,7 @@ def test_make_tooltip(instr_view):
     assert 'settings' in t
 
 
-def test_select_instrument(instr_task_workbench, instr_view):
+def test_select_instrument(instr_task_workbench, instr_view, exopy_qtbot):
     """Test selecting an instrument from the view.
 
     """
@@ -137,12 +134,12 @@ def test_select_instrument(instr_task_workbench, instr_view):
     selec = ('fp1', 'tasks.test.FalseDriver',
              'false_connection', 'false_settings')
     instr_view.task.selected_instrument = selec
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         tool_btn.clicked = True
 
     assert instr_view.task.selected_instrument == selec
 
-    with handle_dialog('accept'):
+    with handle_dialog(exopy_qtbot, 'accept'):
         tool_btn.clicked = True
 
     assert instr_view.task.selected_instrument == selec

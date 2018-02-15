@@ -9,15 +9,8 @@
 """Test the measurement workspace content widget.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import enaml
 import pytest
-
-from exopy.testing.util import process_app_events
 
 with enaml.imports():
     from enaml.workbench.ui.ui_manifest import UIManifest
@@ -29,8 +22,8 @@ pytests_plugin = str('exopy.testing.measurement.fixtures'),
 
 
 @pytest.fixture
-def content_workbench(measurement_workbench, measurement, windows):
-    """Create a measurement workspace.
+def content_workbench(measurement_workbench, measurement, exopy_qtbot):
+    """Create a measure workspace.
 
     """
     measurement_workbench.register(UIManifest())
@@ -44,25 +37,22 @@ def content_workbench(measurement_workbench, measurement, windows):
 
 
 @pytest.mark.timeout(30)
-def test_content(content_workbench, windows, dialog_sleep):
+def test_content(exopy_qtbot, content_workbench, dialog_sleep):
     """Test creating the content of the workspace.
 
     """
     w = content_workbench
     ui = w.get_plugin('enaml.workbench.ui')
     ui.show_window()
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     core = content_workbench.get_plugin('enaml.workbench.core')
     cmd = 'enaml.workbench.ui.select_workspace'
     core.invoke_command(cmd, {'workspace': 'exopy.measurement.workspace'})
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
-    pl = content_workbench.get_plugin('exopy.measurement')
-    pl.workspace.new_measurement()
-    process_app_events()
-    sleep(dialog_sleep)
+    pl = content_workbench.get_plugin('exopy.measure')
+    pl.workspace.new_measure()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     ui.close_window()

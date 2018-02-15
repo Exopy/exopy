@@ -9,9 +9,6 @@
 """Test of the Sleep task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -79,8 +76,8 @@ class TestSleepTask(object):
 
 
 @pytest.mark.ui
-def test_view(windows):
+def test_view(exopy_qtbot):
     """Test the SleepTask view.
 
     """
-    show_and_close_widget(SleepView(task=SleepTask(name='Test')))
+    show_and_close_widget(exopy_qtbot, SleepView(task=SleepTask(name='Test')))

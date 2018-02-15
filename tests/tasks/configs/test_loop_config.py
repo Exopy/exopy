@@ -9,23 +9,15 @@
 """Test for the LoopTask specific configurer.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
-import pytest
 import enaml
 
-from exopy.testing.util import (show_and_close_widget, show_widget,
-                                process_app_events)
+from exopy.testing.util import show_and_close_widget, show_widget
 from exopy.tasks.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
     from exopy.tasks.configs.loop_config_view import LoopConfigView
 
 
-@pytest.mark.ui
-def test_loop_config(app, task_workbench):
+def test_loop_config(exopy_qtbot, task_workbench):
     """Test the loop config.
 
     """
@@ -52,11 +44,10 @@ def test_loop_config(app, task_workbench):
     assert not config.task_name
     assert not config.ready
 
-    show_and_close_widget(LoopConfigView(config=config))
+    show_and_close_widget(exopy_qtbot, LoopConfigView(config=config))
 
 
-@pytest.mark.ui
-def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
+def test_loop_config_with_subtask(task_workbench, exopy_qtbot, dialog_sleep,
                                   monkeypatch):
     """Test the loop config.
 
@@ -67,19 +58,17 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
                             task_class=plugin.get_task('exopy.LoopTask'),
                             task_name='Test')
 
-    show_widget(LoopConfigView(config=config))
+    show_widget(exopy_qtbot, LoopConfigView(config=config))
     assert config.ready
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)
 
     config.use_subtask = True
     assert not config.ready
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep + 100)
 
     config.subtask = 'exopy.BreakTask'
     assert config.ready
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep + 100)
 
     def dummy(self):
         self.ready = False
@@ -89,13 +78,11 @@ def test_loop_config_with_subtask(task_workbench, windows, dialog_sleep,
     config.task_name = 'Bis'
     assert config.subconfig.task_name == 'Bis'  # Check sync
     assert not config.ready  # Result from the monkeypatch
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep + 100)
 
     config.use_subtask = False
     assert config.ready
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep + 100)
 
     config.use_subtask = True
     config.subtask = 'exopy.ContinueTask'

@@ -9,9 +9,6 @@
 """Tests for the instrument manager plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import shutil
 from time import sleep
@@ -23,7 +20,6 @@ from configobj import ConfigObj
 from exopy.instruments.api import Starter, BaseStarter
 from exopy.instruments.user import InstrUser
 from exopy.instruments.plugin import validate_user, validate_starter
-from exopy.testing.util import process_app_events
 
 from .conftest import PROFILE_PATH
 with enaml.imports():
@@ -75,7 +71,7 @@ def test_validate_starter():
     # Positive cases are tested test_plugin_lifecycle
 
 
-def test_plugin_lifecycle(instr_workbench):
+def test_plugin_lifecycle(exopy_qtbot, instr_workbench):
     """Test the plugin lifecycle (initial registration and later on).
 
     """
@@ -106,15 +102,17 @@ def test_plugin_lifecycle(instr_workbench):
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
     sleep(1.0)
-    process_app_events()
 
-    assert 'fp' in p.profiles
+    def assert_profiles():
+        assert 'fp' in p.profiles
+    exopy_qtbot.wait_until(assert_profiles)
 
     os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
     sleep(1.0)
-    process_app_events()
 
-    assert 'fp' not in p.profiles
+    def assert_profiles():
+        assert 'fp' not in p.profiles
+    exopy_qtbot.wait_until(assert_profiles)
 
     # Test dynamic unregsitrations (same remark as above)
     instr_workbench.unregister(c2.id)
@@ -208,7 +206,7 @@ def test_handle_corrupted_profile(prof_plugin, caplog):
             assert record.levelname == 'WARNING'
 
 
-def test_profiles_observation(instr_workbench):
+def test_profiles_observation(exopy_qtbot, instr_workbench):
     """Test observing the profiles in the profile folders.
 
     """
@@ -220,15 +218,17 @@ def test_profiles_observation(instr_workbench):
     # Test observation of profiles folders
     shutil.copy(PROFILE_PATH, p._profiles_folders[0])
     sleep(1.0)
-    process_app_events()
 
-    assert 'fp' in p.profiles
+    def assert_profiles():
+        assert 'fp' in p.profiles
+    exopy_qtbot.wait_until(assert_profiles)
 
     os.remove(os.path.join(p._profiles_folders[0], 'fp.instr.ini'))
     sleep(1.0)
-    process_app_events()
 
-    assert 'fp' not in p.profiles
+    def assert_profiles():
+        assert 'fp' not in p.profiles
+    exopy_qtbot.wait_until(assert_profiles)
 
 
 def test_create_connection(instr_workbench):

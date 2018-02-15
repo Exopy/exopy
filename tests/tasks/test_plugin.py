@@ -9,9 +9,6 @@
 """Test the functionality of the tasks manager..
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from time import sleep
 
@@ -259,7 +256,7 @@ def test_load_auto_task_names1(task_workbench):
     assert plugin.auto_task_names
 
 
-def test_load_auto_task_names2(task_workbench, windows):
+def test_load_auto_task_names2(task_workbench, exopy_qtbot):
     """Test automatic loading of default task names: wrong path.
 
     """

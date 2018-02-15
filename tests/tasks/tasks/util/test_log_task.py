@@ -9,9 +9,6 @@
 """Test of the Log task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -59,8 +56,8 @@ class TestLogTask(object):
 
 
 @pytest.mark.ui
-def test_view(windows):
+def test_view(exopy_qtbot):
     """Test the LogTask view.
 
     """
-    show_and_close_widget(LogView(task=LogTask(name='Test')))
+    show_and_close_widget(exopy_qtbot, LogView(task=LogTask(name='Test')))

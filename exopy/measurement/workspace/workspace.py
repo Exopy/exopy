@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Workspace used for editing and executing measures.
+"""Workspace used for editing and executing measurements.
 
 """
 from __future__ import (division, unicode_literals, print_function,
@@ -405,9 +405,9 @@ class MeasurementSpace(Workspace):
         measurement.infos = 'Measurement re-enqueued by the user'
 
     def remove_processed_measurements(self):
-        """ Remove all the measures which have been processed from the queue.
+        """ Remove all the measurements which have been processed from the queue.
 
-        This method rely on the status of the measurement. Only measures whose
+        This method rely on the status of the measurement. Only measurements whose
         status is 'READY' will be left in the queue.
 
         """
@@ -432,7 +432,7 @@ class MeasurementSpace(Workspace):
         else:
             cmd = 'exopy.app.errors.signal'
             core = self.workbench.get_plugin('enaml.workbench.core')
-            msg = 'None of the curently enqueued measures can be run.'
+            msg = 'None of the curently enqueued measurements can be run.'
             core.invoke_command(cmd, {'kind': 'error', 'message': msg})
 
     def process_single_measurement(self, measurement):
@@ -515,7 +515,7 @@ class MeasurementSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    def _insert_new_edition_panels(self, measures, update=True, panels=None):
+    def _insert_new_edition_panels(self, measurements, update=True, panels=None):
         """Handle inserting a new MeasurementEditorDockItem in the content.
 
         """
@@ -526,7 +526,7 @@ class MeasurementSpace(Workspace):
             measurement_items = [i for i in items if test.match(i.name)]
 
             ops = []
-            for measurement in measures:
+            for measurement in measurements:
                 if not measurement_items:
                     name = template % 0
                     ops.append(InsertItem(item=name, target='meas_exec'))
@@ -554,7 +554,7 @@ class MeasurementSpace(Workspace):
             if update:
                 deferred_call(self.dock_area.update_layout, ops)
         else:
-            for m in measures:
+            for m in measurements:
                 if m not in panels:
                     msg = ('Cannot insert edition panels for measurement %s, '
                            'no infos were provided. Panels exists for:\n%s')

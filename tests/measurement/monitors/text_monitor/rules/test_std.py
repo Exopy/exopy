@@ -9,17 +9,12 @@
 """Test the behavior of the standard rules.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
 import enaml
 
-from exopy.measurement.monitors.text_monitor.rules.std_rules\
-     import RejectRule, FormatRule
-from exopy.testing.util import process_app_events
+from exopy.measurement.monitors.text_monitor.rules.std_rules import (RejectRule,
+                                                                FormatRule)
+from exopy.testing.util import wait_for_window_displayed
 
 with enaml.imports():
     from exopy.measurement.monitors.text_monitor.rules.std_views\
@@ -108,7 +103,7 @@ def test_suffixes_validator():
     assert not v.validate('e, /')
 
 
-def test_reject_rule_editor(windows, plugin, dialog_sleep):
+def test_reject_rule_editor(exopy_qtbot, plugin, dialog_sleep):
     """Test editing a reject rule.
 
     """
@@ -117,31 +112,39 @@ def test_reject_rule_editor(windows, plugin, dialog_sleep):
 
     window = ContainerTestingWindow(widget=w)
     window.show()
-    process_app_events()
-    assert w.widgets()[-1].text == 'foo, bar'
-    sleep(dialog_sleep)
+
+    def assert_text():
+        assert w.widgets()[-1].text == 'foo, bar'
+    exopy_qtbot.wait_until(assert_text)
+    exopy_qtbot.wait(dialog_sleep)
 
     w.widgets()[-1].text = 'bar'
-    process_app_events()
-    assert r.suffixes == ['bar']
-    sleep(dialog_sleep)
+
+    def assert_suffixes():
+        assert r.suffixes == ['bar']
+    exopy_qtbot.wait_until(assert_suffixes)
+    exopy_qtbot.wait(dialog_sleep)
 
     r.suffixes = ['foo']
-    process_app_events()
-    assert w.widgets()[-1].text == 'foo'
-    sleep(dialog_sleep)
+
+    def assert_text():
+        assert w.widgets()[-1].text == 'foo'
+    exopy_qtbot.wait_until(assert_text)
+    exopy_qtbot.wait(dialog_sleep)
 
     w.widgets()[-1].text = 'bar, foo, barfoo'
-    process_app_events()
-    assert r.suffixes == ['bar', 'foo', 'barfoo']
-    sleep(dialog_sleep)
+
+    def assert_suffixes():
+        assert r.suffixes == ['bar', 'foo', 'barfoo']
+    exopy_qtbot.wait_until(assert_suffixes)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert w.validate()[0]
     r.suffixes = []
     assert not w.validate()[0]
 
 
-def test_format_rule_editor(windows, plugin, dialog_sleep):
+def test_format_rule_editor(exopy_qtbot, plugin, dialog_sleep):
     """Test editing a format rule.
 
     """
@@ -152,49 +155,61 @@ def test_format_rule_editor(windows, plugin, dialog_sleep):
     # Test editing suffixes
     window = ContainerTestingWindow(widget=w)
     window.show()
-    process_app_events()
+    wait_for_window_displayed(exopy_qtbot, window)
     widget = w.widgets()[-6]
     assert widget.text == 'foo, bar'
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)
 
     widget.text = 'bar'
-    process_app_events()
-    assert r.suffixes == ['bar']
-    sleep(dialog_sleep)
+
+    def assert_suffixes():
+        assert r.suffixes == ['bar']
+    exopy_qtbot.wait_until(assert_suffixes)
+    exopy_qtbot.wait(dialog_sleep)
 
     r.suffixes = ['foo']
-    process_app_events()
-    assert widget.text == 'foo'
-    sleep(dialog_sleep)
+
+    def assert_text():
+        assert widget.text == 'foo'
+    exopy_qtbot.wait_until(assert_text)
+    exopy_qtbot.wait(dialog_sleep)
 
     widget.text = 'bar, foo, barfoo'
-    process_app_events()
-    assert r.suffixes == ['bar', 'foo', 'barfoo']
-    sleep(dialog_sleep)
+
+    def assert_suffixes():
+        assert r.suffixes == ['bar', 'foo', 'barfoo']
+    exopy_qtbot.wait_until(assert_suffixes)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Set new suffix
     widget = w.widgets()[-4]
     assert widget.text == 'barfoo'
     widget.text = 'foobar'
-    process_app_events()
-    assert r.new_entry_suffix == 'foobar'
-    sleep(dialog_sleep)
+
+    def assert_entry():
+        assert r.new_entry_suffix == 'foobar'
+    exopy_qtbot.wait_until(assert_entry)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Set new formatting
     widget = w.widgets()[-2]
     assert widget.text == '{bar}/{foo}'
     widget.text = '{foo}/{bar}'
-    process_app_events()
-    assert r.new_entry_formatting == '{foo}/{bar}'
-    sleep(dialog_sleep)
+
+    def assert_entry():
+        assert r.new_entry_formatting == '{foo}/{bar}'
+    exopy_qtbot.wait_until(assert_entry)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Set hide entries
     widget = w.widgets()[-1]
     assert widget.checked
     widget.checked = False
-    process_app_events()
-    assert not r.hide_entries
-    sleep(dialog_sleep)
+
+    def assert_entry():
+        assert not r.hide_entries
+    exopy_qtbot.wait_until(assert_entry)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test validate function
     r.suffixes = ['foo', 'bar']

@@ -26,7 +26,7 @@ with enaml.imports():
 
 
 @pytest.mark.ui
-def test_py_task_config(app, task_workbench):
+def test_py_task_config(exopy_qtbot, task_workbench):
     """Test the basic python task configurer.
 
     """
@@ -53,12 +53,12 @@ def test_py_task_config(app, task_workbench):
     assert not config.task_name
     assert not config.ready
 
-    show_and_close_widget(PyConfigView(config=config))
-    show_and_close_widget(PyConfigView(config=config, loop=True))
+    show_and_close_widget(exopy_qtbot, PyConfigView(config=config))
+    show_and_close_widget(exopy_qtbot, PyConfigView(config=config, loop=True))
 
 
 @pytest.mark.ui
-def test_template_task_config(app, task_workbench):
+def test_template_task_config(exopy_qtbot, task_workbench):
     """Test the template task configurer.
 
     """
@@ -72,4 +72,4 @@ def test_template_task_config(app, task_workbench):
     task = config.build_task()
     assert len(task.children) == 1
 
-    show_and_close_widget(TemplateConfigView(config=config))
+    show_and_close_widget(exopy_qtbot, TemplateConfigView(config=config))
