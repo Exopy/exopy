@@ -9,9 +9,6 @@
 """Widgets used to edit an instrument profile.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Coerced, Bool
 from enaml.validator import Validator
 from enaml.layout.api import hbox, vbox, spacer, Pos

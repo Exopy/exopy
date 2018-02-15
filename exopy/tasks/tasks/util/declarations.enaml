@@ -9,9 +9,6 @@
 """Utilities tasks declarations included in the task manager manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from ...api import Tasks, Task, Interface
 
 

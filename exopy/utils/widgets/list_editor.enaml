@@ -12,12 +12,7 @@ The list should be composed of Atom object itself, and should be paired with
 a Signal used to notify listeners about internal changes of the list. It is the
 responsability of the model to signal internal changes to the list.
 
-2015-2018-04-09 To work correctly this requires the latest master of enaml (>0.9.8)
-
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from functools import partial
 from atom.api import Unicode, List
 from enaml.core.api import Looper, Conditional

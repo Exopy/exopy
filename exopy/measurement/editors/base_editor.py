@@ -9,9 +9,6 @@
 """Base classes for all editors.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode, Typed, Bool, ForwardTyped, Int
 from enaml.core.api import Declarative, d_, d_func
 from enaml.widgets.api import Page

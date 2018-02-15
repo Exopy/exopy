@@ -9,9 +9,6 @@
 """Configurer dedicated to the LoopTask allowing to specify a task to embed.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Typed, Unicode, Bool)
 
 from .base_configs import PyTaskConfig, BaseTaskConfig

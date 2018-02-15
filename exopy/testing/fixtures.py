@@ -9,9 +9,6 @@
 """Pytest fixtures.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from os import remove  # Avoid issue when monkeypatching it
 import logging
@@ -19,7 +16,6 @@ from inspect import getabsfile
 
 import pytest
 from configobj import ConfigObj
-from future.builtins import str as text
 from enaml.qt.qt_application import QtApplication
 from enaml.workbench.api import Workbench
 
@@ -139,7 +135,7 @@ def app_dir(tmpdir):
     # Create a trash app_directory.ini file. The global fixture ensure
     # that it cannot be a user file.
     app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
-    app_dir = text(tmpdir)
+    app_dir = str(tmpdir)
     conf = ConfigObj(encoding='utf-8', indent_type='    ')
     conf.filename = app_pref
     conf['app_path'] = app_dir

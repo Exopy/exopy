@@ -13,7 +13,6 @@ import os
 import enaml
 import pytest
 from configobj import ConfigObj
-from future.builtins import str
 
 from exopy.testing.util import (handle_dialog, exopy_path, APP_DIR_CONFIG,
                                 APP_PREFERENCES)

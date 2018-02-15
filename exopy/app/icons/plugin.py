@@ -9,9 +9,6 @@
 """Plugin managing the icon themes for the application.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 
 from atom.api import List, Typed, Unicode

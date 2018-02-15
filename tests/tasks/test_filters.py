@@ -9,9 +9,6 @@
 """Test for base tasks filters.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 
 from exopy.tasks.api import ComplexTask, SimpleTask

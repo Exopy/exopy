@@ -9,9 +9,6 @@
 """Test standard task configurers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 import pytest

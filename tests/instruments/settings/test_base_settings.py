@@ -9,9 +9,6 @@
 """Test for the base settings.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.instruments.settings.base_settings import BaseSettings, Settings
 
 

@@ -9,9 +9,6 @@
 """Model for the execution editor keeping track of the declared pools.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import Counter, Iterable
 
 from atom.api import Atom, Value, Typed, List

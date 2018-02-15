@@ -9,15 +9,11 @@
 """Instrument manager plugin manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from collections import Mapping
 from ast import literal_eval
 
 import enaml
-from future.builtins import str
 from enaml.widgets.api import MultilineField
 from enaml.workbench.api import PluginManifest, Extension, ExtensionPoint
 from enaml.workbench.core.api import Command

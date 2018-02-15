@@ -9,13 +9,9 @@
 """Test DependenciesManagerPLugin behavior.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from configobj import ConfigObj
-from future.utils import python_2_unicode_compatible
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -59,7 +55,6 @@ def dependent_object():
 
     """
 
-    @python_2_unicode_compatible
     class Obj(object):
 
         dep_type = 'test'

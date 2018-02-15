@@ -9,9 +9,6 @@
 """Extension API for the instrument plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from .user import InstrUser
 
 from .drivers.driver_decl import Driver, Drivers

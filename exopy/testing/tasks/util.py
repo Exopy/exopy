@@ -9,9 +9,6 @@
 """Utility object to test the execution of tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Value, Int, Callable
 
 from exopy.tasks.tasks.base_tasks import SimpleTask

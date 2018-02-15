@@ -9,9 +9,6 @@
 """Implementaion of the InternalChecks hook.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 from .base_hooks import BasePreExecutionHook

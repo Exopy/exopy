@@ -9,9 +9,6 @@
 """Base view for task needing to access an instrument.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import Label, Field, ToolButton, Container
 from enaml.layout.api import hbox
 

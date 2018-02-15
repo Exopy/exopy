@@ -9,9 +9,6 @@
 """Widget related to measurement edition tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from operator import attrgetter
 from textwrap import fill

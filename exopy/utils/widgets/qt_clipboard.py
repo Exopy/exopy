@@ -12,18 +12,10 @@ using pickle.
 This has been ported from Enthought TraitsUI.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-try:
-    from cPickle import dumps, load, loads, PickleError
-    from cStringIO import StringIO
-except ImportError:
-    from pickle import dumps, load, loads, PickleError
-    from io import StringIO
 import warnings
+from pickle import dumps, load, loads, PickleError
+from io import StringIO
 
-from future.builtins import bytes
 from enaml.qt import QtCore, QtWidgets
 from atom.api import Atom, Property
 

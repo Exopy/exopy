@@ -9,11 +9,7 @@
 """Test the corner cases of the internal checks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
-from future.builtins import str
 
 from exopy.tasks.api import RootTask
 

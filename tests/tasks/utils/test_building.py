@@ -10,7 +10,6 @@
 
 """
 import pytest
-from future.builtins import str
 from configobj import ConfigObj
 
 from exopy.tasks.utils.building import build_task_from_config

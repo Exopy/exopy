@@ -9,9 +9,6 @@
 """Engine executing the measurement in a different process.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from multiprocessing import Pipe, Queue, Event
 from threading import Thread

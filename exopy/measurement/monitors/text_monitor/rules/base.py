@@ -10,12 +10,8 @@
 TextMonitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from inspect import cleandoc
 
-from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Dict
 from enaml.core.api import Declarative, d_
 
@@ -71,7 +67,6 @@ class Rules(GroupDeclarator):
     pass
 
 
-@python_2_unicode_compatible
 class RuleType(Declarator):
     """Declarator used to contribute a text monitor rule.
 

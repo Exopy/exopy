@@ -16,7 +16,6 @@ from time import sleep
 import pytest
 import enaml
 from atom.api import Value, Bool, Unicode
-from future.builtins import str as text
 
 from exopy.measurement.engines.api import ExecutionInfos
 from exopy.tasks.api import RootTask, SimpleTask
@@ -144,7 +143,7 @@ def exec_infos(measurement_workbench, measurement, tmpdir, process_engine,
     tp._tasks.contributions['measurement.WaitingTask'] =\
         TaskInfos(cls=WaitingTask)
 
-    r = RootTask(default_path=text(tmpdir))
+    r = RootTask(default_path=str(tmpdir))
     r.add_child_task(0, WaitingTask(name='test1', sock_id='test1',
                                     sync_port=sync_server.port))
     r.add_child_task(1, WaitingTask(name='test2', sock_id='test2',

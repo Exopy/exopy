@@ -11,7 +11,6 @@
 """
 import enaml
 import pytest
-from future.builtins import str
 from threading import Thread
 
 from exopy.measurement.measurement import Measurement
@@ -39,8 +38,8 @@ def measurement_with_tools(measurement, tmpdir):
 
 
 @pytest.fixture
-def processor(exopy_qtbot, measurement_workbench, measure):
-    """Fixture starting the measure plugin and returning the processor.
+def processor(exopy_qtbot, measurement_workbench, measurement):
+    """Fixture starting the measurement plugin and returning the processor.
 
     Use app because we need run the event loop
 
@@ -77,7 +76,8 @@ def test_setting_continuous_processing(processor):
 
 @pytest.mark.timeout(10)
 def test_starting_measurement_no_measurement_enqueued(exopy_qtbot, processor):
-    """Test starting next measure in the queue when no measurements are enqueued.
+    """Test starting next measurement in the queue when no measurements are
+    enqueued.
 
     """
     processor.start_measure(None)
@@ -85,7 +85,8 @@ def test_starting_measurement_no_measurement_enqueued(exopy_qtbot, processor):
     assert not processor.active
 
 
-def test_starting_measurement_thread_not_dying(exopy_qtbot, processor, measure):
+def test_starting_measurement_thread_not_dying(exopy_qtbot, processor,
+                                               measurement):
     """Test starting but failing to stop the backgground thread.
 
     """
@@ -113,7 +114,7 @@ def test_starting_measurement_thread_not_dying(exopy_qtbot, processor, measure):
 @pytest.mark.timeout(60)
 def test_running_full_measure(exopy_qtbot, processor, measurement_with_tools,
                               dialog_sleep, tmpdir):
-    """Test running a complete measure with pre/post-hooks and monitor.
+    """Test running a complete measurement with pre/post-hooks and monitor.
 
     """
     plugin = processor.plugin.workbench.get_plugin('exopy.measurement')
@@ -134,24 +135,24 @@ def test_running_full_measure(exopy_qtbot, processor, measurement_with_tools,
     def assert_wait():
         assert pre_hook.waiting.wait(5)
     exopy_qtbot.wait_until(assert_wait, timeout=50e3)
-    assert measure is processor.running_measure
+    assert measurement is processor.running_measurement
     assert measurement.status == 'RUNNING'
     assert tmpdir.listdir()
 
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     assert processor.monitors_window
-    assert processor.monitors_window.measure is measure
+    assert processor.monitors_window.measurement is measurement
     assert measurement.monitors['dummy'].running
     exopy_qtbot.wait(dialog_sleep)
     processor.engine.go_on.set()
 
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     assert measurement.task_execution_result
     assert not measurement.monitors['dummy'].running
@@ -161,7 +162,7 @@ def test_running_full_measure(exopy_qtbot, processor, measurement_with_tools,
 
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement.status == 'COMPLETED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -169,9 +170,8 @@ def test_running_full_measure(exopy_qtbot, processor, measurement_with_tools,
 
 
 @pytest.mark.timeout(60)
-def test_running_measurement_whose_runtime_are_unavailable(processor, monkeypatch,
-                                                       measurement_with_tools,
-                                                       exopy_qtbot):
+def test_running_measurement_whose_runtime_are_unavailable(
+        processor, monkeypatch, measurement_with_tools, exopy_qtbot):
     """Test running whose runtime dependencies are unavailable.
 
     """
@@ -188,8 +188,8 @@ def test_running_measurement_whose_runtime_are_unavailable(processor, monkeypatc
 
 @pytest.mark.timeout(60)
 def test_running_measurement_failing_checks(exopy_qtbot, processor,
-                                        measurement_with_tools):
-    """Test running a measure failing to pass the tests.
+                                            measurement_with_tools):
+    """Test running a measurement failing to pass the tests.
 
     """
     measurement_with_tools.pre_hooks['dummy'].fail_check = True
@@ -202,15 +202,15 @@ def test_running_measurement_failing_checks(exopy_qtbot, processor,
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement_with_tools.status == 'FAILED'
     assert 'checks' in measurement_with_tools.infos
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
 
 @pytest.mark.timeout(60)
 def test_running_measurement_failing_pre_hooks(exopy_qtbot, processor,
-                                           measurement_with_tools):
-    """Test running a measure whose pre-hooks fail to execute.
+                                               measurement_with_tools):
+    """Test running a measurement whose pre-hooks fail to execute.
 
     """
     measurement_with_tools.pre_hooks['dummy'].fail_run = True
@@ -231,15 +231,15 @@ def test_running_measurement_failing_pre_hooks(exopy_qtbot, processor,
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement_with_tools.status == 'FAILED'
     assert 'pre-execution' in measurement_with_tools.infos
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
 
 @pytest.mark.timeout(60)
 def test_running_measurement_failing_main_task(exopy_qtbot, processor,
-                                           measurement_with_tools):
-    """Test running a measure whose pre-hooks fail to execute.
+                                               measurement_with_tools):
+    """Test running a measurement whose pre-hooks fail to execute.
 
     """
     measurement = measurement_with_tools
@@ -260,13 +260,13 @@ def test_running_measurement_failing_main_task(exopy_qtbot, processor,
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.engine.go_on.set()
 
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     post_hook.go_on.set()
 
@@ -281,8 +281,8 @@ def test_running_measurement_failing_main_task(exopy_qtbot, processor,
 
 @pytest.mark.timeout(60)
 def test_running_measurement_failing_post_hooks(exopy_qtbot, processor,
-                                            measurement_with_tools):
-    """Test running a measure whose post-hooks fail to execute.
+                                                measurement_with_tools):
+    """Test running a measurement whose post-hooks fail to execute.
 
     """
     measurement = measurement_with_tools
@@ -301,12 +301,12 @@ def test_running_measurement_failing_post_hooks(exopy_qtbot, processor,
 
     pre_hook.go_on.set()
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.engine.go_on.set()
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     post_hook.go_on.set()
 
@@ -322,7 +322,7 @@ def test_running_measurement_failing_post_hooks(exopy_qtbot, processor,
 @pytest.mark.timeout(60)
 def test_running_forced_enqueued_measure(exopy_qtbot, processor,
                                          measurement_with_tools):
-    """Test running a measure about which we know that checks are failing.
+    """Test running a measurement about which we know that checks are failing.
 
     """
     measurement = measurement_with_tools
@@ -343,13 +343,13 @@ def test_running_forced_enqueued_measure(exopy_qtbot, processor,
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert processor.engine.measurement_force_enqueued
     processor.engine.go_on.set()
 
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     post_hook.go_on.set()
 
@@ -359,7 +359,7 @@ def test_running_forced_enqueued_measure(exopy_qtbot, processor,
 @pytest.mark.parametrize('mode', ['between hooks', 'after hooks'])
 @pytest.mark.timeout(60)
 def test_stopping_measurement_while_preprocessing(exopy_qtbot, mode, processor,
-                                              measurement_with_tools):
+                                                  measurement_with_tools):
     """Test asking the processor to stop while is is running the pre-hooks.
 
     The post-hooks should not be run.
@@ -387,14 +387,14 @@ def test_stopping_measurement_while_preprocessing(exopy_qtbot, mode, processor,
 
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
 
 @pytest.mark.timeout(60)
 def test_stopping_measurement_while_running_main(exopy_qtbot, processor,
-                                             measurement_with_tools):
+                                                 measurement_with_tools):
     """Test asking the processor to stop while is is running the main task.
 
     The post-hooks should be run.
@@ -416,27 +416,27 @@ def test_stopping_measurement_while_running_main(exopy_qtbot, processor,
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.stop_measurement()
     processor.engine.go_on.set()
 
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     post_hook.go_on.set()
 
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
 
 @pytest.mark.timeout(60)
 def test_stopping_measurement_while_postprocessing(exopy_qtbot, processor,
-                                               measurement_with_tools):
+                                                   measurement_with_tools):
     """Test asking the processor to stop while is is running the post hooks.
 
     """
@@ -458,13 +458,13 @@ def test_stopping_measurement_while_postprocessing(exopy_qtbot, processor,
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.engine.go_on.set()
 
     post_hook = measurement.post_hooks['dummy']
     exopy_qtbot.wait_until(lambda: post_hook.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.stop_measurement(force=True)
     assert post_hook.stop_called
@@ -472,7 +472,7 @@ def test_stopping_measurement_while_postprocessing(exopy_qtbot, processor,
 
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -503,7 +503,7 @@ def test_stopping_processing(exopy_qtbot, processor, measurement_with_tools):
     pre_hook.go_on.set()
 
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
 
     processor.stop_processing(no_post_exec=True)
     processor.engine.go_on.set()
@@ -514,7 +514,7 @@ def test_stopping_processing(exopy_qtbot, processor, measurement_with_tools):
 
     exopy_qtbot.wait_until(lambda: wait(0.04), timeout=40e3)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -554,7 +554,7 @@ def test_stopping_processing_in_hook(exopy_qtbot, processor,
 
     exopy_qtbot.wait_until(lambda: wait(0.04), timeout=40e3)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -603,7 +603,7 @@ def test_stopping_processing_while_in_pause(exopy_qtbot, processor,
 
     exopy_qtbot.wait_until(lambda: wait(0.04), timeout=40e3)
     assert measurement.status == 'INTERRUPTED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -612,7 +612,7 @@ def test_stopping_processing_while_in_pause(exopy_qtbot, processor,
 
 @pytest.mark.timeout(480)
 def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
-    """Test running a complete measure with pre/post-hooks and monitor.
+    """Test running a complete measurement with pre/post-hooks and monitor.
 
     """
     measurement = measurement_with_tools
@@ -643,11 +643,11 @@ def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
 
     processor.resume_measure()
     exopy_qtbot.wait_until(lambda: pre_hook.signal_resuming.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RESUMING'
     pre_hook.go_on_resuming.set()
     exopy_qtbot.wait_until(lambda: pre_hook.signal_resumed.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RUNNING'
 
     # Pause in between two pre_hooks
@@ -661,7 +661,7 @@ def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
     pre_hook2 = measurement.pre_hooks['dummy']
     pre_hook2.accept_pause = False
     exopy_qtbot.wait_until(lambda: pre_hook2.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RUNNING'
     processor.pause_measure()
     pre_hook2.go_on.set()
@@ -670,18 +670,18 @@ def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
 
     # Pause during the main task execution.
     exopy_qtbot.wait_until(lambda: processor.engine.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     processor.pause_measure()
     processor.engine.go_on.set()
     exopy_qtbot.wait_until(lambda: wait_on_state_paused(0.04), timeout=40e3)
     assert measurement.status == 'PAUSED'
     processor.resume_measure()
     exopy_qtbot.wait_until(lambda: processor.engine.signal_resuming.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RESUMING'
     processor.engine.go_on_resuming.set()
     exopy_qtbot.wait_until(lambda: processor.engine.signal_resumed.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RUNNING'
     processor.engine.go_on_resumed.set()
 
@@ -696,11 +696,11 @@ def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
 
     processor.resume_measure()
     exopy_qtbot.wait_until(lambda: post_hook.signal_resuming.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RESUMING'
     post_hook.go_on_resuming.set()
     exopy_qtbot.wait_until(lambda: post_hook.signal_resumed.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     assert measurement.status == 'RUNNING'
 
     # Pause in between two post_hooks
@@ -712,12 +712,12 @@ def test_pausing_measure(exopy_qtbot, processor, measurement_with_tools):
 
     post_hook2 = measurement.post_hooks['dummy2']
     exopy_qtbot.wait_until(lambda: post_hook2.waiting.wait(0.04),
-                          timeout=40e3)
+                           timeout=40e3)
     post_hook2.go_on.set()
 
     process_and_join_thread(exopy_qtbot, processor._thread)
     assert measurement.status == 'COMPLETED'
-    m = processor.plugin.workbench.get_manifest('test.measure')
+    m = processor.plugin.workbench.get_manifest('test.measurement')
     assert not m.find('runtime_dummy1').collected
     assert not m.find('runtime_dummy2').collected
 
@@ -726,7 +726,7 @@ def test_monitor_creation(processor, measurement, exopy_qtbot,  dialog_sleep):
     """Test all possible possibilities when creating a monitor dock item.
 
     """
-    def run(exopy_qtbot, measure):
+    def run(exopy_qtbot, measurement):
         t = Thread(target=processor._start_monitors, args=(measurement,))
         t.start()
         exopy_qtbot.wait_until(lambda: not t.is_alive(), timeout=10e3)
@@ -735,23 +735,23 @@ def test_monitor_creation(processor, measurement, exopy_qtbot,  dialog_sleep):
     processor.engine = processor.plugin.create('engine', 'dummy')
 
     measurement.add_tool('monitor', 'dummy')
-    run(exopy_qtbot, measure)
+    run(exopy_qtbot, measurement)
     assert len(processor.monitors_window.dock_area.dock_items()) == 1
 
     measurement.add_tool('monitor', 'dummy2')
-    run(exopy_qtbot, measure)
+    run(exopy_qtbot, measurement)
     assert len(processor.monitors_window.dock_area.dock_items()) == 2
 
     measurement.remove_tool('monitor', 'dummy2')
-    run(exopy_qtbot, measure)
+    run(exopy_qtbot, measurement)
     assert len(processor.monitors_window.dock_area.dock_items()) == 1
 
     measurement.add_tool('monitor', 'dummy3')
-    run(exopy_qtbot, measure)
+    run(exopy_qtbot, measurement)
     assert len(processor.monitors_window.dock_area.dock_items()) == 2
 
     measurement.add_tool('monitor', 'dummy4')
-    run(exopy_qtbot, measure)
+    run(exopy_qtbot, measurement)
     assert len(processor.monitors_window.dock_area.dock_items()) == 2
 
     processor.plugin.stop()

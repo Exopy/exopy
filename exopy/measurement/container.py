@@ -9,9 +9,6 @@
 """Specialised container used to store measurements.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import Iterable
 
 from atom.api import Atom, List, Signal

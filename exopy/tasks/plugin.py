@@ -9,9 +9,6 @@
 """Plugin centralizing the collection and managment of tasks and interfaces.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import logging
 from collections import defaultdict

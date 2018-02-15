@@ -9,9 +9,6 @@
 """Definition of the base classes for interfaces in tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Atom, ForwardTyped, Typed, Unicode, Dict, Property,
                       Constant)
 

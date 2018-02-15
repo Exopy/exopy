@@ -22,9 +22,6 @@ The existing kind of tools are the following :
   the measurement has been run. (see `hooks` package)
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 
 from atom.api import ForwardTyped, Unicode, Bool

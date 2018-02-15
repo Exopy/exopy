@@ -9,9 +9,6 @@
 """The text monitor displays the database values it observes in a text format.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from ast import literal_eval
 from textwrap import fill

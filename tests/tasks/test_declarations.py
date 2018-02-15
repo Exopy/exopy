@@ -9,9 +9,6 @@
 """Test of the functionality of task and interfaces declarators.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 
 import pytest
@@ -548,6 +545,7 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
     assert ('AttributeError' in
             tb['exopy.LoopTask:exopy.IterableLoopInterface_1'] or
             'NameError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'])
+
 
 
 def test_register_interface_decl_view2(int_decl, collector):

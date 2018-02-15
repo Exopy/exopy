@@ -9,9 +9,6 @@
 """View for the LoopTask.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.core.api import Include
 from enaml.layout.api import hbox, align, spacer, vbox, grid, factory
 from enaml.widgets.api import (PushButton, Container, Label, Field,

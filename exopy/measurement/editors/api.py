@@ -12,9 +12,6 @@ They can apply to all tasks or only to a subset, in the later case they are
 only available when the task is selected.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from .base_editor import BaseEditor, Editor
 
 

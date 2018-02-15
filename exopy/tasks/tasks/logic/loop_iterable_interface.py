@@ -9,9 +9,6 @@
 """Interface allowing to use an iterable in a LoopTask.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode
 from collections import Iterable
 

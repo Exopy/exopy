@@ -12,9 +12,6 @@ Given how messy it is to properly test thread-safety I don't try and just
 check that in single thread things work.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.tasks.tasks.shared_resources import SharedCounter, SharedDict
 
 

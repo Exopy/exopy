@@ -9,9 +9,6 @@
 """Test for the mapping utilities functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.utils.mapping_utils import recursive_update
 
 

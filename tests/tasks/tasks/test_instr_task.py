@@ -9,9 +9,6 @@
 """Test for the instrument task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode
 
 from exopy.tasks.tasks.base_tasks import RootTask

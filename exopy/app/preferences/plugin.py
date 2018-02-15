@@ -9,9 +9,6 @@
 """Preferences plugin definition.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from atom.api import Unicode, Typed, Dict
 from enaml.workbench.api import Plugin

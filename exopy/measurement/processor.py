@@ -13,9 +13,6 @@ engine. This object handles all the other aspects (running of the hooks,
 handling of the monitors, ...)
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import logging
 from time import sleep

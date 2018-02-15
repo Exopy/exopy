@@ -9,14 +9,10 @@
 """Test the measurement object capabilities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 import pytest
 import enaml
-from future.builtins import str
 
 from exopy.measurement.measurement import Measurement
 from exopy.tasks.api import RootTask

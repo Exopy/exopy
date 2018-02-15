@@ -9,11 +9,6 @@
 """Manifests used when testing plugin tools module content.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from future.utils import python_2_unicode_compatible
-
 from  atom.api import Typed, Unicode, Bool, Enum
 from enaml.workbench.api import (PluginManifest, Plugin, Extension,
                                  ExtensionPoint)
@@ -49,7 +44,6 @@ enamldef DContribution(Contribution):
         pass
 
 
-@python_2_unicode_compatible
 class TestDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 
@@ -170,7 +164,6 @@ enamldef Contributor4(PluginManifest):
 # --- DeclaratorCollector testing ---------------------------------------------
 # =============================================================================
 
-@python_2_unicode_compatible
 class TestDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 

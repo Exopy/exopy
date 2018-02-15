@@ -9,7 +9,5 @@
 """Pytest fixtures.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 pytest_plugins = str('exopy.testing.fixtures'),

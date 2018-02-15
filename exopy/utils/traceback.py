@@ -9,13 +9,8 @@
 """Utility functions to generate well behaved tracebacks
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 
-from future.utils.surrogateescape import register_surrogateescape
-register_surrogateescape()
 
 if sys.version_info >= (3,):
     from traceback import format_exc, format_tb

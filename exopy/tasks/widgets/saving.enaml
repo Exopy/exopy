@@ -9,9 +9,6 @@
 """Widgets dedicated to saving tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from textwrap import fill
 

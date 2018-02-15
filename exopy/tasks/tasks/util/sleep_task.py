@@ -10,9 +10,6 @@
 for a set amount of time.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import numbers
 from atom.api import (Unicode, set_default)
 from time import sleep

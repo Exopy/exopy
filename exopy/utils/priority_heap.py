@@ -9,18 +9,13 @@
 """Priority heap based on list and heapq module.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import heapq
-from future.utils import implements_iterator
 
 
 #: Sentinel used to invalidated an object in the heap.
 _REMOVED = object()
 
 
-@implements_iterator
 class PriorityHeap(object):
     """A priority heap implementation based on a heapq.
 

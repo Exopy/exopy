@@ -9,9 +9,6 @@
 """Test the api module and get_icon helper function.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.app.icons.api import get_icon
 
 

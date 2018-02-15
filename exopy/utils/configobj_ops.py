@@ -9,8 +9,6 @@
 """Utility function to work with ConfigObj objects.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 from configobj import Section
 
 

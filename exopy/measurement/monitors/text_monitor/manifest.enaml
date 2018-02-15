@@ -9,9 +9,6 @@
 """Manifest of the plugin handling the storing of rules for the TextMonitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 
 import enaml

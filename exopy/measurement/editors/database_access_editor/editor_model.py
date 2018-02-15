@@ -9,9 +9,6 @@
 """Model driving the database exception editor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Atom, Typed, List, Dict
 
 from ....tasks.api import RootTask, ComplexTask

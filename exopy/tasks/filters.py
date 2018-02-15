@@ -11,9 +11,6 @@
 The filter available by default are declared in the manager manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Value, Subclass, Unicode, Property, set_default
 from enaml.core.api import d_func, d_
 

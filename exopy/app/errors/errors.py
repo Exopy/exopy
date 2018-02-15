@@ -9,9 +9,6 @@
 """Declarations for the extensions to the error plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode
 from enaml.core.api import Declarative, d_, d_func
 

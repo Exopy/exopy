@@ -9,9 +9,6 @@
 """Widgets used to select a model.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import kiwisolver as kiwi
 from atom.api import Coerced
 from enaml.core.api import Include, Conditional, Looper

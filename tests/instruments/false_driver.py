@@ -9,9 +9,6 @@
 """False driver to test the declarator.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.instruments.api import BaseStarter
 
 

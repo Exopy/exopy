@@ -9,9 +9,6 @@
 """Test the behavior of the RuleType declarator.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from atom.api import Atom, Dict, List

@@ -9,9 +9,6 @@
 """Validators for feval members.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Atom, Value, Bool
 
 from ...utils.traceback import format_exc

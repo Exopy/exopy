@@ -9,10 +9,6 @@
 """Basic list widget limited to selection.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from future.builtins import str as ustr
 from atom.api import (Bool, List, Value, Int, Callable, Dict, set_default)
 from enaml.widgets.api import RawWidget
 from enaml.core.declarative import d_
@@ -40,7 +36,7 @@ class QtListStrWidget(RawWidget):
 
     #: Callable to use to build a unicode representation of the objects
     #: (one at a time).
-    to_string = d_(Callable(ustr))
+    to_string = d_(Callable(str))
 
     #: Whether or not to sort the items before inserting them.
     sort = d_(Bool(True))

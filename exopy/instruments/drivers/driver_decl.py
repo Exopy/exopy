@@ -9,19 +9,14 @@
 """Declarator for registering drivers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode, Dict, Property, Enum
 from enaml.core.api import d_
-from future.utils import python_2_unicode_compatible
 
 from ...utils.traceback import format_exc
 from ...utils.declarator import Declarator, GroupDeclarator, import_and_get
 from ..infos import DriverInfos, INSTRUMENT_KINDS
 
 
-@python_2_unicode_compatible
 class Driver(Declarator):
     """Declarator used to register a new driver for an instrument.
 
@@ -261,7 +256,6 @@ class Driver(Declarator):
             return self.driver
 
 
-@python_2_unicode_compatible
 class Drivers(GroupDeclarator):
     """Declarator to group driver declarations.
 

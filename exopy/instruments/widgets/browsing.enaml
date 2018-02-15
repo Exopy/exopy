@@ -9,9 +9,6 @@
 """Widgets used to select a model.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 from enaml.core.api import Include, Conditional, Looper

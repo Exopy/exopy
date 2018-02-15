@@ -9,9 +9,6 @@
 """Test engine utilities
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from multiprocessing import Queue
 from pickle import dumps
 

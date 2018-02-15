@@ -9,9 +9,6 @@
 """Measurement plugin manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from collections import Mapping
 from pprint import pformat

@@ -9,9 +9,6 @@
 """This module implements command handler related to building tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
 from ..tasks.base_tasks import RootTask

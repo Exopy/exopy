@@ -9,13 +9,9 @@
 """Test dependency collection functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from operator import getitem
 
 import pytest
-from future.builtins import str
 
 from exopy.app.dependencies.api import (BuildDependency,
                                         RuntimeDependencyAnalyser)

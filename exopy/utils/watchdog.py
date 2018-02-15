@@ -9,9 +9,6 @@
 """Collections of useful watchdog file system observers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from watchdog.events import (FileSystemEventHandler, FileCreatedEvent,
                              FileDeletedEvent, FileMovedEvent)
 

@@ -9,8 +9,6 @@
 """Load common fixture used to test text monitor capabilities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 pytest_plugins = str('exopy.testing.measurement.'
                      'monitors.text_monitor.fixtures'),

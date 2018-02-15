@@ -33,9 +33,6 @@ From there on you should test :
 - that checking the attribute check box the title of each box to 'Non default'
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 from atom.api import Atom, Dict, Enum, List

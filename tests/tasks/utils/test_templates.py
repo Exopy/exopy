@@ -9,10 +9,6 @@
 """Test templates utility functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from future.builtins import str
 from configobj import ConfigObj
 
 from exopy.tasks.utils.templates import save_template, load_template

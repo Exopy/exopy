@@ -9,9 +9,6 @@
 """Collection of widgets used to create and edit rules.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from operator import attrgetter
 
 from enaml.core.api import Include

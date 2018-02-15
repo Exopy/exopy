@@ -9,8 +9,6 @@
 """Html widget automatically scrolling ot show latest added text.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 from atom.api import Unicode
 from enaml.core.declarative import d_
 from enaml.qt import QtGui, QtWidgets

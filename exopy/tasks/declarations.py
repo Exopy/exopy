@@ -9,12 +9,8 @@
 """Enaml objects used to declare tasks and interfaces in a plugin manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from inspect import cleandoc
 
-from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, List, Value, Dict, Property
 from enaml.core.api import d_, d_func
 
@@ -51,7 +47,6 @@ class Tasks(GroupDeclarator):
     pass
 
 
-@python_2_unicode_compatible
 class Task(Declarator):
     """Declarator used to contribute a task.
 
@@ -257,7 +252,6 @@ class Interfaces(GroupDeclarator):
     pass
 
 
-@python_2_unicode_compatible
 class Interface(Declarator):
     """Declarator for task interfaces.
 
@@ -511,7 +505,6 @@ class TaskConfigs(GroupDeclarator):
     pass
 
 
-@python_2_unicode_compatible
 class TaskConfig(Declarator):
     """Declarator used to declare a task config.
 

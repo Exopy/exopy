@@ -9,9 +9,6 @@
 """Widgets with support for text completion.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-from future.builtins import str as uni
 from atom.api import List, Tuple, Unicode, Bool, Callable, Value
 from enaml.core.declarative import d_
 from enaml.qt import QtCore, QtWidgets
@@ -87,7 +84,7 @@ class QDelimitedCompleter(QtWidgets.QCompleter):
             self.setModel(QtCore.QStringListModel(entries, self))
             self._upddate_entries = False
 
-        all_text = uni(text)
+        all_text = str(text)
         text = all_text[:self.cursor_pos()]
         split = text.split(self.delimiters[0])
         prefix = split[-1].strip()
@@ -103,7 +100,7 @@ class QDelimitedCompleter(QtWidgets.QCompleter):
 
         """
         cursor_pos = self.cursor_pos()
-        text = uni(self.text_getter())
+        text = str(self.text_getter())
         before_text = text[:cursor_pos]
         after_text = text[cursor_pos:]
         prefix_len = len(before_text.split(self.delimiters[0])[-1].strip())

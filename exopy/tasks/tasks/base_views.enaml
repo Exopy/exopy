@@ -12,9 +12,6 @@ If need be one can inherit from an enamldef class to build a new class using
 class.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from operator import attrgetter
 
 from atom.api import Event

@@ -9,9 +9,6 @@
 """Test of the base task functionality (exluding excution).
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 from atom.api import Value, List
 from exopy.tasks.tasks.base_tasks import RootTask, SimpleTask, ComplexTask

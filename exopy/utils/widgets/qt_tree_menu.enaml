@@ -20,9 +20,6 @@ following keys:
 - 'data': tuple, (tree, TreeNode instance, object, id of the node)
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import Action
 from enaml.stdlib.message_box import question
 from copy import deepcopy

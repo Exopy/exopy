@@ -9,9 +9,6 @@
 """Widgets used to display errors which occured when running a measurement checks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from textwrap import fill
 
 from enaml.core.api import Conditional

@@ -24,16 +24,11 @@ subprocess.
         them.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-
 import logging
 import os
 import time
 import datetime
-from future.moves import queue
-from future.builtins import str
+import queue
 from logging.handlers import TimedRotatingFileHandler
 from threading import Thread
 from enaml.application import deferred_call

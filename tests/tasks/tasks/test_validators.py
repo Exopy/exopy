@@ -9,9 +9,6 @@
 """Tests for the feval tagged members fields validators.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import numbers
 from multiprocessing import Event
 

@@ -9,8 +9,6 @@
 """Payload to use when notifying the system about a container change.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 from atom.api import (Atom, Value, Unicode, List)
 
 

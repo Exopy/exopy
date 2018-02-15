@@ -9,9 +9,6 @@
 """Workspace used for editing and executing measurements.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 import os
 import re

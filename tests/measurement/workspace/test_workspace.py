@@ -12,7 +12,6 @@
 import pytest
 import enaml
 from enaml.widgets.api import Window
-from future.builtins import str as text
 
 from exopy.testing.util import handle_dialog, ObjectTracker
 
@@ -78,11 +77,11 @@ def test_workspace_lifecycle(exopy_qtbot, workspace, tmpdir):
     # Create a new measure and enqueue it
     workspace.new_measure()
 
-    def assert_measurement_created():
-        assert len(workspace.plugin.edited_measurements.measurements) == 2
-    exopy_qtbot.wait_until(assert_measurement_created)
-    m = workspace.plugin.edited_measurements.measurements[1]
-    m.root_task.default_path = text(tmpdir)
+    def assert_measure_created():
+        assert len(workspace.plugin.edited_measures.measures) == 2
+    exopy_qtbot.wait_until(assert_measure_created)
+    m = workspace.plugin.edited_measures.measures[1]
+    m.root_task.default_path = str(tmpdir)
 
     assert workspace.enqueue_measure(m)
     exopy_qtbot.wait(10)
@@ -218,7 +217,7 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
         # Test saving.
         @classmethod
         def get(*args, **kwargs):
-            return text(f)
+            return str(f)
         monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
         workspace.save_measure(measure)
         exopy_qtbot.wait(100)
@@ -236,7 +235,7 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
         # Test saving as in a new file.
         @classmethod
         def get(*args, **kwargs):
-            return text(f)
+            return str(f)
         monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
         workspace.save_measurement(measurement, False)
 
@@ -260,13 +259,13 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
         # Test loading measurement.
         @classmethod
         def get(*args, **kwargs):
-            return text(f)
+            return str(f)
         monkeypatch.setattr(FileDialogEx, 'get_open_file_name', get)
         workspace.load_measurement('file')
 
         assert len(workspace.plugin.edited_measurements.measurements) == 3
         m = workspace.plugin.edited_measurements.measurements[2]
-        assert m.path == text(f)
+        assert m.path == str(f)
         assert workspace._get_last_selected_measurement() is m
 
         # Test loading a measurement in an existing dock_item and check the old
@@ -345,7 +344,7 @@ def test_enqueueing_and_reenqueueing_measurement(workspace, monkeypatch,
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
-    m.root_task.default_path = text(tmpdir)
+    m.root_task.default_path = str(tmpdir)
     from exopy.measurement.workspace.workspace import os
     m.add_tool('pre-hook', 'dummy')
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
@@ -424,7 +423,7 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir, exopy_qtbot):
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
-    m.root_task.default_path = text(tmpdir)
+    m.root_task.default_path = str(tmpdir)
     from exopy.measurement.measurement import Measurement
 
     witness = []
@@ -451,7 +450,7 @@ def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir, exopy_qtbot):
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
-    m.root_task.default_path = text(tmpdir)
+    m.root_task.default_path = str(tmpdir)
     from exopy.measurement.measurement import Measurement
 
     witness = []
@@ -527,7 +526,7 @@ def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir, exopy_qtbot):
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
-    m.root_task.default_path = text(tmpdir)
+    m.root_task.default_path = str(tmpdir)
     from exopy.measurement.measurement import Measurement
 
     witness = []

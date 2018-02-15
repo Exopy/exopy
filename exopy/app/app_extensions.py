@@ -9,9 +9,6 @@
 """App plugin extensions declarations.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode, Int
 from enaml.core.api import Declarative, d_, d_func
 

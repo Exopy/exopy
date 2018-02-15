@@ -9,9 +9,6 @@
 """Generic utility functions for testing.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 import gc

@@ -10,9 +10,6 @@
 TextMonitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Unicode, Bool)
 
 from ..entry import MonitoredEntry
