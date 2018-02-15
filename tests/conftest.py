@@ -9,5 +9,8 @@
 """Pytest fixtures.
 
 """
+import os
+from enaml.qt import QT_API
+os.environ.setdefault('PYTEST_QT_API', QT_API)
 
 pytest_plugins = str('exopy.testing.fixtures'),

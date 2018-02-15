@@ -16,8 +16,8 @@ import enaml
 
 from exopy.tasks.tasks.database import TaskDatabase
 from exopy.measurement.monitors.text_monitor.entry import MonitoredEntry
-from exopy.measurement.monitors.text_monitor.rules.std_rules import (FormatRule,
-                                                                RejectRule)
+from exopy.measurement.monitors.text_monitor.rules.std_rules\
+     import FormatRule,  RejectRule
 from exopy.testing.util import handle_dialog, wait_for_window_displayed
 with enaml.imports():
     from exopy.testing.windows import (ContainerTestingWindow,
@@ -595,9 +595,9 @@ def test_edition_window(exopy_qtbot, text_monitor_workbench, dialog_sleep,
         from exopy.measurement.monitors.text_monitor import monitor_views
 
     def false_question(*args, **kwargs):
-        class O(object):
+        class Obj(object):
             action = 'reject'
-        return O
+        return Obj
 
     monkeypatch.setattr(monitor_views, 'question', false_question)
     editor.widgets()[12].clicked = True
@@ -612,9 +612,9 @@ def test_edition_window(exopy_qtbot, text_monitor_workbench, dialog_sleep,
         from exopy.measurement.monitors.text_monitor import monitor_views
 
     def false_question(*args, **kwargs):
-        class O(object):
+        class Obj(object):
             action = 'accept'
-        return O
+        return Obj
 
     monkeypatch.setattr(monitor_views, 'question', false_question)
     editor.widgets()[12].clicked = True

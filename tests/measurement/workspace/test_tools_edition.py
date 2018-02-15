@@ -20,7 +20,7 @@ with enaml.imports():
 
 
 def test_tool_selector(exopy_qtbot, measurement, dialog_sleep):
-    """Selecting a new tool to add to a measure using the dedicated dialog.
+    """Selecting a new tool to add to a measurement using the dedicated dialog.
 
     """
     dial = ToolSelector(measurement=measurement, kind='pre-hook')
@@ -44,8 +44,8 @@ def test_tool_selector(exopy_qtbot, measurement, dialog_sleep):
 
 
 def test_navigation_in_tools_editor(measurement, exopy_qtbot, dialog_sleep):
-    """Test navigating among the different measure tools and accessing their
-    editors.
+    """Test navigating among the different measurement tools and accessing 
+    their editors.
 
     """
     item = ToolsEditorDockItem(measurement=measurement)

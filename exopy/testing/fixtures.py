@@ -122,6 +122,9 @@ def app():
 
 @pytest.yield_fixture
 def exopy_qtbot(app, qtbot):
+    """Set the enaml application on the bot and add automatic windows cleanup.
+
+    """
     qtbot.enaml_app = app
     with close_all_windows(qtbot), close_all_popups(qtbot):
         yield qtbot

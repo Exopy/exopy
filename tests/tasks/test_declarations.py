@@ -547,7 +547,6 @@ def test_register_interface_decl_view1_bis(int_decl, collector):
             'NameError' in tb['exopy.LoopTask:exopy.IterableLoopInterface_1'])
 
 
-
 def test_register_interface_decl_view2(int_decl, collector):
     """Test handling view issues : undefined in module.
 

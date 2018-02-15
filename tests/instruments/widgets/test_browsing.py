@@ -68,7 +68,8 @@ def test_browing_dialog_profiles_add(exopy_qtbot, prof_plugin, dialog_sleep):
         dial.profile_infos.id = 'test'
         dial.profile_infos.model = prof_plugin._profiles['fp1'].model
 
-    with handle_dialog(exopy_qtbot, 'accept', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'accept', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     # Wait for file notification to be treated
@@ -102,7 +103,8 @@ def test_browing_dialog_profiles_edit(exopy_qtbot, prof_plugin, dialog_sleep):
     def handle(bot, dial):
         dial.profile_infos.model = model
 
-    with handle_dialog(exopy_qtbot, 'reject', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'reject', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     assert prof_plugin._profiles['fp1'].model != model
@@ -112,7 +114,8 @@ def test_browing_dialog_profiles_edit(exopy_qtbot, prof_plugin, dialog_sleep):
         dial.profile_infos.model = model
         dial.central_widget().widgets()[0].sync()
 
-    with handle_dialog(exopy_qtbot, 'accept', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'accept', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     assert prof_plugin._profiles['fp1'].model == model
@@ -120,7 +123,8 @@ def test_browing_dialog_profiles_edit(exopy_qtbot, prof_plugin, dialog_sleep):
             'Dummy.dumb.002')
 
 
-def test_browing_dialog_profiles_delete(exopy_qtbot, prof_plugin, dialog_sleep):
+def test_browing_dialog_profiles_delete(exopy_qtbot, prof_plugin,
+                                        dialog_sleep):
     """Test the browsing dialog page dedicated to explore the profiles.
 
     """

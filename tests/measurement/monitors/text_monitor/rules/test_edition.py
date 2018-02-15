@@ -13,7 +13,7 @@ import pytest
 import enaml
 
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
-                               wait_for_destruction)
+                                wait_for_destruction)
 from exopy.measurement.monitors.text_monitor.rules.std_rules import RejectRule
 
 with enaml.imports():
@@ -32,8 +32,8 @@ def should_save(request):
     return request.param
 
 
-def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep, exopy_qtbot,
-                              should_save, monkeypatch):
+def test_rule_creation_dialog(text_monitor_workbench, dialog_sleep,
+                              exopy_qtbot, should_save, monkeypatch):
     """Test the creation of a new rule using the dialog.
 
     """
@@ -122,7 +122,8 @@ def test_rule_selection_for_loading(text_monitor_workbench, exopy_qtbot,
     exopy_qtbot.wait(dialog_sleep)
 
 
-def test_rule_edition_dialog(text_monitor_workbench, exopy_qtbot, dialog_sleep):
+def test_rule_edition_dialog(text_monitor_workbench, exopy_qtbot,
+                             dialog_sleep):
     """Test editing a rule using the dialog widget.
 
     """

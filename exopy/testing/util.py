@@ -9,7 +9,6 @@
 """Generic utility functions for testing.
 
 """
-import sys
 import os
 import gc
 import weakref
@@ -52,6 +51,9 @@ def run_pending_tasks(qtbot, timeout=1000):
 
     """
     def check_pending_tasks():
+        """Check for pending task on the application.
+
+        """
         assert not qtbot.enaml_app.has_pending_tasks()
     qtbot.wait_until(check_pending_tasks)
 
@@ -79,7 +81,9 @@ def get_window(qtbot, cls=Window, timeout=1000):
 
     """
     def check_window_presence():
-        print(Window.windows)
+        """Try to find a window of the proper type.
+
+        """
         assert [w for w in Window.windows if isinstance(w, cls)]
 
     qtbot.wait_until(check_window_presence)
@@ -111,6 +115,9 @@ def get_popup(qtbot, cls=PopupView, timeout=1000):
 
     """
     def check_popup_presence():
+        """Try to find a popup of the proper type.
+
+        """
         assert [p for p in PopupView.popup_views if isinstance(p, cls)]
 
     qtbot.wait_until(check_popup_presence)
@@ -129,7 +136,7 @@ def wait_for_window_displayed(qtbot, window, timeout=1000):
     if not window.proxy_is_active or not window.proxy.widget:
         msg = 'Window must be activated before waiting for display'
         raise RuntimeError(msg)
-    qtbot.wait_for_window_shown(window.proxy.widget)
+    qtbot.wait_exposed(window.proxy.widget)
 
 
 class EventObserver(Atom):
@@ -139,9 +146,15 @@ class EventObserver(Atom):
     called = Bool()
 
     def callback(self, change):
+        """Callback registering it was called at least once.
+
+        """
         self.called = True
 
     def assert_called(self):
+        """Check whether the callback was called.
+
+        """
         assert self.called
 
 
@@ -428,8 +441,7 @@ class ObjectTracker(object):
             return new
 
         __weakref_cls__.__old_new__ = cls.__new__
-        cls.__new__ = (override_new if sys.version_info >= (3,) else
-                       staticmethod(override_new))
+        cls.__new__ = override_new
         __weakref_cls__.original_cls = cls
 
         self.cls = __weakref_cls__

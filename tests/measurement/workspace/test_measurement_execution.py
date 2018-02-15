@@ -12,9 +12,9 @@
 import pytest
 import enaml
 
-from exopy.testing.measurement.fixtures import measure as m_build
+from exopy.testing.measurement.fixtures import measurement as m_build
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
-                               CallSpy)
+                                CallSpy)
 
 with enaml.imports():
     from exopy.testing.windows import (ContainerTestingWindow,
@@ -44,7 +44,7 @@ def execution_view(measurement_workbench, workspace, exopy_qtbot):
 
 
 def test_measurement_view(measurement, exopy_qtbot, dialog_sleep, monkeypatch,
-                      workspace):
+                          workspace):
     """Test that the displayed buttons do reflect the state of the measurement.
 
     """
@@ -97,7 +97,7 @@ def test_measurement_view(measurement, exopy_qtbot, dialog_sleep, monkeypatch,
 
 
 def test_measurement_manipulations(exopy_qtbot, execution_view, dialog_sleep):
-    """Test moving/removing measure using editor
+    """Test moving/removing measurement using editor
 
     """
     execution_view.show()
@@ -168,7 +168,7 @@ def test_start_button(exopy_qtbot, execution_view, monkeypatch, dialog_sleep):
     st_btn.clicked = True
 
     def assert_called():
-        assert spies['pause_current_measure'].called
+        assert spies['pause_current_measurement'].called
     exopy_qtbot.wait_until(assert_called)
 
     meas.status = 'PAUSING'
@@ -185,14 +185,9 @@ def test_start_button(exopy_qtbot, execution_view, monkeypatch, dialog_sleep):
     exopy_qtbot.wait_until(assert_enabled)
 
     st_btn.clicked = True
-<<<<<<< HEAD:tests/measurement/workspace/test_measurement_execution.py
-    process_app_events()
-    assert spies['resume_current_measurement'].called
-=======
->>>>>>> d3150e2... testing: update testing tools to use pytest-qt:tests/measure/workspace/test_measurement_execution.py
 
     def assert_called():
-        assert spies['resume_current_measure'].called
+        assert spies['resume_current_measurement'].called
     exopy_qtbot.wait_until(assert_called)
 
 
@@ -328,12 +323,6 @@ def test_clear(exopy_qtbot, execution_view, dialog_sleep):
     measurements[1].status = 'FAILED'
 
     cl_btn.clicked = True
-<<<<<<< HEAD:tests/measurement/workspace/test_measurement_execution.py
-    process_app_events()
-    assert not item.workspace.plugin.enqueued_measurements.measurements
-    assert not cl_btn.enabled
-=======
->>>>>>> d3150e2... testing: update testing tools to use pytest-qt:tests/measure/workspace/test_measurement_execution.py
 
     def assert_enabled():
         assert not item.workspace.plugin.enqueued_measurements.measurements

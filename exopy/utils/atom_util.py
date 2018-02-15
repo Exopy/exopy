@@ -281,5 +281,6 @@ def update_members_from_preferences(self, parameters):
                 msg = 'An exception occured when trying to set {} to {}'
                 raise ValueError(msg.format(name, converted)) from e
 
+
 HasPrefAtom.preferences_from_members = preferences_from_members
 HasPrefAtom.update_members_from_preferences = update_members_from_preferences

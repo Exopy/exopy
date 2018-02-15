@@ -27,8 +27,8 @@ pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
 
 
 @pytest.yield_fixture
-def workspace(exopy_qtbot, measurement_workbench, measure):
-    """Create a measure workspace.
+def workspace(exopy_qtbot, measurement_workbench, measurement):
+    """Create a measurement workspace.
 
     """
     measurement_workbench.register(UIManifest())
@@ -57,7 +57,7 @@ def test_workspace_lifecycle(exopy_qtbot, workspace, tmpdir):
     # Check UI creation
     def assert_ui():
         assert workspace._selection_tracker._thread
-        assert workspace.last_selected_measure
+        assert workspace.last_selected_measurement
         assert workspace.content
         assert workspace.dock_area
         assert workbench.get_manifest('exopy.measurement.workspace.menus')
@@ -74,16 +74,16 @@ def test_workspace_lifecycle(exopy_qtbot, workspace, tmpdir):
     assert len(workspace.plugin.edited_measurements.measurements) == 1
     assert workspace.plugin.edited_measurements.measurements[0].monitors
 
-    # Create a new measure and enqueue it
-    workspace.new_measure()
+    # Create a new measurement and enqueue it
+    workspace.new_measurement()
 
-    def assert_measure_created():
-        assert len(workspace.plugin.edited_measures.measures) == 2
-    exopy_qtbot.wait_until(assert_measure_created)
-    m = workspace.plugin.edited_measures.measures[1]
+    def assert_measurement_created():
+        assert len(workspace.plugin.edited_measurements.measurements) == 2
+    exopy_qtbot.wait_until(assert_measurement_created)
+    m = workspace.plugin.edited_measurements.measurements[1]
     m.root_task.default_path = str(tmpdir)
 
-    assert workspace.enqueue_measure(m)
+    assert workspace.enqueue_measurement(m)
     exopy_qtbot.wait(10)
 
     # Create a tool edition window
@@ -150,7 +150,7 @@ def test_handling_missing_measurement_in_state(exopy_qtbot, workspace):
     # Check UI creation
     def assert_ui():
         assert workspace._selection_tracker._thread
-        assert workspace.last_selected_measure
+        assert workspace.last_selected_measurement
         assert workspace.content
         assert workspace.dock_area
         assert workbench.get_manifest('exopy.measurement.workspace.menus')
@@ -169,8 +169,8 @@ def test_handling_missing_measurement_in_state(exopy_qtbot, workspace):
 
 
 @pytest.mark.timeout(30)
-def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
-                                         tmpdir):
+def test_creating_saving_loading_measurement(exopy_qtbot, workspace, 
+                                             monkeypatch, tmpdir):
     """Test creating, saving, loading a measurement.
 
     """
@@ -179,7 +179,7 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
     # Check UI creation
     def assert_ui():
         assert workspace._selection_tracker._thread
-        assert workspace.last_selected_measure
+        assert workspace.last_selected_measurement
         assert workspace.content
         assert workspace.dock_area
         assert workbench.get_manifest('exopy.measurement.workspace.menus')
@@ -219,7 +219,7 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
         def get(*args, **kwargs):
             return str(f)
         monkeypatch.setattr(FileDialogEx, 'get_save_file_name', get)
-        workspace.save_measure(measure)
+        workspace.save_measurement(measurement)
         exopy_qtbot.wait(100)
 
         f += '.meas.ini'
@@ -247,7 +247,7 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
 
         monkeypatch.setattr(measurement_tracker.cls, 'save', r)
         with handle_dialog(exopy_qtbot):
-            workspace.save_measure(measure)
+            workspace.save_measurement(measurement)
 
         # Test loading and dialog reject.
         @classmethod
@@ -284,9 +284,9 @@ def test_creating_saving_loading_measure(exopy_qtbot, workspace, monkeypatch,
         def r(cls, measurement_plugin, path, build_dep=None):
             return None, {'r': 't'}
 
-        monkeypatch.setattr(Measure, 'load', r)
+        monkeypatch.setattr(Measurement, 'load', r)
         with handle_dialog(exopy_qtbot, handler=lambda bot, d: d.maximize()):
-            workspace.load_measure('file')
+            workspace.load_measurement('file')
 
         with pytest.raises(NotImplementedError):
             workspace.load_measurement('template')
@@ -383,14 +383,14 @@ def test_enqueueing_and_reenqueueing_measurement(workspace, monkeypatch,
 
 @pytest.mark.timeout(10)
 def test_enqueueing_fail_runtime(workspace, monkeypatch, exopy_qtbot):
-    """Test enqueueing a measure for which runtimes cannot be collected.
+    """Test enqueueing a measurement for which runtimes cannot be collected.
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
     m.add_tool('pre-hook', 'dummy')
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', True)
     with handle_dialog(exopy_qtbot):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     assert not workspace.plugin.enqueued_measurements.measurements
 
@@ -404,12 +404,12 @@ def test_enqueueing_fail_runtime(workspace, monkeypatch, exopy_qtbot):
 
 @pytest.mark.timeout(10)
 def test_enqueueing_fail_checks(workspace, exopy_qtbot):
-    """Test enqueueing a measure not passing the checks.
+    """Test enqueueing a measurement not passing the checks.
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
     with handle_dialog(exopy_qtbot, 'reject'):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     assert not workspace.plugin.enqueued_measurements.measurements
 
@@ -434,7 +434,7 @@ def test_enqueueing_abort_warning(workspace, monkeypatch, tmpdir, exopy_qtbot):
     monkeypatch.setattr(Measurement, 'run_checks', check)
 
     with handle_dialog(exopy_qtbot, 'reject'):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     # Check dependencies are cleaned up
     assert_dependencies_released(workspace, m)
@@ -461,7 +461,7 @@ def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir, exopy_qtbot):
     monkeypatch.setattr(Measurement, 'run_checks', check)
 
     with handle_dialog(exopy_qtbot):
-        assert workspace.enqueue_measure(m)
+        assert workspace.enqueue_measurement(m)
 
     # Check dependencies are cleaned up
     assert_dependencies_released(workspace, m)
@@ -471,7 +471,7 @@ def test_enqueueing_after_warning(workspace, monkeypatch, tmpdir, exopy_qtbot):
 
 @pytest.mark.timeout(10)
 def test_force_enqueueing(exopy_qtbot, workspace):
-    """Test enqueueing a measure not passing the checks.
+    """Test enqueueing a measurement not passing the checks.
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
@@ -487,7 +487,7 @@ def test_force_enqueueing(exopy_qtbot, workspace):
 
     with handle_dialog(exopy_qtbot, handler=handle_error_report,
                        skip_answer=True):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     assert workspace.plugin.enqueued_measurements.measurements
 
@@ -497,7 +497,7 @@ def test_force_enqueueing(exopy_qtbot, workspace):
 
 @pytest.mark.timeout(10)
 def test_force_enqueueing_abort(exopy_qtbot, workspace):
-    """Test enqueueing a measure not passing the checks, but aborting.
+    """Test enqueueing a measurement not passing the checks, but aborting.
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
@@ -512,7 +512,7 @@ def test_force_enqueueing_abort(exopy_qtbot, workspace):
 
     with handle_dialog(exopy_qtbot, handler=handle_error_report,
                        skip_answer=True):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     assert not workspace.plugin.enqueued_measurements.measurements
 
@@ -522,7 +522,7 @@ def test_force_enqueueing_abort(exopy_qtbot, workspace):
 
 @pytest.mark.timeout(10)
 def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir, exopy_qtbot):
-    """Test failing when reloading the measure after saving.
+    """Test failing when reloading the measurement after saving.
 
     """
     m = workspace.plugin.edited_measurements.measurements[0]
@@ -538,7 +538,7 @@ def test_enqueuing_fail_reload(workspace, monkeypatch, tmpdir, exopy_qtbot):
     monkeypatch.setattr(Measurement, 'load', r)
 
     with handle_dialog(exopy_qtbot):
-        workspace.enqueue_measure(m)
+        workspace.enqueue_measurement(m)
 
     # Check dependencies are cleaned up
     assert_dependencies_released(workspace, m)
@@ -592,7 +592,7 @@ def test_measurement_execution(workspace, exopy_qtbot):
 
     # Test not selecting an engine.
     with handle_dialog(exopy_qtbot, 'reject'):
-        workspace.process_single_measure(None)
+        workspace.process_single_measurement(None)
 
     workspace.plugin.enqueued_measurements.measurements.append(
         workspace.plugin.edited_measurements.measurements[0])

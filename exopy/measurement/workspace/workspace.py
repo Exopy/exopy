@@ -402,10 +402,11 @@ class MeasurementSpace(Workspace):
         measurement.infos = 'Measurement re-enqueued by the user'
 
     def remove_processed_measurements(self):
-        """ Remove all the measurements which have been processed from the queue.
+        """ Remove all the measurements which have been processed from the
+        queue.
 
-        This method rely on the status of the measurement. Only measurements whose
-        status is 'READY' will be left in the queue.
+        This method rely on the status of the measurement. Only measurements
+        whose status is 'READY' will be left in the queue.
 
         """
         for measurement in self.plugin.enqueued_measurements.measurements[:]:
@@ -512,7 +513,8 @@ class MeasurementSpace(Workspace):
                 msg = "Default post-execution hook {} not found"
                 logger.warn(msg.format(post_id))
 
-    def _insert_new_edition_panels(self, measurements, update=True, panels=None):
+    def _insert_new_edition_panels(self, measurements, update=True,
+                                   panels=None):
         """Handle inserting a new MeasurementEditorDockItem in the content.
 
         """

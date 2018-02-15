@@ -197,8 +197,8 @@ class MeasurementProcessor(Atom):
         Parameters
         ----------
         measurement : Measurement
-            First measurement to run. Other measurements will be run in their order
-            of appearance in the queue if the user enable continuous
+            First measurement to run. Other measurements will be run in their
+            order of appearance in the queue if the user enable continuous
             processing.
 
         """

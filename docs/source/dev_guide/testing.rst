@@ -26,6 +26,7 @@ tested nonetheless.
     - pytest > 3.3
     - pytest-cov
     - pytest-timeout
+    - pytest-qt
     - enaml_coverage_plugin
       (https://github.com/MatthieuDartiailh/enaml_coverage_plugin)
 
@@ -129,12 +130,11 @@ Pytest provides some useful fixtures :
 
 Exopy add some other :
 
-- app : fixture ensuring that the Application is running (mandatory for testing
-  widgets).
-- windows : fixtures closing all opened windows after a test.
 - app_dir : return the automatically set path for the application
 - dialog_sleep : return the time to sleep as specified by the --exopy-sleep
   option
+- ecpy_qtbot : fixture returning a slightly enhanced version of the bot of
+  pytest-qt. Mandatory for testing widgets.
 
 The other fixtures can be found in the testing package. Each subpackage usually
 defining a fixture.py module in which those are defined.

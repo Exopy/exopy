@@ -56,8 +56,7 @@ def validate_user(user):
     if user.policy == 'releasable':
         member = user.release_profiles
         func = getattr(member, 'im_func', getattr(member, '__func__', None))
-        o_func = (InstrUser.release_profiles if sys.version_info >= (3,) else
-                  InstrUser.release_profiles.__func__)
+        o_func = InstrUser.release_profiles
         if not func or func is o_func:
             msg = ("InstrUser policy is releasable but it does not declare a"
                    " a release_profiles function.")

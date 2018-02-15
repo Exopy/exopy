@@ -9,7 +9,8 @@
 """Test utility functions found in transformers.
 
 """
-from exopy.utils.transformers import (basic_name_formatter, ids_to_unique_names)
+from exopy.utils.transformers import (basic_name_formatter,
+                                      ids_to_unique_names)
 
 
 def test_basic_name_formatter():

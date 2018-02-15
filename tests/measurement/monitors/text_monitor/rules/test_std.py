@@ -12,8 +12,8 @@
 import pytest
 import enaml
 
-from exopy.measurement.monitors.text_monitor.rules.std_rules import (RejectRule,
-                                                                FormatRule)
+from exopy.measurement.monitors.text_monitor.rules.std_rules\
+     import RejectRule, FormatRule
 from exopy.testing.util import wait_for_window_displayed
 
 with enaml.imports():

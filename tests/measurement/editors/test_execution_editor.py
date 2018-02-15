@@ -20,7 +20,7 @@ from exopy.measurement.editors.execution_editor.editor_model import\
      ExecutionEditorModel
 
 from exopy.testing.util import (wait_for_window_displayed, get_popup,
-                               wait_for_destruction)
+                                wait_for_destruction)
 
 with enaml.imports():
     from exopy.measurement.editors.execution_editor import ExecutionEditor

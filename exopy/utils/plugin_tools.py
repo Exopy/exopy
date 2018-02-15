@@ -95,8 +95,7 @@ def make_extension_validator(base_cls, fn_names=(),
             # for enaml compatible with Python 3)
             func = getattr(member, 'im_func',
                            getattr(member, '__func__', None))
-            o_func = (getattr(base_cls, name) if sys.version_info >= (3,) else
-                      getattr(base_cls, name).__func__)
+            o_func = getattr(base_cls, name)
             if not func or func is o_func:
                 msg = "%s '%s' does not declare a %s function"
                 return False, msg % (base_cls, contrib.id, name)

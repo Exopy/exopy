@@ -140,6 +140,4 @@ class BaseToolDeclaration(Declarative):
         member = self.make_view
         func = getattr(member, 'im_func',
                        getattr(member, '__func__', None))
-        o_f = (BaseToolDeclaration.make_view if sys.version_info >= (3,) else
-               BaseToolDeclaration.make_view.__func__)
-        return func is not o_f
+        return func is not BaseToolDeclaration.make_view

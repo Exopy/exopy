@@ -12,7 +12,7 @@
 import pytest
 import enaml
 
-from exopy.testing.measurement.fixtures import measure as m_build
+from exopy.testing.measurement.fixtures import measurement as m_build
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
                                 wait_for_destruction, handle_question)
 from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
@@ -101,7 +101,7 @@ def test_build_task(workspace, exopy_qtbot):
 
 
 def test_sync_name(exopy_qtbot, edition_view, dialog_sleep):
-    """Test the synchronisation between the measure name and widget.
+    """Test the synchronisation between the measurement name and widget.
 
     """
     edition_view.show()
@@ -123,7 +123,7 @@ def test_sync_name(exopy_qtbot, edition_view, dialog_sleep):
 
 
 def test_sync_id(exopy_qtbot, edition_view, dialog_sleep):
-    """Test the synchronisation between the measure id and widget.
+    """Test the synchronisation between the measurement id and widget.
 
     """
     edition_view.show()
@@ -170,8 +170,8 @@ def test_switching_between_tasks(exopy_qtbot, edition_view, dialog_sleep):
     exopy_qtbot.wait(10 + dialog_sleep)
 
 
-def test_switching_the_linked_measure(exopy_qtbot, edition_view, dialog_sleep):
-    """Test changing the measure edited by the editor.
+def test_switching_the_linked_measurement(exopy_qtbot, edition_view, dialog_sleep):
+    """Test changing the measurement edited by the editor.
 
     """
     edition_view.show()
@@ -206,8 +206,8 @@ def test_creating_tools_edition_panel(exopy_qtbot, edition_view, dialog_sleep):
     exopy_qtbot.wait_until(assert_created)
 
 
-def test_closing_measure(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
-    """Test closing the measure dock item.
+def test_closing_measurement(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
+    """Test closing the measurement dock item.
 
     """
     edition_view.show()
@@ -224,7 +224,7 @@ def test_closing_measure(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
 
     with handle_question(exopy_qtbot, None):
         edition_view.widget.proxy.on_closed()
-    edition_view.widget.measure.name = 'First'
+    edition_view.widget.measurement.name = 'First'
 
     def assert_dock():
         assert len(edition_view.area.dock_items()) == 2
@@ -233,7 +233,7 @@ def test_closing_measure(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
 
     with handle_question(exopy_qtbot, 'no'):
         edition_view.widget.proxy.on_closed()
-    edition_view.widget.measure.name = 'Second'
+    edition_view.widget.measurement.name = 'Second'
 
     exopy_qtbot.wait_until(assert_dock)
     exopy_qtbot.wait(dialog_sleep)
@@ -248,7 +248,7 @@ def test_closing_measure(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
 
 def test_measurement_edition_dialog(exopy_qtbot, workspace, measurement,
                                     monkeypatch, dialog_sleep):
-    """Test creating a measure edition dialog.
+    """Test creating a measurement edition dialog.
 
     """
     dialog = MeasureEditorDialog(workspace=workspace, measurement=measurement)

@@ -69,18 +69,18 @@ def test_app_startup1(pref_workbench, tmpdir, exopy_qtbot):
 def test_app_startup2(pref_workbench, tmpdir, exopy_qtbot):
     """Test app start-up when user quit app.
 
-        """
-        manifest = PreferencesManifest()
-        self.workbench.register(manifest)
+    """
+    manifest = PreferencesManifest()
+    pref_workbench.register(manifest)
 
-        # Remove any trash app_directory.ini file. The global fixture ensure
-        # that it cannot be a user file.
-        app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
-        if os.path.isfile(app_pref):
-            os.remove(app_pref)
+    # Remove any trash app_directory.ini file. The global fixture ensure
+    # that it cannot be a user file.
+    app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
+    if os.path.isfile(app_pref):
+        os.remove(app_pref)
 
-        # Start the app and fake a user answer.
-        app = self.workbench.get_plugin('exopy.app')
+    # Start the app and fake a user answer.
+    app = pref_workbench.get_plugin('exopy.app')
 
     with pytest.raises(SystemExit):
         with handle_dialog(exopy_qtbot, 'reject'):
@@ -308,7 +308,7 @@ def test_save3(pref_workbench, app_dir, monkeypatch):
     monkeypatch.setattr(FileDialogEx, 'get_save_file_name', answer)
     core = pref_workbench.get_plugin('enaml.workbench.core')
     core.invoke_command('exopy.app.preferences.save', {'path': prefs_path,
-                                                      'ask_user': True})
+                                                       'ask_user': True})
 
     ref = {c_man.id: {'string': 'test_save', 'auto': ''}}
     assert os.path.isfile(path)

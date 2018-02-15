@@ -26,10 +26,10 @@ def task():
 
     """
     class Tester(CheckTask):
-            """Class for testing feval validators.
+        """Class for testing feval validators.
 
-            """
-            feval = Unicode()
+        """
+        feval = Unicode()
 
     root = RootTask(should_stop=Event(), should_pause=Event())
     task = Tester(name='test', database_entries={'val': 1})

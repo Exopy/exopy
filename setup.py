@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath('.'))
 from exopy.version import __version__
 
 
-def lond_description():
+def long_description():
     """Read the project description from the README file.
 
     """
@@ -22,7 +22,7 @@ setup(
     name='exopy',
     description='Experiment control application',
     version=__version__,
-    long_description=lond_description(),
+    long_description=long_description(),
     author='Exopy Developers (see AUTHORS)',
     author_email='m.dartiailh@gmail.com',
     url='http://github.com/exopy/exopy',

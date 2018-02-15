@@ -27,7 +27,7 @@ enamldef VisaRaw(BaseConnection): main:
     This allows to support VISA aliases.
 
     """
-    #: Full visa resource name. Can be an attr or an address added manually.
+    #: Full visa resource name. Can be an alias or an address added manually.
     attr resource_name = ''
 
     constraints = [hbox(rn_lab, rn_val)]

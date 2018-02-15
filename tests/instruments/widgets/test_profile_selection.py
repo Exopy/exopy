@@ -18,7 +18,8 @@ with enaml.imports():
         import (ProfileSelectionDialog)
 
 
-def test_selecting_profile_from_scratch(prof_plugin, exopy_qtbot, dialog_sleep):
+def test_selecting_profile_from_scratch(prof_plugin, exopy_qtbot,
+                                        dialog_sleep):
     """Test selecting a profile.
 
     """

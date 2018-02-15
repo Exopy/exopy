@@ -23,7 +23,7 @@ pytests_plugin = str('exopy.testing.measurement.fixtures'),
 
 @pytest.fixture
 def content_workbench(measurement_workbench, measurement, exopy_qtbot):
-    """Create a measure workspace.
+    """Create a measurement workspace.
 
     """
     measurement_workbench.register(UIManifest())
@@ -51,8 +51,8 @@ def test_content(exopy_qtbot, content_workbench, dialog_sleep):
     core.invoke_command(cmd, {'workspace': 'exopy.measurement.workspace'})
     exopy_qtbot.wait(10 + dialog_sleep)
 
-    pl = content_workbench.get_plugin('exopy.measure')
-    pl.workspace.new_measure()
+    pl = content_workbench.get_plugin('exopy.measurement')
+    pl.workspace.new_measurement()
     exopy_qtbot.wait(10 + dialog_sleep)
 
     ui.close_window()
