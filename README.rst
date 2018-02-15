@@ -30,6 +30,8 @@ should be executed in a different thread and how it should behave with respect
 to other tasks running in threads. The application design make it easily
 customizable on a per lab basis while benefitting from a common architecture.
 
+For more details see the documentation: http://exopy.readthedocs.io/
+
 
 Installling
 -----------
