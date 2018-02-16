@@ -9,9 +9,6 @@
 """Test for the database used fo tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from pytest import raises
 
 from exopy.tasks.tasks.database import TaskDatabase

@@ -17,7 +17,6 @@ dependencies:
 - watchdog
 - fontconfig
 - freetype
-- future
 - glib
 - harfbuzz
 - imagesize

@@ -9,9 +9,6 @@
 """Base classes for rules editing widgets.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Coerced, set_default
 from enaml.validator import Validator
 from enaml.layout.api import hbox, spacer, align

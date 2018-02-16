@@ -9,30 +9,29 @@
 """Tests for the instrument model selection widget.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
-from exopy.testing.util import process_app_events
+from exopy.testing.util import wait_for_window_displayed
 
 with enaml.imports():
     from exopy.instruments.widgets.profile_selection\
         import (ProfileSelectionDialog)
 
 
-def test_selecting_profile_from_scratch(prof_plugin, process_and_sleep):
+def test_selecting_profile_from_scratch(prof_plugin, exopy_qtbot,
+                                        dialog_sleep):
     """Test selecting a profile.
 
     """
     d = ProfileSelectionDialog(plugin=prof_plugin)
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     d.profile = 'fp2'
     assert not d.connection
     assert not d.settings
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     d.connection = 'false_connection1'
     d.settings = 'false_settings1'
@@ -40,18 +39,20 @@ def test_selecting_profile_from_scratch(prof_plugin, process_and_sleep):
                                                    else 2)
     assert not d.connection
     assert not d.settings
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     d.connection = 'false_connection'
     d.settings = 'false_settings'
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     d.central_widget().widgets()[-1].clicked = True
-    process_app_events()
-    assert d.result
+
+    def assert_result():
+        assert d.result
+    exopy_qtbot.wait_until(assert_result)
 
 
-def test_editing_a_previous_selection(prof_plugin, process_and_sleep):
+def test_editing_a_previous_selection(prof_plugin, exopy_qtbot, dialog_sleep):
     """Test editing a profile selection.
 
     """
@@ -61,7 +62,8 @@ def test_editing_a_previous_selection(prof_plugin, process_and_sleep):
                                connection='false_connection',
                                settings='false_settings')
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     assert d.profile == 'fp2'
     assert d.driver == 'instruments.test.FalseDriver2'
@@ -69,11 +71,13 @@ def test_editing_a_previous_selection(prof_plugin, process_and_sleep):
     assert d.settings == 'false_settings'
 
     d.central_widget().widgets()[-2].clicked = True
-    process_app_events()
-    assert not d.result
+
+    def assert_result():
+        assert not d.result
+    exopy_qtbot.wait_until(assert_result)
 
 
-def test_using_custom_filtering(prof_plugin, process_and_sleep):
+def test_using_custom_filtering(prof_plugin, exopy_qtbot, dialog_sleep):
     """Test using a custom filtering function to reduce the available profiles
     and drivers.
 
@@ -82,7 +86,8 @@ def test_using_custom_filtering(prof_plugin, process_and_sleep):
                                filter_profiles=lambda p: ['fp1'],
                                filter_drivers=lambda d: [d[0]])
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     w = d.central_widget().widgets()[0]
     assert len(w._drivers) == 1

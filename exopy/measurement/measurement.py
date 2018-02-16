@@ -10,15 +10,11 @@
  attached tools, dependencies, ...)
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from collections import OrderedDict, defaultdict
 from itertools import chain
 from datetime import date
 
-from future.builtins import str as text
 from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
                       Value)
 from configobj import ConfigObj
@@ -634,7 +630,7 @@ class Measurement(HasPrefAtom):
         """
         self.root_task.write_in_database('meas_name', self.name)
         self.root_task.write_in_database('meas_id', self.id)
-        self.root_task.write_in_database('meas_date', text(date.today()))
+        self.root_task.write_in_database('meas_date', str(date.today()))
 
     def _post_setattr_root_task(self, old, new):
         """Add the entries contributed by the measurement to the task database.

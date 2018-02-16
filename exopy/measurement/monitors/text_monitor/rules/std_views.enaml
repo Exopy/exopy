@@ -9,9 +9,6 @@
 """Edition widgets for the two standard rules : reject and format
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import re
 from textwrap import fill
 

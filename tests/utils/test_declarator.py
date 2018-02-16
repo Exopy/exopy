@@ -9,20 +9,15 @@
 """Test of Declarator and GroupDeclarator functionalities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 
 import pytest
-from future.utils import python_2_unicode_compatible
 from atom.api import Bool
 from enaml.core.api import Declarative
 
 from exopy.utils.declarator import Declarator, GroupDeclarator, import_and_get
 
 
-@python_2_unicode_compatible
 class DummyDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 

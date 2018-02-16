@@ -9,9 +9,6 @@
 """Base classes for all monitors.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import List, Typed, Bool
 from enaml.core.api import d_, d_func
 from enaml.widgets.api import DockItem

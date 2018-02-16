@@ -9,7 +9,4 @@
 """Check that the api module can be imported.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.app import api

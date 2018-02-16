@@ -9,9 +9,6 @@
 """Fixtures used to test text monitor related systems.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 
 
@@ -19,7 +16,7 @@ pytest_plugins = str('exopy.testing.measurement.fixtures'),
 
 
 @pytest.fixture
-def text_monitor_workbench(windows, measurement_workbench):
+def text_monitor_workbench(exopy_qtbot, measurement_workbench):
     """Register the text monitor manifest.
 
     """

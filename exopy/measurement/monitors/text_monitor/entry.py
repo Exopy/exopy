@@ -9,11 +9,9 @@
 """Entries that can be displayed by the text monitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Unicode, List)
 from enaml.application import deferred_call
+
 from exopy.utils.atom_util import HasPrefAtom
 
 

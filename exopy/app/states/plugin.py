@@ -9,9 +9,6 @@
 """State plugin definition.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import contextlib
 from atom.api import (Atom, Bool, Value, Typed, Dict)
 from enaml.workbench.api import Plugin

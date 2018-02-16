@@ -35,9 +35,9 @@ When the application starts you should see this window::
 
 The different panels can be re-organized, tabbed or reduced. The bottom panel
 is used for log messages, it will display messages from the application.
-The top left panel is used to edit measures, actually multiple measures can be
+The top left panel is used to edit measurements, actually multiple measurements can be
 edited at the same time and similar panels will be opened if necessary. The
-top right panel display the measures waiting to be performed.
+top right panel display the measurements waiting to be performed.
 
 The next sections will detail how these panels work.
 
@@ -139,7 +139,7 @@ is text-based and can easily be re-edited if need be.
 .. note::
 
     You can also save a measurement using 'Ctrl+S'. If you are editing multiple
-    measures, the last measurement you selected will be saved.
+    measurements, the last measurement you selected will be saved.
 
 The last step before executing your measurement is to enqueue it. When enqueueing
 a measurement automatic checks are run, validating for instance that all the

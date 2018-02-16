@@ -9,14 +9,11 @@
 """Test the PackagesPlugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from atom.api import Atom, Bool, Value, Unicode
 
-from exopy.testing.util import handle_dialog, process_app_events
+from exopy.testing.util import handle_dialog
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -73,7 +70,7 @@ class FalseEntryPoint(Atom):
 
 
 def test_collecting_registering_and_stopping(monkeypatch, pack_workbench,
-                                             windows):
+                                             exopy_qtbot):
     """Test basic behavior of PackaggesPlugin.
 
     """
@@ -84,11 +81,13 @@ def test_collecting_registering_and_stopping(monkeypatch, pack_workbench,
 
     app = pack_workbench.get_plugin(APP_ID)
     app.run_app_startup(object())
-    process_app_events()
+
+    def assert_registered():
+        plugin = pack_workbench.get_plugin(PACKAGES_ID)
+        assert 'test' in plugin.packages
+    exopy_qtbot.wait_until(assert_registered)
 
     plugin = pack_workbench.get_plugin(PACKAGES_ID)
-
-    assert 'test' in plugin.packages
     assert 'test2' in plugin.packages
     assert 'exopy.test1' in plugin.packages['test']
     assert 'exopy.test2' in plugin.packages['test']
@@ -105,8 +104,7 @@ def test_collecting_registering_and_stopping(monkeypatch, pack_workbench,
         pack_workbench.get_plugin('exopy.test2')
 
 
-@pytest.mark.ui
-def test_unmet_requirement(monkeypatch, pack_workbench, windows):
+def test_unmet_requirement(monkeypatch, pack_workbench, exopy_qtbot):
     """Test loading an extension package for which some requirements are not
     met.
 
@@ -116,7 +114,7 @@ def test_unmet_requirement(monkeypatch, pack_workbench, windows):
                                             manifests=[])])
 
     app = pack_workbench.get_plugin(APP_ID)
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         app.run_app_startup(object())
 
     plugin = pack_workbench.get_plugin(PACKAGES_ID)
@@ -127,8 +125,7 @@ def test_unmet_requirement(monkeypatch, pack_workbench, windows):
     assert not plugin._registered
 
 
-@pytest.mark.ui
-def test_wrong_return_type(monkeypatch, pack_workbench, app):
+def test_wrong_return_type(monkeypatch, pack_workbench, exopy_qtbot):
     """Test handling a wrong return type from the callable returned by load.
 
     """
@@ -138,7 +135,7 @@ def test_wrong_return_type(monkeypatch, pack_workbench, app):
                                             manifests=[])])
 
     app = pack_workbench.get_plugin(APP_ID)
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         app.run_app_startup(object())
 
     plugin = pack_workbench.get_plugin(PACKAGES_ID)
@@ -149,8 +146,7 @@ def test_wrong_return_type(monkeypatch, pack_workbench, app):
     assert not plugin._registered
 
 
-@pytest.mark.ui
-def test_non_manifest(monkeypatch, pack_workbench, app):
+def test_non_manifest(monkeypatch, pack_workbench, exopy_qtbot):
     """Test handling a non PluginManifest in the list of manifests.
 
     """
@@ -160,7 +156,7 @@ def test_non_manifest(monkeypatch, pack_workbench, app):
                                             manifests=[])])
 
     app = pack_workbench.get_plugin(APP_ID)
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         app.run_app_startup(object())
 
     plugin = pack_workbench.get_plugin(PACKAGES_ID)
@@ -171,8 +167,7 @@ def test_non_manifest(monkeypatch, pack_workbench, app):
     assert not plugin._registered
 
 
-@pytest.mark.ui
-def test_registering_issue(monkeypatch, pack_workbench, app):
+def test_registering_issue(monkeypatch, pack_workbench, exopy_qtbot):
     """Test handling an error when registering a manifest.
 
     """
@@ -182,7 +177,7 @@ def test_registering_issue(monkeypatch, pack_workbench, app):
                                             manifests=[])])
 
     app = pack_workbench.get_plugin(APP_ID)
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         app.run_app_startup(object())
 
     plugin = pack_workbench.get_plugin(PACKAGES_ID)

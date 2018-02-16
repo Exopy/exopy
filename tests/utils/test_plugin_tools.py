@@ -59,7 +59,7 @@ class TestExtensionsCollector(object):
         self.workbench.register(ErrorsManifest())
         self.workbench.register(ExtensionManifest())
 
-    def test_registation1(self, windows):
+    def test_registation1(self, exopy_qtbot):
         """Test that plugin registered before starting the plugin are well
         detected
 
@@ -78,7 +78,7 @@ class TestExtensionsCollector(object):
         plugin.contribs.stop()
         assert not plugin.contribs.contributions
 
-    def test_registration2(self, windows):
+    def test_registration2(self, exopy_qtbot):
         """Test contribs update when a new plugin is registered.
 
         """
@@ -93,7 +93,7 @@ class TestExtensionsCollector(object):
 
         assert 'contrib1.contrib' not in plugin.contribs.contributions
 
-    def test_factory(self, windows):
+    def test_factory(self, exopy_qtbot):
         """Test getting the Contribution declaration from a factory.
 
         """
@@ -108,7 +108,7 @@ class TestExtensionsCollector(object):
         assert 'contrib2.contrib' not in plugin.contribs.contributions
 
     @pytest.mark.ui
-    def test_errors1(self, windows):
+    def test_errors1(self, exopy_qtbot):
         """Test uniqueness of contribution id.
 
         """
@@ -116,26 +116,26 @@ class TestExtensionsCollector(object):
         self.workbench.register(Contributor1())
         self.workbench.register(Contributor1(id='bis'))
         self.workbench.register(Contributor1(id='ter'))
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)
 
     @pytest.mark.ui
-    def test_check_errors2(self, windows):
+    def test_check_errors2(self, exopy_qtbot):
         """Test use of validate_ext.
 
         """
 
         self.workbench.register(Contributor3())
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)
 
-    def test_check_errors3(self, windows):
+    def test_check_errors3(self, exopy_qtbot):
         """Test enforcement of type when using factory.
 
         """
 
         self.workbench.register(Contributor4())
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)
 
     def test_declared_by(self):
@@ -160,7 +160,7 @@ class TestDeclaratorCollector(object):
         self.workbench.register(ErrorsManifest())
         self.workbench.register(DeclaratorManifest())
 
-    def test_registation1(self, windows):
+    def test_registation1(self, exopy_qtbot):
         """Test that plugin registered before starting the plugin are well
         detected
 
@@ -176,7 +176,7 @@ class TestDeclaratorCollector(object):
         assert not plugin.contribs.contributions
         assert not plugin.contribs._extensions
 
-    def test_registration2(self, windows):
+    def test_registration2(self, exopy_qtbot):
         """Test contribs update when a new plugin is registered.
 
         """
@@ -211,7 +211,7 @@ class TestDeclaratorCollector(object):
         assert w.called == 2
         assert not plugin.contribs._extensions
 
-    def test_factory(self, windows):
+    def test_factory(self, exopy_qtbot):
         """Test getting the TestDeclarator declaration from a factory.
 
         """
@@ -225,29 +225,29 @@ class TestDeclaratorCollector(object):
 
         assert not plugin.contribs.contributions
 
-    def test_check_errors1(self, windows):
+    def test_check_errors1(self, exopy_qtbot):
         """Test enforcement of type when using factory.
 
         """
 
         self.workbench.register(DContributor3())
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)
 
     @pytest.mark.ui
-    def test_declarator_failed_registration(self, windows):
+    def test_declarator_failed_registration(self, exopy_qtbot):
         """Test handling of error when a declarator fail to register.
 
         """
         self.workbench.register(DContributor4())
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)
 
     @pytest.mark.ui
-    def test_unsatifiable_requirement(self, windows):
+    def test_unsatifiable_requirement(self, exopy_qtbot):
         """Test the case of a declarator always adding itself to _deflayed.
 
         """
         self.workbench.register(DContributor5())
-        with handle_dialog():
+        with handle_dialog(exopy_qtbot):
             self.workbench.get_plugin(PLUGIN_ID)

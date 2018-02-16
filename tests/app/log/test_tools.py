@@ -9,16 +9,12 @@
 """Test for the logging tools.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 import sys
 from multiprocessing import Queue
 from time import sleep, localtime
 from exopy.app.log.tools import (StreamToLogRedirector, QueueHandler,
                                  LogModel, DayRotatingTimeHandler,
                                  GuiHandler, QueueLoggerThread)
-
-from exopy.testing.util import process_app_events
 
 
 def test_log_model():
@@ -40,7 +36,7 @@ def test_log_model():
     assert model.text == ''.join(['%d\n' % i for i in range(4)])
 
 
-def test_gui_handler(app, logger, monkeypatch):
+def test_gui_handler(exopy_qtbot, logger, monkeypatch):
     """Test the gui handler.
 
     """
@@ -49,29 +45,39 @@ def test_gui_handler(app, logger, monkeypatch):
     logger.addHandler(handler)
 
     logger.info('test')
-    process_app_events()
-    assert model.text == 'test\n'
+
+    def assert_text():
+        assert model.text == 'test\n'
+    exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
     logger.debug('test')
-    process_app_events()
-    assert model.text == 'DEBUG: test\n'
+
+    def assert_text():
+        assert model.text == 'DEBUG: test\n'
+    exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
     logger.warn('test')
-    process_app_events()
-    assert model.text == 'WARNING: test\n'
+
+    def assert_text():
+        assert model.text == 'WARNING: test\n'
+    exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
     logger.error('test')
-    process_app_events()
-    assert model.text == 'ERROR: test\n'
+
+    def assert_text():
+        assert model.text == 'ERROR: test\n'
+    exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
     logger.critical('test')
-    process_app_events()
     answer = 'An error occured please check the log file for more details.\n'
-    assert model.text == answer
+
+    def assert_text():
+        assert model.text == answer
+    exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
     def err(record):
@@ -81,7 +87,7 @@ def test_gui_handler(app, logger, monkeypatch):
     logger.info('raise')
 
 
-def test_stdout_redirection(app, logger):
+def test_stdout_redirection(exopy_qtbot, logger):
     """Test the redirection of stdout toward a logger.
 
     """
@@ -97,11 +103,12 @@ def test_stdout_redirection(app, logger):
     finally:
         sys.stdout = stdout
 
-    process_app_events()
-    assert model.text == 'test\n'
+    def assert_text():
+        assert model.text == 'test\n'
+    exopy_qtbot.wait_until(assert_text)
 
 
-def test_stderr_redirection(app, logger):
+def test_stderr_redirection(exopy_qtbot, logger):
     """Test the redirection of 'stderr' toward a logger.
 
     """
@@ -116,9 +123,11 @@ def test_stderr_redirection(app, logger):
     finally:
         sys.stdout = stdout
 
-    process_app_events()
     answer = 'An error occured please check the log file for more details.\n'
-    assert model.text == answer
+
+    def assert_text():
+        assert model.text == answer
+    exopy_qtbot.wait_until(assert_text)
 
 
 def test_queue_handler(logger, monkeypatch):
@@ -140,7 +149,7 @@ def test_queue_handler(logger, monkeypatch):
     logger.info('raise')
 
 
-def test_logger_thread(app, logger):
+def test_logger_thread(exopy_qtbot, logger):
     """Test the logger thread.
 
     """
@@ -159,12 +168,13 @@ def test_logger_thread(app, logger):
     sleep(1)
     queue.put(None)
     thread.join(2)
-    process_app_events()
 
     if thread.is_alive():
-        raise
+        raise RuntimeError()
 
-    assert model.text == 'test\n'
+    def assert_text():
+        assert model.text == 'test\n'
+    exopy_qtbot.wait_until(assert_text)
 
 
 def test_rotating_file_handler(tmpdir, logger, monkeypatch):

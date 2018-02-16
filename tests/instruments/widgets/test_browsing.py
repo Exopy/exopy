@@ -9,17 +9,13 @@
 """Tests for the instrument model selection widget.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
-from time import sleep
 
 import enaml
 from enaml.widgets.api import Container
 from configobj import ConfigObj
 
-from exopy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import handle_dialog, wait_for_window_displayed
 
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox
@@ -27,25 +23,28 @@ with enaml.imports():
     from exopy.instruments.widgets.profile_edition import ProfileEditionDialog
 
 
-def test_browsing_dialog_instruments(prof_plugin, process_and_sleep):
+def test_browsing_dialog_instruments(exopy_qtbot, prof_plugin, dialog_sleep):
     """Test the browsing dialog page dedicated to explore the instruments.
 
     """
     d = BrowsingDialog(plugin=prof_plugin)
     nb = d.central_widget().widgets()[0]
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     sel = nb.pages()[2].page_widget().widgets()[0]
     sel.use_series = False
-    process_app_events()
+    exopy_qtbot.wait(10)
     sel.model = prof_plugin._manufacturers.manufacturers[0].instruments[0]
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
-    assert type(nb.pages()[0].page_widget().widgets()[1]) is not Container
+    def assert_widget():
+        assert type(nb.pages()[0].page_widget().widgets()[1]) is not Container
+    exopy_qtbot.wait_until(assert_widget)
 
 
-def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
+def test_browing_dialog_profiles_add(exopy_qtbot, prof_plugin, dialog_sleep):
     """Test the browsing dialog page dedicated to explore the profiles.
 
     """
@@ -53,34 +52,37 @@ def test_browing_dialog_profiles_add(prof_plugin, process_and_sleep):
     nb = d.central_widget().widgets()[0]
     nb.selected_tab = 'profiles'
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     btn = nb.pages()[0].page_widget().widgets()[-3]
 
     origin = prof_plugin.profiles[:]
-    with handle_dialog('reject', cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'reject', cls=ProfileEditionDialog):
         btn.clicked = True
 
     assert prof_plugin.profiles == origin
 
-    def handle(dial):
+    def handle(bot, dial):
         assert dial.creation
         dial.profile_infos.id = 'test'
         dial.profile_infos.model = prof_plugin._profiles['fp1'].model
 
-    with handle_dialog('accept', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'accept', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     # Wait for file notification to be treated
-    sleep(1.0)
-    process_app_events()
+    exopy_qtbot.wait(1000)
 
-    assert 'test' in prof_plugin.profiles
-    assert os.path.isfile(os.path.join(prof_plugin._profiles_folders[0],
-                                       'test.instr.ini'))
+    def assert_profiles():
+        assert 'test' in prof_plugin.profiles
+        assert os.path.isfile(os.path.join(prof_plugin._profiles_folders[0],
+                                           'test.instr.ini'))
+    exopy_qtbot.wait_until(assert_profiles)
 
 
-def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
+def test_browing_dialog_profiles_edit(exopy_qtbot, prof_plugin, dialog_sleep):
     """Test the browsing dialog page dedicated to explore the profiles.
 
     """
@@ -88,7 +90,8 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     nb = d.central_widget().widgets()[0]
     nb.selected_tab = 'profiles'
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     c = nb.pages()[0].page_widget()
     btn = c.widgets()[-2]
@@ -97,20 +100,22 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
     manu = prof_plugin._manufacturers._manufacturers['Dummy']
     model = manu._series['dumb']._models['002']
 
-    def handle(dial):
+    def handle(bot, dial):
         dial.profile_infos.model = model
 
-    with handle_dialog('reject', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'reject', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     assert prof_plugin._profiles['fp1'].model != model
 
-    def handle(dial):
+    def handle(bot, dial):
         assert not dial.creation
         dial.profile_infos.model = model
         dial.central_widget().widgets()[0].sync()
 
-    with handle_dialog('accept', handle, cls=ProfileEditionDialog):
+    with handle_dialog(exopy_qtbot, 'accept', handle,
+                       cls=ProfileEditionDialog):
         btn.clicked = True
 
     assert prof_plugin._profiles['fp1'].model == model
@@ -118,7 +123,8 @@ def test_browing_dialog_profiles_edit(prof_plugin, process_and_sleep):
             'Dummy.dumb.002')
 
 
-def test_browing_dialog_profiles_delete(prof_plugin, process_and_sleep):
+def test_browing_dialog_profiles_delete(exopy_qtbot, prof_plugin,
+                                        dialog_sleep):
     """Test the browsing dialog page dedicated to explore the profiles.
 
     """
@@ -126,31 +132,33 @@ def test_browing_dialog_profiles_delete(prof_plugin, process_and_sleep):
     nb = d.central_widget().widgets()[0]
     nb.selected_tab = 'profiles'
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     c = nb.pages()[0].page_widget()
     btn = c.widgets()[-1]
     c.p_id = 'fp1'
     print(prof_plugin._profiles)
 
-    with handle_dialog('reject', cls=MessageBox):
+    with handle_dialog(exopy_qtbot, 'reject', cls=MessageBox):
         btn.clicked = True
 
     assert 'fp1' in prof_plugin._profiles
 
-    def handle(dial):
+    def handle(bot, dial):
         dial.buttons[0].was_clicked = True
 
-    with handle_dialog('accept', handle, cls=MessageBox):
+    with handle_dialog(exopy_qtbot, 'accept', handle, cls=MessageBox):
         btn.clicked = True
 
-    sleep(1.0)
-    process_app_events()
+    exopy_qtbot.wait(1000)
 
-    assert 'fp1' not in prof_plugin._profiles
+    def assert_profiles():
+        assert 'fp1' not in prof_plugin._profiles
+    exopy_qtbot.wait_until(assert_profiles)
 
 
-def test_browsing_dialog_profiles_use(prof_plugin, process_and_sleep):
+def test_browsing_dialog_profiles_use(prof_plugin, exopy_qtbot, dialog_sleep):
     """Test the browsing dialog page dedicated to follow the use of profiles.
 
     """
@@ -158,15 +166,25 @@ def test_browsing_dialog_profiles_use(prof_plugin, process_and_sleep):
     nb = d.central_widget().widgets()[0]
     nb.selected_tab = 'profile_use'
     d.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, d)
+    exopy_qtbot.wait(dialog_sleep)
 
     f = nb.pages()[1].page_widget().widgets()[0].scroll_widget()
     assert len(f.widgets()) == 2
     p, m = prof_plugin.get_profiles('tests2', ['fp1', 'fp2'])
     assert len(p) == 2
-    process_and_sleep()
+
+    # Debug print
     print(f.children[-1].iterable)
-    assert len(f.widgets()) == 6
+
+    def assert_children():
+        assert len(f.widgets()) == 6
+    exopy_qtbot.wait_until(assert_children)
+    exopy_qtbot.wait(dialog_sleep)
+
     prof_plugin.release_profiles('tests2', ['fp2'])
-    process_and_sleep()
-    assert len(f.widgets()) == 4
+
+    def assert_children():
+        assert len(f.widgets()) == 4
+    exopy_qtbot.wait_until(assert_children)
+    exopy_qtbot.wait(dialog_sleep)

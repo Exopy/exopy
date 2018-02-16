@@ -22,9 +22,6 @@ The window is divided in two :
   of possible values should appear.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 from atom.api import Atom, Unicode, Bool

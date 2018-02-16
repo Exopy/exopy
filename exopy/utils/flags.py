@@ -9,9 +9,6 @@
 """Thread safe bit flag with convenient interface.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from threading import Event, RLock
 
 

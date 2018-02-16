@@ -9,9 +9,6 @@
 """Thread safe object to use in tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from contextlib import contextmanager
 from collections import defaultdict

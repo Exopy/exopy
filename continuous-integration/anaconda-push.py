@@ -3,7 +3,6 @@
 """Push all conda packages found in a directory to anaconda.org
 
 """
-from __future__ import print_function
 import os
 import glob
 import subprocess

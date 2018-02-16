@@ -9,10 +9,6 @@
 """Declarative node for tree node generation.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from past.builtins import basestring
 from atom.api import (Unicode, Bool, List, Value, Property, Dict)
 from enaml.core.declarative import Declarative, d_, d_func
 from enaml.widgets.api import Menu
@@ -313,7 +309,7 @@ class TreeNode(Declarative):
 
         """
         background = self.background
-        if isinstance(background, basestring):
+        if isinstance(background, str):
             background = getattr(obj, background, background)
         return background
 
@@ -322,7 +318,7 @@ class TreeNode(Declarative):
 
         """
         foreground = self.foreground
-        if isinstance(foreground, basestring):
+        if isinstance(foreground, str):
             foreground = getattr(obj, foreground, foreground)
         return foreground
 

@@ -9,13 +9,12 @@
 """Test for the string formatting and evaluation performed by the tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from exopy.tasks.tasks.base_tasks import RootTask
 from math import cos
+
 import numpy
 from numpy.testing import assert_array_equal
+
+from exopy.tasks.tasks.base_tasks import RootTask
 
 
 class TestFormatting(object):

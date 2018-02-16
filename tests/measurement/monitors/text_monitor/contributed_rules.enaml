@@ -9,9 +9,6 @@
 """Manifest simply contributing a rule to the text monitor.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 
 from atom.api import List, Subclass, Dict

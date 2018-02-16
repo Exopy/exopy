@@ -11,9 +11,6 @@
 Those are contributed by the manifest found in contributions.enaml
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from time import sleep
 from threading import Event
 

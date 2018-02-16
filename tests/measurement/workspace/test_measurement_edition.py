@@ -9,17 +9,12 @@
 """Test widgets related to measurement edition tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-from collections import namedtuple
-
 import pytest
 import enaml
 
 from exopy.testing.measurement.fixtures import measurement as m_build
-from exopy.testing.util import process_app_events, handle_dialog
+from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
+                                wait_for_destruction, handle_question)
 from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
 from exopy.utils.widgets.qt_clipboard import CLIPBOARD
 
@@ -36,8 +31,8 @@ pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
 
 
 @pytest.fixture
-def edition_view(measurement, workspace, windows):
-    """Start plugins and add measures before creating the execution view.
+def edition_view(measurement, workspace, exopy_qtbot):
+    """Start plugins and add measurements before creating the execution view.
 
     """
     pl = measurement.plugin
@@ -50,7 +45,7 @@ def edition_view(measurement, workspace, windows):
     return DockItemTestingWindow(widget=item)
 
 
-def test_copy_action(workspace, measurement, windows):
+def test_copy_action(workspace, measurement, exopy_qtbot):
     """Test copying a task does work.
 
     """
@@ -65,7 +60,7 @@ def test_copy_action(workspace, measurement, windows):
     assert new.name == 'Test'
 
 
-def test_save_action(workspace, measurement, windows):
+def test_save_action(exopy_qtbot, workspace, measurement):
     """Test that save action calls the proper commands.
 
     """
@@ -73,7 +68,7 @@ def test_save_action(workspace, measurement, windows):
                      action_context={'data': (None, None,
                                               measurement.root_task, None)})
 
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         act.triggered = True
 
     class CmdException(Exception):
@@ -91,133 +86,133 @@ def test_save_action(workspace, measurement, windows):
     try:
         with pytest.raises(CmdException) as ex:
             act.triggered = True
-            process_app_events()
+            exopy_qtbot.wait(10)
         assert ex.value.cmd == 'exopy.app.errors.signal'
     finally:
         CorePlugin.invoke_command = old
 
 
-def test_build_task(workspace, windows):
+def test_build_task(workspace, exopy_qtbot):
     """Test getting the dialog to create a new task.
 
     """
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         build_task(workspace.workbench)
 
 
-def test_sync_name(edition_view, dialog_sleep):
+def test_sync_name(exopy_qtbot, edition_view, dialog_sleep):
     """Test the synchronisation between the measurement name and widget.
 
     """
     edition_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed = edition_view.widget.dock_widget().widgets()[0]
     meas = ed.measurement
     field = ed.widgets()[1]
 
+    def assert_field_text():
+        assert meas.name == field.text
+
     meas.name = '__dummy'
-    process_app_events()
-    assert meas.name == field.text
+    exopy_qtbot.wait_until(assert_field_text)
 
     field.text = 'dummy__'
-    process_app_events()
-    assert meas.name == field.text
+    exopy_qtbot.wait_until(assert_field_text)
 
 
-def test_sync_id(edition_view, dialog_sleep):
+def test_sync_id(exopy_qtbot, edition_view, dialog_sleep):
     """Test the synchronisation between the measurement id and widget.
 
     """
     edition_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed = edition_view.widget.dock_widget().widgets()[0]
     meas = ed.measurement
     field = ed.widgets()[3]
 
+    def assert_field_text():
+        assert meas.id == field.text
+
     meas.id = '101'
-    process_app_events()
-    assert meas.id == field.text
+    exopy_qtbot.wait_until(assert_field_text)
 
     field.text = '202'
-    process_app_events()
-    assert meas.id == field.text
+    exopy_qtbot.wait_until(assert_field_text)
 
 
-def test_switching_between_tasks(edition_view, dialog_sleep):
+def test_switching_between_tasks(exopy_qtbot, edition_view, dialog_sleep):
     """Test switching between tasks which lead to different selected editors.
 
     """
     edition_view.show()
     edition_view.maximize()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed = edition_view.widget.dock_widget().widgets()[0]
 
     nb = ed.widgets()[-1]
     nb.selected_tab = 'exopy.database_access'
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     tree = ed.widgets()[5]
     tree.selected_item = ed.measurement.root_task.children[0]
-    process_app_events()
-    sleep(dialog_sleep)
 
-    assert nb.selected_tab == 'exopy.standard'
+    def assert_tab():
+        assert nb.selected_tab == 'exopy.standard'
+    exopy_qtbot.wait_until(assert_tab)
 
     tree.selected_item = ed.measurement.root_task
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
 
-def test_switching_the_linked_measurement(edition_view, dialog_sleep):
+def test_switching_the_linked_measurement(exopy_qtbot, edition_view, dialog_sleep):
     """Test changing the measurement edited by the editor.
 
     """
     edition_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed = edition_view.widget.dock_widget().widgets()[0]
 
     ed.measurement = m_build(ed.workspace.workbench)
 
-    process_app_events()
-    sleep(dialog_sleep)
+    def assert_selected():
+        tree = ed.widgets()[5]
+        assert tree.selected_item == ed.measurement.root_task
+    exopy_qtbot.wait_until(assert_selected)
 
-    tree = ed.widgets()[5]
-    assert tree.selected_item == ed.measurement.root_task
 
-
-def test_creating_tools_edition_panel(edition_view, dialog_sleep):
+def test_creating_tools_edition_panel(exopy_qtbot, edition_view, dialog_sleep):
     """Test creating the tool edition panel using the button.
 
     """
     edition_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     ed = edition_view.widget.dock_widget().widgets()[0]
     btn = ed.widgets()[4]
 
     btn.clicked = True
-    process_app_events()
 
-    assert len(edition_view.area.dock_items()) == 2
+    def assert_created():
+        assert len(edition_view.area.dock_items()) == 2
+    exopy_qtbot.wait_until(assert_created)
 
 
-def test_closing_measurement(edition_view, monkeypatch, dialog_sleep):
+def test_closing_measurement(exopy_qtbot, edition_view, monkeypatch, dialog_sleep):
     """Test closing the measurement dock item.
 
     """
     edition_view.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Open the tools edition panel to check that we will properly close the
     # it later
@@ -225,44 +220,41 @@ def test_closing_measurement(edition_view, monkeypatch, dialog_sleep):
     btn = ed.widgets()[4]
 
     btn.clicked = True
-    process_app_events()
+    exopy_qtbot.wait(10)
 
-    # Monkeypatch question (handle_dialog does not work on it on windows)
-    with enaml.imports():
-        from exopy.measurement.workspace import measurement_edition
-
-    monkeypatch.setattr(measurement_edition, 'question', lambda *args: None)
-    edition_view.widget.proxy.on_closed()
+    with handle_question(exopy_qtbot, None):
+        edition_view.widget.proxy.on_closed()
     edition_view.widget.measurement.name = 'First'
-    process_app_events()
-    assert len(edition_view.area.dock_items()) == 2
-    sleep(dialog_sleep)
 
-    false_btn = namedtuple('FalseBtn', ['action'])
-    monkeypatch.setattr(measurement_edition, 'question',
-                        lambda *args: false_btn('reject'))
-    edition_view.widget.proxy.on_closed()
+    def assert_dock():
+        assert len(edition_view.area.dock_items()) == 2
+    exopy_qtbot.wait_until(assert_dock)
+    exopy_qtbot.wait(dialog_sleep)
+
+    with handle_question(exopy_qtbot, 'no'):
+        edition_view.widget.proxy.on_closed()
     edition_view.widget.measurement.name = 'Second'
-    process_app_events()
-    assert len(edition_view.area.dock_items()) == 2
-    sleep(dialog_sleep)
 
-    monkeypatch.setattr(measurement_edition, 'question',
-                        lambda *args: false_btn('accept'))
-    edition_view.widget.proxy.on_closed()
-    process_app_events()
-    assert len(edition_view.area.dock_items()) == 0
+    exopy_qtbot.wait_until(assert_dock)
+    exopy_qtbot.wait(dialog_sleep)
+
+    with handle_question(exopy_qtbot, 'yes'):
+        edition_view.widget.proxy.on_closed()
+
+    def assert_dock_zero():
+        assert len(edition_view.area.dock_items()) == 0
+    exopy_qtbot.wait_until(assert_dock_zero)
 
 
-def test_measurement_edition_dialog(workspace, measurement, windows,
+def test_measurement_edition_dialog(exopy_qtbot, workspace, measurement,
                                     monkeypatch, dialog_sleep):
     """Test creating a measurement edition dialog.
 
     """
     dialog = MeasureEditorDialog(workspace=workspace, measurement=measurement)
     dialog.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, dialog)
+    exopy_qtbot.wait(dialog_sleep)
 
     from exopy.measurement.workspace.workspace import MeasurementSpace
 
@@ -273,7 +265,10 @@ def test_measurement_edition_dialog(workspace, measurement, windows,
 
     btn = dialog.central_widget().widgets()[-1]
     btn.clicked = True
-    process_app_events()
-    assert false_save.called
+
+    def assert_called():
+        assert false_save.called
+    exopy_qtbot.wait_until(assert_called)
 
     dialog.close()
+    wait_for_destruction(exopy_qtbot, dialog)

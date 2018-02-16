@@ -9,9 +9,6 @@
 """Manifest used to test the PackagesPlugin
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.workbench.api import PluginManifest
 
 enamldef Manifest1(PluginManifest):

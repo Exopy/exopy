@@ -9,9 +9,6 @@
 """Test for the watchdog utilities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 
 from watchdog.events import FileCreatedEvent, FileDeletedEvent, FileMovedEvent

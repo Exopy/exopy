@@ -9,9 +9,6 @@
 """Test the Atom utility functions and HasPrefAtom object.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import OrderedDict
 
 import pytest

@@ -9,8 +9,6 @@
 """Tool handling initializind/finalizing a driver.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 
 class InstrIOError(Exception):

@@ -9,9 +9,6 @@
 """Objects used to store tasks, interfaces and configs in the manager.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Atom, List, Subclass, Dict, Coerced, Typed, Unicode,
                       set_default)
 import enaml

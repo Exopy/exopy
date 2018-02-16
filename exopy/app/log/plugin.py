@@ -9,13 +9,9 @@
 """Log plugin definition.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import logging
 
-from future.builtins import str
 from atom.api import Unicode, Dict, List, Tuple, Typed
 from enaml.workbench.api import Plugin
 

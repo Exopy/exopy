@@ -9,9 +9,6 @@
 """Minimal tests for the custom widgets.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 
@@ -19,60 +16,60 @@ from exopy.testing.util import show_and_close_widget
 
 
 @pytest.mark.ui
-def test_autoscroll(windows):
+def test_autoscroll(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_autoscroll_html import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())
 
 
 @pytest.mark.ui
-def test_completers(windows):
+def test_completers(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_completers import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())
 
 
 @pytest.mark.ui
-def test_dict_editor(windows):
+def test_dict_editor(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_dict_editor import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())
 
 
 @pytest.mark.ui
-def test_dict_tree_view(windows):
+def test_dict_tree_view(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_dict_tree_view import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())
 
 
 @pytest.mark.ui
-def test_list_str_widget(windows):
+def test_list_str_widget(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_list_str_widget import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())
 
 
 @pytest.mark.ui
-def test_tree_widget(windows):
+def test_tree_widget(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
     with enaml.imports():
         from .test_tree_widget import Main
-    show_and_close_widget(Main())
+    show_and_close_widget(exopy_qtbot, Main())

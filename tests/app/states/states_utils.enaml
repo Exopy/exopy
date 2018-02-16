@@ -9,9 +9,6 @@
 """Dummy plugin to test the state plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Atom, Unicode
 from enaml.workbench.api import PluginManifest, Plugin, Extension
 

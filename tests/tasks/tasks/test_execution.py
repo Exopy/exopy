@@ -9,9 +9,6 @@
 """test execution of tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 import threading
 from multiprocessing import Event
@@ -25,7 +22,7 @@ from exopy.tasks.tasks.base_tasks import RootTask, ComplexTask
 from exopy.tasks.tasks.validators import Feval, SkipEmpty
 
 from exopy.testing.tasks.util import CheckTask, ExceptionTask
-from exopy.testing.util import process_app_events
+from exopy.testing.util import wait_for_window_displayed
 
 
 class TestTaskExecution(object):
@@ -495,7 +492,7 @@ class TestTaskExecution(object):
         assert par2.perform_called == 1
 
     @pytest.mark.timeout(10)
-    def test_pause1(self, app):
+    def test_pause1(self, exopy_qtbot):
         """Test pausing and resuming the execution. (add instrs)
 
         Tricky as only the main thread is allowed to resume.
@@ -548,7 +545,7 @@ class TestTaskExecution(object):
         t = threading.Thread(target=root.perform)
         t.start()
         sleep(0.1)
-        process_app_events()
+        exopy_qtbot.wait(10)
         t.join()
 
         assert not root.should_pause.is_set()
@@ -561,7 +558,7 @@ class TestTaskExecution(object):
         assert dummy.owner == ''
 
     @pytest.mark.timeout(10)
-    def test_pause2(self, app):
+    def test_pause2(self, exopy_qtbot):
         """Test pausing and stopping the execution.
 
         """
@@ -586,7 +583,7 @@ class TestTaskExecution(object):
         t = threading.Thread(target=root.perform)
         t.start()
         sleep(0.1)
-        process_app_events()
+        exopy_qtbot.wait(10)
         t.join()
 
         assert root.should_pause.is_set()

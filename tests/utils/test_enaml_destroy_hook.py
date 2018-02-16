@@ -9,9 +9,6 @@
 """Test the add_destroy_hook class generator.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import Window
 
 from exopy.utils.enaml_destroy_hook import add_destroy_hook

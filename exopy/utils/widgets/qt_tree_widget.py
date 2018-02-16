@@ -20,13 +20,8 @@ in qt_tree_menu.enaml.
 This is vastly inspired from TraitsUI implementation.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import copy
 import os
-from past.builtins import basestring
-from future.builtins import str as unicode
 from atom.api import (Bool, List, Value, Dict, Int)
 
 from enaml.widgets.api import RawWidget
@@ -450,14 +445,14 @@ class QtTreeWidget(RawWidget):
             return QtGui.QIcon()
 
         icon_name = node.get_icon(obj, is_expanded)
-        if isinstance(icon_name, basestring):
+        if isinstance(icon_name, str):
             icon = STD_ICON_MAP.get(icon_name)
 
             if icon is not None and self.proxy_is_active:
                 return self.get_widget().style().standardIcon(icon)
 
             path = node.get_icon_path(obj)
-            if isinstance(path, basestring):
+            if isinstance(path, str):
                 path = [path, node]
             else:
                 path.append(node)
@@ -782,7 +777,7 @@ class QtTreeWidget(RawWidget):
         except Exception:
             return
 
-        new_label = unicode(nid.text(col))
+        new_label = str(nid.text(col))
         old_label = node.get_label(obj)
 
         if new_label != old_label:

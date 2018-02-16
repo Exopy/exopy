@@ -17,9 +17,6 @@ priority between 0 and 100 which will be used when unregistering (lower values
 unregistered first).
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from collections import Mapping
 from pprint import pformat

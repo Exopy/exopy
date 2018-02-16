@@ -9,9 +9,6 @@
 """Plugin managing the preferences of the TextMonitor such as rules.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from atom.api import List, Dict, Typed
 

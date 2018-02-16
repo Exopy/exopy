@@ -9,7 +9,5 @@
 """Test that the API can be imported.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 from exopy.tasks.api import *

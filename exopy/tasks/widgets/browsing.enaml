@@ -9,9 +9,6 @@
 """Widget allowing to browse the different tasks known to the manager.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.core.api import Conditional, Include
 from enaml.widgets.api import ObjectCombo, Container
 

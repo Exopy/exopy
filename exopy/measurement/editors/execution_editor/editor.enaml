@@ -9,9 +9,6 @@
 """Editors for task execution settings.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from operator import attrgetter
 from collections import Iterable, OrderedDict
 from time import sleep

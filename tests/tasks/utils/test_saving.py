@@ -9,9 +9,6 @@
 """Test saving utility functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 import pytest
@@ -20,7 +17,7 @@ from enaml.widgets.api import Dialog
 
 from exopy.tasks.api import RootTask, ComplexTask
 
-from exopy.testing.util import handle_dialog, process_app_events, get_window
+from exopy.testing.util import handle_dialog, get_window, wait_for_destruction
 
 
 CMD = 'exopy.tasks.save'
@@ -43,7 +40,7 @@ def test_saving_as_config(task_workbench, task):
     assert val == task.preferences
 
 
-def test_saving_as_template(windows, tmpdir, task_workbench, task,
+def test_saving_as_template(exopy_qtbot, tmpdir, task_workbench, task,
                             monkeypatch):
     """Test saving a task as a template.
 
@@ -56,7 +53,7 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
     plugin = task_workbench.get_plugin('exopy.tasks')
     plugin.templates = {'test': ''}
 
-    def answer_dialog(dialog):
+    def answer_dialog(bot, dialog):
         model = dialog._model
         model.folder = str(tmpdir)
         model.filename = 'test'
@@ -66,11 +63,12 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
         assert model.accept_template_info(dialog)
 
     core = task_workbench.get_plugin('enaml.workbench.core')
-    with handle_dialog('accept', answer_dialog):
+    with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
         core.invoke_command(CMD, dict(task=task, mode='template'))
 
-    get_window(Dialog).accept()
-    process_app_events()
+    w = get_window(exopy_qtbot, Dialog)
+    w.accept()
+    wait_for_destruction(exopy_qtbot, w)
 
     path = str(tmpdir.join('test.task.ini'))
     assert os.path.isfile(path)
@@ -78,7 +76,7 @@ def test_saving_as_template(windows, tmpdir, task_workbench, task,
     assert config.initial_comment == ['# This is a test']
 
 
-def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
+def test_saving_as_template_fail(exopy_qtbot, tmpdir, task_workbench, task,
                                  monkeypatch):
     """Test saving a task as a template : fail to save.
 
@@ -93,14 +91,14 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
 
     monkeypatch.setattr(saving, 'save_template', false_save)
 
-    # Critical use windows dialog on windows and are then not in the windows
-    # set.
+    # We cannot easily catch a second dialog after dealing with the first
+    # so we bypass it
     monkeypatch.setattr(saving, 'critical', false_critical)
 
     plugin = task_workbench.get_plugin('exopy.tasks')
     plugin.templates = {'test': ''}
 
-    def answer_dialog(dialog):
+    def answer_dialog(bot, dialog):
         model = dialog._model
         model.folder = str(tmpdir)
         model.filename = 'test'
@@ -110,20 +108,20 @@ def test_saving_as_template_fail(windows, tmpdir, task_workbench, task,
     core = task_workbench.get_plugin('enaml.workbench.core')
 
     with pytest.raises(RuntimeError):
-        with handle_dialog('accept', answer_dialog):
+        with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
             core.invoke_command(CMD, dict(task=task, mode='template'))
 
     path = str(tmpdir.join('test.template.ini'))
     assert not os.path.isfile(path)
 
 
-def test_saving_as_template_cancelled(windows, task_workbench, task):
+def test_saving_as_template_cancelled(exopy_qtbot, task_workbench, task):
     """Test saving a task as a template : fail to save.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
 
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         val = core.invoke_command(CMD, dict(task=task, mode='template'))
 
     assert val is None

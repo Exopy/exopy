@@ -9,9 +9,6 @@
 """Test of the conditional task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -80,8 +77,9 @@ class TestConditionTask(object):
 
 
 @pytest.mark.ui
-def test_view(windows):
+def test_view(exopy_qtbot):
     """Test the ConditionalTask view.
 
     """
-    show_and_close_widget(ConditionalView(task=ConditionalTask(name='Test')))
+    show_and_close_widget(exopy_qtbot,
+                          ConditionalView(task=ConditionalTask(name='Test')))

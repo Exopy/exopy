@@ -9,9 +9,6 @@
 """Test of the loop exceptions tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 import enaml
 from multiprocessing import Event
@@ -98,16 +95,17 @@ class TestExceptionTasks(object):
 
 
 @pytest.mark.ui
-def test_break_view(windows):
+def test_break_view(exopy_qtbot):
     """Test the BreakTask view.
 
     """
-    show_and_close_widget(BreakView(task=BreakTask(name='Test')))
+    show_and_close_widget(exopy_qtbot, BreakView(task=BreakTask(name='Test')))
 
 
 @pytest.mark.ui
-def test_continue_view(windows):
+def test_continue_view(exopy_qtbot):
     """Test the ContinueTask view.
 
     """
-    show_and_close_widget(ContinueView(task=ContinueTask(name='Test')))
+    show_and_close_widget(exopy_qtbot,
+                          ContinueView(task=ContinueTask(name='Test')))

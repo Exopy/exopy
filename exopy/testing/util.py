@@ -9,23 +9,18 @@
 """Generic utility functions for testing.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-import sys
 import os
 import gc
 import weakref
 import inspect
-from time import sleep
 from contextlib import contextmanager
 from pprint import pformat
 
 import enaml
 from configobj import ConfigObj
+from atom.api import Atom, Bool
 from enaml.application import timed_call
-from enaml.qt.qt_application import QtApplication
-from enaml.widgets.api import Window, Dialog
+from enaml.widgets.api import Window, Dialog, PopupView
 with enaml.imports():
     from enaml.stdlib.message_box import MessageBox
 
@@ -42,18 +37,28 @@ def exopy_path():
     return EXOPY
 
 
-def process_app_events():
-    """Manually run the Qt event loop so that windows are shown and event
-    propagated.
+def run_pending_tasks(qtbot, timeout=1000):
+    """Run all enaml pending tasks.
+
+    WARNING: this may not run the Qt event loop if no task is pending.
+    This will only deal with tasks schedule through the schedule function
+    (or Application method)
+
+    Parameters
+    ----------
+    timeout : int, optional
+        Timeout after which the operation should fail in ms
 
     """
-    qapp = QtApplication.instance()._qapp
-    qapp.flush()
-    qapp.processEvents()
-    qapp.sendPostedEvents()
+    def check_pending_tasks():
+        """Check for pending task on the application.
+
+        """
+        assert not qtbot.enaml_app.has_pending_tasks()
+    qtbot.wait_until(check_pending_tasks)
 
 
-def get_window(cls=Window):
+def get_window(qtbot, cls=Window, timeout=1000):
     """Convenience function running the event loop and returning the first
     window found in the set of active windows.
 
@@ -62,31 +67,155 @@ def get_window(cls=Window):
     cls : type, optional
         Type of the window which should be returned.
 
+    timeout : int, optional
+        Timeout after which the operation should fail in ms
+
+    Returns
+    -------
+    window : Window or None
+        Return the first window found matching the specified class
+
+    Raises
+    ------
+    AssertionError : raised if no window is found in the given time
+
     """
-    sleep(0.1)
-    process_app_events()
-    w_ = None
+    def check_window_presence():
+        """Try to find a window of the proper type.
+
+        """
+        assert [w for w in Window.windows if isinstance(w, cls)]
+
+    qtbot.wait_until(check_window_presence)
     for w in Window.windows:
         if isinstance(w, cls):
-            w_ = w
-            break
-
-    return w_
+            return w
 
 
-def close_all_windows():
-    """Close all opened windows.
+def get_popup(qtbot, cls=PopupView, timeout=1000):
+    """Convenience function running the event loop and returning the first
+    popup found in the set of active popups.
 
-    This should be used by all tests creating windows in a teardown step.
+    Parameters
+    ----------
+    cls : type, optional
+        Type of the window which should be returned.
+
+    timeout : int, optional
+        Timeout after which the operation should fail in ms
+
+    Returns
+    -------
+    popup : PopupView or None
+        Return the first window found matching the specified class
+
+    Raises
+    ------
+    AssertionError : raised if no popup is found in the given time
 
     """
-    process_app_events()
-    sleep(0.1)
+    def check_popup_presence():
+        """Try to find a popup of the proper type.
+
+        """
+        assert [p for p in PopupView.popup_views if isinstance(p, cls)]
+
+    qtbot.wait_until(check_popup_presence)
+    for p in PopupView.popup_views:
+        if isinstance(p, cls):
+            return p
+
+
+def wait_for_window_displayed(qtbot, window, timeout=1000):
+    """Wait for a window to be displayed.
+
+    This method should be called on already activated windows (the show method
+    should have been called).
+
+    """
+    if not window.proxy_is_active or not window.proxy.widget:
+        msg = 'Window must be activated before waiting for display'
+        raise RuntimeError(msg)
+    qtbot.wait_exposed(window.proxy.widget)
+
+
+class EventObserver(Atom):
+    """Simple observer registering the fact it was called once.
+
+    """
+    called = Bool()
+
+    def callback(self, change):
+        """Callback registering it was called at least once.
+
+        """
+        self.called = True
+
+    def assert_called(self):
+        """Check whether the callback was called.
+
+        """
+        assert self.called
+
+
+def wait_for_destruction(qtbot, widget):
+    """Wait for a widget to get destroyed.
+
+    """
+    if widget.is_destroyed:
+        return
+    obs = EventObserver()
+    widget.observe('destroyed', obs.callback)
+    qtbot.wait_until(obs.assert_called)
+
+
+def close_window_or_popup(qtbot, window_or_popup):
+    """Close a window/popup and run the event loop to make sure the closing
+    complete.
+
+    """
+    if window_or_popup.is_destroyed:
+        return
+    obs = EventObserver()
+    window_or_popup.observe('destroyed', obs.callback)
+    window_or_popup.close()
+    qtbot.wait_until(obs.assert_called)
+
+
+@contextmanager
+def close_all_windows(qtbot):
+    """Close all opened windows.
+
+    """
+    yield
+    run_pending_tasks(qtbot)
     while Window.windows:
-        for window in list(Window.windows):
-            window.close()
-        process_app_events()
-        sleep(0.02)
+        windows = list(Window.windows)
+        # First close non top level windows to avoid a window to lose its
+        # parent and not remove itself from the set of windows.
+        non_top_level_windows = [w for w in windows if w.parent is not None]
+        for window in non_top_level_windows:
+            close_window_or_popup(qtbot, window)
+        for window in windows:
+            close_window_or_popup(qtbot, window)
+
+
+@contextmanager
+def close_all_popups(qtbot):
+    """Close all opened popups.
+
+    """
+    yield
+    run_pending_tasks(qtbot)
+    while PopupView.popup_views:
+        popups = list(PopupView.popup_views)
+        # First close non top level popups to avoid a up/window to lose its
+        # parent and not remove itself from the set of windows.
+        non_top_level_popups = [p for p in popups if p.parent is not None]
+        for popup in non_top_level_popups:
+            close_window_or_popup(qtbot, popup)
+        for popup in popups:
+            close_window_or_popup(qtbot, popup)
 
 
 class ScheduledClosing(object):
@@ -94,38 +223,41 @@ class ScheduledClosing(object):
 
     """
 
-    def __init__(self, cls, handler, op, skip_answer):
-        self.called = False
+    def __init__(self, bot, cls, handler, op, skip_answer):
         self.cls = cls
         self.handler = handler
         self.op = op
+        self.bot = bot
         self.skip_answer = skip_answer
+        self.called = False
 
     def __call__(self):
-        i = 0
-        while True:
-            dial = get_window(self.cls)
-            if dial is not None:
-                break
-            elif i > 10:
-                raise Exception('Dialog timeout')
-            sleep(0.1)
-            i += 1
+        self.called = True
+        from .fixtures import dialog_sleep
+        dial = get_window(self.bot, cls=self.cls)
+        wait_for_window_displayed(self.bot, dial)
+        self.bot.wait(dialog_sleep())
+        obs = EventObserver()
+        dial.observe('finished', obs.callback)
 
         try:
-            self.handler(dial)
+            self.handler(self.bot, dial)
         finally:
-            process_app_events()
-            from .fixtures import DIALOG_SLEEP
-            sleep(DIALOG_SLEEP)
             if not self.skip_answer:
                 getattr(dial, self.op)()
-            self.called = True
+
+            self.bot.wait_until(obs.assert_called, timeout=10e3)
+
+    def was_called(self):
+        """Assert the scheduler was called.
+
+        """
+        assert self.called
 
 
 @contextmanager
-def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
-                  skip_answer=False):
+def handle_dialog(qtbot, op='accept', handler=lambda qtbot, window: window,
+                  cls=Dialog, time=100, skip_answer=False):
     """Automatically close a dialog opened during the context.
 
     Parameters
@@ -133,9 +265,9 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
     op : {'accept', 'reject'}, optional
         Whether to accept or reject the dialog.
 
-    custom : callable, optional
-        Callable taking as only argument the dialog, called before accepting
-        or rejecting the dialog.
+    handler : callable, optional
+        Callable taking as arguments the bot and the dialog, called before
+        accepting or rejecting the dialog.
 
     cls : type, optional
         Dialog class to identify.
@@ -148,55 +280,52 @@ def handle_dialog(op='accept', custom=lambda x: x, cls=Dialog, time=100,
         the answer itself.
 
     """
-    sch = ScheduledClosing(cls, custom, op, skip_answer)
+    sch = ScheduledClosing(qtbot, cls, handler, op, skip_answer)
     timed_call(time, sch)
     try:
         yield
     except Exception:
         raise
     else:
-        while not sch.called:
-            process_app_events()
+        qtbot.wait_until(sch.was_called, 10e3)
 
 
 @contextmanager
-def handle_question(answer):
+def handle_question(qtbot, answer):
     """Handle question dialog.
 
     """
-    def answer_question(dial):
+    def answer_question(qtbot, dial):
         """Mark the right button as clicked.
 
         """
-        dial.buttons[0 if answer == 'yes' else 1].was_clicked = True
+        if answer in ('yes', 'no'):
+            dial.buttons[0 if answer == 'yes' else 1].was_clicked = True
 
-    with handle_dialog('accept' if answer == 'yes' else 'reject',
-                       custom=answer_question, cls=MessageBox):
+    with handle_dialog(qtbot, 'accept' if answer == 'yes' else 'reject',
+                       handler=answer_question, cls=MessageBox):
         yield
 
 
-def show_widget(widget):
+def show_widget(qtbot, widget):
     """Show a widget in a window
 
     """
     win = Window()
     win.insert_children(None, [widget])
     win.show()
-    process_app_events()
+    wait_for_window_displayed(qtbot, win)
     return win
 
 
-def show_and_close_widget(widget):
+def show_and_close_widget(qtbot, widget):
     """Show a widget in a window and then close it.
 
     """
     from .fixtures import DIALOG_SLEEP
-    win = show_widget(widget)
-    sleep(DIALOG_SLEEP)
-    win.close()
-    process_app_events()
-
-    close_all_windows()
+    win = show_widget(qtbot, widget)
+    qtbot.wait(DIALOG_SLEEP)
+    close_window_or_popup(qtbot, win)
 
 
 def set_preferences(workbench, preferences):
@@ -312,8 +441,7 @@ class ObjectTracker(object):
             return new
 
         __weakref_cls__.__old_new__ = cls.__new__
-        cls.__new__ = (override_new if sys.version_info >= (3,) else
-                       staticmethod(override_new))
+        cls.__new__ = override_new
         __weakref_cls__.original_cls = cls
 
         self.cls = __weakref_cls__

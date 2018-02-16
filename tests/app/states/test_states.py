@@ -9,10 +9,8 @@
 """Test state plugin system.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-from enaml.workbench.api import Workbench
 import enaml
+from enaml.workbench.api import Workbench
 from pytest import raises
 
 with enaml.imports():

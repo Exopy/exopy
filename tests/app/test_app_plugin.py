@@ -9,12 +9,9 @@
 """App plugin extensions declarations.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
+import enaml
 from enaml.workbench.api import Workbench
 from enaml.widgets.window import CloseEvent
-import enaml
 
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest

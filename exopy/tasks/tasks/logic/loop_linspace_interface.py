@@ -9,9 +9,6 @@
 """Interface allowing to use a linspace in a LoopTask
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import numbers
 from decimal import Decimal
 

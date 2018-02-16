@@ -9,9 +9,6 @@
 """Test utility functions found in transformers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.utils.transformers import (basic_name_formatter,
                                       ids_to_unique_names)
 

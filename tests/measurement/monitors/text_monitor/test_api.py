@@ -9,8 +9,6 @@
 """Simply test that the api module is not broken.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 
 def test_api_import():

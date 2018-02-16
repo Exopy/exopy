@@ -14,9 +14,6 @@ display should automatically scroll so that the last line is visible. One line
 in two should be bold.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 from atom.api import Atom, Unicode

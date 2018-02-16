@@ -9,9 +9,6 @@
 """Extension objects to the icon plugin.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode, Dict, List
 from enaml.core.api import Declarative, d_, d_func
 

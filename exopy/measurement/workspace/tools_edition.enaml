@@ -9,9 +9,6 @@
 """Widgets dedicated to edit the tools attached to a measurement.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import (DockItem, Notebook, Page, Dialog, PushButton,
                                Container, MultilineField, Label)
 from enaml.layout.api import hbox, vbox, spacer

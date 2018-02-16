@@ -12,9 +12,6 @@ Settings are architecture specific information. Then can allow to select a
 if several are available for example.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Unicode, ForwardTyped, Bool
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox

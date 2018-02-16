@@ -9,9 +9,6 @@
 """Tests for the feval tagged members fields validators.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import numbers
 from multiprocessing import Event
 
@@ -29,10 +26,10 @@ def task():
 
     """
     class Tester(CheckTask):
-            """Class for testing feval validators.
+        """Class for testing feval validators.
 
-            """
-            feval = Unicode()
+        """
+        feval = Unicode()
 
     root = RootTask(should_stop=Event(), should_pause=Event())
     task = Tester(name='test', database_entries={'val': 1})

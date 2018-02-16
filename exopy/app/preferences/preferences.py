@@ -9,9 +9,6 @@
 """Declarative class for defining hnadling of preferences.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import List, Unicode
 from enaml.core.api import Declarative, d_, d_func
 

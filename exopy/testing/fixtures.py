@@ -9,24 +9,19 @@
 """Pytest fixtures.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 from os import remove  # Avoid issue when monkeypatching it
 import logging
 from inspect import getabsfile
-from time import sleep
 
 import pytest
 from configobj import ConfigObj
-from future.builtins import str as text
 from enaml.qt.qt_application import QtApplication
 from enaml.workbench.api import Workbench
 
 
 from .util import (APP_DIR_CONFIG, APP_PREFERENCES, close_all_windows,
-                   exopy_path, process_app_events)
+                   close_all_popups, exopy_path)
 
 #: Global variable storing the application folder path
 EXOPY = ''
@@ -51,7 +46,7 @@ def pytest_configure(config):
     s = config.getoption('--exopy-sleep')
     if s is not None:
         global DIALOG_SLEEP
-        DIALOG_SLEEP = s
+        DIALOG_SLEEP = s*1000
 
 
 @pytest.fixture
@@ -116,7 +111,6 @@ def app():
     """Make sure a QtApplication is active.
 
     """
-
     app = QtApplication.instance()
     if app is None:
         app = QtApplication()
@@ -127,12 +121,13 @@ def app():
 
 
 @pytest.yield_fixture
-def windows(app):
-    """Fixture making sure the app is running and closing all windows.
+def exopy_qtbot(app, qtbot):
+    """Set the enaml application on the bot and add automatic windows cleanup.
 
     """
-    yield
-    close_all_windows()
+    qtbot.enaml_app = app
+    with close_all_windows(qtbot), close_all_popups(qtbot):
+        yield qtbot
 
 
 @pytest.yield_fixture
@@ -143,7 +138,7 @@ def app_dir(tmpdir):
     # Create a trash app_directory.ini file. The global fixture ensure
     # that it cannot be a user file.
     app_pref = os.path.join(exopy_path(), APP_PREFERENCES, APP_DIR_CONFIG)
-    app_dir = text(tmpdir)
+    app_dir = str(tmpdir)
     conf = ConfigObj(encoding='utf-8', indent_type='    ')
     conf.filename = app_pref
     conf['app_path'] = app_dir
@@ -162,18 +157,6 @@ def logger(caplog):
     yield logger
 
     logger.handlers = []
-
-
-@pytest.fixture
-def process_and_sleep(windows, dialog_sleep):
-    """Function to process app events and sleep.
-
-    """
-    def p():
-        process_app_events()
-        sleep(dialog_sleep)
-
-    return p
 
 
 @pytest.fixture

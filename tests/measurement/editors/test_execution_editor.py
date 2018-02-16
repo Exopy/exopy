@@ -9,11 +9,6 @@
 """Test the capabilities of the execution editor model.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
 import enaml
 
@@ -24,7 +19,8 @@ from exopy.measurement.editors.api import Editor
 from exopy.measurement.editors.execution_editor.editor_model import\
      ExecutionEditorModel
 
-from exopy.testing.util import process_app_events
+from exopy.testing.util import (wait_for_window_displayed, get_popup,
+                                wait_for_destruction)
 
 with enaml.imports():
     from exopy.measurement.editors.execution_editor import ExecutionEditor
@@ -159,7 +155,7 @@ def test_model_observe_child_adding_removing(task):
     model._child_notifier_observer(notification)
 
 
-def test_execution_editor_widget(windows, task, process_and_sleep):
+def test_execution_editor_widget(exopy_qtbot, task, dialog_sleep):
     """Test the behavior of the execution editor widget.
 
     """
@@ -175,20 +171,23 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
                              selected_task=task)
     window = PageTestingWindow(widget=editor)
     window.show()
-    process_and_sleep()
+    wait_for_window_displayed(exopy_qtbot, window)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Select the complex task (ref ctask)
     ctask = task.children[1]
     editor.selected_task = ctask
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     # Get the widget (ced) associated with ctask and alter the stoppable
     # setting and the change propagation
     ced = get_task_widget(editor)
     ced.widgets()[0].checked = not ctask.stoppable
-    process_app_events()
-    assert ced.widgets()[0].checked == ctask.stoppable
-    process_and_sleep()
+
+    def assert_stoppable():
+        assert ced.widgets()[0].checked == ctask.stoppable
+    exopy_qtbot.wait_until(assert_stoppable)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Ask the editor to hide its children by clicking the button (this does
     # not check that the layout actually changed simply that is is correct)
@@ -206,93 +205,113 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
     # pools
     ctask.parallel['pool'] = 'test_'
     ced.widgets()[1].checked = True
-    process_and_sleep()
-    assert 'test_' in editor.pool_model.pools
+
+    def assert_pools():
+        assert 'test_' in editor.pool_model.pools
+    exopy_qtbot.wait_until(assert_pools)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Unset the wait setting, change the waiting pool, set the wait and check
     # the list of pools
     ced.widgets()[3].checked = False
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     ctask.wait['no_wait'] = ['test2']
     ced.widgets()[3].checked = True
-    process_and_sleep()
-    assert 'test2' in editor.pool_model.pools
+
+    def assert_pools():
+        assert 'test2' in editor.pool_model.pools
+    exopy_qtbot.wait_until(assert_pools)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Change the selected pool for parallel and check the list of pools
     ced.widgets()[2].selected = 'test2'
-    process_and_sleep()
-    assert 'test' not in editor.pool_model.pools
 
-    def get_popup_content(parent):
-        return parent.children[-1].central_widget().widgets()
+    def assert_pools():
+        assert 'test' not in editor.pool_model.pools
+    exopy_qtbot.wait_until(assert_pools)
+    exopy_qtbot.wait(dialog_sleep)
+
+    def get_popup_content(popup):
+        return popup.central_widget().widgets()
 
     # Create a new pool using the context menu on parallell
     ced.widgets()[2].children[0].children[0].triggered = True
-    # This can fails on Travis if we do not sleep
-    process_app_events()
-    sleep(1)
-    process_app_events()  # So that the popup shows correctly
-    popup_content = get_popup_content(ced.widgets()[2])
+    popup = get_popup(exopy_qtbot)
+    popup_content = get_popup_content(popup)
     popup_content[0].text = 'test3'
     popup_content[1].clicked = True
-    process_and_sleep()
-    assert 'test3' in editor.pool_model.pools
-    process_app_events()  # So that the popup is closed correctly
+
+    def assert_pools():
+        assert 'test3' in editor.pool_model.pools
+    exopy_qtbot.wait_until(assert_pools)
+    exopy_qtbot.wait(dialog_sleep)
+    wait_for_destruction(exopy_qtbot, popup)
 
     # Create a new pool using the context menu on parallell, but cancel it
     ced.widgets()[2].children[0].children[0].triggered = True
-    # This can fails on Travis if we do not sleep
-    process_app_events()
-    sleep(1)
-    process_app_events()  # So that the popup shows correctly
-    popup_content = get_popup_content(ced.widgets()[2])
+    popup = get_popup(exopy_qtbot)
+    popup_content = get_popup_content(popup)
     popup_content[0].text = 'test4'
     popup_content[2].clicked = True
-    process_and_sleep()
-    assert 'test4' not in editor.pool_model.pools
-    process_app_events()  # So that the popup is closed correctly
+
+    def assert_pools():
+        assert 'test4' not in editor.pool_model.pools
+    exopy_qtbot.wait_until(assert_pools)
+    exopy_qtbot.wait(dialog_sleep)
+    wait_for_destruction(exopy_qtbot, popup)
 
     # Check we were set on no_wait and switch to wait
     assert ced.widgets()[4].widgets()[0].checked is False
     ced.widgets()[4].widgets()[0].checked = True
-    process_and_sleep()
-    assert 'wait' in ctask.wait and 'no_wait' not in ctask.wait
+
+    def assert_wait():
+        assert 'wait' in ctask.wait and 'no_wait' not in ctask.wait
+    exopy_qtbot.wait_until(assert_wait)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Use the popup to edit the list of pools on which to wait.
     # Click ok at the end
     btt = ced.widgets()[4].widgets()[-1]  # ref to the push button
     btt.clicked = True
-    process_and_sleep()
-    popup_content = get_popup_content(btt)
+    popup = get_popup(exopy_qtbot)
+    popup_content = get_popup_content(popup)
     check_box = popup_content[0].scroll_widget().widgets()[1]
     assert not check_box.checked
     check_box.checked = True
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     popup_content[-2].clicked = True
-    process_and_sleep()
-    assert 'test3' in ctask.wait['wait']
+
+    def assert_wait():
+        assert 'test3' in ctask.wait['wait']
+    exopy_qtbot.wait_until(assert_wait)
+    wait_for_destruction(exopy_qtbot, popup)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Use the popup to edit the list of pools on which to wait.
     # Click cancel at the end
     btt.clicked = True
-    process_and_sleep()
-    popup_content = get_popup_content(btt)
+    popup = get_popup(exopy_qtbot)
+    popup_content = get_popup_content(popup)
     check_box = popup_content[0].scroll_widget().widgets()[2]
     assert not check_box.checked
     check_box.checked = True
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     popup_content[-1].clicked = True
-    process_and_sleep()
-    assert 'test_' not in ctask.wait['wait']
+
+    def assert_wait():
+        assert 'test_' not in ctask.wait['wait']
+    exopy_qtbot.wait_until(assert_wait)
+    wait_for_destruction(exopy_qtbot, popup)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Test moving a task and switching between different editors
     editor.selected_task = task
     task.move_child_task(0, 1)
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     editor.selected_task = task.children[0]
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     editor.selected_task = task.children[1]
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     editor.selected_task = task
 
     # Test removing a task and switching between different editors
@@ -302,11 +321,11 @@ def test_execution_editor_widget(windows, task, process_and_sleep):
     # Then select a task that will not reparent it
     editor.selected_task = task.children[0]
     task.remove_child_task(0)
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     editor.selected_task = task.children[0]
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     editor.selected_task = task
-    process_and_sleep()
+    exopy_qtbot.wait(10 + dialog_sleep)
     assert ctask not in editor._cache
     # Try removing again this view which should not crash
     editor.discard_view(task)

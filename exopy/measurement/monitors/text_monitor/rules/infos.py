@@ -9,9 +9,6 @@
 """Container object to store rules declarations.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 from atom.api import Atom, Subclass
 

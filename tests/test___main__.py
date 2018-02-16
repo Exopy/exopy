@@ -9,9 +9,6 @@
 """Test application startup script.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 from pkg_resources import EntryPoint
 
@@ -56,7 +53,7 @@ def test_parser_adding_choice_and_arg_with_choice():
     assert vals.workspace == 'exopy.measurement.dummy'
 
 
-def test_running_main_error_in_loading(windows, monkeypatch):
+def test_running_main_error_in_loading(exopy_qtbot, monkeypatch):
     """Test starting the main app but encountering an error while loading
     modifier.
 
@@ -73,15 +70,15 @@ def test_running_main_error_in_loading(windows, monkeypatch):
 
     monkeypatch.setattr(em, 'iter_entry_points', false_iter)
 
-    def check_dialog(dial):
+    def check_dialog(qtbot, dial):
         assert 'extension' in dial.text
 
     with pytest.raises(SystemExit):
-        with handle_dialog('reject', check_dialog):
+        with handle_dialog(exopy_qtbot, 'reject', check_dialog):
             main([])
 
 
-def test_running_main_error_in_parser_modifying(windows, monkeypatch):
+def test_running_main_error_in_parser_modifying(exopy_qtbot, monkeypatch):
     """Test starting the main app but encountering an issue while adding
     arguments.
 
@@ -102,28 +99,28 @@ def test_running_main_error_in_parser_modifying(windows, monkeypatch):
 
     monkeypatch.setattr(em, 'iter_entry_points', false_iter)
 
-    def check_dialog(dial):
+    def check_dialog(qtbot, dial):
         assert 'modifying' in dial.text
 
     with pytest.raises(SystemExit):
-        with handle_dialog('reject', check_dialog):
+        with handle_dialog(exopy_qtbot, 'reject', check_dialog):
             main([])
 
 
-def test_running_main_error_in_parsing(windows):
+def test_running_main_error_in_parsing(exopy_qtbot):
     """Test starting the main app but encountering an issue while adding
     arguments.
 
     """
-    def check_dialog(dial):
+    def check_dialog(qtbot, dial):
         assert 'cmd' in dial.text
 
     with pytest.raises(SystemExit):
-        with handle_dialog('reject', check_dialog):
+        with handle_dialog(exopy_qtbot, 'reject', check_dialog):
             main(['dummy'])
 
 
-def test_running_main_error_in_app_startup(windows, monkeypatch):
+def test_running_main_error_in_app_startup(exopy_qtbot, monkeypatch):
     """Test starting the main app but encountering an issue when running
     startups.
 
@@ -135,15 +132,15 @@ def test_running_main_error_in_app_startup(windows, monkeypatch):
 
     monkeypatch.setattr(AppPlugin, 'run_app_startup', false_run_startup)
 
-    def check_dialog(dial):
+    def check_dialog(qtbot, dial):
         assert 'starting' in dial.text
 
     with pytest.raises(SystemExit):
-        with handle_dialog('reject', check_dialog):
+        with handle_dialog(exopy_qtbot, 'reject', check_dialog):
             main([])
 
 
-def test_running_main(app, app_dir, windows, monkeypatch):
+def test_running_main(exopy_qtbot, app_dir, monkeypatch):
     """Test starting the main app and closing it.
 
     """
@@ -167,7 +164,7 @@ def test_running_main(app, app_dir, windows, monkeypatch):
         sys.excepthook = old
 
 
-def test_running_main_asking_for_help(app):
+def test_running_main_asking_for_help(exopy_qtbot):
     """Test starting the main app and closing it.
 
     """

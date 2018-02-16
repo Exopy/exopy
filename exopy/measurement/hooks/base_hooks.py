@@ -9,9 +9,6 @@
 """Base classes for all measurement hooks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Event
 
 from ..base_tool import BaseMeasureTool, BaseToolDeclaration

@@ -9,9 +9,6 @@
 """Test the declarative function present in the manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
 from exopy.measurement.monitors.text_monitor.monitor import TextMonitor
@@ -26,7 +23,8 @@ pytest_plugins = str('exopy.testing.measurement.'
                      'monitors.text_monitor.fixtures')
 
 
-def test_text_monitor_declration_functions(text_monitor_workbench):
+def test_text_monitor_declration_functions(text_monitor_workbench,
+                                           exopy_qtbot):
     """Test that we can create a monitor and its views.
 
     """
@@ -39,4 +37,4 @@ def test_text_monitor_declration_functions(text_monitor_workbench):
     assert isinstance(edit_view, TextMonitorEdit)
     item = decl.create_item(text_monitor_workbench, None)
     assert isinstance(item, TextMonitorItem)
-    show_and_close_widget(DockItemTestingWindow(widget=item))
+    show_and_close_widget(exopy_qtbot, DockItemTestingWindow(widget=item))

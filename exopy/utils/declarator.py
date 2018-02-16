@@ -9,20 +9,15 @@
 """Base class for extension declaration relying on a visitor pattern.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import re
 from importlib import import_module
 
-from future.utils import python_2_unicode_compatible
 from atom.api import Unicode, Bool
 from enaml.core.api import Declarative, d_
 
 from .traceback import format_exc
 
 
-@python_2_unicode_compatible
 class Declarator(Declarative):
     """Base class for extension object which uses a visitor pattern.
 
@@ -95,7 +90,6 @@ class Declarator(Declarative):
 PATH_VALIDATOR = re.compile('^(\.?\w+)*$')
 
 
-@python_2_unicode_compatible
 class GroupDeclarator(Declarator):
     """Declarator used to group an ensemble of declarator.
 

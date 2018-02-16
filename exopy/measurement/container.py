@@ -6,12 +6,9 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Specialised container used to store measures.
+"""Specialised container used to store measurements.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import Iterable
 
 from atom.api import Atom, List, Signal
@@ -20,14 +17,14 @@ from ..utils.container_change import ContainerChange
 
 
 class MeasurementContainer(Atom):
-    """Generic container for measures.
+    """Generic container for measurements.
 
     """
-    #: List containing the measures. This must not be manipulated directly
+    #: List containing the measurements. This must not be manipulated directly
     #: by user code.
     measurements = List()
 
-    #: Signal used to notify changes to the stored measures.
+    #: Signal used to notify changes to the stored measurements.
     changed = Signal()
 
     def add(self, measurement, index=None):
@@ -53,20 +50,20 @@ class MeasurementContainer(Atom):
         notification.add_operation('added', (index, measurement))
         self.changed(notification)
 
-    def remove(self, measures):
+    def remove(self, measurements):
         """Remove a measurement or a list of measurement.
 
         Parameters
         ----------
-        measures : Measurement|list[Measurement]
+        measurements : Measurement|list[Measurement]
             Measurement(s) to remove.
 
         """
-        if not isinstance(measures, Iterable):
-            measures = [measures]
+        if not isinstance(measurements, Iterable):
+            measurements = [measurements]
 
         notification = ContainerChange(obj=self, name='measurements')
-        for measurement in measures:
+        for measurement in measurements:
             old = self.measurements.index(measurement)
             del self.measurements[old]
             notification.add_operation('removed', (old, measurement))

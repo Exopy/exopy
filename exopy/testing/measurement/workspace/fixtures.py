@@ -9,10 +9,6 @@
 """Measurement workspace fixture functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-
 import pytest
 import enaml
 
@@ -27,7 +23,7 @@ pytests_plugin = str('exopy.testing.measurement.fixtures'),
 
 
 @pytest.yield_fixture
-def workspace(measurement_workbench, measurement, windows):
+def workspace(exopy_qtbot, measurement_workbench, measurement):
     """Create a measurement workspace.
 
     """

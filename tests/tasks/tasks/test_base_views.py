@@ -12,11 +12,6 @@ As task views need an active workbench, tests are located here to avoid moving
 the request for the manager at the root.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
 import enaml
 from enaml.widgets.api import Container
@@ -26,15 +21,14 @@ with enaml.imports():
     from exopy.tasks.tasks.base_views import RootTaskView
     from exopy.tasks.widgets.building import BuilderView
 
-from exopy.testing.util import (show_widget, process_app_events, handle_dialog,
-                                get_window)
+from exopy.testing.util import show_widget, handle_dialog, get_window
 
 
 pytest_plugins = str('exopy.testing.tasks.fixtures'),
 
 
 @pytest.mark.ui
-def test_root_path_edition(windows, task_workbench, dialog_sleep,
+def test_root_path_edition(exopy_qtbot, task_workbench, dialog_sleep,
                            monkeypatch):
     """Test the behavior of the root task view.
 
@@ -73,7 +67,7 @@ def test_root_path_edition(windows, task_workbench, dialog_sleep,
 
 
 @pytest.mark.ui
-def test_root_view(windows, task_workbench, dialog_sleep):
+def test_root_view(exopy_qtbot, task_workbench, dialog_sleep):
     """Test the behavior of the root task view.
 
     """
@@ -82,53 +76,54 @@ def test_root_view(windows, task_workbench, dialog_sleep):
                         core=task_workbench.get_plugin('enaml.workbench.core'))
     editor = view.children[-1]
 
-    win = show_widget(view)
-    sleep(dialog_sleep)
+    win = show_widget(exopy_qtbot, view)
+    exopy_qtbot.wait(dialog_sleep)
     assert editor.task is task
     assert editor.root is view
 
     TASK_NAME = 'Foo'
 
-    def answer_dialog(dial):
+    def answer_dialog(bot, dial):
         selector = dial.selector
         selector.selected_task = 'exopy.ComplexTask'
         dial.config.task_name = TASK_NAME
-        process_app_events()
 
-    with handle_dialog('accept', answer_dialog, cls=BuilderView):
+    with handle_dialog(exopy_qtbot, 'accept', answer_dialog, cls=BuilderView):
         editor._empty_button.clicked = True
-    process_app_events()
-    assert task.children
+
+    def assert_task_children():
+        assert task.children
+    exopy_qtbot.wait_until(assert_task_children)
     assert type(task.children[0]) is ComplexTask
     assert len(editor._children_buttons) == 1
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)
 
     TASK_NAME = 'Bar'
-    with handle_dialog('accept', answer_dialog, cls=BuilderView):
+    with handle_dialog(exopy_qtbot, 'accept', answer_dialog, cls=BuilderView):
         editor.operations['add'](0, 'after')
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10)
+    exopy_qtbot.wait(dialog_sleep)
 
     task.children[0].add_child_task(0, ComplexTask(name='Test'))
-    get_window().maximize()
-    process_app_events()
-    sleep(dialog_sleep)
+    get_window(exopy_qtbot).maximize()
+    exopy_qtbot.wait(10)
+    exopy_qtbot.wait(dialog_sleep)
 
     editor.operations['move'](0, 1)
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10)
+    exopy_qtbot.wait(dialog_sleep)
 
     task.remove_child_task(1)
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10)
+    exopy_qtbot.wait(dialog_sleep)
     assert len(view._cache) == 2
 
     # Test removing the last child and removing a view for an already removed
     # task
     child_task = task.children[0]
     editor.operations['remove'](0)
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10)
+    exopy_qtbot.wait(dialog_sleep)
     assert len(view._cache) == 1
 
     view.discard_view(child_task)
@@ -137,7 +132,7 @@ def test_root_view(windows, task_workbench, dialog_sleep):
 
 
 @pytest.mark.ui
-def test_swapping(windows, task_workbench, dialog_sleep):
+def test_swapping(exopy_qtbot, task_workbench, dialog_sleep):
     """Test moving a view between containers.
 
     """
@@ -152,24 +147,30 @@ def test_swapping(windows, task_workbench, dialog_sleep):
 
     cont = Container()
 
-    show_widget(cont)
+    show_widget(exopy_qtbot, cont)
     view.set_parent(cont)
     view.refresh()
-    process_app_events()
-    assert cont.children == [view]
-    sleep(dialog_sleep)
+
+    def assert_children():
+        assert cont.children == [view]
+    exopy_qtbot.wait_until(assert_children)
+    exopy_qtbot.wait(dialog_sleep)
 
     view.set_parent(None)
     subview.set_parent(cont)
     subview.refresh()
-    process_app_events()
-    assert cont.children == [subview]
-    sleep(dialog_sleep)
+
+    def assert_children():
+        assert cont.children == [subview]
+    exopy_qtbot.wait_until(assert_children)
+    exopy_qtbot.wait(dialog_sleep)
 
     subview.set_parent(None)
     view.set_parent(cont)
     view.refresh()
-    process_app_events()
-    assert cont.children == [view]
+
+    def assert_children():
+        assert cont.children == [view]
+    exopy_qtbot.wait_until(assert_children)
     assert subview.visible
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)

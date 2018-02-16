@@ -9,10 +9,6 @@
 """Plugin handling dependencies declarations.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from operator import getitem
 from collections import defaultdict
 
 from configobj import Section

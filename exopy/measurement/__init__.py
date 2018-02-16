@@ -14,8 +14,6 @@ adding operations before and after the main task, can be monitored also. The
 edition of the main task is customizable.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 
 
 def list_manifests():

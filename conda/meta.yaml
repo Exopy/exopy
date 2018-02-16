@@ -18,7 +18,6 @@ build:
 requirements:
   build:
     - python
-    - future
   run:
     - python
     - python.app       [osx]
@@ -26,7 +25,6 @@ requirements:
     - pyqt
     - atom >=0.4.1
     - kiwisolver >=1.0.0
-    - future
     - watchdog
     - configobj
     - qtawesome

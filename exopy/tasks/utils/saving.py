@@ -9,9 +9,6 @@
 """Handler for the commands used to save tasks.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.stdlib.message_box import critical
 
 from .templates import save_template

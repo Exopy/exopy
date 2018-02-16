@@ -12,9 +12,6 @@ The base tasks define how task interact between them and with the database, how
 ressources can be shared and how preferences are handled.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from textwrap import fill
 from inspect import cleandoc
 from math import (cos, sin, tan, acos, asin, atan, sqrt, log10,

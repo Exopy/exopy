@@ -22,16 +22,12 @@ The clear button should simply clear the display (grayed rectangle) but not the
 values in the fields.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 
 from enaml.widgets.api import (Window, Container, PushButton, Field,
                                CheckBox)
 from enaml.layout.api import vbox, hbox, spacer
-from future.builtins import str
 
 # Assume that the test is run against an installed version of exopy and if not
 # prepend path to sys.path.

@@ -9,9 +9,6 @@
 """Editor using the task views.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from time import sleep
 from enaml.widgets.api import Container, ScrollArea
 

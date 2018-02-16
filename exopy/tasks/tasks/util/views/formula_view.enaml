@@ -9,9 +9,6 @@
 """View for the Sleep Task.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from ...string_evaluation import EVALUATER_TOOLTIP
 
 from ...base_views import BaseTaskView

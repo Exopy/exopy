@@ -9,9 +9,6 @@
 """All possible contributions to plugin of the app package.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from .state import State
 
 __all__ = ['State']

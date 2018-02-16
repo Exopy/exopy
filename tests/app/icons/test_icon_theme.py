@@ -9,9 +9,6 @@
 """Test the icon theme basic capabilities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
 with enaml.imports():

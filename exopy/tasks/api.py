@@ -9,9 +9,6 @@
 """Tasks package public interface.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
 from .tasks.base_tasks import BaseTask, SimpleTask, ComplexTask, RootTask
@@ -44,5 +41,5 @@ __all__ = ['BaseTask', 'SimpleTask', 'ComplexTask', 'RootTask',
            'Tasks', 'Task', 'Interfaces', 'Interface', 'TaskConfig',
            'TaskFilter', 'SubclassTaskFilter', 'GroupTaskFilter',
            'MetadataTaskFilter', 'BaseTaskConfig', 'BaseConfigView',
-           'build_task_from_config',
+           'build_task_from_config', 'validators',
            'FORMATTER_TOOLTIP', 'EVALUATER_TOOLTIP']

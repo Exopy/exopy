@@ -38,9 +38,6 @@ Action to test:
   reflected on the tree.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 from atom.api import Atom, Unicode, Signal, List

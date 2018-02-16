@@ -9,9 +9,6 @@
 """View for the BreakTask and ContinueTask.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import (GroupBox, Label)
 from enaml.layout.api import hbox, align
 from inspect import cleandoc

@@ -9,9 +9,6 @@
 """Test process engine functionalities.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import socket
 from threading import Thread
 from time import sleep
@@ -19,14 +16,11 @@ from time import sleep
 import pytest
 import enaml
 from atom.api import Value, Bool, Unicode
-from future.builtins import str as text
 
 from exopy.measurement.engines.api import ExecutionInfos
 from exopy.tasks.api import RootTask, SimpleTask
 from exopy.tasks.infos import TaskInfos
 from exopy.measurement.engines.process_engine.subprocess import TaskProcess
-
-from exopy.testing.util import process_app_events
 
 with enaml.imports():
     from exopy.measurement.engines.process_engine.engine_declaration import\
@@ -149,7 +143,7 @@ def exec_infos(measurement_workbench, measurement, tmpdir, process_engine,
     tp._tasks.contributions['measurement.WaitingTask'] =\
         TaskInfos(cls=WaitingTask)
 
-    r = RootTask(default_path=text(tmpdir))
+    r = RootTask(default_path=str(tmpdir))
     r.add_child_task(0, WaitingTask(name='test1', sock_id='test1',
                                     sync_port=sync_server.port))
     r.add_child_task(1, WaitingTask(name='test2', sock_id='test2',
@@ -187,14 +181,16 @@ def test_proc_filter():
     assert f.filter(FalseRecord('test2'))
 
 
-def test_workspace_contribution(workspace):
+def test_workspace_contribution(workspace, exopy_qtbot):
     """Test that the Process engine contribute correctly to the workspace
     when selected.
 
     """
     workspace.plugin.selected_engine = 'exopy.process_engine'
-    process_app_events()
-    assert workspace.dock_area.find('exopy.subprocess_log')
+
+    def assert_dock_item():
+        assert workspace.dock_area.find('exopy.subprocess_log')
+    exopy_qtbot.wait_until(assert_dock_item)
 
     log = workspace.plugin.workbench.get_plugin('exopy.app.logging')
     assert 'exopy.measurement.engines.process_engine' in log.handler_ids
@@ -202,8 +198,10 @@ def test_workspace_contribution(workspace):
     assert 'exopy.measurement.workspace.process_engine' in log.filter_ids
 
     workspace.plugin.selected_engine = ''
-    process_app_events()
-    assert not workspace.dock_area.find('exopy.subprocess_log')
+
+    def assert_dock_item():
+        assert not workspace.dock_area.find('exopy.subprocess_log')
+    exopy_qtbot.wait_until(assert_dock_item)
 
 
 @pytest.mark.timeout(30)

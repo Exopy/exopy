@@ -9,9 +9,6 @@
 """Base class for tasks needing to access an instrument.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from contextlib import contextmanager
 
 from atom.api import (Tuple, Value)

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath('.'))
 from exopy.version import __version__
 
 
-def lond_description():
+def long_description():
     """Read the project description from the README file.
 
     """
@@ -22,7 +22,7 @@ setup(
     name='exopy',
     description='Experiment control application',
     version=__version__,
-    long_description=lond_description(),
+    long_description=long_description(),
     author='Exopy Developers (see AUTHORS)',
     author_email='m.dartiailh@gmail.com',
     url='http://github.com/exopy/exopy',
@@ -35,18 +35,17 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Physics',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         ],
     zip_safe=False,
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={'': ['*.enaml', '*.txt']},
-    requires=['future', 'pyqt', 'atom', 'enaml', 'kiwisolver',
+    requires=['pyqt5', 'atom', 'enaml', 'kiwisolver',
               'configobj', 'watchdog', 'setuptools', 'qtawesome',
               'numpy'],
     setup_requires=['setuptools'],
-    install_requires=['future', 'atom>=0.4.1', 'enaml>=0.10.2',
+    install_requires=['atom>=0.4.1', 'enaml>=0.10.2',
                       'kiwisolver>=1.0.0', 'configobj',
                       'watchdog', 'qtawesome', 'numpy'],
     entry_points={'gui_scripts': 'exopy = exopy.__main__:main'},

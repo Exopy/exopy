@@ -9,9 +9,6 @@
 """Thread-loke object keeping track of the last edited measurement.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from time import sleep
 from threading import Thread, Lock, Event
 

@@ -9,57 +9,56 @@
 """Test task building utility functions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
-from future.builtins import str
 from configobj import ConfigObj
 
 from exopy.tasks.utils.building import build_task_from_config
 
-from exopy.testing.util import handle_dialog, process_app_events
+from exopy.testing.util import handle_dialog
 
 
-def test_create_task1(windows, task_workbench):
+def test_create_task1(exopy_qtbot, task_workbench):
     """Test creating a task.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
 
-    def answer_dialog(dial):
+    def answer_dialog(bot, dial):
         selector = dial.selector
         selector.selected_filter = 'Logic'
         selector.selected_task = 'exopy.WhileTask'
         dial.config.task_name = 'Test'
-        process_app_events()
-        assert dial.config.ready
 
-    with handle_dialog('accept', answer_dialog):
+        def assert_dial_config_ready():
+            assert dial.config.ready
+        bot.wait_until(assert_dial_config_ready)
+
+    with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
         res = core.invoke_command('exopy.tasks.create_task')
         assert res
 
 
-def test_create_task2(windows, task_workbench, dialog_sleep):
+def test_create_task2(exopy_qtbot, task_workbench, dialog_sleep):
     """Test handling user cancellation.
 
     """
     core = task_workbench.get_plugin('enaml.workbench.core')
 
-    def answer_dialog(dial):
+    def answer_dialog(exopy_qtbot, dial):
         selector = dial.selector
         qlist = selector.widgets()[-1]
         qlist.selected_item = qlist.items[-1]
-        process_app_events()
-        sleep(dialog_sleep)
-        assert dial.config
+
+        def assert_dial_config():
+            assert dial.config
+        exopy_qtbot.wait_until(assert_dial_config)
+        exopy_qtbot.wait(dialog_sleep)
+
         dial._choose_config('_dummy_')
         assert not dial.config
-        sleep(dialog_sleep)
+        exopy_qtbot.wait(dialog_sleep)
 
-    with handle_dialog('reject', answer_dialog):
+    with handle_dialog(exopy_qtbot, 'reject', answer_dialog):
         res = core.invoke_command('exopy.tasks.create_task')
 
     assert res is None
@@ -134,7 +133,8 @@ def test_build_root_from_config(task_workbench, task_config):
     assert task.name == 'Root'
 
 
-def test_build_root_from_template(tmpdir, task_workbench, task_config):
+def test_build_root_from_template(exopy_qtbot, tmpdir, task_workbench,
+                                  task_config):
     """Test creating a root task from a template.
 
     """
@@ -145,12 +145,12 @@ def test_build_root_from_template(tmpdir, task_workbench, task_config):
     task_config.write()
     plugin.templates['temp.task.ini'] = path
 
-    def answer_dialog(dial):
+    def answer_dialog(bot, dial):
         selector = dial.selector
         selector.selected_task = 'temp.task.ini'
         assert dial.path == path
 
-    with handle_dialog('accept', answer_dialog):
+    with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
         task = core.invoke_command('exopy.tasks.build_root',
                                    dict(mode='from template'))
     assert task.name == 'Root'

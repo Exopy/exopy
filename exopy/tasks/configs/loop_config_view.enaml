@@ -9,9 +9,6 @@
 """View of the LoopTask configurer.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import (Container, MultilineField, Field, GroupBox,
                                Form, Label, CheckBox)
 from enaml.core.api import Conditional, Include

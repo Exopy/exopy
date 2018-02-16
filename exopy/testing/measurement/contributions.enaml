@@ -9,9 +9,6 @@
 """Dummy contributions to the measurement plugin used for testing purposes.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.widgets.api import DockItem
 from enaml.layout.api import InsertItem, RemoveItem
 from enaml.workbench.api import PluginManifest, Extension

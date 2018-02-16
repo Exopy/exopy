@@ -9,8 +9,6 @@
 """Utility function to manipulate template files.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
 from configobj import ConfigObj
 from textwrap import wrap
 

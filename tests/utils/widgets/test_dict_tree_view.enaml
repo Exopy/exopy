@@ -9,9 +9,6 @@
 """Run this file with enaml-run command to manually check widget behavior.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import os
 from atom.api import Atom, Unicode, Signal, List

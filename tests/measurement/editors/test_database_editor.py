@@ -9,11 +9,6 @@
 """Test the capabilities of the database access editor model.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import pytest
 import enaml
 from enaml.widgets.api import FlowArea, Menu
@@ -24,7 +19,7 @@ from exopy.measurement.editors.api import Editor
 from exopy.measurement.editors.database_access_editor.editor_model import\
      EditorModel
 
-from exopy.testing.util import process_app_events
+from exopy.testing.util import wait_for_window_displayed
 
 with enaml.imports():
     from exopy.measurement.editors.database_access_editor import\
@@ -216,7 +211,7 @@ def test_handling_node_manipulation(task):
         ed._get_task('root/unknown')
 
 
-def test_editor_widget(windows, task, dialog_sleep):
+def test_editor_widget(exopy_qtbot, task, dialog_sleep):
     """That the interaction with the editor widget makes sense.
 
     """
@@ -240,8 +235,8 @@ def test_editor_widget(windows, task, dialog_sleep):
                                   selected_task=task)
     window = PageTestingWindow(widget=editor)
     window.show()
-    process_app_events()
-    sleep(dialog_sleep)
+    wait_for_window_displayed(exopy_qtbot, window)
+    exopy_qtbot.wait(dialog_sleep)
 
     r_widget = get_task_widget(editor)
     flow_area = get_flow_area(r_widget)
@@ -262,21 +257,24 @@ def test_editor_widget(windows, task, dialog_sleep):
 
     # Add an access exception to the lowest level.
     editor.selected_task = task.children[1].children[1]
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     widget = get_task_widget(editor)
     add_ex_action = get_menu(widget, 0).items()[0]
     add_ex_action.triggered = True
-    process_app_events()
-    assert task_with_exs.access_exs['t'] == 1
-    sleep(dialog_sleep)
+
+    def assert_access_exs():
+        assert task_with_exs.access_exs['t'] == 1
+    exopy_qtbot.wait_until(assert_access_exs)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Move the exception up
     editor.selected_task = task.children[1]
-    process_app_events()
-    assert len(flow_area.flow_items()) == 4
-    sleep(dialog_sleep)
+
+    def assert_flows():
+        assert len(flow_area.flow_items()) == 4
+    exopy_qtbot.wait_until(assert_flows)
+    exopy_qtbot.wait(dialog_sleep)
 
     widget = get_task_widget(editor)
     flow_area = get_flow_area(widget)
@@ -284,15 +282,19 @@ def test_editor_widget(windows, task, dialog_sleep):
     assert len(menu.items()) == 2  # Check that both actions are there.
     move_up_action = menu.items()[0]
     move_up_action.triggered = True
-    process_app_events()
-    assert task_with_exs.access_exs['t'] == 2
-    sleep(dialog_sleep)
+
+    def assert_access_exs():
+        assert task_with_exs.access_exs['t'] == 2
+    exopy_qtbot.wait_until(assert_access_exs)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Move the exception down
     editor.selected_task = task
-    process_app_events()
-    assert len(flow_area.flow_items()) == 3
-    sleep(dialog_sleep)
+
+    def assert_flows():
+        assert len(flow_area.flow_items()) == 3
+    exopy_qtbot.wait_until(assert_flows)
+    exopy_qtbot.wait(dialog_sleep)
 
     widget = get_task_widget(editor)
     flow_area = get_flow_area(widget)
@@ -300,14 +302,15 @@ def test_editor_widget(windows, task, dialog_sleep):
     assert len(menu.items()) == 1  # Check that only one action is there.
     move_down_action = menu.items()[0]
     move_down_action.triggered = True
-    process_app_events()
-    assert task_with_exs.access_exs['t'] == 1
-    sleep(dialog_sleep)
+
+    def assert_access_exs():
+        assert task_with_exs.access_exs['t'] == 1
+    exopy_qtbot.wait_until(assert_access_exs)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Move the exception down (it disappears)
     editor.selected_task = task.children[1]
-    process_app_events()
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(10 + dialog_sleep)
 
     widget = get_task_widget(editor)
     flow_area = get_flow_area(widget)
@@ -316,16 +319,21 @@ def test_editor_widget(windows, task, dialog_sleep):
     menu = get_menu(widget, -1)
     move_down_action = menu.items()[1]
     move_down_action.triggered = True
-    process_app_events()
-    assert not task_with_exs.access_exs
-    sleep(dialog_sleep)
+
+    def assert_access_exs():
+        assert not task_with_exs.access_exs
+    exopy_qtbot.wait_until(assert_access_exs)
+    exopy_qtbot.wait(dialog_sleep)
 
     # Destroy a task such that it leads to the destruction of a node
     editor.selected_task = task
     old_cache = editor._cache.copy()
     task.remove_child_task(1)
-    process_app_events()
-    assert len(editor._cache) == 1
+
+    def assert_cache():
+        assert len(editor._cache) == 1
+    exopy_qtbot.wait_until(assert_cache)
+
     for node in old_cache:
         editor.discard_view(node)
-    sleep(dialog_sleep)
+    exopy_qtbot.wait(dialog_sleep)

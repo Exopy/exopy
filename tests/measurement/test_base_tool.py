@@ -9,9 +9,6 @@
 """Test the basic tools functionality.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Int
 
 from exopy.measurement.base_tool import BaseMeasureTool, BaseToolDeclaration

@@ -9,9 +9,6 @@
 """Test of the functionality of task, interface and config infos.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.tasks.infos import ObjectDependentInfos, TaskInfos
 
 

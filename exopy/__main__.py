@@ -9,9 +9,6 @@
 """Application startup script.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import sys
 import threading
 from pkg_resources import iter_entry_points

@@ -13,9 +13,6 @@ removing of keys and syncing by re-assigning the dict to the underlying model.
 This is fit only for editing dict holding standard python types.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Atom, Value, Callable, List, Typed, Bool, Subclass,
                       Signal, Dict)
 from collections import OrderedDict

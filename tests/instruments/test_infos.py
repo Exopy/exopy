@@ -9,9 +9,6 @@
 """Test the infos classes used to stored information about instruments.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import os
 
 import pytest

@@ -9,12 +9,9 @@
 """Useful tools for engines.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import logging
 from threading import Thread
-from queue import Empty  # This is allowed thanks to the future package
+from queue import Empty
 from multiprocessing.queues import Queue
 from pickle import dumps
 

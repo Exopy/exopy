@@ -9,14 +9,10 @@
 """Test the MonitoredEntry class.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from exopy.measurement.monitors.text_monitor.entry import MonitoredEntry
-from exopy.testing.util import process_app_events
 
 
-def test_entry_formatting():
+def test_entry_formatting(exopy_qtbot):
     """Test that we can correctly format an entry.
 
     """
@@ -24,5 +20,7 @@ def test_entry_formatting():
                        depend_on=['a', 'b'])
 
     e.update(dict(a=1, b=2, c=3))
-    process_app_events()
-    assert e.value == '1 = 2'
+
+    def assert_value():
+        assert e.value == '1 = 2'
+    exopy_qtbot.wait_until(assert_value)

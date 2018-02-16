@@ -9,9 +9,6 @@
 """Container objects used to encapsulate info about drivers, instruments, etc
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import defaultdict
 from itertools import chain
 from operator import attrgetter

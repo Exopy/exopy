@@ -9,11 +9,6 @@
 """Tests for the instrument manager manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from time import sleep
-
 import enaml
 from enaml.widgets.api import MultilineField
 
@@ -25,7 +20,7 @@ with enaml.imports():
     from .contributors import InstrContributor1
 
 
-def test_driver_validation_error_handler(windows, instr_workbench):
+def test_driver_validation_error_handler(exopy_qtbot, instr_workbench):
     """Test the error handler dedicated to driver validation issues.
 
     """
@@ -35,18 +30,18 @@ def test_driver_validation_error_handler(windows, instr_workbench):
                     settings={'s2': {}, 's3': {}})
     cmd = 'exopy.app.errors.signal'
 
-    def check_dialog(dial):
+    def check_dialog(bot, dial):
         w = dial.errors['exopy.driver-validation']
         assert 'd' in w.errors
         for err in ('starter', 'connections', 'settings'):
             assert err in w.errors['d']
 
-    with handle_dialog('accept', check_dialog):
+    with handle_dialog(exopy_qtbot, 'accept', check_dialog):
         core.invoke_command(cmd, {'kind': 'exopy.driver-validation',
                                   'details': {'d': d.validate(p)[1]}})
 
 
-def test_reporting_on_extension_errors(windows, instr_workbench):
+def test_reporting_on_extension_errors(exopy_qtbot, instr_workbench):
     """Check reporting extension errors.
 
     """
@@ -55,13 +50,13 @@ def test_reporting_on_extension_errors(windows, instr_workbench):
 
     widget = handler.report(instr_workbench)
     assert isinstance(widget, MultilineField)
-    show_and_close_widget(widget)
+    show_and_close_widget(exopy_qtbot, widget)
 
     handler.errors = {'test': 'msg'}
 
     widget = handler.report(instr_workbench)
     assert isinstance(widget, BasicErrorsDisplay)
-    show_and_close_widget(widget)
+    show_and_close_widget(exopy_qtbot, widget)
 
 
 def test_validate_runtime_dependencies_driver(instr_workbench):
@@ -167,17 +162,17 @@ def test_collect_release_runtime_dependencies_profiles(prof_plugin):
     assert dep['dummy'] is None
 
 
-def test_select_instrument_profile_command(prof_plugin):
+def test_select_instrument_profile_command(exopy_qtbot, prof_plugin):
     """Test selecting an instrument profile.
 
     """
     core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
-    with handle_dialog('reject'):
+    with handle_dialog(exopy_qtbot, 'reject'):
         res = core.invoke_command('exopy.instruments.select_instrument')
 
     assert res is None
 
-    with handle_dialog('accept'):
+    with handle_dialog(exopy_qtbot, 'accept'):
         res = core.invoke_command('exopy.instruments.select_instrument',
                                   dict(profile='fp1',
                                        driver='instruments.test.FalseDriver',
@@ -188,7 +183,7 @@ def test_select_instrument_profile_command(prof_plugin):
                    'false_settings3')
 
 
-def test_open_browser_command(prof_plugin):
+def test_open_browser_command(exopy_qtbot, prof_plugin):
     """Test opening the browsing window.
 
     """
@@ -196,5 +191,5 @@ def test_open_browser_command(prof_plugin):
         from enaml.workbench.ui.ui_manifest import UIManifest
     prof_plugin.workbench.register(UIManifest())
     core = prof_plugin.workbench.get_plugin('enaml.workbench.core')
-    with handle_dialog():
+    with handle_dialog(exopy_qtbot):
         core.invoke_command('exopy.instruments.open_browser')

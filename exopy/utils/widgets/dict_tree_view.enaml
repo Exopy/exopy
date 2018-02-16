@@ -9,9 +9,6 @@
 """Widget used to represent nested dict as a tree.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import Mapping
 
 from atom.api import Atom, Typed, Value, Unicode, ForwardTyped, List

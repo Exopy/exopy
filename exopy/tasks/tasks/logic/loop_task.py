@@ -9,9 +9,6 @@
 """Task allowing to perform a loop. The iterable is given by an interface.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import (Typed, Bool, set_default)
 
 from timeit import default_timer

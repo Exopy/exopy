@@ -9,9 +9,6 @@
 """Application plugin handling the application startup and closing.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from atom.api import Typed
 from enaml.workbench.api import Plugin
 

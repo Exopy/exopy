@@ -9,9 +9,6 @@
 """Test the capabilities of the container for the measurement.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pytest
 from atom.api import List
 

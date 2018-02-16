@@ -9,9 +9,6 @@
 """Text monitor API allowing to extend it through plugin contributions.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import enaml
 
 from .rules.base import BaseRule, RuleType, RuleConfig

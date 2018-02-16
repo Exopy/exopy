@@ -9,9 +9,6 @@
 """App plugin manifest.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from enaml.workbench.api import Extension, PluginManifest, ExtensionPoint
 from enaml.workbench.ui.api import ActionItem, Branding, MenuItem, ItemGroup
 from enaml.workbench.ui.workbench_window import WorkbenchWindow

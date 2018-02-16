@@ -9,9 +9,6 @@
 """Plugin handling the collection and registering of extension packages.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import pkg_resources
 import logging
 

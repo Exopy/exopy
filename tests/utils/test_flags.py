@@ -11,9 +11,6 @@
 The thread safety is ensured by the lock and is not explicitely tested.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from threading import Thread
 from time import sleep
 

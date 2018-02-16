@@ -9,9 +9,6 @@
 """Task for defining mathematical formulas.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 from collections import OrderedDict
 
 from atom.api import (Typed, set_default)
