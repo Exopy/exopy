@@ -30,6 +30,16 @@ class InternalChecksHook(BasePreExecutionHook):
         # Running the checks
         check, errors = task.check(**kwargs)
 
+        # Check that no enqueued measurement has the same name and id as
+        # the one being enqueued
+        plugin = workbench.get_plugin('exopy.measurement')
+        for enq_meas in plugin.enqueued_measurements.measurements:
+            if meas.name == enq_meas.name and meas.id == enq_meas.id:
+                msg = ('A measurement with the same name and id has already '
+                       'been enqueued: increment the id of your measurement '
+                       'to avoid overwriting it.')
+                errors['enqueued-duplicate'] = msg % task.default_path
+
         # Check that no measurement with the same name and id is saved in
         # the default path used by the root_task.
         default_filename = (meas.name + '_' + meas.id + '.meas.ini')
