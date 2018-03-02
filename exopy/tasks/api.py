@@ -12,7 +12,7 @@
 import enaml
 
 from .tasks.base_tasks import BaseTask, SimpleTask, ComplexTask, RootTask
-from .tasks.instr_task import InstrumentTask
+from .tasks.instr_task import InstrumentTask, MultiInstrumentTask
 
 from .tasks.task_interface import (InterfaceableTaskMixin, TaskInterface,
                                    InterfaceableInterfaceMixin, IInterface)
@@ -32,10 +32,11 @@ from .utils.building import build_task_from_config
 with enaml.imports():
     from .configs.base_config_views import BaseConfigView
     from .tasks.base_views import BaseTaskView
-    from .tasks.instr_view import InstrTaskView
+    from .tasks.instr_view import InstrTaskView, InstrumentSelectionWidget
 
 __all__ = ['BaseTask', 'SimpleTask', 'ComplexTask', 'RootTask',
-           'InstrumentTask', 'BaseTaskView', 'InstrTaskView',
+           'InstrumentTask', 'MultiInstrumentTask', 'BaseTaskView',
+           'InstrTaskView', 'InstrumentSelectionWidget',
            'InterfaceableTaskMixin', 'TaskInterface',
            'InterfaceableInterfaceMixin', 'IInterface',
            'Tasks', 'Task', 'Interfaces', 'Interface', 'TaskConfig',
