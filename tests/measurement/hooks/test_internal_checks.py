@@ -43,6 +43,27 @@ def test_attempt_to_overwrite(fake_meas, tmpdir):
     res, err = fake_meas.run_checks()
     assert res
     assert 'exopy.internal_checks' in err
+    assert 'duplicate' in err['exopy.internal_checks']
+
+
+def test_attempt_to_overwrite_enqueued(measurement_workbench, fake_meas,
+                                       tmpdir):
+    """Test running the checks when an enqueued measurement with the same name
+    and id already exists.
+
+    """
+    fake_meas.name = 'test'
+    fake_meas.id = '001'
+    fake_meas.root_task.default_path = str(tmpdir)
+
+    plugin = measurement_workbench.get_plugin('exopy.measurement')
+    plugin.enqueued_measurements.measurements.append(fake_meas)
+
+    fake_meas.dependencies.collect_runtimes()
+    res, err = fake_meas.run_checks()
+    assert res
+    assert 'exopy.internal_checks' in err
+    assert 'enqueued-duplicate' in err['exopy.internal_checks']
 
 
 def test_fail_build_collection(fake_meas, tmpdir, monkeypatch):
