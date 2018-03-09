@@ -153,6 +153,7 @@ def logger(caplog):
 
     """
     logger = logging.getLogger('test')
+    logger.setLevel(logging.DEBUG)
 
     yield logger
 
