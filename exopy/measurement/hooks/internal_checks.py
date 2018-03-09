@@ -38,7 +38,7 @@ class InternalChecksHook(BasePreExecutionHook):
                 msg = ('A measurement with the same name and id has already '
                        'been enqueued: increment the id of your measurement '
                        'to avoid overwriting it.')
-                errors['enqueued-duplicate'] = msg % task.default_path
+                errors['enqueued-duplicate'] = msg
 
         # Check that no measurement with the same name and id is saved in
         # the default path used by the root_task.
