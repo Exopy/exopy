@@ -987,7 +987,7 @@ class ComplexTask(BaseTask):
         """Handle the task being renamed at runtime.
 
         If the task is renamed at runtime, it means that the path of all the
-        children task is now obselete and that the database node
+        children task is now obsolete and that the database node
         of this task must be renamed (database handles the exception.
 
         """
@@ -995,6 +995,17 @@ class ComplexTask(BaseTask):
             super(ComplexTask, self)._post_setattr_name(old, new)
             self.database.rename_node(self.path, old, new)
 
+            # Update the path of all children.
+            self._update_children_path()
+
+    def _post_setattr_path(self, old, new):
+        """Handle the task path being modified at runtime..
+
+        If the path of the task is changed at runtime, it means that the path
+        of all the children task is now obsolete.
+
+        """
+        if old and self.database:
             # Update the path of all children.
             self._update_children_path()
 
