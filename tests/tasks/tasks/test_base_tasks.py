@@ -220,6 +220,37 @@ def test_deleting_child():
         root.get_from_database('task1_val1')
 
 
+def test_moving_through_remove_add_child():
+    """Test moving a child between different tasks through remove/add.
+
+    """
+    root = RootTask()
+    task1 = ComplexTask(name='task1',
+                        database_entries={'val1': 2.0})
+    task2 = ComplexTask(name='task2',
+                        database_entries={'val2': 2.0})
+    task3 = SimpleTask(name='task3',
+                       database_entries={'val3': 1},
+                       access_exs={'val3': 2})
+
+    task2.add_child_task(0, task3)
+    task1.add_child_task(1, task2)
+    root.add_child_task(0, task1)
+
+    task1.remove_child_task(0)
+
+    assert task2.parent is None
+    assert task2.root is None
+    assert task2.database is None
+    assert task3.parent is not None
+    assert task3.root is None
+    assert task3.database is None
+
+    root.add_child_task(0, task2)
+
+    assert len(root.children) == 2
+
+
 def test_task_renaming():
     """Test renaming simple and complex task.
 

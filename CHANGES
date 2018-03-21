@@ -5,7 +5,8 @@ Exopy Changelog
 0.2.0 - unreleased
 ------------------
 
-Nothing yet
+- fix unproperly unparented child task when removing a ComplexTask PR # 132
+- identify duplicate measurements in the waiting queue PR # 130 (fvalmorra)
 
 
 0.1.0 - 15-02-2018
