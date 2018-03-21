@@ -199,6 +199,9 @@ def test_deleting_child():
 
     task1.remove_child_task(0)
 
+    assert task2.parent is None
+    assert task2.root is None
+    assert task2.database is None
     assert listener.counter == 1
     assert listener.signals[0].removed
 
@@ -207,6 +210,11 @@ def test_deleting_child():
 
     root.remove_child_task(0)
 
+    assert task1.parent is None
+    assert task1.root is None
+    assert task1.database is None
+    assert task4.root is None
+    assert task4.database is None
     assert len(root.children) == 1
     with pytest.raises(KeyError):
         root.get_from_database('task1_val1')

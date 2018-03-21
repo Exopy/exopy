@@ -55,6 +55,16 @@ class BaseTask(Atom):
     This class basically defines the minimal skeleton of a Task in term of
     members and methods.
 
+    Notes
+    -----
+    A number of the member used by the task have a definite meaning only when
+    a root is present. They are listed below:
+
+    - depth
+    - path
+    - database
+    - parent
+
     """
     #: Identifier for the build dependency collector
     dep_type = Constant(DEP_TYPE).tag(pref=True)
@@ -663,9 +673,6 @@ class ComplexTask(BaseTask):
     #: editors to correctly track all of those.
     children_changed = Signal().tag(child_notifier='children')
 
-    #: Flag indicating whether or not the task has a root task.
-    has_root = Bool(False)
-
     def perform(self):
         """Run sequentially all child tasks.
 
@@ -714,7 +721,7 @@ class ComplexTask(BaseTask):
 
         # In the absence of a root task do nothing else than inserting the
         # child.
-        if self.has_root:
+        if self.root is not None:
             child.depth = self.depth + 1
             child.database = self.database
             child.path = self._child_path()
@@ -752,7 +759,7 @@ class ComplexTask(BaseTask):
 
         # In the absence of a root task do nothing else than moving the
         # child.
-        if self.has_root:
+        if self.root is not None:
             # Register anew preferences to keep the right ordering for the
             # children
             self.register_preferences()
@@ -776,6 +783,7 @@ class ComplexTask(BaseTask):
         child.unregister_from_database()
         child.root = None
         child.parent = None
+        child.database = None
         self.register_preferences()
 
         change = ContainerChange(obj=self, name='children',
@@ -998,17 +1006,6 @@ class ComplexTask(BaseTask):
             # Update the path of all children.
             self._update_children_path()
 
-    def _post_setattr_path(self, old, new):
-        """Handle the task path being modified at runtime..
-
-        If the path of the task is changed at runtime, it means that the path
-        of all the children task is now obsolete.
-
-        """
-        if old and self.database:
-            # Update the path of all children.
-            self._update_children_path()
-
     def _post_setattr_root(self, old, new):
         """Make sure that all children get all the info they need to behave
         correctly when the task get its root parent (ie the task is now
@@ -1016,9 +1013,12 @@ class ComplexTask(BaseTask):
 
         """
         if new is None:
+            self.database = None
+            for child in self.gather_children():
+                child.root = None
+                child.database = None
             return
 
-        self.has_root = True
         for child in self.gather_children():
             child.depth = self.depth + 1
             child.database = self.database
@@ -1089,9 +1089,6 @@ class RootTask(ComplexTask):
 
     #: Thread from which the perform method has been called.
     thread_id = Int()
-
-    # Setting default values for the root task.
-    has_root = set_default(True)
 
     # Those must not be modified so freeze them
     name = Constant('Root')
