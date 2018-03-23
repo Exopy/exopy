@@ -75,6 +75,16 @@ class TestConditionTask(object):
         self.task.perform()
         assert not self.check.perform_called
 
+    def test_perform3(self):
+        """Test performing when condition is False.
+
+        """
+        self.task.condition = 'False'
+        self.root.prepare()
+
+        self.task.perform()
+        assert not self.check.perform_called
+
 
 @pytest.mark.ui
 def test_view(exopy_qtbot):

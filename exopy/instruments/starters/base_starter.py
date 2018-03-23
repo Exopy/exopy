@@ -108,5 +108,5 @@ class Starter(Declarative):
 
     #: Starter instance to use for managing associate instruments.
     #: Note that the class must be defined in a python file not enaml file
-    #:  to be pickeable.
+    #: to be pickeable.
     starter = d_(Typed(BaseStarter))

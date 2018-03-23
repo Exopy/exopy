@@ -56,7 +56,7 @@ class Driver(Declarator):
     #: Supported connections and default values for some parameters. The
     #: admissible values for a given kind can be determined by looking at the
     #: Connection object whose id match.
-    #: ex : {'visa_tcpip' : {'port': 7500, 'resource_class': 'SOCKET'}}
+    #: ex : {'VisaTCPIP' : {'port': 7500, 'resource_class': 'SOCKET'}}
     #: Can be inferred from parent Drivers.
     connections = d_(Dict())
 
