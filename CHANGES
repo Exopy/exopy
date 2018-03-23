@@ -5,6 +5,7 @@ Exopy Changelog
 0.2.0 - unreleased
 ------------------
 
+- always evaluate formula even if they contain only alpha characters PR # 132
 - fix unproperly unparented child task when removing a ComplexTask PR # 132
 - identify duplicate measurements in the waiting queue PR # 130 (fvalmorra)
 
