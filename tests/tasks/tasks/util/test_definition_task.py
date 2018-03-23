@@ -41,7 +41,7 @@ class TestDefinitionTask(object):
         """
         self.task.write_in_database('it', 'World')
         self.task.definitions = OrderedDict([('key1', "2.0+3.0"),
-                                             ('key2', 'Hello')])
+                                             ('key2', '"Hello"')])
         self.root.prepare()
 
         self.task.check()
@@ -56,7 +56,7 @@ class TestDefinitionTask(object):
         """
         self.task.write_in_database('it', 'World')
 
-        pref = "[(u'key1', u'1.0+3.0'), (u'key2', u'Hello')]"
+        pref = """[(u'key1', u'1.0+3.0'), (u'key2', u'"Hello"')]"""
         self.task.definitions = ordered_dict_from_pref(self,
                                                        self.task.definitions,
                                                        pref)
