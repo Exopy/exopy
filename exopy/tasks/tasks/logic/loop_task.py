@@ -180,7 +180,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
         """
         if old:
-            if self.has_root:
+            if self.root is not None:
                 old.unregister_from_database()
                 old.root = None
                 old.parent = None
@@ -188,7 +188,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         if new:
             new.name = self.name
 
-            if self.has_root:
+            if self.root is not None:
                 new.depth = self.depth + 1
                 new.database = self.database
                 new.path = self._child_path()
@@ -211,7 +211,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
             aux['value'] = 1.0
             self.database_entries = aux
 
-        if self.has_root:
+        if self.root is not None:
             self.register_preferences()
 
     def _post_setattr_timing(self, old, new):

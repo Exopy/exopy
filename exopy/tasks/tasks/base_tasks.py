@@ -55,6 +55,16 @@ class BaseTask(Atom):
     This class basically defines the minimal skeleton of a Task in term of
     members and methods.
 
+    Notes
+    -----
+    A number of the member used by the task have a definite meaning only when
+    a root is present. They are listed below:
+
+    - depth
+    - path
+    - database
+    - parent
+
     """
     #: Identifier for the build dependency collector
     dep_type = Constant(DEP_TYPE).tag(pref=True)
@@ -663,9 +673,6 @@ class ComplexTask(BaseTask):
     #: editors to correctly track all of those.
     children_changed = Signal().tag(child_notifier='children')
 
-    #: Flag indicating whether or not the task has a root task.
-    has_root = Bool(False)
-
     def perform(self):
         """Run sequentially all child tasks.
 
@@ -714,7 +721,7 @@ class ComplexTask(BaseTask):
 
         # In the absence of a root task do nothing else than inserting the
         # child.
-        if self.has_root:
+        if self.root is not None:
             child.depth = self.depth + 1
             child.database = self.database
             child.path = self._child_path()
@@ -752,7 +759,7 @@ class ComplexTask(BaseTask):
 
         # In the absence of a root task do nothing else than moving the
         # child.
-        if self.has_root:
+        if self.root is not None:
             # Register anew preferences to keep the right ordering for the
             # children
             self.register_preferences()
@@ -776,6 +783,7 @@ class ComplexTask(BaseTask):
         child.unregister_from_database()
         child.root = None
         child.parent = None
+        child.database = None
         self.register_preferences()
 
         change = ContainerChange(obj=self, name='children',
@@ -987,7 +995,7 @@ class ComplexTask(BaseTask):
         """Handle the task being renamed at runtime.
 
         If the task is renamed at runtime, it means that the path of all the
-        children task is now obselete and that the database node
+        children task is now obsolete and that the database node
         of this task must be renamed (database handles the exception.
 
         """
@@ -1005,9 +1013,12 @@ class ComplexTask(BaseTask):
 
         """
         if new is None:
+            self.database = None
+            for child in self.gather_children():
+                child.root = None
+                child.database = None
             return
 
-        self.has_root = True
         for child in self.gather_children():
             child.depth = self.depth + 1
             child.database = self.database
@@ -1078,9 +1089,6 @@ class RootTask(ComplexTask):
 
     #: Thread from which the perform method has been called.
     thread_id = Int()
-
-    # Setting default values for the root task.
-    has_root = set_default(True)
 
     # Those must not be modified so freeze them
     name = Constant('Root')

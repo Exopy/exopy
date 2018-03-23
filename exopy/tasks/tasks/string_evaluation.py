@@ -42,10 +42,7 @@ EVALUATER_TOOLTIP = '\n'.join([
 
 
 def safe_eval(expr, local_var):
-    """Eval expr save is expr contains only letters.
+    """Eval expr with the given local variables.
 
     """
-    if expr.isalpha():
-        return expr
-
     return eval(expr, globals(), local_var)

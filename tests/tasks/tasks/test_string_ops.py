@@ -156,14 +156,6 @@ class TestEvaluation(object):
         database.set_value('root/node1', 'val2', 10.0)
         database.add_access_exception('root', 'root/node1', 'val2')
 
-    def test_eval_pure_string_editing_mode(self):
-        """Test evaluating a word.
-
-        """
-        test = 'test'
-        formatted = self.root.format_and_eval_string(test)
-        assert formatted == 'test'
-
     def test_eval_editing_mode1(self):
         """Test eval expression with only standard operators.
 
@@ -201,15 +193,6 @@ class TestEvaluation(object):
         formatted = self.root.format_and_eval_string(test)
         assert_array_equal(formatted, numpy.array((1.0, 1.0)))
         assert not self.root._eval_cache
-
-    def test_eval_pure_string_running_mode(self):
-        """Test evaluating a word.
-
-        """
-        self.root.database.prepare_to_run()
-        test = 'test'
-        formatted = self.root.format_and_eval_string(test)
-        assert formatted == 'test'
 
     def test_eval_running_mode1(self):
         """Test eval expression with only standard operators.
