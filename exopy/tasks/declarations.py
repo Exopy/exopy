@@ -69,7 +69,7 @@ class Task(Declarator):
     metadata = d_(Dict())
 
     #: List of supported driver ids.
-    instruments = d_(List())
+    instruments = d_(List()) #no
 
     #: Runtime dependencies analyser ids corresponding to the runtime
     #: dependencies of the task (there is no need to list the instruments
