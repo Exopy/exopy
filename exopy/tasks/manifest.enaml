@@ -19,6 +19,7 @@ from ..app.preferences.api import Preferences
 from ..app.states.api import State
 from ..app.dependencies.api import BuildDependency, RuntimeDependencyAnalyser
 from ..utils.plugin_tools import make_handler
+from ..utils.atom_util import tagged_members
 
 from .utils.building import create_task, build_root
 from .utils.saving import save_task
@@ -468,17 +469,20 @@ enamldef TasksManagerManifest(PluginManifest):
     Extension:
         id = 'runtime_deps'
         point = 'exopy.app.dependencies.runtime_analyse'
+
         RuntimeDependencyAnalyser:
             id = 'exopy.tasks.instruments.profiles'
             collector_id = 'exopy.instruments.profiles'
             analyse => (workbench, obj, dependencies, errors):
-                dependencies.add(obj.selected_instrument[0])
+                for name, instrument in tagged_members(obj, 'instr').items():
+                    dependencies.add(getattr(obj, name)[0])
 
         RuntimeDependencyAnalyser:
             id = 'exopy.tasks.instruments.drivers'
             collector_id = 'exopy.instruments.drivers'
             analyse => (workbench, obj, dependencies, errors):
-                dependencies.add(obj.selected_instrument[1])
+                for name, instrument in tagged_members(obj, 'instr').items():
+                    dependencies.add(getattr(obj, name)[1])
 
         RuntimeDependencyAnalyser:
             id = 'exopy.tasks.interface.instruments.profiles'
