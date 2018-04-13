@@ -42,12 +42,13 @@ class LogPlugin(Plugin):
     # Current log
     rotating_log = Typed(DayRotatingTimeHandler)
 
-    def display_rotating(self):
-        """Display the rotating log file.
+    def display_current_log(self):
+        """Display the current instance of the rotating log file.
 
         """
         with open(self.rotating_log.path) as f:
-            LogDialog(rotating_log=f.read()).exec_()
+            log = f.read()
+        LogDialog(log=log).exec_()
 
     def add_handler(self, id, handler=None, logger='', mode=None):
         """Add a handler to the specified logger.

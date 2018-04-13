@@ -275,7 +275,7 @@ class TestLogPlugin(object):
         finally:
             sys.stdout = old
 
-    def test_display_rotating(self, app_dir, exopy_qtbot):
+    def test_display_current_log(self, app_dir, exopy_qtbot):
         """Test the log display window
 
         """
@@ -287,4 +287,4 @@ class TestLogPlugin(object):
 
         core = self.workbench.get_plugin(u'enaml.workbench.core')
         with handle_dialog(exopy_qtbot):
-            core.invoke_command('exopy.app.logging.display_rotating', {}, self)
+            core.invoke_command('exopy.app.logging.display_current_log', {}, self)

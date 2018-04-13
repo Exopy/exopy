@@ -87,8 +87,8 @@ def start_logging(workbench, cmd_args):
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
 
-DISPLAY_DESCRIPTION = \
-""" Display the rotating log file.
+DISPLAY_CURRENT_LOG_DESCRIPTION = \
+""" Display the current instance of the rotating log file.
 
 """
 
@@ -206,17 +206,17 @@ enamldef LogManifest(PluginManifest):
         point = 'enaml.workbench.ui.actions'
         ActionItem:
             path = 'tools/log'
-            label = 'Open Log'
-            command = 'exopy.app.logging.display_rotating'
+            label = 'Open log file'
+            command = 'exopy.app.logging.display_current_log'
 
 
     Extension:
         id = 'commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            id = 'exopy.app.logging.display_rotating'
-            description = DISPLAY_DESCRIPTION
-            handler = make_handler(PLUGIN_ID, 'display_rotating')
+            id = 'exopy.app.logging.display_current_log'
+            description = DISPLAY_CURRENT_LOG_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'display_current_log')
         Command:
             id = 'exopy.app.logging.add_handler'
             description = ADD_HANDLER_DESCRIPTION

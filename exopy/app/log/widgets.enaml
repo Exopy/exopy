@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+# Copyright 2018 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Widget used to display the rotating log.
+"""Widget used to display a log file.
 
 """
 from enaml.widgets.api import (Container, Dialog, Label, ScrollArea)
 
 
 enamldef LogDialog(Dialog):
-    """Dialog presenting the rotating log.
+    """Dialog presenting a log file..
 
     """
     title = 'Log viewer'
 
-    attr rotating_log = "Default log"
+    #: Log displayed
+    attr log = "Default log"
 
     Container:
         padding = 0
         ScrollArea:
             Container:
                 Label:
-                    text = rotating_log
+                    text = log
