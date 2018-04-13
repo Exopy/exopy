@@ -9,7 +9,7 @@
 """Widget used to display a log file.
 
 """
-from enaml.widgets.api import (Container, Dialog, Label, ScrollArea)
+from enaml.widgets.api import (Container, Dialog, MultilineField, ScrollArea)
 
 
 enamldef LogDialog(Dialog):
@@ -19,11 +19,14 @@ enamldef LogDialog(Dialog):
     title = 'Log viewer'
 
     #: Log displayed
-    attr log = "Default log"
+    attr log = ""
 
     Container:
         padding = 0
         ScrollArea:
+            constraints = [width >= 800, height >=600]
             Container:
-                Label:
+                padding = 0
+                MultilineField:
+                    read_only = True
                     text = log
