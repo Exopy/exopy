@@ -13,6 +13,7 @@ import os
 import sys
 import logging
 from enaml.workbench.api import Workbench
+from exopy.testing.util import handle_dialog
 import enaml
 with enaml.imports():
     from enaml.workbench.core.core_manifest import CoreManifest
@@ -273,3 +274,17 @@ class TestLogPlugin(object):
             assert not isinstance(sys.stderr, StreamToLogRedirector)
         finally:
             sys.stdout = old
+
+    def test_display_current_log(self, app_dir, exopy_qtbot):
+        """Test the log display window
+
+        """
+        cmd_args = CMDArgs()
+        cmd_args.nocapture = True
+
+        app = self.workbench.get_plugin('exopy.app')
+        app.run_app_startup(cmd_args)
+
+        core = self.workbench.get_plugin(u'enaml.workbench.core')
+        with handle_dialog(exopy_qtbot):
+            core.invoke_command('exopy.app.logging.display_current_log', {}, self)

@@ -14,6 +14,7 @@ import sys
 import atexit
 import logging
 from enaml.workbench.api import PluginManifest, Extension
+from enaml.workbench.ui.api import ActionItem
 from enaml.workbench.core.api import Command
 
 from ...utils.plugin_tools import make_handler
@@ -65,6 +66,7 @@ def start_logging(workbench, cmd_args):
     formatter = logging.Formatter(aux)
     handler.setFormatter(formatter)
     log_plugin.add_handler('exopy.file_log', handler)
+    log_plugin.rotating_log = handler
 
     # Add GUI handler to root logger and store model.
     log_plugin.gui_model = log_plugin.add_handler('exopy.gui_log', mode='ui')[0]
@@ -84,6 +86,11 @@ def start_logging(workbench, cmd_args):
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------
 # =============================================================================
+
+DISPLAY_CURRENT_LOG_DESCRIPTION = \
+""" Display the current instance of the rotating log file.
+
+"""
 
 ADD_HANDLER_DESCRIPTION = \
 """Add a handler to the specified logger.
@@ -195,8 +202,21 @@ enamldef LogManifest(PluginManifest):
             sync_members = ['handler_ids', 'filter_ids', 'gui_model']
 
     Extension:
+        id = 'menus'
+        point = 'enaml.workbench.ui.actions'
+        ActionItem:
+            path = 'tools/log'
+            label = 'Open log file'
+            command = 'exopy.app.logging.display_current_log'
+
+
+    Extension:
         id = 'commands'
         point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'exopy.app.logging.display_current_log'
+            description = DISPLAY_CURRENT_LOG_DESCRIPTION
+            handler = make_handler(PLUGIN_ID, 'display_current_log')
         Command:
             id = 'exopy.app.logging.add_handler'
             description = ADD_HANDLER_DESCRIPTION
