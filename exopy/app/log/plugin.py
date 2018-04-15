@@ -15,7 +15,11 @@ import logging
 from atom.api import Unicode, Dict, List, Tuple, Typed
 from enaml.workbench.api import Plugin
 
-from .tools import (LogModel, GuiHandler)
+from .tools import (LogModel, GuiHandler, DayRotatingTimeHandler)
+
+import enaml
+with enaml.imports():
+    from .widgets import LogDialog
 
 
 MODULE_PATH = os.path.dirname(__file__)
@@ -34,6 +38,17 @@ class LogPlugin(Plugin):
     #: Model which can be used to display the log in the GUI. It is associated
     #: to a handler attached to the root logger.
     gui_model = Typed(LogModel)
+
+    # Current log
+    rotating_log = Typed(DayRotatingTimeHandler)
+
+    def display_current_log(self):
+        """Display the current instance of the rotating log file.
+
+        """
+        with open(self.rotating_log.path) as f:
+            log = f.read()
+        LogDialog(log=log).exec_()
 
     def add_handler(self, id, handler=None, logger='', mode=None):
         """Add a handler to the specified logger.

@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget used to display a log file.
+
+"""
+from enaml.widgets.api import (Container, Dialog, MultilineField, ScrollArea)
+
+
+enamldef LogDialog(Dialog):
+    """Dialog presenting a log file..
+
+    """
+    title = 'Log viewer'
+
+    #: Log displayed
+    attr log = ""
+
+    Container:
+        padding = 0
+        ScrollArea:
+            constraints = [width >= 800, height >=600]
+            Container:
+                padding = 0
+                MultilineField:
+                    read_only = True
+                    text = log

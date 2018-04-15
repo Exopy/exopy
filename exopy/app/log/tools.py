@@ -282,6 +282,7 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
     """
     def __init__(self, filename, mode='wb', **kwargs):
         self.mode = mode
+        self.path = ''
         super(DayRotatingTimeHandler, self).__init__(filename, when='MIDNIGHT',
                                                      **kwargs)
 
@@ -303,6 +304,7 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
             i += 1
 
         path = os.path.join(base_dir, filename % i)
+        self.path = path
 
         if self.encoding is None:
             stream = open(path, self.mode)
