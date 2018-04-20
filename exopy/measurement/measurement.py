@@ -632,7 +632,7 @@ class Measurement(HasPrefAtom):
         self.root_task.write_in_database('meas_id', self.id)
         self.root_task.write_in_database('meas_date', str(date.today()))
         self.root_task.write_in_database('meas_time', datetime.now().time()
-                                         .isoformat(timespec='seconds'))
+                                         .strftime("%H:%M:%S"))
 
     def _post_setattr_root_task(self, old, new):
         """Add the entries contributed by the measurement to the task database.
