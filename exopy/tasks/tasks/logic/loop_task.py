@@ -234,3 +234,4 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         """
         if self.task:
             self.task.name = new
+        super(LoopTask, self)._post_setattr_name(old, new)
