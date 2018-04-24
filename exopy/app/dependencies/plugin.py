@@ -284,7 +284,7 @@ class DependenciesPlugin(Plugin):
         return not container.errors, container.errors
 
     def collect_dependencies(self, kind, dependencies, owner=None):
-        """Collect that a set of dependencies.
+        """Collect a set of dependencies.
 
         For runtime dependencies if permissions are necessary to use a
         dependence they are requested and should released when they are no

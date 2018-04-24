@@ -18,7 +18,7 @@ from atom.api import Event
 from enaml.widgets.api import (GroupBox, Stack, StackItem, FileDialogEx,
                                Label, Field, ToolButton, CheckBox)
 from enaml.core.api import d_, d_func
-from enaml.layout.api import hbox, vbox, align
+from enaml.layout.api import hbox, vbox, align, spacer
 
 from ...app.icons.api import get_icon
 from ...utils.enaml_destroy_hook import add_destroy_hook
@@ -78,6 +78,9 @@ enamldef RootTaskView(BaseTaskView): main:
     """
     #: Reference to the core plugin of the application.
     attr core
+
+    #: Option to display or not the RootTask path
+    attr show_path = True
 
     root = main
 
@@ -179,14 +182,19 @@ enamldef RootTaskView(BaseTaskView): main:
             view.root = None
         self.root = None
 
-    constraints = [vbox(hbox(p_lab, p_val, p_exp, prof), editor),
+    constraints = [vbox(hbox(p_lab, p_val, p_exp, prof), editor, spacer),
                    align('v_center', p_lab, p_val)]
 
     Label: p_lab:
         text = 'Root path'
+        visible = show_path
+
     Field: p_val:
         text := task.default_path
+        visible = show_path
+
     ToolButton: p_exp:
+        visible = show_path
         icon = get_icon(core.workbench, 'folder-open')
         clicked ::
             curr_path = task.default_path
@@ -198,6 +206,7 @@ enamldef RootTaskView(BaseTaskView): main:
                 task.default_path = path
     CheckBox: prof:
         text = 'Profile'
+        visible = show_path
         checked := task.should_profile
         tool_tip = 'Profile the execution of the task and dump the result.'
 
