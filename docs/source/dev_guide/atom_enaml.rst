@@ -26,3 +26,5 @@ Enaml
 .. todo::
 
     Need to describe the syntax for overriding declarative functions.
+
+See the package documentation at http://enaml.readthedocs.io
