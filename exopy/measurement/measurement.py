@@ -13,7 +13,7 @@
 import logging
 from collections import OrderedDict, defaultdict
 from itertools import chain
-from datetime import date
+from datetime import date, datetime
 
 from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
                       Value)
@@ -631,6 +631,8 @@ class Measurement(HasPrefAtom):
         self.root_task.write_in_database('meas_name', self.name)
         self.root_task.write_in_database('meas_id', self.id)
         self.root_task.write_in_database('meas_date', str(date.today()))
+        self.root_task.write_in_database('meas_time', datetime.now().time()
+                                         .strftime("%H-%M-%S"))
 
     def _post_setattr_root_task(self, old, new):
         """Add the entries contributed by the measurement to the task database.
@@ -638,7 +640,7 @@ class Measurement(HasPrefAtom):
         """
         entries = new.database_entries.copy()
         entries.update({'meas_name': self.name, 'meas_id': self.id,
-                        'meas_date': ''})
+                        'meas_date': '', 'meas_time': ''})
         new.database_entries = entries
 
     def _default_dependencies(self):

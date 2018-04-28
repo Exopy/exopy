@@ -75,7 +75,7 @@ def test_measurement_persistence(measurement_workbench, measurement, tmpdir,
     measurement_workbench.register(TasksManagerManifest())
     plugin = measurement_workbench.get_plugin('exopy.measurement')
 
-    for m_e in ('meas_name', 'meas_id', 'meas_date'):
+    for m_e in ('meas_name', 'meas_id', 'meas_date', 'meas_time'):
         assert m_e in measurement.root_task.database_entries
     measurement.add_tool('pre-hook', 'dummy')
     measurement.root_task.default_path = 'test'
