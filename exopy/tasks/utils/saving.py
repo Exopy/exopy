@@ -21,15 +21,15 @@ with enaml.imports():
 
 
 def save_task(event):
-    """Save a task in memory or in an .ini file.
+    """Save a task in memory.
 
     Parameters
     ----------
     task : BaseTask
         Task to save.
 
-    mode : {'config', 'template'}
-        Should the task be returned as a dict (ConfigObj) or saved as a,
+    mode : {'config', 'template'}, optional
+        Should the task be returned as a dict (ConfigObj) or saved as a
         template.
 
     widget : optional
@@ -42,7 +42,7 @@ def save_task(event):
         A dict is returned if the mode is 'config'.
 
     """
-    mode = event.parameters['mode']
+    mode = event.parameters.get('mode', 'config')
     if mode == 'template':
         manager = event.workbench.get_plugin('exopy.tasks')
         saver = TemplateSaverDialog(event.parameters.get('widget'),

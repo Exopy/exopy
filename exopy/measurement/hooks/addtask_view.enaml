@@ -15,7 +15,7 @@ from ...tasks.tasks.base_views import RootTaskView
 
 
 enamldef AddTasksView(Container):
-    """Widget used for the AddTaskHook
+    """ Widget used for the AddTaskHook
 
     """
     attr hook
@@ -26,10 +26,7 @@ enamldef AddTasksView(Container):
 
     hug_width = 'ignore'
     hug_height = 'ignore'
-    # Issue à créer:
-    # Si n'existe pas, erreur: NoneType object has no attribute width
     RootTaskView: view:
         core = workbench.get_plugin('enaml.workbench.core')
         task = hook.root_task
         show_path = False
-        # regarder ce que c'est la checkbox profile
