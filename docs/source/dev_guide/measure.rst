@@ -44,8 +44,8 @@ pre-hook can have two purposes :
 
 Adding a pre-hook requires to :
 
-- implement the logic by subclassing |BasePreExecutionHook|. The methods that can be
-  overridden are :
+- implement the logic by subclassing |BasePreExecutionHook|. The methods that
+  can be overridden are :
 
   - check: make sure that the measurement is in a proper state to be executed.
   - run: execute any custom logic. If any task is to be executed it should be
@@ -53,7 +53,7 @@ Adding a pre-hook requires to :
   - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
   - list_runtimes: let the measurement know the runtime dependencies (such as
-    instrument drivers) if any.
+    instrument drivers) if any. They are then collected by the measurement.
 
   Additionally if any entry is contributed to the task hierarchy they should
   be added when the tool is linked (or later during edition of the tool).
@@ -68,14 +68,16 @@ Adding a pre-hook requires to :
 
 - If a make_view method has been declared then one needs to create the
   associated widget which should inherit of |Container|.
+  The syntax of the make_view is defined in the |BaseToolDeclaration| class.
 
 
 Monitors
 ^^^^^^^^
 
-Monitors are used to follow the progress of a measurement. They specify a number of
-database entries they are interested in and will receive notifications when
-the concerned entry is updated during the execution of the task hierarchy.
+Monitors are used to follow the progress of a measurement. They specify a
+number of database entries they are interested in and will receive
+notifications whenthe concerned entry is updated during the execution of the
+task hierarchy.
 
 Adding a monitor requires to :
 
@@ -119,8 +121,8 @@ asked not to run them). They are hence perfectly fitted to run clean up.
 
 Adding a post-hook requires to :
 
-- implement the logic by subclassing |BasePostExecutionHook|. The methods that can be
-  overridden are :
+- implement the logic by subclassing |BasePostExecutionHook|. The methods that
+  can be overridden are :
 
   - check: make sure that the measurement is in a proper state to be executed.
   - run: execute any custom logic. If any task is to be executed it should be
@@ -130,7 +132,7 @@ Adding a post-hook requires to :
   - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
   - list_runtimes: let the measurement know the runtime dependencies (such as
-    instrument drivers) if any.
+    instrument drivers) if any. They are then collected by the measurement.
 
   Additionally if any entry is contributed to the task hierarchy they should
   be added when the tool is linked (or later during edition of the tool).
@@ -145,6 +147,7 @@ Adding a post-hook requires to :
 
 - If a make_view method has been declared then one needs to create the
   associated widget which should inherit of |Container|.
+  The syntax of the make_view is defined in the |BaseToolDeclaration| class.
 
 .. note ::
 

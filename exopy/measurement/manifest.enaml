@@ -227,7 +227,8 @@ enamldef MeasureManifest(PluginManifest): manifest:
             # appelé dans plugin, l 266
             new => (workbench, default=False):
                 from .hooks.addtask_hook import AddTasksHook
-                return AddTasksHook(declaration=self)
+                return AddTasksHook(declaration=self,
+                                    workbench=workbench)
 
             make_view => (workbench, hook):
                 with enaml.imports():

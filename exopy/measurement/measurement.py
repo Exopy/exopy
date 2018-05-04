@@ -322,8 +322,8 @@ class Measurement(HasPrefAtom):
         config.update(self.preferences_from_members())
 
         # First save the task.
-        core = self.plugin.workbench.get_plugin(u'enaml.workbench.core')
-        cmd = u'exopy.tasks.save'
+        core = self.plugin.workbench.get_plugin('enaml.workbench.core')
+        cmd = 'exopy.tasks.save'
         task_prefs = core.invoke_command(cmd, {'task': self.root_task,
                                                'mode': 'config'}, self)
         config['root_task'] = {}
