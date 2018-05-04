@@ -204,6 +204,18 @@ class TestLoopTask(object):
         # check that we handle properly the case of no subtask
         self.task.name += '2'
 
+    def test_renaming(self):
+        """Test renaming the task.
+
+        """
+        subtask1 = CheckTask(name='check', database_entries={'val': 1})
+        self.task.task = subtask1
+        assert subtask1.get_from_database('Test_val') == 1
+
+        self.task.name = 'Test2'
+        assert subtask1.get_from_database('Test2_val') == 1
+        assert self.task.get_from_database('Test2_point_number') == 11
+
     def test_traverse(self, linspace_interface):
         """Test traversing a with interfaces ComplexTask.
 
