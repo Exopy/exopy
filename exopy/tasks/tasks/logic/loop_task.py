@@ -45,7 +45,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
             traceback.update(i_traceback)
             test &= i_test
 
-        c_test, c_traceback = super(LoopTask, self).check(*args, **kwargs)
+        c_test, c_traceback = super().check(*args, **kwargs)
 
         traceback.update(c_traceback)
         test &= c_test
@@ -234,4 +234,4 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         """
         if self.task:
             self.task.name = new
-        super(LoopTask, self)._post_setattr_name(old, new)
+        super()._post_setattr_name(old, new)
