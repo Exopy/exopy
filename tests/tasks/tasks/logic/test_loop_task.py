@@ -214,6 +214,7 @@ class TestLoopTask(object):
 
         self.task.name = 'Test2'
         assert subtask1.get_from_database('Test2_val') == 1
+        assert self.task.get_from_database('Test_point_number') == 11
 
     def test_traverse(self, linspace_interface):
         """Test traversing a with interfaces ComplexTask.
