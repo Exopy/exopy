@@ -88,13 +88,11 @@ enamldef RootTaskView(BaseTaskView): main:
         BaseTaskView.refresh(self)
         editor.refresh()
 
-    # TODO pass the future parent task so that config can do name inspections
-    # and avoid duplicate names.
     func create_new_task():
         """Create a new task to insert into the hierarchy.
 
         """
-        return core.invoke_command('exopy.tasks.create_task', dict(widget=self))
+        return core.invoke_command('exopy.tasks.create_task', dict(widget=self, root=self.task))
 
     func get_interfaces_for(obj):
         """Get the available interfaces for a given object.

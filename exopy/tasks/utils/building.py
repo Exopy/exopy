@@ -37,7 +37,8 @@ def create_task(event):
     """
     manager = event.workbench.get_plugin('exopy.tasks')
     dialog = BuilderView(manager=manager,
-                         parent=event.parameters.get('widget'))
+                         parent=event.parameters.get('widget'),
+                         root=event.parameters.get('root'))
     result = dialog.exec_()
     if result:
         return dialog.config.build_task()

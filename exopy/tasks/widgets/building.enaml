@@ -38,6 +38,8 @@ enamldef BuilderView(Dialog): dial:
     #: Reference to the task manager.
     alias manager : selector.manager
 
+    attr root
+
     #: Config object corresponding to the currently selected task.
     attr config
 
@@ -52,6 +54,7 @@ enamldef BuilderView(Dialog): dial:
             if config is None:
                 dial.config = None
                 return [Label(text='No config found for this task.')]
+            config.root = root
             dial.config = config
             return [view]
         else:

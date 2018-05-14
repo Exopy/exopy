@@ -11,11 +11,12 @@
 """
 import random
 
-from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped)
+from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped, Typed)
 
 from inspect import getdoc
 
-from ..tasks.base_tasks import BaseTask
+from ..tasks.task_interface import TaskInterface
+from ..tasks.base_tasks import (BaseTask, RootTask)
 from ..utils.templates import load_template
 from ..utils.building import build_task_from_config
 
@@ -33,6 +34,9 @@ class BaseTaskConfig(Atom):
     """Base class for task configurer.
 
     """
+    #: Root of the task hierarchy used to enforce name uniqueness.
+    root = Typed(RootTask)
+
     #: Task manager, necessary to retrieve task implementations.
     manager = ForwardTyped(task_manager)
 
@@ -47,15 +51,13 @@ class BaseTaskConfig(Atom):
 
     def __init__(self, **kwargs):
         super(BaseTaskConfig, self).__init__(**kwargs)
-        # Force check to ensure that the possible default value of task_name
-        # is tested.
-        self.check_parameters()
 
     def check_parameters(self):
-        """The only parameter required is a valid task name.
+        """The only parameter required is a unique task name.
 
         """
-        self.ready = bool(self.task_name)
+        names = self._used_names()
+        self.ready = self.task_name != "" and self.task_name not in names
 
     def build_task(self):
         """This method use the user parameters to build the task object
@@ -81,6 +83,16 @@ class BaseTaskConfig(Atom):
             return random.choice(names)
         else:
             return ''
+
+    def _used_names(self):
+        names = []
+        if self.root:
+            for i in self.root.traverse():
+                if not isinstance(i, TaskInterface):
+                    names.append(i.name)
+                else:
+                    names.append(i.task.name)
+        return names
 
 
 class PyTaskConfig(BaseTaskConfig):
