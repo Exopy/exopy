@@ -15,7 +15,6 @@ from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped, Typed)
 
 from inspect import getdoc
 
-from ..tasks.task_interface import TaskInterface
 from ..tasks.base_tasks import (BaseTask, RootTask)
 from ..utils.templates import load_template
 from ..utils.building import build_task_from_config
@@ -56,7 +55,9 @@ class BaseTaskConfig(Atom):
         """The only parameter required is a unique task name.
 
         """
-        names = self._used_names()
+        names = []
+        if self.root:
+            names = self.root.get_used_names()
         self.ready = self.task_name != "" and self.task_name not in names
 
     def build_task(self):
@@ -83,14 +84,6 @@ class BaseTaskConfig(Atom):
             return random.choice(names)
         else:
             return ''
-
-    def _used_names(self):
-        names = []
-        if self.root:
-            for i in self.root.traverse():
-                if not isinstance(i, TaskInterface):
-                    names.append(i.name)
-        return names
 
 
 class PyTaskConfig(BaseTaskConfig):

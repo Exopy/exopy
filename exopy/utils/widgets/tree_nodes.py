@@ -177,7 +177,10 @@ class TreeNode(Declarative):
 
         """
         label_name = self.label
-        if label_name[:1] != '=':
+        forbidden_names = []
+        if hasattr(obj, 'root') and obj.root:
+            forbidden_names = obj.root.get_used_names()
+        if label_name[:1] != '=' and label not in forbidden_names:
             setattr(obj, label_name, label)
 
     @d_func

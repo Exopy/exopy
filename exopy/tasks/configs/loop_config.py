@@ -13,7 +13,6 @@ from atom.api import (Typed, Unicode, Bool)
 
 from .base_configs import PyTaskConfig, BaseTaskConfig
 from .base_config_views import BaseConfigView
-from ..tasks.task_interface import TaskInterface
 
 
 class LoopTaskConfig(PyTaskConfig):
@@ -36,7 +35,9 @@ class LoopTaskConfig(PyTaskConfig):
         """Ensure that both this config and the subconfig parameters are valid.
 
         """
-        names = self._used_names()
+        names = []
+        if self.root:
+            names = self.root.get_used_names()
         if self.task_name != '' and self.task_name not in names:
             if self.use_subtask:
                 if self.subconfig is not None:
