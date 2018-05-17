@@ -90,8 +90,6 @@ class BaseTaskConfig(Atom):
             for i in self.root.traverse():
                 if not isinstance(i, TaskInterface):
                     names.append(i.name)
-                else:
-                    names.append(i.task.name)
         return names
 
 
