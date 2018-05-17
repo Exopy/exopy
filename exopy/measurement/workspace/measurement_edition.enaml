@@ -210,6 +210,10 @@ enamldef TaskTreeNode(TreeNode):
         return obj.name + '(' + obj.task_id + ')'
     enter_rename => (obj):
         return obj.name
+    exit_rename => (obj, label):
+        forbidden_names = obj.root.get_used_names()
+        if label not in forbidden_names:
+            obj.name = label
 
 
 class _MeasEditionModel(Atom):
