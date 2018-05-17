@@ -26,7 +26,7 @@ from ...utils.widgets.qt_clipboard import CLIPBOARD
 from ...utils.widgets.qt_tree_widget import QtTreeWidget
 from ...utils.widgets.tree_nodes import TreeNode
 from ...utils.widgets.qt_tree_menu import \
-    (CutAction, PasteAction, NewAction, RenameAction, DeleteAction)
+    (CutAction, NewAction, RenameAction, DeleteAction)
 from ...tasks.api import (BaseTask, SimpleTask, ComplexTask)
 from ...tasks.utils.building import build_task_from_config
 from ..editors.base_editor import BaseEditor
@@ -90,6 +90,27 @@ enamldef TaskCopyAction(Action):
         CLIPBOARD.instance = copy
 
 
+enamldef TaskPasteAction(Action):
+    """ Pastes the task currently in the paste buffer into the current node.
+
+    """
+    #: Context holding the informations about on which task this action was
+    #: invoked. See exopy.utils.widgets.tree_node for a more complete
+    #: description.
+    attr action_context
+
+    text = 'Paste'
+    visible << action_context['pasteable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        new_data = CLIPBOARD.instance
+        used_names = obj.root.get_used_names()
+        for i in new_data.traverse():
+            if hasattr(i, 'name') and i.name in used_names:
+                i.name = "(copy)" + i.name
+        widget._append(node, obj, new_data, False)
+
+
 def build_task(workbench, root):
     """Call the Command responsible for building a task.
 
@@ -130,7 +151,7 @@ enamldef SimpleMenu(Menu): menu:
     TaskCopyAction:
         workspace = menu.workspace
         action_context << context
-    PasteAction:
+    TaskPasteAction:
         action_context << context
 
     Action:
@@ -186,7 +207,7 @@ enamldef ComplexMenu(Menu): menu:
     TaskCopyAction:
         workspace = menu.workspace
         action_context << context
-    PasteAction:
+    TaskPasteAction:
         action_context << context
 
     Action:
