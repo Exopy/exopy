@@ -90,14 +90,15 @@ enamldef TaskCopyAction(Action):
         CLIPBOARD.instance = copy
 
 
-def build_task(workbench):
+def build_task(workbench, root):
     """Call the Command responsible for building a task.
 
     """
     core = workbench.get_plugin('enaml.workbench.core')
     ui = workbench.get_plugin('enaml.workbench.ui')
     return core.invoke_command('exopy.tasks.create_task',
-                               {'parent_ui': ui.window})
+                               {'parent_ui': ui.window,
+                                'root': root})
 
 
 enamldef SimpleMenu(Menu): menu:
@@ -114,12 +115,12 @@ enamldef SimpleMenu(Menu): menu:
         action_context << context
         factory = build_task
         mode = 'Add before'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'root': context['data'][2].root}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add after'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'root': context['data'][2].root}
 
     Action:
         separator = True
@@ -158,17 +159,17 @@ enamldef ComplexMenu(Menu): menu:
     NewAction:
         action_context << context
         factory = build_task
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'root': context['data'][2].root}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add before'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'root': context['data'][2].root}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add after'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'root': context['data'][2].root}
 
     Action:
         separator = True
