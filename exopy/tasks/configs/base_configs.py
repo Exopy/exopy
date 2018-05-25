@@ -81,7 +81,10 @@ class BaseTaskConfig(Atom):
     def _default_task_name(self):
         names = self.manager.auto_task_names
         if names:
-            return random.choice(names)
+            name = random.choice(names)
+            if name not in self.root.get_used_names():
+                self.ready = True
+            return name
         else:
             return ''
 
