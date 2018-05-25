@@ -27,7 +27,7 @@ def test_loop_config(exopy_qtbot, task_workbench):
     root = RootTask()
     config = LoopTaskConfig(manager=plugin,
                             task_class=plugin.get_task('exopy.LoopTask'),
-                            root=root)
+                            future_parent=root)
 
     assert config.task_name
     assert config.ready
@@ -44,7 +44,7 @@ def test_loop_config(exopy_qtbot, task_workbench):
     root.add_child_task(0, task)
     config2 = LoopTaskConfig(manager=plugin,
                              task_class=plugin.get_task('exopy.LoopTask'),
-                             root=root)
+                             future_parent=root)
 
     config2.task_name = 'Test'
     assert not config2.ready
@@ -71,8 +71,8 @@ def test_loop_config_with_subtask(task_workbench, exopy_qtbot, dialog_sleep,
 
     config = LoopTaskConfig(manager=plugin,
                             task_class=plugin.get_task('exopy.LoopTask'),
-                            task_name='Test',
-                            root=RootTask())
+                            future_parent=RootTask(),
+                            task_name='Test')
 
     show_widget(exopy_qtbot, LoopConfigView(config=config))
     assert config.ready

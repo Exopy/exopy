@@ -38,7 +38,8 @@ def test_create_task1(exopy_qtbot, task_workbench, task_config):
                                dict(mode='from config', config=task_config,
                                     build_dep={}))
     with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
-        res = core.invoke_command('exopy.tasks.create_task', dict(root=root))
+        res = core.invoke_command('exopy.tasks.create_task',
+                                  dict(future_parent=root))
         assert res
 
 
@@ -64,7 +65,8 @@ def test_create_task2(exopy_qtbot, task_workbench, dialog_sleep, task_config):
 
     root = RootTask()
     with handle_dialog(exopy_qtbot, 'reject', answer_dialog):
-        res = core.invoke_command('exopy.tasks.create_task', dict(root=root))
+        res = core.invoke_command('exopy.tasks.create_task',
+                                  dict(future_parent=root))
 
     assert res is None
 

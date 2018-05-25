@@ -269,8 +269,8 @@ Parameters:
 parent_ui : optional
     Optional parent widget for the dialog.
 
-root : RootTask
-    Root task of the tree in which a new task will be inserted.
+future_parent : BaseTask
+    Future parent task of the new task will be inserted.
 
 Returns:
 -------

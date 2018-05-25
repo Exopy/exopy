@@ -33,7 +33,7 @@ def test_py_task_config(exopy_qtbot, task_workbench):
     root = RootTask()
     config = PyTaskConfig(manager=plugin,
                           task_class=plugin.get_task('exopy.ComplexTask'),
-                          root=root)
+                          future_parent=root)
 
     assert config.task_name
     assert config.ready
@@ -50,7 +50,7 @@ def test_py_task_config(exopy_qtbot, task_workbench):
     root.add_child_task(0, task)
     config2 = PyTaskConfig(manager=plugin,
                            task_class=plugin.get_task('exopy.ComplexTask'),
-                           root=root)
+                           future_parent=root)
 
     config2.task_name = 'Test'
     assert not config2.ready
@@ -61,7 +61,7 @@ def test_py_task_config(exopy_qtbot, task_workbench):
     plugin.auto_task_names = []
     config = PyTaskConfig(manager=plugin,
                           task_class=plugin.get_task('exopy.ComplexTask'),
-                          root=root)
+                          future_parent=root)
 
     assert not config.task_name
     assert not config.ready
@@ -82,7 +82,7 @@ def test_template_task_config(exopy_qtbot, task_workbench):
     root = RootTask()
     config = TemplateTaskConfig(manager=plugin,
                                 template_path=path,
-                                root=root)
+                                future_parent=root)
     assert config.template_doc
     task = config.build_task()
     assert len(task.children) == 1

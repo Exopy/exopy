@@ -88,11 +88,16 @@ enamldef RootTaskView(BaseTaskView): main:
         BaseTaskView.refresh(self)
         editor.refresh()
 
-    func create_new_task():
+    func create_new_task(future_parent):
         """Create a new task to insert into the hierarchy.
 
+        Parameters
+        ----------
+        future_parent:
+            Future parent of the task
+
         """
-        return core.invoke_command('exopy.tasks.create_task', dict(parent_ui=self, root=self.task))
+        return core.invoke_command('exopy.tasks.create_task', dict(parent_ui=self, future_parent=future_parent))
 
     func get_interfaces_for(obj):
         """Get the available interfaces for a given object.

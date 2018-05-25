@@ -36,9 +36,10 @@ class LoopTaskConfig(PyTaskConfig):
 
         """
         names = []
-        if self.root:
-            names = self.root.get_used_names()
-        if self.task_name != '' and self.task_name not in names:
+        if self.future_parent:
+            names = self.future_parent.root.get_used_names()
+        self.name_valid = self.task_name != '' and self.task_name not in names
+        if self.name_valid:
             if self.use_subtask:
                 if self.subconfig is not None:
                     self.subconfig.task_name = self.task_name

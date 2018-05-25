@@ -33,8 +33,8 @@ class BaseTaskConfig(Atom):
     """Base class for task configurer.
 
     """
-    #: Root of the task hierarchy used to enforce name uniqueness.
-    root = Typed(RootTask)
+    #: Future parent in the task hierarchy used to enforce name uniqueness.
+    future_parent = Typed(BaseTask)
 
     #: Task manager, necessary to retrieve task implementations.
     manager = ForwardTyped(task_manager)
@@ -48,17 +48,22 @@ class BaseTaskConfig(Atom):
     #: Bool indicating if the build can be done.
     ready = Bool(False)
 
+    #: Bool indicating if the name is valid.
+    name_valid = Bool(False)
+
     def __init__(self, **kwargs):
         super(BaseTaskConfig, self).__init__(**kwargs)
+        self.check_parameters()
 
     def check_parameters(self):
         """The only parameter required is a unique task name.
 
         """
         names = []
-        if self.root:
-            names = self.root.get_used_names()
-        self.ready = self.task_name != "" and self.task_name not in names
+        if self.future_parent:
+            names = self.future_parent.root.get_used_names()
+        self.name_valid = self.task_name != "" and self.task_name not in names
+        self.ready = self.name_valid
 
     def build_task(self):
         """This method use the user parameters to build the task object
@@ -72,6 +77,13 @@ class BaseTaskConfig(Atom):
         """
         raise NotImplementedError()
 
+    def _post_setattr_future_parent(self, _old, _new):
+        """If the object was not initialized with a future_parent, we weren't
+        able to perform all the checks so we perform them now
+
+        """
+        self.check_parameters()
+
     def _post_setattr_task_name(self, old, new):
         """Everytime the task name change check whether ornot it is valid.
 
@@ -82,8 +94,6 @@ class BaseTaskConfig(Atom):
         names = self.manager.auto_task_names
         if names:
             name = random.choice(names)
-            if name not in self.root.get_used_names():
-                self.ready = True
             return name
         else:
             return ''

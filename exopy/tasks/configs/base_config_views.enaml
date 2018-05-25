@@ -13,6 +13,7 @@ from enaml.core.api import Conditional
 from enaml.layout.api import hbox, vbox, spacer
 from enaml.widgets.api import (Container, MultilineField, Field, GroupBox,
                                Label)
+from enaml.colors import parse_color
 
 
 enamldef BaseConfigView(Container):
@@ -34,6 +35,7 @@ enamldef BaseConfigView(Container):
     Field: t_f:
         text := config.task_name
         submit_triggers = ['lost_focus', 'return_pressed', 'auto_sync']
+        background << parse_color("#FFFFFF") if config.name_valid else parse_color("#FF000030")
 
 
 enamldef PyConfigView(BaseConfigView): main:
