@@ -15,7 +15,7 @@ from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped, Typed)
 
 from inspect import getdoc
 
-from ..tasks.base_tasks import (BaseTask, RootTask)
+from ..tasks.base_tasks import BaseTask
 from ..utils.templates import load_template
 from ..utils.building import build_task_from_config
 
