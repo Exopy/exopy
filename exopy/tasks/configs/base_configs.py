@@ -59,6 +59,10 @@ class BaseTaskConfig(Atom):
         """The only parameter required is a unique task name.
 
         """
+        # Checking the parameters make sense only if the manager is known
+        if not self.manager:
+            return
+        
         names = []
         if self.future_parent:
             names = self.future_parent.root.get_used_names()
