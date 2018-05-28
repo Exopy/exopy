@@ -53,6 +53,8 @@ class BaseTaskConfig(Atom):
 
     def __init__(self, **kwargs):
         super(BaseTaskConfig, self).__init__(**kwargs)
+        # Force check to ensure that the possible default value of task_name
+        # is tested.
         self.check_parameters()
 
     def check_parameters(self):
@@ -62,7 +64,7 @@ class BaseTaskConfig(Atom):
         # Checking the parameters make sense only if the manager is known
         if not self.manager:
             return
-        
+
         names = []
         if self.future_parent:
             names = self.future_parent.root.get_used_names()
