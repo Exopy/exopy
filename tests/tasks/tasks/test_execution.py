@@ -22,7 +22,6 @@ from exopy.tasks.tasks.base_tasks import RootTask, ComplexTask
 from exopy.tasks.tasks.validators import Feval, SkipEmpty
 
 from exopy.testing.tasks.util import CheckTask, ExceptionTask
-from exopy.testing.util import wait_for_window_displayed
 
 
 class TestTaskExecution(object):
@@ -137,7 +136,6 @@ class TestTaskExecution(object):
 
         """
         root = self.root
-        root.check()
         root.perform()
 
         assert not root.should_pause.is_set()
@@ -150,7 +148,6 @@ class TestTaskExecution(object):
         """
         root = self.root
         root.add_child_task(0, ExceptionTask())
-        root.check()
         assert root.perform() is False
 
         assert not root.should_pause.is_set()
@@ -165,7 +162,6 @@ class TestTaskExecution(object):
         root = self.root
         aux = CheckTask(name='test')
         root.add_child_task(0, aux)
-        root.check()
         root.perform()
 
         assert not root.should_pause.is_set()
@@ -181,7 +177,6 @@ class TestTaskExecution(object):
         root = self.root
         aux = CheckTask(name='test')
         root.add_child_task(0, aux)
-        root.check()
         root.should_profile = True
         root.perform()
 
@@ -205,7 +200,6 @@ class TestTaskExecution(object):
         aux = CheckTask(name='test')
         root.add_child_task(0, task)
         task.add_child_task(0, aux)
-        root.check()
         root.perform()
 
         assert not root.should_pause.is_set()
@@ -231,7 +225,6 @@ class TestTaskExecution(object):
         aux.parallel = {'activated': True, 'pool': 'test'}
         root.add_child_task(0, aux)
         root.add_child_task(1, CheckTask())
-        root.check()
         root.perform()
 
         assert not root.should_pause.is_set()
@@ -262,7 +255,6 @@ class TestTaskExecution(object):
         comp.add_child_task(1, wait)
         comp.add_child_task(2, par)
         root.add_child_task(0, comp)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
@@ -292,7 +284,6 @@ class TestTaskExecution(object):
         aux.parallel = {'activated': True, 'pool': 'test'}
         root.add_child_task(0, aux)
         root.add_child_task(1, CheckTask())
-        root.check()
         root.perform()
 
         assert not root.should_pause.is_set()
@@ -325,7 +316,6 @@ class TestTaskExecution(object):
         root.add_child_task(0, par)
         root.add_child_task(1, aux)
         root.add_child_task(2, wait)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
@@ -374,7 +364,6 @@ class TestTaskExecution(object):
         root.add_child_task(1, par2)
         root.add_child_task(2, aux)
         root.add_child_task(3, wait)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
@@ -431,7 +420,6 @@ class TestTaskExecution(object):
         root.add_child_task(1, par2)
         root.add_child_task(2, aux)
         root.add_child_task(3, wait)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
@@ -468,7 +456,6 @@ class TestTaskExecution(object):
         par2 = CheckTask(name='test2')
         for i, c in enumerate([par, par2]):
             root.add_child_task(i, c)
-        root.check()
         root.perform()
 
         assert par.perform_called == 1
@@ -485,7 +472,6 @@ class TestTaskExecution(object):
         par2 = CheckTask(name='test2', stoppable=False)
         for i, c in enumerate([par, par2]):
             root.add_child_task(i, c)
-        root.check()
         root.perform()
 
         assert par.perform_called == 1
@@ -540,7 +526,6 @@ class TestTaskExecution(object):
         par3 = CheckTask(name='test3')
         for i, c in enumerate([par, comp, par3]):
             root.add_child_task(i, c)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
@@ -578,7 +563,6 @@ class TestTaskExecution(object):
         par3 = CheckTask(name='test3')
         for i, c in enumerate([par, comp, par3]):
             root.add_child_task(i, c)
-        root.check()
 
         t = threading.Thread(target=root.perform)
         t.start()
