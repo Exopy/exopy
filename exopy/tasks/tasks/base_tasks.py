@@ -1176,7 +1176,7 @@ class RootTask(ComplexTask):
         # forced-enqueueing) so we need to make sure we set the default path.
         self.write_in_database('default_path', self.default_path)
         self.database.prepare_to_run()
-        super(RootTask, self).prepare()
+        super().prepare()
 
     def release_resources(self):
         """Release all the resources used by tasks.
