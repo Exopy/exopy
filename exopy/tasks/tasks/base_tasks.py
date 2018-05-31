@@ -1172,8 +1172,11 @@ class RootTask(ComplexTask):
         """Optimise the database for running state and prepare children.
 
         """
+        # We cannot assume that the checks were run (in the case of a
+        # forced-enqueueing) so we need to make sure we set the default path.
+        self.write_in_database('default_path', self.default_path)
         self.database.prepare_to_run()
-        super(RootTask, self).prepare()
+        super().prepare()
 
     def release_resources(self):
         """Release all the resources used by tasks.
