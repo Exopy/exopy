@@ -357,7 +357,6 @@ class TaskManagerPlugin(HasPreferencesPlugin):
 
         with open(path, encoding='utf-8') as f:
             aux = f.readlines()
-            print(aux)
 
         self.auto_task_names = [l.rstrip() for l in aux]
 
