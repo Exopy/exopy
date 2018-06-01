@@ -130,7 +130,9 @@ Adding a post-hook requires to :
   - pause/resume/stop: to implement if the run method execution can take a
     long time (typically if tasks are involved).
   - list_runtimes: let the measurement know the runtime dependencies (such as
-    instrument drivers) if any.
+    instrument drivers) if any. To access those dependencies inside the
+    `run` method one can use the |Measurement.get_runtime_dependencies| method
+    called with the id of the hook.
 
   Additionally if any entry is contributed to the task hierarchy they should
   be added when the tool is linked (or later during edition of the tool).

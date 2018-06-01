@@ -75,6 +75,10 @@
 .. Measurement substitutions
 .. ----------------------------------------------------------------------------
 
+.. |Measurement| replace:: :py:class:`~exopy.measurement.measurement.Measurement`
+
+.. |Measurement.get_runtime_dependencies| replace:: :py:class:`~exopy.measurement.measurement.Measurement.get_runtime_dependencies`
+
 .. |BaseMeasureTool| replace:: :py:class:`~exopy.measurement.base_tool.BaseMeasureTool`
 
 .. |BaseToolDeclaration| replace:: :py:class:`~exopy.measurement.base_tool.BaseToolDeclaration`
