@@ -199,7 +199,7 @@ enamldef ConnectionValidationWindow(Window): dial:
                 editor.sync()
                 driver_cls, starter = plugin.get_drivers([driver.id])[0][driver.id]
                 c = profile_infos.connections[connection.declaration.id]
-                s = profille_infos.settings[settings] if settings else {}
+                s = profile_infos.settings[settings] if settings else {}
                 try:
                     res, msg = starter.check_infos(driver_cls, c, s)
                 except Exception:
