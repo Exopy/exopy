@@ -144,7 +144,7 @@ enamldef ConnectionValidationWindow(Window): dial:
     attr driver = profile_infos.model.drivers[0]
 
     #: Currently selected connection.
-    attr connection = editor.connections[0]
+    alias connection : combo_connection.selected
 
     #: Currently selected settings.
     attr settings
@@ -172,15 +172,14 @@ enamldef ConnectionValidationWindow(Window): dial:
                     selected << '%s <%s>' % (driver.infos['architecture'],
                                              driver.id)
                     selected ::
-                        dial.driver = d_map[selected_item]
+                        dial.driver = d_map[change['value']]
 
             Label:
                 text='Connection'
-            ObjectCombo:
+            ObjectCombo: combo_connection:
                 items << ([c.declaration.id for c in editor.connections]
                           if editor.connections else [])
                 tool_tip = 'Connection informations to use for the test.'
-                selected >> dial.connection
 
             Conditional:
                 condition << bool(editor.settings)
@@ -190,7 +189,7 @@ enamldef ConnectionValidationWindow(Window): dial:
                     items << ([s.user_id for s in editor.settings]
                               if editor.settings else [])
                     tool_tip = 'Select the settings to use during the test.'
-                    selected >> dial.settings
+                    selected := dial.settings
 
         # TODO make this more friendly by displaying a popup
         PushButton: test:
@@ -198,7 +197,7 @@ enamldef ConnectionValidationWindow(Window): dial:
             clicked ::
                 editor.sync()
                 driver_cls, starter = plugin.get_drivers([driver.id])[0][driver.id]
-                c = profile_infos.connections[connection.declaration.id]
+                c = profile_infos.connections[connection]
                 s = profile_infos.settings[settings] if settings else {}
                 try:
                     res, msg = starter.check_infos(driver_cls, c, s)
