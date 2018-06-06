@@ -122,9 +122,16 @@ def test_connection_validation_window(prof_plugin, exopy_qtbot, dialog_sleep,
     wait_for_window_displayed(exopy_qtbot, w)
     exopy_qtbot.wait(dialog_sleep)
 
-    # XXX need to select a driver
-
     widgets = w.central_widget().widgets()
+    form_widgets = widgets[0].widgets()
+    combo_driver = form_widgets[1]
+    combo_connection = form_widgets[3]
+    combo_settings = form_widgets[5]
+
+    combo_driver.selected = 'test <instruments.test.FalseDriver2>'
+    combo_connection.selected = 'false_connection2'
+    combo_settings.selected = 'false_settings2'
+
     p = widgets[-3]
     p.clicked = True
     assert 'The connection was successfully established' in widgets[-2].text
