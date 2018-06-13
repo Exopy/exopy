@@ -44,7 +44,7 @@ def test_tool_selector(exopy_qtbot, measurement, dialog_sleep):
 
 
 def test_navigation_in_tools_editor(measurement, exopy_qtbot, dialog_sleep):
-    """Test navigating among the different measurement tools and accessing 
+    """Test navigating among the different measurement tools and accessing
     their editors.
 
     """
@@ -82,7 +82,7 @@ def test_manipulating_tools(measurement, exopy_qtbot, dialog_sleep):
     exopy_qtbot.wait(dialog_sleep)
 
     nb = item.dock_widget().widgets()[0]
-    pre_hook_ed = nb.pages()[0].page_widget().widgets()[0]
+    pre_hook_ed = nb.pages()[0].page_widget()
 
     # Add a tool
     def add_tool_1(bot, dial):
@@ -157,7 +157,7 @@ def test_ending_with_no_tools(measurement, exopy_qtbot, dialog_sleep):
     exopy_qtbot.wait(dialog_sleep)
 
     nb = item.dock_widget().widgets()[0]
-    mon_ed = nb.pages()[1].page_widget().widgets()[0]
+    mon_ed = nb.pages()[1].page_widget()
 
     # Add a tool
     def add_tool_1(bot, dial):
