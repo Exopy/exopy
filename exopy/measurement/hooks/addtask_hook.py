@@ -13,7 +13,7 @@ from enaml.workbench.api import Workbench
 from atom.api import Typed, Unicode, Tuple
 from .base_hooks import BasePostExecutionHook
 from ...tasks.api import RootTask
-from ..engines.base_engine import ExecutionInfos
+from ..engines.base_engine import ExecutionInfos, BaseEngine
 
 
 class AddTasksHook(BasePostExecutionHook):
@@ -22,6 +22,7 @@ class AddTasksHook(BasePostExecutionHook):
     """
     root_task = Typed(RootTask)
     workbench = Typed(Workbench)
+    engine = Typed(BaseEngine)
     default_path = Unicode()
     dependencies = Tuple()
 
@@ -66,6 +67,7 @@ class AddTasksHook(BasePostExecutionHook):
                                 checks=not self.measurement.forced_enqueued,
                                 )
         execution_result = engine.perform(infos)
+        self.engine = engine
         return execution_result
 
     def pause(self):

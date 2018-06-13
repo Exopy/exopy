@@ -224,7 +224,6 @@ enamldef MeasureManifest(PluginManifest): manifest:
             description = ('Run an additional task at the end of a measure,'
                            'even if it is stopped.')
 
-            # appelé dans plugin, l 266
             new => (workbench, default=False):
                 from .hooks.addtask_hook import AddTasksHook
                 return AddTasksHook(declaration=self,
