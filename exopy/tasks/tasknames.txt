@@ -107,7 +107,7 @@ Vleck
 Kapitsa
 Penzias
 Wilson
-Glashow 
+Glashow
 Weinberg
 Salam
 Cronin
@@ -155,7 +155,7 @@ Tsui
 Hooft
 Veltman
 Kroemer
-Alferov 
+Alferov
 Kilby
 Cornell
 Wieman

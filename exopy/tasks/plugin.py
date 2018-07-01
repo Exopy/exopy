@@ -355,7 +355,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
                                 dict(kind='error', message=msg))
             return
 
-        with open(path) as f:
+        with open(path, encoding='utf-8') as f:
             aux = f.readlines()
 
         self.auto_task_names = [l.rstrip() for l in aux]
