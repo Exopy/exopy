@@ -783,8 +783,7 @@ class QtTreeWidget(RawWidget):
         if new_label != old_label:
             if new_label != '':
                 node.exit_rename(obj, new_label)
-            else:
-                self._set_label(nid, old_label)
+            self._set_label(nid, node.get_label(obj))
 
     def _children_replaced(self, change):
         """ Handles the children of a node being completely replaced.

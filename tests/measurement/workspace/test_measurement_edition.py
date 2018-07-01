@@ -17,14 +17,15 @@ from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
                                 wait_for_destruction, handle_question)
 from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
 from exopy.utils.widgets.qt_clipboard import CLIPBOARD
-
 with enaml.imports():
     from exopy.testing.windows import DockItemTestingWindow
     from exopy.measurement.workspace.measurement_edition\
         import (MeasurementEditorDockItem,
                 MeasureEditorDialog,
                 SaveAction, build_task,
-                TaskCopyAction)
+                TaskCopyAction,
+                TaskPasteAction)
+    from exopy.utils.widgets.qt_tree_menu import CutAction
 
 
 pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
@@ -60,6 +61,61 @@ def test_copy_action(workspace, measurement, exopy_qtbot):
     assert new.name == 'Test'
 
 
+def test_cut_action(workspace, measurement, exopy_qtbot,
+                    edition_view, dialog_sleep):
+    """Test that cuting a task does work.
+
+    """
+    edition_view.show()
+    edition_view.maximize()
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
+
+    ed = edition_view.widget.dock_widget().widgets()[0]
+    tree = ed.widgets()[5]
+
+    task = measurement.root_task.children[0]
+    action = CutAction(action_context=dict(cutable=True,
+                                           data=(tree,
+                                                 tree.nodes[1],
+                                                 task,
+                                                 tree._get_object_nid(task))))
+    action.triggered = True
+    new = CLIPBOARD.instance
+    assert isinstance(new, BreakTask)
+    assert new.name == 'Test'
+    assert task not in measurement.root_task.children
+
+
+def test_copy_paste_action(measurement, workspace, exopy_qtbot,
+                           dialog_sleep, edition_view):
+    """Test that copy-and-pasting a task does work.
+
+    """
+    edition_view.show()
+    edition_view.maximize()
+    wait_for_window_displayed(exopy_qtbot, edition_view)
+    exopy_qtbot.wait(dialog_sleep)
+
+    ed = edition_view.widget.dock_widget().widgets()[0]
+    tree = ed.widgets()[5]
+
+    task = measurement.root_task.children[0]
+
+    action = TaskCopyAction(workspace=workspace,
+                            action_context=dict(copyable=True,
+                                                data=(None, None, task, None)))
+    action.triggered = True
+
+    action = TaskPasteAction(action_context=dict(pasteable=True,
+                                                 data=(tree,
+                                                       tree.nodes[0],
+                                                       measurement.root_task,
+                                                       None)))
+    action.triggered = True
+    assert "(copy)Test" in measurement.root_task.get_used_names()
+
+
 def test_save_action(exopy_qtbot, workspace, measurement):
     """Test that save action calls the proper commands.
 
@@ -92,12 +148,12 @@ def test_save_action(exopy_qtbot, workspace, measurement):
         CorePlugin.invoke_command = old
 
 
-def test_build_task(workspace, exopy_qtbot):
+def test_build_task(workspace, exopy_qtbot, measurement):
     """Test getting the dialog to create a new task.
 
     """
     with handle_dialog(exopy_qtbot, 'reject'):
-        build_task(workspace.workbench)
+        build_task(workspace.workbench, measurement.root_task)
 
 
 def test_sync_name(exopy_qtbot, edition_view, dialog_sleep):

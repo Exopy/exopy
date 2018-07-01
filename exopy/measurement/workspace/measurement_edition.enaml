@@ -26,7 +26,7 @@ from ...utils.widgets.qt_clipboard import CLIPBOARD
 from ...utils.widgets.qt_tree_widget import QtTreeWidget
 from ...utils.widgets.tree_nodes import TreeNode
 from ...utils.widgets.qt_tree_menu import \
-    (CutAction, PasteAction, NewAction, RenameAction, DeleteAction)
+    (CutAction, NewAction, RenameAction, DeleteAction)
 from ...tasks.api import (BaseTask, SimpleTask, ComplexTask)
 from ...tasks.utils.building import build_task_from_config
 from ..editors.base_editor import BaseEditor
@@ -90,14 +90,36 @@ enamldef TaskCopyAction(Action):
         CLIPBOARD.instance = copy
 
 
-def build_task(workbench):
+enamldef TaskPasteAction(Action):
+    """ Pastes the task currently in the paste buffer into the current node.
+
+    """
+    #: Context holding the informations about on which task this action was
+    #: invoked. See exopy.utils.widgets.tree_node for a more complete
+    #: description.
+    attr action_context
+
+    text = 'Paste'
+    visible << action_context['pasteable']
+    triggered::
+        widget, node, obj, nid = action_context['data']
+        new_data = CLIPBOARD.instance
+        used_names = obj.root.get_used_names()
+        for i in new_data.traverse():
+            if hasattr(i, 'name') and i.name in used_names:
+                i.name = "(copy)" + i.name
+        widget._append(node, obj, new_data, False)
+
+
+def build_task(workbench, future_parent):
     """Call the Command responsible for building a task.
 
     """
     core = workbench.get_plugin('enaml.workbench.core')
     ui = workbench.get_plugin('enaml.workbench.ui')
     return core.invoke_command('exopy.tasks.create_task',
-                               {'parent_ui': ui.window})
+                               {'parent_ui': ui.window,
+                                'future_parent': future_parent})
 
 
 enamldef SimpleMenu(Menu): menu:
@@ -114,12 +136,12 @@ enamldef SimpleMenu(Menu): menu:
         action_context << context
         factory = build_task
         mode = 'Add before'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'future_parent': context['data'][2]}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add after'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'future_parent': context['data'][2]}
 
     Action:
         separator = True
@@ -129,7 +151,7 @@ enamldef SimpleMenu(Menu): menu:
     TaskCopyAction:
         workspace = menu.workspace
         action_context << context
-    PasteAction:
+    TaskPasteAction:
         action_context << context
 
     Action:
@@ -158,17 +180,17 @@ enamldef ComplexMenu(Menu): menu:
     NewAction:
         action_context << context
         factory = build_task
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'future_parent': context['data'][2]}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add before'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'future_parent': context['data'][2]}
     NewAction:
         action_context << context
         factory = build_task
         mode = 'Add after'
-        kwargs = {'workbench': workspace.workbench}
+        kwargs = {'workbench': workspace.workbench, 'future_parent': context['data'][2]}
 
     Action:
         separator = True
@@ -185,7 +207,7 @@ enamldef ComplexMenu(Menu): menu:
     TaskCopyAction:
         workspace = menu.workspace
         action_context << context
-    PasteAction:
+    TaskPasteAction:
         action_context << context
 
     Action:
@@ -210,6 +232,10 @@ enamldef TaskTreeNode(TreeNode):
         return obj.name + '(' + obj.task_id + ')'
     enter_rename => (obj):
         return obj.name
+    exit_rename => (obj, label):
+        forbidden_names = obj.root.get_used_names()
+        if label not in forbidden_names:
+            obj.name = label
 
 
 class _MeasEditionModel(Atom):

@@ -12,12 +12,13 @@
 import pytest
 from configobj import ConfigObj
 
+from exopy.tasks.tasks.base_tasks import RootTask
 from exopy.tasks.utils.building import build_task_from_config
 
 from exopy.testing.util import handle_dialog
 
 
-def test_create_task1(exopy_qtbot, task_workbench):
+def test_create_task1(exopy_qtbot, task_workbench, task_config):
     """Test creating a task.
 
     """
@@ -33,12 +34,16 @@ def test_create_task1(exopy_qtbot, task_workbench):
             assert dial.config.ready
         bot.wait_until(assert_dial_config_ready)
 
+    root = core.invoke_command('exopy.tasks.build_root',
+                               dict(mode='from config', config=task_config,
+                                    build_dep={}))
     with handle_dialog(exopy_qtbot, 'accept', answer_dialog):
-        res = core.invoke_command('exopy.tasks.create_task')
+        res = core.invoke_command('exopy.tasks.create_task',
+                                  dict(future_parent=root))
         assert res
 
 
-def test_create_task2(exopy_qtbot, task_workbench, dialog_sleep):
+def test_create_task2(exopy_qtbot, task_workbench, dialog_sleep, task_config):
     """Test handling user cancellation.
 
     """
@@ -58,8 +63,10 @@ def test_create_task2(exopy_qtbot, task_workbench, dialog_sleep):
         assert not dial.config
         exopy_qtbot.wait(dialog_sleep)
 
+    root = RootTask()
     with handle_dialog(exopy_qtbot, 'reject', answer_dialog):
-        res = core.invoke_command('exopy.tasks.create_task')
+        res = core.invoke_command('exopy.tasks.create_task',
+                                  dict(future_parent=root))
 
     assert res is None
 

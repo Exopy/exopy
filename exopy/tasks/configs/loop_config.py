@@ -35,7 +35,15 @@ class LoopTaskConfig(PyTaskConfig):
         """Ensure that both this config and the subconfig parameters are valid.
 
         """
-        if self.task_name != '':
+        # Run the checks only if the manager is known.
+        if not self.manager:
+            return
+
+        names = []
+        if self.future_parent:
+            names = self.future_parent.root.get_used_names()
+        self.name_valid = self.task_name != '' and self.task_name not in names
+        if self.name_valid:
             if self.use_subtask:
                 if self.subconfig is not None:
                     self.subconfig.task_name = self.task_name

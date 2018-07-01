@@ -60,7 +60,7 @@ enamldef EmptyEditorButton(PushButton):
     text = 'Add a first task'
 
     clicked ::
-        task = editor.root.create_new_task()
+        task = editor.root.create_new_task(editor.task)
         if task:
             editor.task.add_child_task(0, task)
 
@@ -245,7 +245,7 @@ class TaskEditor(Container):
             """Handler for the add entry of the menu.
 
             """
-            task = self.root.create_new_task()
+            task = self.root.create_new_task(self.task)
             if task:
                 if position == 'after':
                     index += 1

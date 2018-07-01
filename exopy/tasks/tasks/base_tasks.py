@@ -1229,6 +1229,21 @@ class RootTask(ComplexTask):
         task.register_preferences()
         return task
 
+    def get_used_names(self):
+        """Return the list of all names used in the tree
+        Returns
+        -------
+        names : List(str)
+            List of all the names used in the tree.
+
+        """
+        names = []
+        for i in self.traverse():
+            # Effectively ignores TaskInterface objects
+            if hasattr(i, 'name'):
+                names.append(i.name)
+        return names
+
     # =========================================================================
     # --- Private API ---------------------------------------------------------
     # =========================================================================

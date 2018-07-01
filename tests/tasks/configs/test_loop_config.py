@@ -12,6 +12,7 @@
 import enaml
 
 from exopy.testing.util import show_and_close_widget, show_widget
+from exopy.tasks.tasks.base_tasks import RootTask
 from exopy.tasks.configs.loop_config import (LoopTaskConfig)
 with enaml.imports():
     from exopy.tasks.configs.loop_config_view import LoopConfigView
@@ -23,8 +24,10 @@ def test_loop_config(exopy_qtbot, task_workbench):
     """
     plugin = task_workbench.get_plugin('exopy.tasks')
 
+    root = RootTask()
     config = LoopTaskConfig(manager=plugin,
-                            task_class=plugin.get_task('exopy.LoopTask'))
+                            task_class=plugin.get_task('exopy.LoopTask'),
+                            future_parent=root)
 
     assert config.task_name
     assert config.ready
@@ -34,8 +37,20 @@ def test_loop_config(exopy_qtbot, task_workbench):
     assert not config.ready
 
     config.task_name = 'Test'
+    assert config.ready
     task = config.build_task()
     assert task.name == 'Test'
+
+    root.add_child_task(0, task)
+    config2 = LoopTaskConfig(manager=plugin,
+                             task_class=plugin.get_task('exopy.LoopTask'),
+                             future_parent=root)
+
+    config2.task_name = 'Test'
+    assert not config2.ready
+
+    config2.task_name = 'ADifferentName'
+    assert config2.ready
 
     plugin.auto_task_names = []
     config = LoopTaskConfig(manager=plugin,
@@ -56,6 +71,7 @@ def test_loop_config_with_subtask(task_workbench, exopy_qtbot, dialog_sleep,
 
     config = LoopTaskConfig(manager=plugin,
                             task_class=plugin.get_task('exopy.LoopTask'),
+                            future_parent=RootTask(),
                             task_name='Test')
 
     show_widget(exopy_qtbot, LoopConfigView(config=config))

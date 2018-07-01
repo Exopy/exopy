@@ -26,8 +26,11 @@ def create_task(event):
 
     Parameters
     ----------
-    widget : optional
+    parent_ui : optional
         Optional parent widget for the dialog.
+
+    future_parent : BaseTask
+        Future parent of the task
 
     Returns:
     -------
@@ -37,7 +40,8 @@ def create_task(event):
     """
     manager = event.workbench.get_plugin('exopy.tasks')
     dialog = BuilderView(manager=manager,
-                         parent=event.parameters.get('widget'))
+                         parent=event.parameters.get('parent_ui'),
+                         future_parent=event.parameters.get('future_parent'))
     result = dialog.exec_()
     if result:
         return dialog.config.build_task()
