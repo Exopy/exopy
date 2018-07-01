@@ -134,7 +134,10 @@ class QtTreeWidget(RawWidget):
         tree.itemSelectionChanged.connect(self._on_tree_sel_changed)
         tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tree.customContextMenuRequested.connect(self._on_context_menu)
-        tree.itemChanged.connect(self._on_nid_changed)
+        tree.itemDelegate().commitData.connect(self._on_data_committed)
+
+        # Disable the default double click to rename behavior
+        tree.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         nid = self._set_root_node(self.root_node, tree)
         # The proxy is not yet active so we must set the selected item manually
@@ -766,17 +769,13 @@ class QtTreeWidget(RawWidget):
 
         return copy.deepcopy(new_object)
 
-    def _on_nid_changed(self, nid, col):
+    def _on_data_committed(self, editor):
         """Handle changes to a widget item subsequent to a renaming operation.
 
         """
-        # The node data may not have been set up for the nid yet.  Ignore it if
-        # it hasn't.
-        try:
-            _, node, obj = self._get_node_data(nid)
-        except Exception:
-            return
-
+        nid = self.get_widget().currentItem()
+        col = self.get_widget().currentColumn()
+        _, node, obj = self._get_node_data(nid)
         new_label = str(nid.text(col))
         old_label = node.get_label(obj)
 
