@@ -18,10 +18,13 @@ enamldef AddTasksView(Container):
     """ Widget used for the AddTaskHook
 
     """
+    #: Reference to the hook edited with this view
     attr hook
 
+    #: Reference to the corresponding declaration
     attr declaration
 
+    #: Reference to the corresponding measurement workbench
     attr workbench
 
     hug_width = 'ignore'

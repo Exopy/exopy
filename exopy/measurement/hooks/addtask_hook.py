@@ -20,16 +20,23 @@ class AddTasksHook(BasePostExecutionHook):
     """Post-execusion hook to add a hierarchy of tasks.
 
     """
+    #: Reference to the root task at the base of the hierarchy
     root_task = Typed(RootTask)
+
+    #: Reference to the measurement workbench
     workbench = Typed(Workbench)
+
+    #: Reference to the measurement engine
     engine = Typed(BaseEngine)
+
+    #: Reference to the hook root task path;
+    #: it is the same as the one of the measurement and will not be displayed
     default_path = Unicode()
+
+    #: Reference to the build and runtime dependencies of the hook tasks
     dependencies = Tuple()
 
     def __init__(self, declaration, workbench):
-        """ Create an empty root task
-
-        """
         self.root_task = RootTask()
         self.workbench = workbench
         super().__init__(declaration=declaration)

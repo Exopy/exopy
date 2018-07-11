@@ -10,10 +10,14 @@
 
 """
 import pytest
+from atom.api import Tuple
 from exopy.tasks.api import RootTask, SimpleTask
 from enaml.workbench.api import Workbench
 from exopy.testing.measurement.dummies import DummyEngine
 from exopy.tasks.tasks.base_views import RootTaskView
+
+from exopy.testing.util import show_widget
+pytest_plugins = str('exopy.testing.tasks.fixtures')
 
 
 @pytest.fixture
@@ -23,6 +27,7 @@ def addtaskhook(measurement):
     """
     hook = measurement.plugin.create('post-hook', 'exopy.addtask_hook')
     return hook
+
 
 @pytest.fixture
 def addtaskview(measurement_workbench, addtaskhook):
@@ -43,37 +48,29 @@ def test_new_addtask_hook(addtaskhook):
     """
     assert type(addtaskhook.root_task) == RootTask
     assert type(addtaskhook.workbench) == Workbench
-    # assert hook.default_path
-    # assert hook.dependencies
-    # assert hook.engine
+    assert type(addtaskhook.dependencies) == Tuple
+    assert addtaskhook.default_path
+    assert addtaskhook.engine
 
 
-def test_get_state(addtaskhook):
-    """Testing saving the hook
+def test_get_set_state(addtaskhook):
+    """Testing saving and loading the hook
 
     """
     root = addtaskhook.root_task
+    # adding a task to the hook
     root.children = [SimpleTask(name='task',
                                 database_entries={'val': 1},
                                 root=root, parent=root,
                                 database=root.database)]
     task_prefs = addtaskhook.get_state()
     print(task_prefs)
-    # config = {'name': 'test',
-    #       'children_0': {'name': 'test_child',
-    #                      'task_id': 'DummyTask'}}
-    assert task_prefs  # blabla selon sa structure
+    assert task_prefs  # blabla selon sa structure ?
 
-
-def test_set_state(addtaskhook):
-    """Testing loading the hook from config
-
-    """
-    config = {}  # config avec 1 tache SimpleTask
-    addtaskhook.set_state(config)
-    root = addtaskhook.root_task
+    root.children = []
+    assert len(root.children) == 0
+    addtaskhook.set_state(task_prefs)
     assert len(root.children) == 1
-    assert root.name == 'post_hooks'
     assert isinstance(root.children[0], SimpleTask)
 
 
@@ -101,7 +98,7 @@ def test_stop(addtaskhook):
     """
     addtaskhook.engine = DummyEngine()
     addtaskhook.stop(force=False)
-    assert addtaskhook.engine.stop_called == True
+    assert addtaskhook.engine._stop == True
 
 
 def test_force_stop(addtaskhook):
@@ -110,9 +107,9 @@ def test_force_stop(addtaskhook):
     """
     addtaskhook.engine = DummyEngine()
     addtaskhook.stop(force=True)
-    assert addtaskhook.engine.stop_called == True
+    assert addtaskhook.engine._stop == True
 
-def test_view(addtaskview, addtaskhook):
+def test_view(addtaskview, addtaskhook, exopy_qtbot, dialog_sleep):
     """Testing the view
 
     """
@@ -124,6 +121,12 @@ def test_view(addtaskview, addtaskhook):
     assert rootview.show_path == False
     # ca devrait marcher pcq on appelle une seule fois la fixture, ensuite c'est le même objet
     assert rootview.task == addtaskhook.root_task
+
+    # test the widget display
+    win = show_widget(exopy_qtbot, rootview)
+    exopy_qtbot.wait(dialog_sleep)
+    win.close()
+
 
 def test_list_runtimes():
     """Testing list_runtimes
