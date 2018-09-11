@@ -16,13 +16,16 @@ build:
   osx_is_app: True
 
 requirements:
-  build:
-    - python
+  host:
+    - python >=3.5
+    - pyqt >=5 # Add PyQt so that it does not appear in the package requires
+               # which avoids issues when extension packages depending on exopy
+               # check that all their dependencies are present.
   run:
-    - python
+    - python >=3.5
     - python.app       [osx]
     - enaml >=0.10.2
-    - pyqt
+    - pyqt >=5
     - atom >=0.4.1
     - kiwisolver >=1.0.0
     - watchdog
