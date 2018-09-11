@@ -17,12 +17,12 @@ build:
 
 requirements:
   host:
-    - python >=3.5
+    - python
     - pyqt >=5 # Add PyQt so that it does not appear in the package requires
                # which avoids issues when extension packages depending on exopy
                # check that all their dependencies are present.
   run:
-    - python >=3.5
+    - python
     - python.app       [osx]
     - enaml >=0.10.2
     - pyqt >=5
