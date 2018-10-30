@@ -141,7 +141,7 @@ class LogPlugin(Plugin):
         """
         if not hasattr(filter, 'filter'):
             logger = logging.getLogger(__name__)
-            logger.warn('Filter does not implemet a filter method')
+            logger.warning('Filter does not implemet a filter method')
             return
 
         handlers = self._handlers
@@ -154,7 +154,7 @@ class LogPlugin(Plugin):
 
         else:
             logger = logging.getLogger(__name__)
-            logger.warn('Handler {} does not exist')
+            logger.warning('Handler {} does not exist')
 
     def remove_filter(self, id):
         """Remove the specified filter.
@@ -192,7 +192,7 @@ class LogPlugin(Plugin):
 
         else:
             logger = logging.getLogger(__name__)
-            logger.warn('Handler {} does not exist')
+            logger.warning('Handler {} does not exist')
 
     # ---- Private API --------------------------------------------------------
 

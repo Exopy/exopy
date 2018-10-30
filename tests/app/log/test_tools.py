@@ -58,7 +58,7 @@ def test_gui_handler(exopy_qtbot, logger, monkeypatch):
     exopy_qtbot.wait_until(assert_text)
     model.clean_text()
 
-    logger.warn('test')
+    logger.warning('test')
 
     def assert_text():
         assert model.text == 'WARNING: test\n'

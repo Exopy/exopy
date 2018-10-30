@@ -112,7 +112,7 @@ class IconManagerPlugin(HasPreferencesPlugin):
                     msg = msg % (self.fallback_theme, icon_id)
 
             logger = logging.getLogger(__name__)
-            logger.warn(msg)
+            logger.warning(msg)
 
         return icon
 

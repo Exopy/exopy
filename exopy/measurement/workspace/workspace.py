@@ -497,21 +497,21 @@ class MeasurementSpace(Workspace):
                 measurement.add_tool('pre-hook', pre_id)
             else:
                 msg = "Default pre-execution hook {} not found"
-                logger.warn(msg.format(pre_id))
+                logger.warning(msg.format(pre_id))
 
         for monitor_id in self.plugin.default_monitors:
             if monitor_id in self.plugin.monitors:
                 measurement.add_tool('monitor', monitor_id)
             else:
                 msg = "Default monitor {} not found."
-                logger.warn(msg.format(monitor_id))
+                logger.warning(msg.format(monitor_id))
 
         for post_id in self.plugin.default_post_hooks:
             if post_id in self.plugin.post_hooks:
                 measurement.add_tool('post-hook', post_id)
             else:
                 msg = "Default post-execution hook {} not found"
-                logger.warn(msg.format(post_id))
+                logger.warning(msg.format(post_id))
 
     def _insert_new_edition_panels(self, measurements, update=True,
                                    panels=None):
