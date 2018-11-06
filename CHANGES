@@ -5,6 +5,9 @@ Exopy Changelog
 0.2.0 - unreleased
 ------------------
 
+- only include PyQt5 in install_requires if it is not present. This avoids
+  issues with pkg_resources and conda installed PyQt5 (not seen by setuptools
+  and pkg_resources)
 - always evaluate formula even if they contain only alpha characters PR # 132
 - fix unproperly unparented child task when removing a ComplexTask PR # 132
 - identify duplicate measurements in the waiting queue PR # 130 (fvalmorra)
