@@ -9,6 +9,8 @@
 """Test for the Visa connections.
 
 """
+import logging
+
 import enaml
 
 from exopy.testing.util import show_widget, wait_for_destruction
@@ -139,6 +141,7 @@ def test_creating_a_visa_connection(prof_plugin, exopy_qtbot, caplog):
     """Test creating a Visa connection through VisaConnection.new
 
     """
+    caplog.set_level(logging.INFO)
     c = prof_plugin.create_connection('VisaTCPIP', {'__junk': ''}, True)
     w = show_widget(exopy_qtbot, c)
     assert caplog.records

@@ -233,10 +233,10 @@ class ScheduledClosing(object):
 
     def __call__(self):
         self.called = True
-        from .fixtures import dialog_sleep
+        from .fixtures import DIALOG_SLEEP
         dial = get_window(self.bot, cls=self.cls)
         wait_for_window_displayed(self.bot, dial)
-        self.bot.wait(dialog_sleep())
+        self.bot.wait(DIALOG_SLEEP)
         obs = EventObserver()
         dial.observe('finished', obs.callback)
 

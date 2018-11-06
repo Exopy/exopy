@@ -12,7 +12,6 @@
 import pytest
 import enaml
 
-from exopy.testing.measurement.fixtures import measurement as m_build
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
                                 wait_for_destruction, handle_question)
 from exopy.tasks.tasks.logic.loop_exceptions_tasks import BreakTask
@@ -26,9 +25,6 @@ with enaml.imports():
                 TaskCopyAction,
                 TaskPasteAction)
     from exopy.utils.widgets.qt_tree_menu import CutAction
-
-
-pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
 
 
 @pytest.fixture
@@ -226,7 +222,8 @@ def test_switching_between_tasks(exopy_qtbot, edition_view, dialog_sleep):
     exopy_qtbot.wait(10 + dialog_sleep)
 
 
-def test_switching_the_linked_measurement(exopy_qtbot, edition_view, dialog_sleep):
+def test_switching_the_linked_measurement(exopy_qtbot, measurement,
+                                          edition_view, dialog_sleep):
     """Test changing the measurement edited by the editor.
 
     """
@@ -236,7 +233,7 @@ def test_switching_the_linked_measurement(exopy_qtbot, edition_view, dialog_slee
 
     ed = edition_view.widget.dock_widget().widgets()[0]
 
-    ed.measurement = m_build(ed.workspace.workbench)
+    ed.measurement = measurement
 
     def assert_selected():
         tree = ed.widgets()[5]

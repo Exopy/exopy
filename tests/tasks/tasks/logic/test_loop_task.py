@@ -9,6 +9,7 @@
 """Test of the LoopTask.
 
 """
+import gc
 from multiprocessing import Event
 
 import pytest
@@ -29,9 +30,6 @@ from exopy.tasks.tasks.logic.loop_exceptions_tasks\
 with enaml.imports():
     from exopy.tasks.tasks.logic.views.loop_view import LoopView
     from exopy.tasks.tasks.base_views import RootTaskView
-
-
-pytest_plugins = str('exopy.testing.tasks.fixtures'),
 
 
 @pytest.fixture
@@ -68,7 +66,7 @@ def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
-    root = RootTask(should_stop=Event(), should_pause=Event())
+    root = RootTask()
     lt = LoopTask(name='Test')
     root.add_child_task(0, lt)
 
@@ -92,7 +90,7 @@ def test_linspace_handling_of_rounding(monkeypatch, linspace_interface):
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
-    root = RootTask(should_stop=Event(), should_pause=Event())
+    root = RootTask()
     lt = LoopTask(name='Test')
     root.add_child_task(0, lt)
 
@@ -135,7 +133,7 @@ def test_linspace_handling_of_non_matching_stop(monkeypatch,
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
-    root = RootTask(should_stop=Event(), should_pause=Event())
+    root = RootTask()
     lt = LoopTask(name='Test')
     root.add_child_task(0, lt)
 
@@ -158,6 +156,13 @@ class TestLoopTask(object):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = LoopTask(name='Test')
         self.root.add_child_task(0, self.task)
+
+    def teardown(self):
+        del self.root.should_pause
+        del self.root.should_stop
+        # Ensure we collect the file descriptor of the events. Otherwise we can
+        # get funny errors on MacOS.
+        gc.collect()
 
     def test_subtask_handling(self):
         """Test adding, changing, removing the subtask.

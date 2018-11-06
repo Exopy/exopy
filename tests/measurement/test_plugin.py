@@ -14,6 +14,8 @@ import os
 import pytest
 import enaml
 
+from exopy.measurement.measurement import Measurement
+from exopy.tasks.api import RootTask
 from exopy.testing.util import set_preferences, ErrorDialogException
 
 with enaml.imports():
@@ -134,14 +136,16 @@ def test_handling_not_found_default_tools(measurement_workbench):
         measurement_workbench.get_plugin('exopy.measurement')
 
 
-def test_find_next_measurement(measurement_workbench):
+def test_find_next_measurement(measurement_workbench, measurement):
     """Test finding the next valid measurement in the queue.
 
     """
-    from exopy.testing.measurement.fixtures import measurement
-    m1 = measurement(measurement_workbench)
-    m2 = measurement(measurement_workbench)
-    m3 = measurement(measurement_workbench)
+    plugin = measurement_workbench.get_plugin('exopy.measurement')
+    m1 = measurement
+    m2 = Measurement(plugin=plugin, root_task=RootTask(),
+                     name='Dummy', id='002')
+    m3 = Measurement(plugin=plugin, root_task=RootTask(),
+                     name='Dummy', id='003')
     plugin = measurement_workbench.get_plugin('exopy.measurement')
     plugin.enqueued_measurements.add(m1)
     plugin.enqueued_measurements.add(m2)

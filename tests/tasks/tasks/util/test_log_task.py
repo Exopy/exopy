@@ -9,6 +9,8 @@
 """Test of the Log task.
 
 """
+import gc
+
 import pytest
 import enaml
 from multiprocessing import Event
@@ -29,6 +31,13 @@ class TestLogTask(object):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = LogTask(name='Test')
         self.root.add_child_task(0, self.task)
+
+    def teardown(self):
+        del self.root.should_pause
+        del self.root.should_stop
+        # Ensure we collect the file descriptor of the events. Otherwise we can
+        # get funny errors on MacOS.
+        gc.collect()
 
     def test_check1(self):
         """Test checking that a message that cannot be formatted will result in a fail

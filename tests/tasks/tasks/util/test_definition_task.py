@@ -9,6 +9,8 @@
 """Test of the Definition task.
 
 """
+import gc
+
 import pytest
 import enaml
 from multiprocessing import Event
@@ -33,6 +35,13 @@ class TestDefinitionTask(object):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = DefinitionTask(name='Test')
         self.root.add_child_task(0, self.task)
+
+    def teardown(self):
+        del self.root.should_pause
+        del self.root.should_stop
+        # Ensure we collect the file descriptor of the events. Otherwise we can
+        # get funny errors on MacOS.
+        gc.collect()
 
     def test_perform1(self):
         """Test checking that the formatted definition gets written to the
