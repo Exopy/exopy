@@ -9,6 +9,7 @@
 """test execution of tasks.
 
 """
+import gc
 import os
 import threading
 from multiprocessing import Event
@@ -39,6 +40,15 @@ class TestTaskExecution(object):
         root.write_in_database('meas_name', 'M')
         root.write_in_database('meas_id', '001')
         self.root = root
+
+    def teardown(self):
+        del self.root.should_pause
+        del self.root.should_stop
+        del self.root.paused
+        del self.root.resumed
+        # Ensure we collect the file descriptor of the events. Otherwise we can
+        # get funny errors on MacOS.
+        gc.collect()
 
     def test_check_simple_task(self, tmpdir):
         """Test automatic testing of formatting and evaluating.

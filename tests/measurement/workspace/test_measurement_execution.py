@@ -12,7 +12,8 @@
 import pytest
 import enaml
 
-from exopy.testing.measurement.fixtures import measurement as m_build
+from exopy.measurement.measurement import Measurement
+from exopy.tasks.api import RootTask
 from exopy.testing.util import (handle_dialog, wait_for_window_displayed,
                                 CallSpy)
 
@@ -23,17 +24,16 @@ with enaml.imports():
         import MeasView, ExecutionDockItem
 
 
-pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
-
-
 @pytest.fixture
 def execution_view(measurement_workbench, workspace, exopy_qtbot):
     """Start plugins and add measurements before creating the execution view.
 
     """
     pl = measurement_workbench.get_plugin('exopy.measurement')
-    pl.enqueued_measurements.add(m_build(measurement_workbench))
-    pl.enqueued_measurements.add(m_build(measurement_workbench))
+    pl.enqueued_measurements.add(Measurement(plugin=pl, root_task=RootTask(),
+                                             name='Dummy', id='001'))
+    pl.enqueued_measurements.add(Measurement(plugin=pl, root_task=RootTask(),
+                                             name='Dummy', id='002'))
     pl.enqueued_measurements.measurements[1].name = 'dummy_test'
     pl.selected_engine = 'dummy'
     engine = pl.create('engine', pl.selected_engine)
@@ -383,7 +383,9 @@ def test_engine_status(exopy_qtbot, execution_view, dialog_sleep):
         assert en_stat.visible
     exopy_qtbot.wait_until(assert_visible)
 
-    assert en_stat.widgets()[1].text == 'Stopped'
+    def assert_status():
+        assert en_stat.widgets()[1].text == 'Stopped'
+    exopy_qtbot.wait_until(assert_status)
 
     meas = item.workspace.plugin.enqueued_measurements.measurements[0]
     item.workspace.plugin.processor.running_measurement = meas

@@ -9,27 +9,25 @@
 """Test process engine functionalities.
 
 """
+import gc
 import socket
 from threading import Thread
 from time import sleep
 
-import pytest
 import enaml
-from atom.api import Value, Bool, Unicode
+import pytest
+from atom.api import Bool, Unicode, Value
 
 from exopy.measurement.engines.api import ExecutionInfos
+from exopy.measurement.engines.process_engine.subprocess import TaskProcess
 from exopy.tasks.api import RootTask, SimpleTask
 from exopy.tasks.infos import TaskInfos
-from exopy.measurement.engines.process_engine.subprocess import TaskProcess
 
 with enaml.imports():
     from exopy.measurement.engines.process_engine.engine_declaration import\
         ProcFilter
     from exopy.app.log.manifest import LogManifest
     from exopy.tasks.manifest import TasksManagerManifest
-
-
-pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
 
 
 class WaitingTask(SimpleTask):
@@ -45,16 +43,15 @@ class WaitingTask(SimpleTask):
         return self.check_flag, {'test': 1}
 
     def perform(self):
-        s = socket.socket()
-        while True:
-            if s.connect_ex(('localhost', self.sync_port)) == 0:
-                break
-            sleep(0.01)
-        s.sendall(self.sock_id.encode('utf-8'))
-        s.recv(4096)
-        s.sendall('Waiting'.encode('utf-8'))
-        s.recv(4096)
-        s.close()
+        with socket.socket() as s:
+            while True:
+                if s.connect_ex(('localhost', self.sync_port)) == 0:
+                    break
+                sleep(0.01)
+            s.sendall(self.sock_id.encode('utf-8'))
+            s.recv(4096)
+            s.sendall('Waiting'.encode('utf-8'))
+            s.recv(4096)
 
 
 class ExecThread(Thread):
@@ -71,12 +68,14 @@ class ExecThread(Thread):
         self.value = self._engine.perform(self._exec_infos)
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def process_engine(measurement_workbench):
     measurement_workbench.register(LogManifest())
     measurement_workbench.register(TasksManagerManifest())
     plugin = measurement_workbench.get_plugin('exopy.measurement')
-    return plugin.create('engine', 'exopy.process_engine')
+    yield plugin.create('engine', 'exopy.process_engine')
+    plugin.processor.engine = None
+    gc.collect()
 
 
 @pytest.yield_fixture

@@ -17,15 +17,13 @@ import enaml
 from atom.api import Value
 from enaml.core.object import Object
 
+from exopy.measurement.measurement import Measurement
 from exopy.measurement.workspace.measurement_tracking import MeasurementTracker
-from exopy.testing.measurement.fixtures import measurement
+from exopy.tasks.api import RootTask
 
 with enaml.imports():
     from exopy.measurement.workspace.measurement_edition\
         import MeasurementEditorDockItem
-
-
-pytest_plugins = str('exopy.testing.measurement.fixtures'),
 
 
 class FalseObject(Object):
@@ -56,13 +54,15 @@ def create_false_widget(measurement, event):
 
 
 @pytest.mark.timeout(10)
-def test_measurement_tracker(measurement_workbench):
+def test_measurement_tracker(measurement_workbench, measurement):
     """Test the measurement tracker.
 
     """
+    plugin = measurement_workbench.get_plugin('exopy.measurement')
     tracker = MeasurementTracker()
-    meas1 = measurement(measurement_workbench)
-    meas2 = measurement(measurement_workbench)
+    meas1 = measurement
+    meas2 = Measurement(plugin=plugin, root_task=RootTask(),
+                        name='Dummy', id='002')
 
     ev1 = Event()
     ev2 = Event()

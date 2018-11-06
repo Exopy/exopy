@@ -24,9 +24,6 @@ with enaml.imports():
 from exopy.testing.util import show_widget, handle_dialog, get_window
 
 
-pytest_plugins = str('exopy.testing.tasks.fixtures'),
-
-
 @pytest.mark.ui
 def test_root_path_edition(exopy_qtbot, task_workbench, dialog_sleep,
                            monkeypatch):

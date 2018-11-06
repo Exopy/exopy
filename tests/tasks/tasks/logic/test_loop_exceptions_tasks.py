@@ -9,6 +9,8 @@
 """Test of the loop exceptions tasks.
 
 """
+import gc
+
 import pytest
 import enaml
 from multiprocessing import Event
@@ -38,6 +40,14 @@ class TestExceptionTasks(object):
 
     def setup(self):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
+
+    def teardown(self):
+        del self.root.should_pause
+        del self.root.should_stop
+        # Ensure we collect the file descriptor of the events. Otherwise we can
+        # get funny errors on MacOS.
+        gc.collect()
+
 
     def test_check1(self, exception_task):
         """Test that everything is ok condition is evaluable and parent

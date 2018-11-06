@@ -19,9 +19,6 @@ with enaml.imports():
     from exopy.measurement.monitors.text_monitor.custom_entry_edition\
         import EntryDialog
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures'),
-
 
 @pytest.fixture
 def monitor(text_monitor_workbench):

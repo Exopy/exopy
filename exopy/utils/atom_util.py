@@ -16,7 +16,7 @@ from ast import literal_eval
 from textwrap import fill
 from atom.api import Str, Unicode, Enum, Atom, Constant
 
-from inspect import getargspec
+from inspect import getfullargspec
 from inspect import cleandoc
 
 # String identifing the preference tag
@@ -107,7 +107,7 @@ def member_from_pref(obj, member, val):
     # If the user provided a custom "from_pref" function, then we check
     # that it has the correct signature and use it to obtain the value
     elif (isinstance(meta_value, (tuple, list)) and
-            len(getargspec(meta_value[FROM_PREF_ID])[0]) == 3):
+            len(getfullargspec(meta_value[FROM_PREF_ID])[0]) == 3):
         value = meta_value[FROM_PREF_ID](obj, member, val)
 
     elif meta_value is False:
@@ -162,7 +162,7 @@ def member_to_pref(obj, member, val):
     # If the user provided a custom "to_pref" function, then we check
     # that it has the correct signature and use it to obtain the value
     elif (isinstance(meta_value, (tuple, list)) and
-            len(getargspec(meta_value[TO_PREF_ID])[0]) == 3):
+            len(getfullargspec(meta_value[TO_PREF_ID])[0]) == 3):
         pref_value = meta_value[TO_PREF_ID](obj, member, val)
 
     elif meta_value is False:

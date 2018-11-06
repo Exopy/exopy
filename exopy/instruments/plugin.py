@@ -272,7 +272,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
         """
         if settings_id is None:
             msg = 'No id was found for the settings whose infos are %s'
-            logger.warn(msg, infos)
+            logger.warning(msg, infos)
             return None
         s_decl = self._settings.contributions[settings_id]
         sett = s_decl.new(self.workbench, infos, read_only)
@@ -483,9 +483,9 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
                     if res:
                         profiles[name] = i
                     else:
-                        logger.warn(msg)
+                        logger.warning(msg)
             else:
-                logger.warn('{} is not a valid directory'.format(path))
+                logger.warning('{} is not a valid directory'.format(path))
 
         self._profiles = profiles
 

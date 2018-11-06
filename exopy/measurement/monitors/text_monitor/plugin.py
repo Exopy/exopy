@@ -115,7 +115,7 @@ class TextMonitorPlugin(HasPreferencesPlugin):
                 config['id'] = name_or_config
             else:
                 msg = 'Requested rule not found : {}'.format(name_or_config)
-                logger.warn(msg)
+                logger.warning(msg)
                 return
 
         else:
@@ -130,7 +130,7 @@ class TextMonitorPlugin(HasPreferencesPlugin):
 
         else:
             msg = 'Requested rule class not found : {}'.format(class_id)
-            logger.warn(msg)
+            logger.warning(msg)
 
     def get_rule_type(self, rule_type_id):
         """Access the class corresponding to a given id.

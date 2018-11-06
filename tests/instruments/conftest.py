@@ -11,16 +11,14 @@
 """
 import os
 
-import pytest
 import enaml
+import pytest
 from configobj import ConfigObj
 
 with enaml.imports():
     from .contributors import InstrContributor1
 
 from exopy.testing.instruments.util import add_profile
-
-pytest_plugins = str('exopy.testing.instruments.fixtures'),
 
 PROFILE_PATH = os.path.join(os.path.dirname(__file__),
                             'fp.instr.ini')

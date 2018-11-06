@@ -21,9 +21,6 @@ with enaml.imports():
          import CreateRuleDialog, EditRulesView
 
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures'),
-
 PLUGIN_ID = 'exopy.measurement.monitors.text_monitor'
 
 

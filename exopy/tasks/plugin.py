@@ -403,7 +403,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
                     templates[name] = template_path
             else:
                 logger = logging.getLogger(__name__)
-                logger.warn('{} is not a valid directory'.format(path))
+                logger.warning('{} is not a valid directory'.format(path))
 
         self.templates = templates
 

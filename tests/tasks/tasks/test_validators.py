@@ -9,6 +9,7 @@
 """Tests for the feval tagged members fields validators.
 
 """
+import gc
 import numbers
 from multiprocessing import Event
 
@@ -20,7 +21,7 @@ from exopy.tasks.tasks.logic.loop_task import LoopTask
 from exopy.testing.tasks.util import CheckTask
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def task():
     """Create a task to test the validators.
 
@@ -35,7 +36,10 @@ def task():
     task = Tester(name='test', database_entries={'val': 1})
     loop = LoopTask(name='Loop', task=task)
     root.add_child_task(0, loop)
-    return task
+    yield task
+    del root.should_pause
+    del root.should_stop
+    gc.collect()
 
 
 def test_base_validation(task):

@@ -20,9 +20,6 @@ from exopy.testing.util import set_preferences
 with enaml.imports():
     from .contributed_rules import RulesManifest
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures')
-
 
 @pytest.fixture
 def text_monitor_plugin(text_monitor_workbench):

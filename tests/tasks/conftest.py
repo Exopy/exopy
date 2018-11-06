@@ -9,5 +9,3 @@
 """Fixture for testing the task manager plugin.
 
 """
-
-pytest_plugins = str('exopy.testing.tasks.fixtures'),

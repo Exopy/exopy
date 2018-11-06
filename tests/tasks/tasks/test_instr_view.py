@@ -27,8 +27,6 @@ with enaml.imports():
     from .instrument_contributor import InstrContributor
 
 
-pytest_plugins = str('exopy.testing.instruments.fixtures'),
-
 PROFILE_PATH = os.path.join(os.path.dirname(__file__), 'fp.instr.ini')
 
 
