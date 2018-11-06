@@ -23,9 +23,6 @@ with enaml.imports():
     from exopy.testing.measurement.contributions import Flags
 
 
-pytest_plugins = str('exopy.testing.measurement.workspace.fixtures'),
-
-
 @pytest.yield_fixture
 def workspace(exopy_qtbot, measurement_workbench, measurement):
     """Create a measurement workspace.
@@ -169,7 +166,7 @@ def test_handling_missing_measurement_in_state(exopy_qtbot, workspace):
 
 
 @pytest.mark.timeout(30)
-def test_creating_saving_loading_measurement(exopy_qtbot, workspace, 
+def test_creating_saving_loading_measurement(exopy_qtbot, workspace,
                                              monkeypatch, tmpdir):
     """Test creating, saving, loading a measurement.
 

@@ -25,9 +25,6 @@ with enaml.imports():
     from exopy.measurement.monitors.text_monitor.monitor_views\
         import (TextMonitorItem, TextMonitorEdit)
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures'),
-
 
 @pytest.fixture
 def monitor(text_monitor_workbench):

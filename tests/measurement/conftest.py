@@ -9,5 +9,3 @@
 """Fixture for testing the measurement plugin.
 
 """
-
-pytest_plugins = str('exopy.testing.measurement.fixtures'),

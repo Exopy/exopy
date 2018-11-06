@@ -22,10 +22,6 @@ with enaml.imports():
     from exopy.testing.windows import ContainerTestingWindow
 
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures'),
-
-
 @pytest.fixture
 def plugin(text_monitor_workbench):
     """Text monitor plugin.

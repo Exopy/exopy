@@ -147,9 +147,9 @@ package.
 .. note::
 
     If a fixture is defined in a fixtures.py module, one should add a
-    'pytest_plugin' variable at the top of the test module with a list of all
-    the module containing fixtures to load (modules should be specified using
-    their full path).
+    'pytest_plugin' variable to the top level conftest.py file with a list of
+    all the module containing fixtures to load (modules should be specified
+    using their full path).
 
     ex : pytest_plugins = [str('exopy.testing.instruments.fixtures')]
 

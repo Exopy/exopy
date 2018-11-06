@@ -16,9 +16,6 @@ from exopy.__main__ import ArgParser, main
 from exopy.testing.util import handle_dialog
 
 
-pytest_plugins = str('exopy.testing.fixtures'),
-
-
 def test_parser_add_argument():
     """Test adding an argument to the parser.
 

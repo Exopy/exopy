@@ -19,10 +19,6 @@ with enaml.imports():
         import TextMonitorEdit, TextMonitorItem
 
 
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures')
-
-
 def test_text_monitor_declration_functions(text_monitor_workbench,
                                            exopy_qtbot):
     """Test that we can create a monitor and its views.

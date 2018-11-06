@@ -9,6 +9,3 @@
 """Load common fixture used to test text monitor capabilities.
 
 """
-
-pytest_plugins = str('exopy.testing.measurement.'
-                     'monitors.text_monitor.fixtures'),
