@@ -251,6 +251,7 @@ def preferences_from_members(self):
             pref[name] = old_val.preferences_from_members()
         else:
             pref[name] = member_to_pref(self, member, old_val)
+#    print(pref)
     return pref
 
 
