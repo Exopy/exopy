@@ -235,39 +235,40 @@ class MultiInstrumentTask(SimpleTask):
         return test, traceback
 
     def prepare(self):
-        """Always start the driver.
+        """Always start the drivers.
 
         """
         super(MultiInstrumentTask, self).prepare()
-        for selected_instrument in [getattr(self, name)
-                                    for name in tagged_members(self, 'instr')]:
+        for name in tagged_members(self, 'instr'):
+            selected_instrument = getattr(self, name)
             self.write_in_database('instrument', selected_instrument[0])
-            self.start_driver()
+            self.start_driver(name)
 
-    def start_driver(self):
-        """Create an instance of the instrument driver and connect it.
+    def start_driver(self, name):
+        """Fills the dictionnary drivers with the instrument 'name' driver
+        and connect it.
 
         """
 
         run_time = self.root.run_time
         instrs = self.root.resources['instrs']
 
-        for selected_instrument in [getattr(self, name)
-                                    for name in tagged_members(self, 'instr')]:
-            p_id, d_id, c_id, s_id = selected_instrument
-            if selected_instrument in instrs:
-                self.drivers[''] = instrs[selected_instrument][0]
-            else:
-                profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
-                d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
-                # Profile do not always contain a settings.
-                self.driver = starter.start(d_cls,
-                                            profile['connections'][c_id],
-                                            profile['settings'].get(s_id, {}))
-                # HINT allow something dangerous as the same instrument can be
-                # accessed using multiple settings.
-                # User should be careful about this (and should be warned)
-                instrs[selected_instrument] = (self.driver, starter)
+        selected_instrument = getattr(self, name)
+        p_id, d_id, c_id, s_id = selected_instrument
+        if selected_instrument in instrs:
+            self.drivers[name] = instrs[selected_instrument][0]
+        else:
+            profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
+            d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            # Profile do not always contain a settings.
+            self.driver = starter.start(d_cls,
+                                        profile['connections'][c_id],
+                                        profile['settings'].get(s_id, {}))
+            # HINT allow something dangerous as the same instrument can be
+            # accessed using multiple settings.
+            # User should be careful about this (and should be warned)
+            instrs[selected_instrument] = (self.driver, starter)
+            self.drivers[name] = self.driver
 
     @contextmanager
     def test_driver(self):
