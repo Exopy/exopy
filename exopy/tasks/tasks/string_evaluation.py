@@ -45,6 +45,4 @@ def safe_eval(expr, local_var):
     """Eval expr with the given local variables.
 
     """
-    if expr.isalpha():
-        return expr
     return eval(expr, globals(), local_var)
