@@ -382,6 +382,8 @@ def test_collecting_unavailable_runtime(dep_workbench, runtime_deps):
                                         'owner': plugin.manifest.id},
                               )
     assert not dep.errors
+    assert 'run_bis' in dep.dependencies['test_run_collect']
+    assert 'run' not in dep.dependencies['test_run_collect']
     assert dep.unavailable['test_run_collect'] == {'run'}
 
 

@@ -44,7 +44,7 @@ class BuildContainer(Atom):
     #: Dictionary storing the collected dependencies, grouped by id.
     dependencies = Typed(dict)
 
-    #: Dictionary storing the errors which occured during collection.
+    #: Dictionary storing the errors which occurred during collection.
     errors = Typed(dict)
 
     def clean(self):
@@ -311,6 +311,8 @@ class DependenciesPlugin(Plugin):
             the requested dependencies.
 
         """
+        # Create a dictionary for each dep_id whose values are None and will
+        # be replaced by the collected dependencies after collections.
         dependencies = {k: dict.fromkeys(v)
                         for k, v in dependencies.items()}
 
@@ -352,6 +354,11 @@ class DependenciesPlugin(Plugin):
                 except Exception:
                     container.errors[dep_id] =\
                         'An unhandled exception occured :\n%s' % format_exc()
+                # Remove uncollected dependencies from the list of
+                # dependencies by filtering out None values.
+                dependencies[dep_id] =\
+                    {k: v for k, v in dependencies[dep_id].items()
+                     if v is not None}
 
         else:
             raise ValueError("kind argument must be 'build' or 'runtime' not :"
