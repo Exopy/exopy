@@ -365,7 +365,7 @@ class InstrumentManagerPlugin(HasPreferencesPlugin):
             return {}, unavailable
 
         available = ([p for p in profiles if p not in unavailable]
-                     if unavailable else profiles)
+                      if unavailable else profiles)
 
         with self.suppress_notifications():
             u = self.used_profiles

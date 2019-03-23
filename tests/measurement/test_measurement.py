@@ -332,7 +332,7 @@ def test_collecting_runtime(measurement, monkeypatch):
     # Access for known id
     assert measurement.dependencies.get_runtime_dependencies('dummy')
 
-    # Release and test impossibilty to access for uncollected deps.
+    # Release and test impossibility to access for uncollected deps.
     measurement.dependencies.release_runtimes()
     with pytest.raises(RuntimeError):
         measurement.dependencies.get_runtime_dependencies('dummy')
