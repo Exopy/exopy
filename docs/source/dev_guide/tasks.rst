@@ -731,7 +731,7 @@ Edition mode vs running mode
 In some places in the code, one may find references to the notion of running
 mode for the database. This mode should be activated when the edition of the
 tasks hierarchy is over as it allows to speed up a number of operations. In
-running mode, the databased is flattened to allow fast repeated access to the
+running mode, the database is flattened to allow fast repeated access to the
 same entry by first querying its index and then using that index for getting
 the value. Because of this, no entry can be added or removed from the database.
 Another optimization is performed by caching a pre-evaluated version of all

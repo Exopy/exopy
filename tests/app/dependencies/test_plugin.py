@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Test DependenciesManagerPLugin behavior.
+"""Test DependenciesManagerPlugin behavior.
 
 """
 import pytest
