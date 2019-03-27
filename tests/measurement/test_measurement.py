@@ -306,6 +306,9 @@ def test_collecting_runtime(measurement, monkeypatch):
     res, msg, errors = measurement.dependencies.collect_runtimes()
     assert not res
     assert 'unavailable' in msg
+    deps = measurement.dependencies
+    assert 'dummy1' in deps.get_runtime_dependencies('main')
+    assert deps.get_runtime_dependencies('main')['dummy1'] == {}
     measurement.dependencies.release_runtimes()
 
     # Runtimes unavailable for hooks
