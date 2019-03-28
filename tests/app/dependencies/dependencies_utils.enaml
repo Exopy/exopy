@@ -91,13 +91,13 @@ enamldef RuntimeDep(PluginManifest):
             collect => (workbench, owner, dependencies, unavailable, errors):
                 if exc:
                     raise RuntimeError()
+                dependencies['run_bis'] = 1
                 if err:
                     errors['run'] = 'Failed to get run'
-                    return
-                if una:
+                elif una:
                     unavailable.add('run')
-                    return
-                dependencies['run'] = 1
+                else:
+                    dependencies['run'] = 1
 
             release => (workbench, owner, dependencies):
                 del dependencies['run']

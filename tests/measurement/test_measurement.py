@@ -306,6 +306,9 @@ def test_collecting_runtime(measurement, monkeypatch):
     res, msg, errors = measurement.dependencies.collect_runtimes()
     assert not res
     assert 'unavailable' in msg
+    deps = measurement.dependencies
+    assert 'dummy1' in deps.get_runtime_dependencies('main')
+    assert deps.get_runtime_dependencies('main')['dummy1'] == {}
     measurement.dependencies.release_runtimes()
 
     # Runtimes unavailable for hooks
@@ -332,7 +335,7 @@ def test_collecting_runtime(measurement, monkeypatch):
     # Access for known id
     assert measurement.dependencies.get_runtime_dependencies('dummy')
 
-    # Release and test impossibilty to access for uncollected deps.
+    # Release and test impossibility to access for uncollected deps.
     measurement.dependencies.release_runtimes()
     with pytest.raises(RuntimeError):
         measurement.dependencies.get_runtime_dependencies('dummy')

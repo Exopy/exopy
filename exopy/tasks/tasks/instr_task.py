@@ -56,10 +56,12 @@ class InstrumentTask(SimpleTask):
         if self.selected_instrument and len(self.selected_instrument) == 4:
             p_id, d_id, c_id, s_id = self.selected_instrument
             self.write_in_database('instrument', p_id)
-            if PROFILE_DEPENDENCY_ID in run_time:
-                # Here use .get() to avoid errors if we were not granted the
-                # use of the profile. In that case config won't be used.
-                profile = run_time[PROFILE_DEPENDENCY_ID].get(p_id)
+            # Here use .get() to avoid errors if we were not granted the
+            # use of the profile. In that case config won't be used.
+            # Note that the Measurement guarantees that all requested runtime
+            # dependencies section will be present even if they are empty,
+            # which makes it safe to access PROFILE_DEPENDENCY_ID
+            profile = run_time[PROFILE_DEPENDENCY_ID].get(p_id)
         else:
             msg = ('No instrument was selected or not all informations were '
                    'provided. The instrument selected should be specified as '

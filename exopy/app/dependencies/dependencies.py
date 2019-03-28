@@ -210,10 +210,10 @@ class RuntimeDependencyCollector(Declarative):
             know the ressource owner.
 
         dependencies : dict
-            Dictionary whose values are initialised to None listing the
+            Dictionary whose values are initialized to None listing the
             dependencies to collect.
 
-        unavaible : set
+        unavailable : set
             Set of resources that could not be provided because they are
             currently unavailable.
 

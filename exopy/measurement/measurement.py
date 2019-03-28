@@ -173,7 +173,13 @@ class MeasurementDependencies(Atom):
 
     def get_runtime_dependencies(self, id):
         """Access the runtime dependencies associated with a hook or the main
-        task
+        task.
+
+        Those will correspond to the runtime dependencies that were collected.
+        Dependencies that have not been collected, because they are not
+        available for example, will not appear in here. However it is
+        guaranteed that sections corresponding to each kind of runtime
+        dependencies will be present even if they are empty.
 
         Parameters
         ----------
@@ -205,7 +211,10 @@ class MeasurementDependencies(Atom):
         deps = self._runtime_dependencies
         queried = {}
         for runtime_id, r_deps in valids.items():
-            queried[runtime_id] = {k: deps[runtime_id][k] for k in r_deps}
+            if runtime_id in deps:
+                queried[runtime_id] = {k: deps[runtime_id][k] for k in r_deps}
+            else:
+                queried[runtime_id] = {}
 
         return queried
 
