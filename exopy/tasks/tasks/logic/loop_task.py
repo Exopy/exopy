@@ -9,6 +9,8 @@
 """Task allowing to perform a loop. The iterable is given by an interface.
 
 """
+import numpy
+
 from atom.api import (Typed, Bool, set_default)
 
 from timeit import default_timer
@@ -30,8 +32,8 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
     #: is simply a convenience and can be set to None.
     task = Typed(SimpleTask).tag(child=50)
 
-    database_entries = set_default({'point_number': 11, 'index': 1,
-                                    'value': 0})
+    database_entries = set_default({'point_number': 11, 'index': 1, 'value': 0,
+                                    'loop_values':numpy.array([0])})
 
     def check(self, *args, **kwargs):
         """Overriden so that interface check are run before children ones.
@@ -84,6 +86,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
         """
         self.write_in_database('point_number', len(iterable))
+        self.write_in_database('loop_values', numpy.array(iterable))
 
         root = self.root
         for i, value in enumerate(iterable):
@@ -106,6 +109,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
         """
         self.write_in_database('point_number', len(iterable))
+        self.write_in_database('loop_values', numpy.array(iterable))
 
         root = self.root
         for i, value in enumerate(iterable):
@@ -128,6 +132,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
         """
         self.write_in_database('point_number', len(iterable))
+        self.write_in_database('loop_values', numpy.array(iterable))
 
         root = self.root
         for i, value in enumerate(iterable):
@@ -154,6 +159,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
 
         """
         self.write_in_database('point_number', len(iterable))
+        self.write_in_database('loop_values', numpy.array(iterable))
 
         root = self.root
         for i, value in enumerate(iterable):
