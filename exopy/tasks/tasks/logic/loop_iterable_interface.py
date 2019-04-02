@@ -9,6 +9,8 @@
 """Interface allowing to use an iterable in a LoopTask.
 
 """
+import numpy
+
 from atom.api import Unicode
 from collections import Iterable
 
@@ -35,6 +37,7 @@ class IterableLoopInterface(TaskInterface):
         task = self.task
         iterable = task.format_and_eval_string(self.iterable)
         task.write_in_database('point_number', len(iterable))
+        task.write_in_database('loop_values', numpy.array(iterable))
         if 'value' in task.database_entries:
             task.write_in_database('value', next(iter(iterable)))
 

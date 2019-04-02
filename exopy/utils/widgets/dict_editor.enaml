@@ -129,6 +129,7 @@ class _DictEditorModel(Atom):
         self.pairs.insert(new, pair)
         self.pairs_changed(ContainerChange(obj=self, name='pairs',
                                            moved=[(index, new, pair)]))
+        self.refresh()
 
     def remove_pair(self, index):
         """Delete a pair
