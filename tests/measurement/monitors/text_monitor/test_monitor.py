@@ -635,7 +635,7 @@ def test_text_monitor_item(exopy_qtbot, text_monitor_workbench, monitor,
                                                      name='test'))
     w.show()
     wait_for_window_displayed(exopy_qtbot, w)
-    f = w.widget.dock_widget()
+    f = w.widget.dock_widget().widgets()[0].scroll_widget()
     assert (sorted([l.text for l in f.widgets()[::2]]) ==
             sorted([e.name for e in monitor.displayed_entries]))
     exopy_qtbot.wait(dialog_sleep)
