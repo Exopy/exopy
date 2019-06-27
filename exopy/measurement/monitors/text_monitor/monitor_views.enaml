@@ -14,7 +14,7 @@ from operator import attrgetter
 from enaml.core.api import Looper, Conditional
 from enaml.layout.api import hbox, spacer, vbox
 from enaml.widgets.api import (PushButton, Container, CheckBox, Label, Field,
-                               CheckBox, Form)
+                               CheckBox, Form, ScrollArea)
 from enaml.stdlib.message_box import question
 
 from ....utils.widgets.qt_list_str_widget import QtListStrWidget
@@ -162,15 +162,22 @@ enamldef TextMonitorItem(BaseMonitorItem):
     """DockItem the monitor infos about the measurement.
 
     """
+    #: Default maximum height of the window
+    attr max_height = 700
+
     title = 'Text monitor'
 
-    Form: form:
-        Looper:
-            iterable << (sorted(monitor.displayed_entries,
-                                key=attrgetter('path')) if monitor else [])
-            Label:
-                hug_width = 'strong'
-                text << loop_item.name
-            Field:
-                read_only = True
-                text << loop_item.value
+    Container: form:
+        padding = 0
+        ScrollArea:
+            constraints = [height <= max_height]
+            Form:
+                Looper:
+                    iterable << (sorted(monitor.displayed_entries,
+                                        key=attrgetter('path')) if monitor else [])
+                    Label:
+                        hug_width = 'strong'
+                        text << loop_item.name
+                    Field:
+                        read_only = True
+                        text << loop_item.value
