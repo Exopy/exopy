@@ -12,11 +12,13 @@
 import logging
 
 import enaml
+import pytest
 
 from exopy.testing.util import show_widget, wait_for_destruction
 with enaml.imports():
     from exopy.instruments.connections.visa_connections\
-        import (VisaRaw, VisaRS232, VisaGPIB, VisaUSB, VisaTCPIP)
+        import (VisaRaw, VisaRS232, VisaGPIB, VisaUSB, VisaTCPIP,
+                VisaConnection)
 
 try:
     from pyvisa.rname import assemble_canonical_name
@@ -146,5 +148,100 @@ def test_creating_a_visa_connection(prof_plugin, exopy_qtbot, caplog):
     w = show_widget(exopy_qtbot, c)
     assert caplog.records
     assert c.read_only
+    w.close()
+    wait_for_destruction(exopy_qtbot, w)
+
+
+@pytest.mark.parametrize('id, defaults, should_log',
+                         [('VisaRS232',
+                           {'interface_type': 'ASRL',
+                            'resource_class': 'INSTR',
+                            'board': 1},
+                           False),
+                          ('VisaRS232',
+                           {'interface_type': 'ASRL',
+                            'resource_class': 'INSTR',
+                            'board': 1, 'bad': 1},
+                           True),
+                          ('VisaGPIB',
+                           {'interface_type': 'GPIB',
+                            'resource_class': 'INSTR',
+                            'board': 0,
+                            'primary_address': 1,
+                            'secondary_address': 0},
+                           False),
+                          ('VisaGPIB',
+                           {'interface_type': 'GPIB',
+                            'resource_class': 'INSTR',
+                            'board': 0,
+                            'primary_address': 1,
+                            'secondary_address': 0,
+                            'bad': 1},
+                           True),
+                          ('VisaUSB',
+                           {'interface_type': 'USB',
+                            'resource_class': 'INSTR',
+                            'manufacturer_id': '0x00',
+                            'model_code': '0x01',
+                            'serial_number': '0x02',
+                            'usb_interface_number': 0,
+                            'board': 0},
+                           False),
+                          ('VisaUSB',
+                           {'interface_type': 'USB',
+                            'resource_class': 'INSTR',
+                            'manufacturer_id': '0x00',
+                            'model_code': '0x01',
+                            'serial_number': '0x02',
+                            'usb_interface_number': 0,
+                            'board': 0,
+                            'bad': 1},
+                           True),
+                          ('VisaTCPIP',
+                           {'interface_type': 'TCPIP',
+                            'resource_class': 'INSTR',
+                            'host_address': '192.168.0.10',
+                            'lan_device_name': 'inst0',
+                            'port': 8000,
+                            'board': 0},
+                           False),
+                          ('VisaTCPIP',
+                           {'interface_type': 'TCPIP',
+                            'resource_class': 'INSTR',
+                            'host_address': '192.168.0.10',
+                            'lan_device_name': 'inst0',
+                            'board': 0,
+                            'port': 8000,
+                            'bad': 1},
+                           True),
+                          ('VisaTCPIP',
+                           {'interface_type': 'TCPIP',
+                            'resource_class': 'SOCKET',
+                            'host_address': '192.168.0.10',
+                            'port': 8000,
+                            'lan_device_name': 'inst0',
+                            'board': 0},
+                           False),
+                          ('VisaTCPIP',
+                           {'interface_type': 'TCPIP',
+                            'resource_class': 'SOCKET',
+                            'host_address': '192.168.0.10',
+                            'port': 8000,
+                            'lan_device_name': 'inst0',
+                            'bad': 0},
+                           True)   ])
+def test_validating_connection_default(id, defaults, should_log,
+                                       exopy_qtbot, caplog, prof_plugin):
+    """Test that keyword filtering works as expected.
+
+    """
+    caplog.set_level(logging.INFO)
+    c = prof_plugin.create_connection(id, defaults, False)
+    w = show_widget(exopy_qtbot, c)
+    if should_log:
+        assert caplog.records
+    else:
+        assert not caplog.records
+    assert not c.read_only
     w.close()
     wait_for_destruction(exopy_qtbot, w)
