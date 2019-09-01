@@ -28,7 +28,7 @@ enamldef VisaRaw(BaseConnection): main:
 
     """
     #: Full visa resource name. Can be an alias or an address added manually.
-    attr resource_name = ''
+    attr resource_name: str = ''
 
     constraints = [hbox(rn_lab, rn_val)]
 
@@ -49,12 +49,12 @@ enamldef BaseVisaConnection(BaseConnection): main:
 
     """
     #: Type of connection (GPIB, USB, etc). This should not be editable
-    attr interface_type = ''
+    attr interface_type: str = ''
 
     #: Resource class used in the connection (INSTR, RAW (USB), SOCKET(TCPIP))
-    attr resource_class = ''
+    attr resource_class: str = ''
 
-    #: List of all the names that should be returned by gather_infos.
+    #: List of all the names that can be returned by gather_infos.
     attr infos : list = ['interface_type', 'resource_class']
 
     alias rc_lab : rc_label
@@ -78,7 +78,7 @@ enamldef VisaRS232(BaseVisaConnection): main:
     """
     #: Serial port on which the instrument is connected. The visa address makes
     #: it look like a board number hence the name.
-    attr board = '0'
+    attr board: str = '0'
 
     title = 'VISA : serial'
 
@@ -105,13 +105,13 @@ enamldef VisaGPIB(BaseVisaConnection): main:
 
     """
     #: Index of the GPIB board to which this instrument is connected.
-    attr board = '0'
+    attr board: str = '0'
 
     #: GPIB address of the instrument.
-    attr primary_address = '0'
+    attr primary_address: str = '0'
 
     #: Secondary GPIB address to use.
-    attr secondary_address = '0'
+    attr secondary_address: str = '0'
 
     title = 'VISA : GPIB'
 
@@ -164,19 +164,19 @@ enamldef VisaUSB(BaseVisaConnection): main:
 
     """
     #: Index of the USB board to which this instrument is connected.
-    attr board = '0'
+    attr board: str = '0'
 
     #: Manufacturer ID (first part of the USB address).
-    attr manufacturer_id = ''
+    attr manufacturer_id: str = ''
 
     #: Model code (second part of the USB address).
-    attr model_code = ''
+    attr model_code: str = ''
 
     #: Serial number of the instrument (third part of the address)
-    attr serial_number = ''
+    attr serial_number: str = ''
 
     #: USB interface number.
-    attr usb_interface_number = '0'
+    attr usb_interface_number: str = '0'
 
     attr address_format = ('A USB address is of the following format :\n'
                            '{manufacturer ID}::{model code}::{serial number}')
@@ -247,16 +247,16 @@ enamldef VisaTCPIP(BaseVisaConnection): main:
 
     """
     #: Index of the ethernet board to which this instrument is connected.
-    attr board = '0'
+    attr board: str = '0'
 
     #: IP address of the instrument.
-    attr host_address = ''
+    attr host_address: str = ''
 
     #: LAN device name of the instrument (INSTR resource class only)
-    attr lan_device_name = 'inst0'
+    attr lan_device_name: str = 'inst0'
 
     #: Port to which open the socket connection (SOCKET resource class only)
-    attr port = '0'
+    attr port: str = '0'
 
     title = 'VISA : TCPIP'
 
@@ -341,7 +341,7 @@ enamldef VisaConnection(Connection):
         cls = getattr(visa_connections, self.id)
         obj = cls()
         obj.initialize()
-        allowed = set(obj.gather_infos())
+        allowed = set(obj.infos)
         unknown = set(defaults) - allowed
         if unknown:
             msg = ('When creating %s connection had to remove unknown '
@@ -349,6 +349,15 @@ enamldef VisaConnection(Connection):
             logger.info(msg % (self.id, unknown))
             defaults = {k: v for k, v in defaults.items() if k in allowed}
 
-        conn = cls(declaration=self, **defaults)
+        # Enforce that all arguments are string
+        sanitized = {}
+        for k, v in defaults.items():
+            try:
+                sane_value = str(v)
+            except Exception as e:
+                msg = 'Failed to convert value of %s to str.' % k
+                raise ValueError(msg)
+            sanitized[k] = sane_value
+        conn = cls(declaration=self, **sanitized)
         conn.read_only = read_only
         return conn
