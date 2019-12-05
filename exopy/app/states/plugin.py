@@ -124,16 +124,12 @@ class StatePlugin(Plugin):
         """
         state = self._states.contributions[state_id]
 
-        # Explicit casting required as Python 2 does not like Unicode for class
-        # name
-        class_name = str(''.join([s.capitalize()
-                                  for s in state_id.split('.')]))
+        # Create the class name
+        class_name = ''.join([s.capitalize() for s in state_id.split('.')])
 
         members = {}
-        # Explicit casting required as Python 2 does not like Unicode for
-        # members name
         for m in state.sync_members:
-            members[str(m)] = Value()
+            members[m] = Value()
         state_class = type(class_name, (_StateHolder,), members)
 
         # Instantiation , initialisation, and binding of the state object to
