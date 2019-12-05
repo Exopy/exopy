@@ -95,14 +95,9 @@ def check_app_folder(workbench, cmd_args):
     if (not os.path.isfile(app_dir) or
             'app_path' not in ConfigObj(app_dir, encoding='utf-8') or
             getattr(cmd_args, 'reset_app_folder', None)):
-        path = ''
-        try:
-            # Explicit casting to detect encoding issues.
-            path = str(os.path.expanduser(os.path.join('~', 'exopy')))
-        except Exception:
-            # Silently ignore issues on Python 2 when userpath contains
-            # non-ascii characters.
-            pass
+
+        # Explicit casting to detect encoding issues.
+        path = str(os.path.expanduser(os.path.join('~', 'exopy')))
         dial = AppDirSelectionDialog(path=path)
         if not dial.exec_():
             sys.exit(1)

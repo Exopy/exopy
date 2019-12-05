@@ -97,7 +97,6 @@ Imports should be at the top of the file (after the module docstring) save in
 special cases. They should be group as follow (each group separated from the
 following by a blank line) :
 
-- special imports for Python 2/3 compatibility
 - standard library imports
 - third parties libraries imports
 - relative imports

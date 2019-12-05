@@ -44,12 +44,12 @@ otherwise you can specify the function to use to serialize/desarialize should
 be passed as a tuple/list.
 
 If a parameter value can depend on values stored in the database, it should be
-declared as a Unicode member to let the user enter a formula ('{' and '}' are
+declared as a Str member to let the user enter a formula ('{' and '}' are
 used to identify the part to replace with the value stored in the database).
 
 .. code-block:: python
 
-    from atom.api import Unicode, Int
+    from atom.api import Str, Int
 
     class MyTask(SimpleTask):
         """MyTask description.
@@ -87,8 +87,10 @@ The actual description of what the task is meant to do is contained in the
 interfaceable task see next section). This method take either no argument, or a
 single keyword argument if it can be used inside a loop in which case the
 argument will be the current value of the loop. If subclassing |ComplexTask|
-be sure to call the perform methods of all children tasks (stored in the
-`children` member). Below is a list of some useful methods :
+be sure to call the `perform_` methods of all children tasks (stored in the
+``children`` member). Note the trailing ``_`` in ``perform_``, which denotes that
+``perform`` has been properly wrapped to handle parallelism and synchornisation.
+Below is a list of some useful methods :
 
 - |write_in_database|: is used to write a value in the database. In the
   database, values are stored according to the path to the task and its name,

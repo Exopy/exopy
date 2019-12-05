@@ -59,7 +59,7 @@ def make_handler(id, method_name):
         pl = event.workbench.get_plugin(id)
         return getattr(pl, method_name)(**event.parameters)
 
-    handler.__name__ += str('_' + method_name)  # Python 2 needs a bytes string
+    handler.__name__ += '_' + method_name
     return handler
 
 

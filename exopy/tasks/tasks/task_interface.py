@@ -409,5 +409,5 @@ class IInterface(BaseInterface):
             self.interface_id = self.parent.interface_id + ':' + i_id
         else:
             self.interface_id = i_id
-        task_member = self.get_member(str('task'))  # Python 2, Atom 0.x compat
+        task_member = self.get_member('task')
         task_member.reset(self)
