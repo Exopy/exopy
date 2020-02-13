@@ -10,9 +10,9 @@ branches:
 
 matrix:
   include:
-    - env: PYTHON=3.5 CONDA_PY=35 QT_VERSION=5
     - env: PYTHON=3.6 CONDA_PY=36 QT_VERSION=5
     - env: PYTHON=3.7 CONDA_PY=37 QT_VERSION=5
+    - env: PYTHON=3.8 CONDA_PY=38 QT_VERSION=5
 
 before_install:
 
@@ -40,7 +40,10 @@ before_install:
   - export CONDA_BLD_PATH=$(pwd)
 
   # Install exopy dependencies
-  - $CONDA_INSTALL pyqt=$QT_VERSION numpy configobj watchdog enaml>=0.10.2 qtawesome pyvisa
+  - $CONDA_INSTALL pyqt=$QT_VERSION numpy configobj watchdog qtawesome pyvisa
+
+  # Temporarily install from custom enaml branch
+  - $PIP_INSTALL https://github.com/nucleic/tarball/py38
 
   # Intall test tools
   - $CONDA_INSTALL pytest
