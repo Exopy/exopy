@@ -61,8 +61,9 @@ install:
 
   # Build exopy conda package and install it (check that build script is not broken)
   - cd $TRAVIS_BUILD_DIR
-  - conda build conda -q  # Package building does run only very minimal tests
-  - conda install exopy --use-local -q
+  #- conda build conda -q  # Package building does run only very minimal tests
+  #- conda install exopy --use-local -q
+  - python setup.py develop
   - cd ~
 
 before_script:
