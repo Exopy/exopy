@@ -16,7 +16,7 @@ Those mechanisms are used to collect task classes (build) and
 also drivers classes and intsrument profiles (runtime)
 
 """
-from atom.api import (Unicode)
+from atom.api import (Str)
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -31,7 +31,7 @@ class BuildDependency(Declarative):
     """
     #: Unique id for this extension. Should match the dep_type attribute value
     #: of the object it is meant for.
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def analyse(self, workbench, obj, getter, dependencies, errors):
@@ -125,11 +125,11 @@ class RuntimeDependencyAnalyser(Declarative):
 
     """
     #: Unique id for this extension.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Id of the collector that should be used to collect the dependencies
     #: discovered during analysis.
-    collector_id = d_(Unicode())
+    collector_id = d_(Str())
 
     @d_func
     def analyse(self, workbench, obj, dependencies, errors):
@@ -164,7 +164,7 @@ class RuntimeDependencyCollector(Declarative):
 
     """
     #: Unique id for this extension.
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def validate(self, workbench, dependencies, errors):

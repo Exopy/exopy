@@ -9,7 +9,7 @@
 """Entries that can be displayed by the text monitor.
 
 """
-from atom.api import (Unicode, List)
+from atom.api import (Str, List)
 from enaml.application import deferred_call
 
 from exopy.utils.atom_util import HasPrefAtom
@@ -20,16 +20,16 @@ class MonitoredEntry(HasPrefAtom):
 
     """
     #: User understandable name of the monitored entry.
-    name = Unicode().tag(pref=True)
+    name = Str().tag(pref=True)
 
     #: Full name of the entry as found or built from the database.
-    path = Unicode().tag(pref=True)
+    path = Str().tag(pref=True)
 
     #: Formatting of the entry.
-    formatting = Unicode().tag(pref=True)
+    formatting = Str().tag(pref=True)
 
     #: Current value that the monitor should display.
-    value = Unicode()
+    value = Str()
 
     #: List of database entries the entry depend_on.
     depend_on = List().tag(pref=True)

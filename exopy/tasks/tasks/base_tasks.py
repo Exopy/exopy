@@ -24,7 +24,7 @@ from types import MethodType
 from cProfile import Profile
 from operator import attrgetter
 
-from atom.api import (Atom, Int, Bool, Value, Unicode, List,
+from atom.api import (Atom, Int, Bool, Value, Str, List,
                       ForwardTyped, Typed, Callable, Dict, Signal,
                       Tuple, Coerced, Constant, set_default)
 from configobj import Section, ConfigObj
@@ -70,10 +70,10 @@ class BaseTask(Atom):
     dep_type = Constant(DEP_TYPE).tag(pref=True)
 
     #: Name of the class, used for persistence.
-    task_id = Unicode().tag(pref=True)
+    task_id = Str().tag(pref=True)
 
     #: Name of the task this should be unique in hierarchy.
-    name = Unicode().tag(pref=True)
+    name = Str().tag(pref=True)
 
     #: Depth of the task in the hierarchy. this should not be manipulated
     #: directly by user code.
@@ -88,11 +88,11 @@ class BaseTask(Atom):
     #: Entries the task declares in the database and the associated default
     #: values. This should be copied and re-assign when modified not modfied
     #: in place.
-    database_entries = Dict(Unicode(), Value())
+    database_entries = Dict(Str(), Value())
 
     #: Path of the task in the hierarchy. This refers to the parent task and
     #: is used when writing in the database.
-    path = Unicode()
+    path = Str()
 
     #: Reference to the root task in the hierarchy.
     root = ForwardTyped(lambda: RootTask)
@@ -110,14 +110,14 @@ class BaseTask(Atom):
 
     #: Dictionary indicating whether the task is executed in parallel
     #: ('activated' key) and which is pool it belongs to ('pool' key).
-    parallel = Dict(Unicode()).tag(pref=True)
+    parallel = Dict(Str()).tag(pref=True)
 
     #: Dictionary indicating whether the task should wait on any pool before
     #: performing its job. Three valid keys can be used :
     #: - 'activated' : a bool indicating whether or not to wait.
     #: - 'wait' : the list should then specify which pool should be waited.
     #: - 'no_wait' : the list should specify which pool not to wait on.
-    wait = Dict(Unicode()).tag(pref=True)
+    wait = Dict(Str()).tag(pref=True)
 
     #: Dict of access exception in the database. This should not be manipulated
     #: by user code.
@@ -1042,7 +1042,7 @@ class RootTask(ComplexTask):
 
     """
     #: Path to which log infos, preferences, etc should be written by default.
-    default_path = Unicode('').tag(pref=True)
+    default_path = Str('').tag(pref=True)
 
     #: Should the execution be profiled.
     should_profile = Bool().tag(pref=True)

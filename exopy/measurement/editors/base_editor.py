@@ -9,7 +9,7 @@
 """Base classes for all editors.
 
 """
-from atom.api import Unicode, Typed, Bool, ForwardTyped, Int
+from atom.api import Str, Typed, Bool, ForwardTyped, Int
 from enaml.core.api import Declarative, d_, d_func
 from enaml.widgets.api import Page
 
@@ -80,10 +80,10 @@ class Editor(Declarative):
     """
     #: Unique name used to identify the editor.
     #: The usual format is top_level_package_name.tool_name
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Editor description.
-    description = d_(Unicode())
+    description = d_(Str())
 
     #: Rank of this editor. Editors are displayed by rank and alphabetical
     #: order

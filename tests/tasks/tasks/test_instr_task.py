@@ -9,7 +9,7 @@
 """Test for the instrument task.
 
 """
-from atom.api import Unicode
+from atom.api import Str
 
 from exopy.tasks.tasks.base_tasks import RootTask
 from exopy.tasks.tasks.validators import Feval
@@ -52,7 +52,7 @@ class TestInstrumentTask(object):
                                    'settings': {'s': {}}}}}
 
         class InTask(InstrumentTask):
-            feval = Unicode('1').tag(feval=Feval())
+            feval = Str('1').tag(feval=Feval())
 
         self.task = InTask(name='Dummy',
                            selected_instrument=('p', 'd', 'c', 's'))

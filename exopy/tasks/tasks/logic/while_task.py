@@ -9,7 +9,7 @@
 """Task allowing to use a while statement.
 
 """
-from atom.api import (Unicode, set_default)
+from atom.api import (Str, set_default)
 
 from ..validators import Feval
 from ..base_tasks import ComplexTask
@@ -24,7 +24,7 @@ class WhileTask(ComplexTask):
 
     """
     #: Condition under which to continue looping.
-    condition = Unicode().tag(pref=True, feval=Feval())
+    condition = Str().tag(pref=True, feval=Feval())
 
     database_entries = set_default({'index': 1})
 

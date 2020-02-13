@@ -12,7 +12,7 @@
 import os
 from textwrap import fill
 
-from atom.api import (Atom, Unicode, Bool, ForwardTyped, observe)
+from atom.api import (Atom, Str, Bool, ForwardTyped, observe)
 from enaml.widgets.api import (Container, Field, MultilineField, CheckBox,
                                PushButton, Dialog)
 from enaml.layout.api import align, hbox, vbox, spacer
@@ -36,13 +36,13 @@ class TemplateSaverModel(Atom):
     manager = ForwardTyped(task_manager)
 
     #: Currently selected folder in which to save the template.
-    folder = Unicode()
+    folder = Str()
 
     #: File in which to save the template.
-    filename = Unicode()
+    filename = Str()
 
     #: Documentation for the template.
-    doc = Unicode()
+    doc = Str()
 
     #: Flag indicating whether or not enough informations have been provided
     #: to porceed with saving.

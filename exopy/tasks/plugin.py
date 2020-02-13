@@ -13,7 +13,7 @@ import os
 import logging
 from collections import defaultdict
 
-from atom.api import List, Dict, Typed, Unicode
+from atom.api import List, Dict, Typed, Str
 from watchdog.observers import Observer
 
 from .declarations import (Task, Interface, Tasks, Interfaces, TaskConfig,
@@ -45,7 +45,7 @@ class TaskManagerPlugin(HasPreferencesPlugin):
     filters = List()
 
     #: Path to the file in which the names for the tasks are located.
-    auto_task_path = Unicode(os.path.join(FOLDER_PATH,
+    auto_task_path = Str(os.path.join(FOLDER_PATH,
                                           'tasknames.txt')).tag(pref=True)
 
     #: List of names to use when creating a new task.

@@ -13,7 +13,7 @@ import logging
 import os
 from functools import partial
 
-from atom.api import Typed, Unicode, List, ForwardTyped, Enum, Bool, Dict
+from atom.api import Typed, Str, List, ForwardTyped, Enum, Bool, Dict
 
 from ..utils.plugin_tools import (HasPreferencesPlugin, ExtensionsCollector,
                                   make_extension_validator)
@@ -52,7 +52,7 @@ class MeasurementPlugin(HasPreferencesPlugin):
 
     #: Reference to the last directory from/in which a measurement was
     #: loaded/saved
-    path = Unicode().tag(pref=True)
+    path = Str().tag(pref=True)
 
     #: Currently edited measurements.
     edited_measurements = Typed(MeasurementContainer, ())
@@ -67,7 +67,7 @@ class MeasurementPlugin(HasPreferencesPlugin):
     engines = List()
 
     #: Currently selected engine represented by its id.
-    selected_engine = Unicode().tag(pref=True)
+    selected_engine = Str().tag(pref=True)
 
     #: What to do of the engine when there is no more measurement to perform.
     engine_policy = Enum('stop', 'sleep').tag(pref=True)

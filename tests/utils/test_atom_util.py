@@ -12,7 +12,7 @@
 from collections import OrderedDict
 
 import pytest
-from atom.api import (Unicode, Float, Enum, List, Typed, Int, Value,
+from atom.api import (Str, Float, Enum, List, Typed, Int, Value,
                       Constant)
 from exopy.utils.atom_util import (tagged_members, member_from_pref,
                                    member_to_pref, HasPrefAtom,
@@ -32,7 +32,7 @@ class _Faux(HasPrefAtom):
 
 class _Aux(HasPrefAtom):
 
-    string = Unicode().tag(pref=True)
+    string = Str().tag(pref=True)
     float_n = Float().tag(pref=True)
     enum = Enum('a', 'b').tag(pref=True)
     enum_float = Enum(1.0, 2.0).tag(pref=True)

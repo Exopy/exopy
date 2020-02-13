@@ -9,7 +9,7 @@
 """Preferences plugin test helpers.
 
 """
-from atom.api import Atom, Unicode
+from atom.api import Atom, Str
 from enaml.workbench.api import PluginManifest, Extension
 
 from exopy.utils.plugin_tools import HasPreferencesPlugin
@@ -21,10 +21,10 @@ class _Pref(HasPreferencesPlugin):
 
     """
     #: Non auto saving member.
-    string = Unicode().tag(pref=True)
+    string = Str().tag(pref=True)
 
     #: Member needing to be automatically saved.
-    auto = Unicode().tag(pref=True)
+    auto = Str().tag(pref=True)
 
 
 enamldef PrefContributor(PluginManifest):

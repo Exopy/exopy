@@ -32,7 +32,7 @@ import queue
 from logging.handlers import TimedRotatingFileHandler
 from threading import Thread
 from enaml.application import deferred_call
-from atom.api import Atom, Unicode, Int
+from atom.api import Atom, Str, Int
 import codecs
 
 
@@ -199,7 +199,7 @@ class LogModel(Atom):
     """
     #: Text representing all the messages sent by the handler.
     #: Should not be altered by user code.
-    text = Unicode()
+    text = Str()
 
     #: Maximum number of lines.
     buff_size = Int(1000)

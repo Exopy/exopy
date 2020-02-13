@@ -24,7 +24,7 @@ The window is divided in two :
 """
 import sys
 import os
-from atom.api import Atom, Unicode, Bool
+from atom.api import Atom, Str, Bool
 from enaml.widgets.api import (Window, Container, PushButton, Field,
                                MultilineField, GroupBox)
 from enaml.layout.api import vbox, hbox, spacer
@@ -45,7 +45,7 @@ class Model(Atom):
 
     """
     #: Text displayed by the completer.
-    text = Unicode()
+    text = Str()
 
     #: Flag used to change the proposed list of entries.
     _flag = Bool()

@@ -11,7 +11,7 @@
 """
 import sys
 import os
-from atom.api import Atom, Unicode, Signal, List
+from atom.api import Atom, Str, Signal, List
 from enaml.widgets.api import (Window, Container, Label, MultilineField)
 from enaml.layout.api import vbox, hbox, spacer
 from enaml.stdlib.mapped_view import MappedView

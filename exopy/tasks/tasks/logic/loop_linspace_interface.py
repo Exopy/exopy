@@ -13,7 +13,7 @@ import numbers
 from decimal import Decimal
 
 import numpy as np
-from atom.api import Unicode
+from atom.api import Str
 
 from ..task_interface import TaskInterface
 from ..validators import Feval
@@ -24,13 +24,13 @@ class LinspaceLoopInterface(TaskInterface):
 
     """
     #: Value at which to start the loop.
-    start = Unicode('0.0').tag(pref=True, feval=Feval(types=numbers.Real))
+    start = Str('0.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Value at which to stop the loop (included)
-    stop = Unicode('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
+    stop = Str('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    step = Unicode('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
+    step = Str('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.

@@ -9,7 +9,7 @@
 """Declarative class for defining hnadling of preferences.
 
 """
-from atom.api import List, Unicode
+from atom.api import List, Str
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -22,11 +22,11 @@ class Preferences(Declarative):
     """
     #: Name of the method of the plugin contributing this extension to call
     #: when the preference plugin need to save the preferences.
-    saving_method = d_(Unicode('preferences_from_members'))
+    saving_method = d_(Str('preferences_from_members'))
 
     #: Name of the method of the plugin contributing this extension to call
     #: when the preference plugin need to load preferences.
-    loading_method = d_(Unicode('update_members_from_preferences'))
+    loading_method = d_(Str('update_members_from_preferences'))
 
     #: The list of plugin members whose values should be observed and whose
     #: update should cause and automatic update of the preferences.

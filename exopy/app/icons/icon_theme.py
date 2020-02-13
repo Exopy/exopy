@@ -9,7 +9,7 @@
 """Extension objects to the icon plugin.
 
 """
-from atom.api import Unicode, Dict, List
+from atom.api import Str, Dict, List
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -25,7 +25,7 @@ class IconTheme(Declarative):
 
     """
     #: Unique id of the icon theme.
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def get_icon(self, manager, icon_id):
@@ -77,10 +77,10 @@ class IconThemeExtension(Declarative):
 
     """
     #: Unicsue id of the extension.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Id of the icon theme to which to contribute the children Icon objects.
-    theme = d_(Unicode())
+    theme = d_(Str())
 
     def icons(self):
         """List the associated icons.
@@ -103,7 +103,7 @@ class Icon(Declarative):
     """
     #: Unique id describing the icon. It should provide a clear description
     #: of the icon purpose.
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def get_icon(self, manager, theme):

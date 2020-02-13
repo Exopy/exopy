@@ -61,7 +61,7 @@ used to identify the part to replace with the value stored in the database).
         my_int = Int(1).tag(pref=True)  # Integer with a default value of 1
 
         #: my_text description
-        my_text = Unicode().tag(pref=True)
+        my_text = Str().tag(pref=True)
 
 Tasks use a common database (which is nothing else that a kind of smart
 dictionary) to exchange data. If a task needs to write a value in the database
@@ -123,12 +123,12 @@ simply need to tag the concerned member with 'fmt' (formatting only) or 'feval'
         """MyTask description.
 
         """
-        value1 = Unicode().tag(feval=v.Feval(types=numbers.Real,
+        value1 = Str().tag(feval=v.Feval(types=numbers.Real,
                                              warn=True))
 
-        value2 = Unicode().tag(feval=v.SkipEmpty())
+        value2 = Str().tag(feval=v.SkipEmpty())
 
-        value3 = Unicode().tag(feval=v.SkipLoop())
+        value3 = Str().tag(feval=v.SkipLoop())
 
 In the above example :
 
@@ -370,7 +370,7 @@ implemented and the handling of the database use the same members.
 
 .. code-block:: python
 
-    from atom.api import Unicode, Int
+    from atom.api import Str, Int
 
     class MyInterface(TaskInterface):
         """MyInterface description.
@@ -382,7 +382,7 @@ implemented and the handling of the database use the same members.
         my_int = Int(1).tag(pref=True)  # Integer with a default value of 1
 
         #: my_text description
-        my_text = Unicode().tag(pref=True)
+        my_text = Str().tag(pref=True)
 
         database_entries = set_default({'val': 1})
 

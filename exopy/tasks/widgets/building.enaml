@@ -9,7 +9,7 @@
 """Widgets dedicated to the construction of new tasks.
 
 """
-from atom.api import (Atom, Typed, Unicode, ForwardTyped, Bool, observe)
+from atom.api import (Atom, Typed, Str, ForwardTyped, Bool, observe)
 from enaml.core.api import Include
 from enaml.widgets.widget import Widget
 from enaml.layout.api import hbox, spacer, vbox

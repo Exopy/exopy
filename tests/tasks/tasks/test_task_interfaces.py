@@ -11,7 +11,7 @@
 """
 import pytest
 
-from atom.api import Bool, Unicode, set_default
+from atom.api import Bool, Str, set_default
 
 from exopy.tasks.tasks.base_tasks import ComplexTask, RootTask
 from exopy.tasks.tasks.validators import Feval
@@ -53,10 +53,10 @@ class InterfaceTest2(TaskInterface):
 
     """
     #: Member to test auto formatting of tagged members.
-    fmt = Unicode().tag(fmt=True)
+    fmt = Str().tag(fmt=True)
 
     #: Member to test auto evaluation of tagged members.
-    feval = Unicode().tag(feval=Feval())
+    feval = Str().tag(feval=Feval())
 
     database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
 
@@ -66,10 +66,10 @@ class InterfaceTest2bis(TaskInterface):
 
     """
     #: Member to test auto formatting of tagged members.
-    fmt = Unicode().tag(fmt=True)
+    fmt = Str().tag(fmt=True)
 
     #: Member to test auto evaluation of tagged members.
-    feval = Unicode().tag(feval=object())
+    feval = Str().tag(feval=object())
 
     database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
 
@@ -122,10 +122,10 @@ class IIinterfaceTest2(IInterface):
 
     """
     #: Member to test auto formatting of tagged members.
-    fmt = Unicode().tag(fmt=True)
+    fmt = Str().tag(fmt=True)
 
     #: Member to test auto evaluation of tagged members.
-    feval = Unicode().tag(feval=Feval())
+    feval = Str().tag(feval=Feval())
 
     database_entries = set_default({'fmt': '', 'feval': 0, 'itest': 2.0})
 

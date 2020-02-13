@@ -9,7 +9,7 @@
 """Tasks used to modify the execution of a loop.
 
 """
-from atom.api import (Unicode, set_default)
+from atom.api import (Str, set_default)
 
 from ..validators import Feval
 from ..base_tasks import SimpleTask
@@ -25,7 +25,7 @@ class BreakTask(SimpleTask):
 
     """
     #: Condition under which to perform the break.
-    condition = Unicode().tag(pref=True, feval=Feval())
+    condition = Str().tag(pref=True, feval=Feval())
 
     #: Never run this task in parallel.
     parallel = set_default({'forbidden': True})
@@ -59,7 +59,7 @@ class ContinueTask(SimpleTask):
 
     """
     #: Condition under which to continue.
-    condition = Unicode().tag(pref=True, feval=Feval())
+    condition = Str().tag(pref=True, feval=Feval())
 
     #: Never run this task in parallel.
     parallel = set_default({'forbidden': True})

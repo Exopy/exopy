@@ -12,7 +12,7 @@
 import re
 from importlib import import_module
 
-from atom.api import Unicode, Bool
+from atom.api import Str, Bool
 from enaml.core.api import Declarative, d_
 
 from .traceback import format_exc
@@ -96,11 +96,11 @@ class GroupDeclarator(Declarator):
     """
     #: Prefix path to use for all children Declarator. Path should be dot
     #: separated.
-    path = d_(Unicode())
+    path = d_(Str())
 
     #: Id of the group common to all children Declarator. It is the
     #: responsability of the children to mention they are part of a group.
-    group = d_(Unicode())
+    group = d_(Str())
 
     def get_path(self):
         """Overriden method to walk all parents.

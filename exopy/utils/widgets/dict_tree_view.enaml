@@ -11,7 +11,7 @@
 """
 from collections import Mapping
 
-from atom.api import Atom, Typed, Value, Unicode, ForwardTyped, List
+from atom.api import Atom, Typed, Value, Str, ForwardTyped, List
 
 from .qt_tree_widget import QtTreeWidget
 from .tree_nodes import TreeNode
@@ -22,7 +22,7 @@ class Leaf(Atom):
 
     """
     #: Key under which the value is stored.
-    name = Unicode()
+    name = Str()
 
     #: Value associated with the name.
     value = Value()
@@ -33,7 +33,7 @@ class Node(Atom):
 
     """
     #: Key under which the mapping is stored or blank if this is the root node.
-    name = Unicode()
+    name = Str()
 
     #: Nodes generated from the key/value pairs of the mapping.
     nodes = List()

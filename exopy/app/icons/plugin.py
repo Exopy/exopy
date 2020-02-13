@@ -11,7 +11,7 @@
 """
 import logging
 
-from atom.api import List, Typed, Unicode
+from atom.api import List, Typed, Str
 
 from .icon_theme import IconTheme, IconThemeExtension
 from ...utils.traceback import format_exc
@@ -29,11 +29,11 @@ class IconManagerPlugin(HasPreferencesPlugin):
 
     """
     #: Id of the currently selected icon theme
-    current_theme = Unicode('exopy.FontAwesome').tag(pref=True)
+    current_theme = Str('exopy.FontAwesome').tag(pref=True)
 
     #: Id of the icon theme to use as fallback if a theme fail to provide an
     #: icon.
-    fallback_theme = Unicode('exopy.FontAwesome').tag(pref=True)
+    fallback_theme = Str('exopy.FontAwesome').tag(pref=True)
 
     #: Registered icon themes ids
     icon_themes = List()

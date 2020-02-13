@@ -9,7 +9,7 @@
 """App plugin extensions declarations.
 
 """
-from atom.api import Unicode, Int
+from atom.api import Str, Int
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -22,7 +22,7 @@ class AppStartup(Declarative):
 
     """
     #: The globally unique identifier for the start-up.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: The priority determine the order in which AppStartup are called. The
     #: **lowest** this number the sooner the object will be called. Two
@@ -64,7 +64,7 @@ class AppClosing(Declarative):
 
     """
     #: The globally unique identifier for the closing.
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def validate(self, window, event):
@@ -107,7 +107,7 @@ class AppClosed(Declarative):
 
     """
     #: The globally unique identifier for the closing.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: The priority determine the order in which AppClosed are called. The
     #: **lowest** this number the sooner the object will be called. Two

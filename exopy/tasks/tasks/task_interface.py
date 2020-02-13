@@ -9,7 +9,7 @@
 """Definition of the base classes for interfaces in tasks.
 
 """
-from atom.api import (Atom, ForwardTyped, Typed, Unicode, Dict, Property,
+from atom.api import (Atom, ForwardTyped, Typed, Str, Dict, Property,
                       Constant)
 
 from ...utils.traceback import format_exc
@@ -283,7 +283,7 @@ class BaseInterface(HasPrefAtom):
 
     #: Id of the interface preceded by the ids of all its anchors separated by
     # ':'. Used for persistence purposes.
-    interface_id = Unicode().tag(pref=True)
+    interface_id = Str().tag(pref=True)
 
     #: Dict of database entries added by the interface.
     database_entries = Dict()

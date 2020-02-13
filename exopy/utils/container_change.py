@@ -9,7 +9,7 @@
 """Payload to use when notifying the system about a container change.
 
 """
-from atom.api import (Atom, Value, Unicode, List)
+from atom.api import (Atom, Value, Str, List)
 
 
 class ContainerChange(Atom):
@@ -20,7 +20,7 @@ class ContainerChange(Atom):
     obj = Value()
 
     #: Name of the modified container.
-    name = Unicode()
+    name = Str()
 
     #: List of added entries. Should not be manipulated directly by user code.
     #: Use the add_operation method to add operations.

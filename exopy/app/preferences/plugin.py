@@ -10,7 +10,7 @@
 
 """
 import os
-from atom.api import Unicode, Typed, Dict
+from atom.api import Str, Typed, Dict
 from enaml.workbench.api import Plugin
 from configobj import ConfigObj
 from functools import partial
@@ -29,10 +29,10 @@ class PrefPlugin(Plugin):
     """
     #: Folder used by the application to store informations such as preferences
     #: log files, ...
-    app_directory = Unicode()
+    app_directory = Str()
 
     #: Path of the last location visited using a dialog.
-    last_directory = Unicode()
+    last_directory = Str()
 
     def start(self):
         """Start the plugin, locate app folder and load default preferences.

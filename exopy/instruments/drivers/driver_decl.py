@@ -9,7 +9,7 @@
 """Declarator for registering drivers.
 
 """
-from atom.api import Unicode, Dict, Property, Enum
+from atom.api import Str, Dict, Property, Enum
 from enaml.core.api import d_
 
 from ...utils.traceback import format_exc
@@ -25,24 +25,24 @@ class Driver(Declarator):
     #: name preceded by ':'.
     #: TODO complete : ex: exopy_hqc_legacy.instruments.
     #: The path of any parent Drivers object will be prepended to it.
-    driver = d_(Unicode())
+    driver = d_(Str())
 
     #: Name identifying the system the driver is built on top of (lantz, hqc,
     #: slave, etc ...). Allow to handle properly multiple drivers declared in
     #: a single extension package for the same instrument.
-    architecture = d_(Unicode())
+    architecture = d_(Str())
 
     #: Name of the instrument manufacturer. Can be inferred from parent
     #: Drivers.
-    manufacturer = d_(Unicode())
+    manufacturer = d_(Str())
 
     #: Serie this instrument is part of. This is optional as it does not always
     #: make sense to be specified but in some cases it can help finding a
     #: a driver. Can be inferred from parent Drivers.
-    serie = d_(Unicode())
+    serie = d_(Str())
 
     #: Model of the instrument this driver has been written for.
-    model = d_(Unicode())
+    model = d_(Str())
 
     #: Kind of the instrument, to ease instrument look up. If no kind match,
     #: leave 'Other' as the kind. Can be inferred from parent
@@ -51,7 +51,7 @@ class Driver(Declarator):
 
     #: Starter to use when initializing/finialzing this driver.
     #: Can be inferred from parent Drivers.
-    starter = d_(Unicode())
+    starter = d_(Str())
 
     #: Supported connections and default values for some parameters. The
     #: admissible values for a given kind can be determined by looking at the
@@ -264,19 +264,19 @@ class Drivers(GroupDeclarator):
     """
     #: Name identifying the system the driver is built on top of for the
     #: declared children.
-    architecture = d_(Unicode())
+    architecture = d_(Str())
 
     #: Instrument manufacturer of the declared children.
-    manufacturer = d_(Unicode())
+    manufacturer = d_(Str())
 
     #: Serie of the declared children.
-    serie = d_(Unicode())
+    serie = d_(Str())
 
     #: Kind of the declared children.
     kind = d_(Enum(None, *INSTRUMENT_KINDS))
 
     #: Starter to use for the declared children.
-    starter = d_(Unicode())
+    starter = d_(Str())
 
     #: Supported connections of the declared children.
     connections = d_(Dict())

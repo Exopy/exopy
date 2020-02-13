@@ -24,7 +24,7 @@ The existing kind of tools are the following :
 """
 import sys
 
-from atom.api import ForwardTyped, Unicode, Bool
+from atom.api import ForwardTyped, Str, Bool
 from enaml.core.api import Declarative, d_, d_func
 
 from ..utils.atom_util import HasPrefAtom
@@ -102,10 +102,10 @@ class BaseToolDeclaration(Declarative):
     """
     #: Unique name used to identify the tool.
     #: The usual format is top_level_package_name.tool_name
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Description of the tool.
-    description = d_(Unicode())
+    description = d_(Str())
 
     #: Flag indicating whether the tool has an associated parametrisation
     #: widget.

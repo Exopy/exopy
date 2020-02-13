@@ -9,7 +9,7 @@
 """Objects used to store tasks, interfaces and configs in the manager.
 
 """
-from atom.api import (Atom, List, Subclass, Dict, Coerced, Typed, Unicode,
+from atom.api import (Atom, List, Subclass, Dict, Coerced, Typed, Str,
                       set_default)
 import enaml
 
@@ -39,11 +39,11 @@ class ObjectDependentInfos(Atom):
     """
     #: Id of the runtime dependency analyser to use for driver detection to add
     #: to the dependencies if instruments is set.
-    DRIVER_ANALYSER = Unicode()
+    DRIVER_ANALYSER = Str()
 
     #: Id of the runtime dependency analyser to use for profile detection to
     #: add to the dependencies if instruments is set.
-    PROFILE_ANALYSER = Unicode()
+    PROFILE_ANALYSER = Str()
 
     #: Set of instrument supported by this task. This should never be updated
     #: in place, it should always be copied and replaced by the new value.

@@ -16,7 +16,7 @@ in two should be bold.
 """
 import sys
 import os
-from atom.api import Atom, Unicode
+from atom.api import Atom, Str
 from enaml.widgets.api import Window, Container, PushButton
 from enaml.layout.api import vbox, hbox
 
@@ -33,7 +33,7 @@ class Model(Atom):
     """Dummy class holding the string displayed by the QtAutoscrollHtml widget.
 
     """
-    text = Unicode()
+    text = Str()
 
 
 enamldef Main(Window):

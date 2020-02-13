@@ -11,7 +11,7 @@
 """
 from inspect import cleandoc
 
-from atom.api import Unicode, List, Value, Dict, Property
+from atom.api import Str, List, Value, Dict, Property
 from enaml.core.api import d_, d_func
 
 from .infos import TaskInfos, InterfaceInfos, ConfigInfos
@@ -59,11 +59,11 @@ class Task(Declarator):
     #: updated that way), one can specify the name of the top level package
     #: in which the task is defined followed by its name.
     #: ex: exopy.LoopTask
-    task = d_(Unicode())
+    task = d_(Str())
 
     #: Path to the view object associated with the task.
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    view = d_(Unicode())
+    view = d_(Str())
 
     #: Metadata associated to the task. ex : loopable = True
     metadata = d_(Dict())
@@ -265,7 +265,7 @@ class Interface(Declarator):
     #: Example :
     #: exopy.tasks.tasks.logic.loop_linspace_interface:LinspaceLoopInterface
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    interface = d_(Unicode())
+    interface = d_(Str())
 
     #: Path or tuple of paths to the view objects associated with the interface
     #: The path of any parent GroupDeclarator object will be prepended to it.
@@ -513,11 +513,11 @@ class TaskConfig(Declarator):
     #: name preceded by ':'.
     #: ex: exopy.tasks.config.base_config:PyConfigTask
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    config = d_(Unicode())
+    config = d_(Str())
 
     #: Path to the view object associated with the task.
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    view = d_(Unicode())
+    view = d_(Str())
 
     #: Id of the config computed from the top-level package and the config name
     id = Property(cached=True)

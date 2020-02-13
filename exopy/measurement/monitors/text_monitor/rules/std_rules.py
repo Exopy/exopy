@@ -10,7 +10,7 @@
 TextMonitor.
 
 """
-from atom.api import (Unicode, Bool)
+from atom.api import (Str, Bool)
 
 from ..entry import MonitoredEntry
 from .base import BaseRule
@@ -42,10 +42,10 @@ class FormatRule(BaseRule):
     """
     #: The format in which the new entry created by the rule should be
     #: displayed
-    new_entry_formatting = Unicode().tag(pref=True)
+    new_entry_formatting = Str().tag(pref=True)
 
     #: The suffix of the new entry created by the rule.
-    new_entry_suffix = Unicode().tag(pref=True)
+    new_entry_suffix = Str().tag(pref=True)
 
     #: Whether or not to hide the entries used by the rules.
     hide_entries = Bool(True).tag(pref=True)

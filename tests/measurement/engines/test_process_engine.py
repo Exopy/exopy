@@ -16,7 +16,7 @@ from time import sleep
 
 import enaml
 import pytest
-from atom.api import Bool, Unicode, Value
+from atom.api import Bool, Str, Value
 
 from exopy.measurement.engines.api import ExecutionInfos
 from exopy.measurement.engines.process_engine.subprocess import TaskProcess
@@ -36,7 +36,7 @@ class WaitingTask(SimpleTask):
     """
     check_flag = Bool(True).tag(pref=True)
     sync_port = Value(()).tag(pref=True)
-    sock_id = Unicode().tag(pref=True)
+    sock_id = Str().tag(pref=True)
 
     def check(self, *args, **kwargs):
         super(WaitingTask, self).check(*args, **kwargs)

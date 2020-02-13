@@ -9,7 +9,7 @@
 """Declarations for the extensions to the error plugin.
 
 """
-from atom.api import Unicode
+from atom.api import Str
 from enaml.core.api import Declarative, d_, d_func
 
 
@@ -18,11 +18,11 @@ class ErrorHandler(Declarative):
 
     """
     #: Id of the error. When signaling errors it will referred to as the kind.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Short description of what this handler can do. The keyword for the
     #: handle method should be specified.
-    description = d_(Unicode())
+    description = d_(Str())
 
     @d_func
     def handle(self, workbench, infos):

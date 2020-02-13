@@ -9,7 +9,7 @@
 """Tool handling initializind/finalizing a driver.
 
 """
-from atom.api import Atom, Unicode, Typed
+from atom.api import Atom, Str, Typed
 from enaml.core.api import Declarative, d_
 
 
@@ -18,7 +18,7 @@ class BaseStarter(Atom):
 
     """
     #: Id of the starter set by the declaration.
-    id = Unicode()
+    id = Str()
 
     def start(self, driver_cls, connection, settings):
         """Fully initialize a driver and open the communication channel.
@@ -101,10 +101,10 @@ class Starter(Declarative):
     """
     #: Unique id identifying this starter.
     #: The usual format is top_level_package_name.starter_name
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Description of the starter action.
-    description = d_(Unicode())
+    description = d_(Str())
 
     #: Starter instance to use for managing associate instruments.
     #: Note that the class must be defined in a python file not enaml file

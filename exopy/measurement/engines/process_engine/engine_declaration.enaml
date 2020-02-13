@@ -9,7 +9,7 @@
 """Declaration of the ProcessEngine and workspace related contribution.
 
 """
-from atom.api import Atom, Bool, Unicode
+from atom.api import Atom, Bool, Str
 from enaml.workbench.api import PluginManifest, Extension
 from enaml.widgets.api import DockItem, Container, Menu, Action
 from enaml.layout.api import InsertItem, RemoveItem
@@ -25,7 +25,7 @@ class ProcFilter(Atom):
 
     """
     #: Name of the process from which to accept records.
-    process_name = Unicode('exopy.MeasureProcess')
+    process_name = Str('exopy.MeasureProcess')
 
     # Bool indicating whether to reject if the process name is wrong (False),
     # or reject if the process name is right (True).

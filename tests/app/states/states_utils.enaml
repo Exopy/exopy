@@ -9,7 +9,7 @@
 """Dummy plugin to test the state plugin.
 
 """
-from atom.api import Atom, Unicode
+from atom.api import Atom, Str
 from enaml.workbench.api import PluginManifest, Plugin, Extension
 
 from exopy.app.states.state import State
@@ -19,7 +19,7 @@ class _State(Plugin):
     """Dummy plugin having a string member.
 
     """
-    string = Unicode('init')
+    string = Str('init')
 
 
 enamldef StateContributor(PluginManifest):

@@ -14,7 +14,7 @@ architecture backend as any format discrepencies should be smoothed by the
 starter used to instantiate the driver.
 
 """
-from atom.api import Unicode, ForwardTyped, Bool
+from atom.api import Str, ForwardTyped, Bool
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox
 
@@ -45,10 +45,10 @@ class Connection(Declarative):
 
     """
     #: Unique name used to identify the connection.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Connection description.
-    description = d_(Unicode())
+    description = d_(Str())
 
     @d_func
     def new(self, workbench, defaults, read_only):
