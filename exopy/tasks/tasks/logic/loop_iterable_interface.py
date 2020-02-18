@@ -9,7 +9,7 @@
 """Interface allowing to use an iterable in a LoopTask.
 
 """
-import numpy
+import numpy as np
 
 from atom.api import Unicode
 from collections import Iterable
