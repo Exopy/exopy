@@ -9,7 +9,7 @@
 """Task allowing to perform a loop. The iterable is given by an interface.
 
 """
-import numpy
+import numpy as np
 
 from atom.api import (Typed, Bool, set_default)
 
