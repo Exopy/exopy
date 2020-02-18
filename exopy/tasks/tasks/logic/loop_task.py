@@ -33,7 +33,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
     task = Typed(SimpleTask).tag(child=50)
 
     database_entries = set_default({'point_number': 11, 'index': 1, 'value': 0,
-                                    'loop_values':numpy.array([0])})
+                                    'loop_values':np.linspace(0, 1, 11)})
 
     def check(self, *args, **kwargs):
         """Overriden so that interface check are run before children ones.
