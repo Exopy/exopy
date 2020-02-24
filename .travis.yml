@@ -47,7 +47,7 @@ before_install:
   - $PIP_INSTALL https://github.com/nucleic/cppy/tarball/master
   - $PIP_INSTALL https://github.com/nucleic/atom/tarball/master
   - $PIP_INSTALL https://github.com/nucleic/kiwi/tarball/master
-  - $PIP_INSTALL https://github.com/nucleic/enaml/tarball/py38
+  - $PIP_INSTALL https://github.com/nucleic/enaml/tarball/master
 
   # Intall test tools
   - $CONDA_INSTALL pytest
