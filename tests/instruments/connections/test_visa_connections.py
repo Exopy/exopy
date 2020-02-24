@@ -153,7 +153,14 @@ def test_creating_a_visa_connection(prof_plugin, exopy_qtbot, caplog):
 
 
 @pytest.mark.parametrize('id, defaults, should_log',
-                         [('VisaRS232',
+                         [('VisaRaw',
+                           {'resource_name': 'COM1'},
+                           False),
+                          ('VisaRaw',
+                           {'resource_name': 'COM1',
+                            'bad': 1},
+                           True),
+                          ('VisaRS232',
                            {'interface_type': 'ASRL',
                             'resource_class': 'INSTR',
                             'board': 1},
