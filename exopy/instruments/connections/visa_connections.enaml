@@ -30,6 +30,11 @@ enamldef VisaRaw(BaseConnection): main:
     #: Full visa resource name. Can be an alias or an address added manually.
     attr resource_name: str = ''
 
+    #: For compatibility with the other Visa connections
+    attr infos: list = ['resource_name']
+
+    title = 'VISA raw'
+
     constraints = [hbox(rn_lab, rn_val)]
 
     Label: rn_lab:
