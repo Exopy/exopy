@@ -15,9 +15,6 @@ from enaml.layout.api import hbox
 from .base_views import BaseTaskView
 
 
-# TODO add a context manager allowing to get a temporary access to a driver
-
-
 enamldef InstrTaskView(BaseTaskView):
     """Base view for task needing to connect to an instrument.
 

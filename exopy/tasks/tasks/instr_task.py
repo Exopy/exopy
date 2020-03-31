@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+# Copyright 2015-2020 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -129,20 +129,37 @@ class InstrumentTask(SimpleTask):
             instrs[self.selected_instrument] = (self.driver, starter)
 
     @contextmanager
-    def test_driver(self):
+    def test_driver(self, core=None):
         """Safe temporary access to the driver to run some checks.
 
-        Yield either a fully initialized driver or None.
+        Yield either a fully initialized driver or None. Can
+        optionally take the core plugin as an argument in order to
+        yield a driver when called outside of a measurement.
 
         """
         try:
-            run_time = self.root.run_time
             p_id, d_id, c_id, s_id = self.selected_instrument
-            profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
-            d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            run_time = self.root.run_time
+
+            # A measurement is running
+            if run_time:
+                profile = run_time[PROFILE_DEPENDENCY_ID][p_id]
+                d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
+            else:
+                cmd = 'exopy.instruments.get_profiles'
+                params = {'user_id': 'exopy.measurement', 'profiles': [p_id]}
+                profiles, _ = core.invoke_command(cmd, params)
+                profile = profiles[p_id]
+
+                cmd = 'exopy.instruments.get_drivers'
+                params = {'drivers': [d_id]}
+                drivers, _ = core.invoke_command(cmd, params)
+
+                d_cls, starter = drivers[d_id]
+
             driver = starter.start(d_cls,
                                    profile['connections'][c_id],
-                                   profile['settings'][s_id])
+                                   profile['settings'].get(s_id, {}))
         except Exception:
             driver = None
 
@@ -150,3 +167,7 @@ class InstrumentTask(SimpleTask):
 
         if driver:
             starter.stop(driver)
+        if profiles:
+            cmd = 'exopy.instruments.release_profiles'
+            params = {'user_id': 'exopy.measurement', 'profiles': profiles}
+            core.invoke_command(cmd, params)
