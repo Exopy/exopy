@@ -266,11 +266,18 @@ def test_collecting_runtime(measurement, monkeypatch):
 
     measurement.root_task = RT()
 
+    root = measurement.root_task
+
     # Fail analysing main task build
     monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', True)
     res, msg, errors = measurement.dependencies.collect_runtimes()
     assert not res
     assert 'main' in msg and 'build' in msg
+
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
+    assert not res
+    assert 'main' in msg and 'build' in msg
+
 
     # Fail analysing main task runtime
     monkeypatch.setattr(Flags, 'BUILD_FAIL_ANALYSE', False)
@@ -279,12 +286,19 @@ def test_collecting_runtime(measurement, monkeypatch):
     assert not res
     assert 'main' in msg and 'runtime' in msg
 
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
+    assert not res
+    assert 'main' in msg and 'runtime' in msg
+
+
     # Fail analysing hook runtime
     monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_ANALYSE', False)
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_ANALYSE', True)
     res, msg, errors = measurement.dependencies.collect_runtimes()
     assert not res
     assert 'hook' in msg and 'runtime' in msg
+
+
 
     # Fail collecting main task runtimes
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_ANALYSE', False)
@@ -293,12 +307,18 @@ def test_collecting_runtime(measurement, monkeypatch):
     assert not res
     assert 'collect' in msg and 'runtime' in msg
 
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
+    assert not res
+    assert 'collect' in msg and 'runtime' in msg
+
+
     # Fail collecting hook runtimes
     monkeypatch.setattr(Flags, 'RUNTIME1_FAIL_COLLECT', False)
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', True)
     res, msg, errors = measurement.dependencies.collect_runtimes()
     assert not res
     assert 'collect' in msg and 'runtime' in msg
+
 
     # Runtimes unavailable
     monkeypatch.setattr(Flags, 'RUNTIME2_FAIL_COLLECT', False)
@@ -311,6 +331,15 @@ def test_collecting_runtime(measurement, monkeypatch):
     assert deps.get_runtime_dependencies('main')['dummy1'] == {}
     measurement.dependencies.release_runtimes()
 
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
+    assert not res
+    assert 'unavailable' in msg
+    deps = measurement.dependencies
+    assert 'dummy1' in deps.get_runtime_dependencies('main')
+    assert deps.get_runtime_dependencies('main')['dummy1'] == {}
+    measurement.dependencies.release_runtimes()
+
+
     # Runtimes unavailable for hooks
     monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', False)
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', True)
@@ -319,14 +348,19 @@ def test_collecting_runtime(measurement, monkeypatch):
     assert 'unavailable' in msg
     measurement.dependencies.release_runtimes()
 
+
     # Succeed collecting.
     monkeypatch.setattr(Flags, 'RUNTIME2_UNAVAILABLE', False)
     res, msg, errors = measurement.dependencies.collect_runtimes()
+    assert res
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
     assert res
 
     # Collecting when already collected
     monkeypatch.setattr(Flags, 'RUNTIME1_UNAVAILABLE', True)
     res, msg, errors = measurement.dependencies.collect_runtimes()
+    assert res
+    res, msg, errors = measurement.dependencies.collect_task_runtimes(root)
     assert res
 
     # Access for unknown id

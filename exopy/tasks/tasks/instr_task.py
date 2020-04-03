@@ -142,7 +142,7 @@ class InstrumentTask(SimpleTask):
             d_cls, starter = run_time[DRIVER_DEPENDENCY_ID][d_id]
             driver = starter.start(d_cls,
                                    profile['connections'][c_id],
-                                   profile['settings'][s_id])
+                                   profile['settings'].get(s_id, {}))
         except Exception:
             driver = None
 

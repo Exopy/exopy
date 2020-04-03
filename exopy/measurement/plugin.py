@@ -42,6 +42,25 @@ def _workspace():
     return MeasurementSpace
 
 
+class TaskRuntimeContext():
+    def __init__(self, dependencies, task):
+        self.dependencies = dependencies
+        self.task = task
+
+    def __enter__(self):
+        r, msg, errors = self.dependencies.collect_task_runtimes(self.task)
+        if r:
+            self.task.root.run_time = self.dependencies.get_runtime_dependencies('main')
+        else:
+            logger.error(msg)
+            logger.error(errors)
+
+    def __exit__(self, type, value, traceback):
+        self.task.root.run_time = {}
+        self.dependencies.release_runtimes()
+        self.dependencies.reset()
+
+
 class MeasurementPlugin(HasPreferencesPlugin):
     """The measurement plugin is reponsible for managing all measurement
     related extensions and handling measurement execution.
@@ -290,6 +309,9 @@ class MeasurementPlugin(HasPreferencesPlugin):
                 break
 
         return measurement
+
+    def get_task_runtime(self, measurement, task):
+        return TaskRuntimeContext(measurement.dependencies, task)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------
