@@ -43,11 +43,7 @@ before_install:
   - $CONDA_INSTALL pyqt=$QT_VERSION numpy configobj watchdog
 
   # Temporarily install from custom enaml branch
-  - $PIP_INSTALL qtawesome pyvisa
-  - $PIP_INSTALL https://github.com/nucleic/cppy/tarball/master
-  - $PIP_INSTALL https://github.com/nucleic/atom/tarball/master
-  - $PIP_INSTALL https://github.com/nucleic/kiwi/tarball/master
-  - $PIP_INSTALL https://github.com/nucleic/enaml/tarball/master
+  - $PIP_INSTALL qtawesome pyvisa enaml
 
   # Intall test tools
   - $CONDA_INSTALL pytest
