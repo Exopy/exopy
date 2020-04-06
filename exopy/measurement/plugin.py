@@ -58,6 +58,7 @@ class TaskRuntimeContext():
         else:
             logger.error(msg)
             logger.error(errors)
+        return res, msg, errors
 
     def __exit__(self, type, value, traceback):
         self.task.root.run_time = {}
