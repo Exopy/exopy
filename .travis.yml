@@ -40,10 +40,7 @@ before_install:
   - export CONDA_BLD_PATH=$(pwd)
 
   # Install exopy dependencies
-  - $CONDA_INSTALL pyqt=$QT_VERSION numpy configobj watchdog
-
-  # Temporarily install from custom enaml branch
-  - $PIP_INSTALL qtawesome pyvisa enaml
+  - $CONDA_INSTALL pyqt=$QT_VERSION numpy configobj watchdog qtawesome pyvisa enaml>=0.11.0
 
   # Intall test tools
   - $CONDA_INSTALL pytest
@@ -57,9 +54,8 @@ install:
 
   # Build exopy conda package and install it (check that build script is not broken)
   - cd $TRAVIS_BUILD_DIR
-  #- conda build conda -q  # Package building does run only very minimal tests
-  #- conda install exopy --use-local -q
-  - python setup.py develop
+  - conda build conda -q  # Package building does run only very minimal tests
+  - conda install exopy --use-local -q
   - cd ~
 
 before_script:
