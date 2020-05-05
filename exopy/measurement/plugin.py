@@ -42,6 +42,30 @@ def _workspace():
     return MeasurementSpace
 
 
+class TaskRuntimeContext():
+    """A context manager used to give temporary access to a task runtime
+    (e.g. driver) to a task.
+
+    """
+    def __init__(self, dependencies, task):
+        self.dependencies = dependencies
+        self.task = task
+
+    def __enter__(self):
+        res, msg, errors = self.dependencies.collect_task_runtimes(self.task)
+        if res:
+            self.task.root.run_time = self.dependencies.get_runtime_dependencies('main')
+        else:
+            logger.error(msg)
+            logger.error(errors)
+        return res, msg, errors
+
+    def __exit__(self, type, value, traceback):
+        self.task.root.run_time = {}
+        self.dependencies.release_runtimes()
+        self.dependencies.reset()
+
+
 class MeasurementPlugin(HasPreferencesPlugin):
     """The measurement plugin is reponsible for managing all measurement
     related extensions and handling measurement execution.
@@ -290,6 +314,26 @@ class MeasurementPlugin(HasPreferencesPlugin):
                 break
 
         return measurement
+
+    def get_task_runtime(self, measurement, task):
+        """Give temporary access to a task runtime
+
+        Parameters
+        ----------
+        measurement: Measurement
+            Measurement used to analyse and collect runtime
+        task: Task:
+            Task whose dependencies are going to be analysed
+            and collected. Must be part of the measurement.
+
+        Returns
+        -------
+        runtime: TaskRuntimeContext
+            A context manager that acquires and releases the task
+            dependencies.
+
+        """
+        return TaskRuntimeContext(measurement.dependencies, task)
 
     # =========================================================================
     # --- Private API ---------------------------------------------------------

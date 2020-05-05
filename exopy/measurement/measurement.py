@@ -55,7 +55,7 @@ class MeasurementDependencies(Atom):
             that even if the collection failed, some dependencies may have been
             collected (other being unavailable) and must hence be released.
 
-        msg : unicode
+        msg : str
             String explaning why the operation failed if it failed.
 
         errors : dict
@@ -67,25 +67,11 @@ class MeasurementDependencies(Atom):
         if self._runtime_dependencies:
             return True, '', {}
 
+        res = self._analyse_task_runtime(self.measurement.root_task)
+        if not res[0]:
+            return res
+
         workbench = self.measurement.plugin.workbench
-        core = workbench.get_plugin('enaml.workbench.core')
-
-        # If the dependencies of the main task are not known
-        if not self._runtime_map.get('main'):
-            cmd = 'exopy.app.dependencies.analyse'
-            deps = core.invoke_command(cmd,
-                                       {'obj': self.measurement.root_task,
-                                        'dependencies': ['build', 'runtime']})
-
-            b_deps, r_deps = deps
-            msg = 'Failed to analyse main task %s dependencies.'
-            if b_deps.errors:
-                return False, msg % 'build', b_deps.errors
-            if r_deps.errors:
-                return False, msg % 'runtime', r_deps.errors
-            self._build_analysis = b_deps.dependencies
-            self._runtime_map['main'] = r_deps.dependencies
-            self._update_runtime_analysis(r_deps.dependencies)
 
         # Check that we know the dependencies of the hooks
         for h_id, h in chain(self.measurement.pre_hooks.items(),
@@ -103,23 +89,40 @@ class MeasurementDependencies(Atom):
                 self._runtime_map[h_id] = deps.dependencies
                 self._update_runtime_analysis(deps.dependencies)
 
-        cmd = 'exopy.app.dependencies.collect'
-        deps = core.invoke_command(cmd,
-                                   dict(dependencies=self._runtime_analysis,
-                                        owner='exopy.measurement',
-                                        kind='runtime'))
+        return self._collect_analysed_runtimes()
 
-        if deps.errors:
-            msg = 'Failed to collect some runtime dependencies.'
-            return False, msg, deps.errors
+    def collect_task_runtimes(self, task):
+        """Collect all the runtime needed to execute a single task.
 
-        elif deps.unavailable:
-            msg = 'Some dependencies are currently unavailable.'
-            self._runtime_dependencies = deps.dependencies
-            return False, msg, deps.unavailable
+        Those can then be accessed using `get_runtime_dependencies`
 
-        self._runtime_dependencies = deps.dependencies
-        return True, '', {}
+        Returns
+        -------
+        result : bool
+            Boolean indicating whether or not the collection succeeded. Note
+            that even if the collection failed, some dependencies may have been
+            collected (other being unavailable) and must hence be released.
+
+        msg : str
+            String explaning why the operation failed if it failed.
+
+        errors : dict
+            Dictionary describing in details the errors. If some dependencies
+            does exist but cannot be accessed at the time of the query an entry
+            'unavailable' will be present.
+
+        """
+        if task is None:
+            return False, 'No task was given', {}
+
+        if self._runtime_dependencies:
+            return True, '', {}
+
+        res = self._analyse_task_runtime(task)
+        if not res[0]:
+            return res
+
+        return self._collect_analysed_runtimes()
 
     def release_runtimes(self):
         """Release all the runtimes collected for the execution.
@@ -253,6 +256,51 @@ class MeasurementDependencies(Atom):
 
     #: Mapping determining which component has which dependency.
     _runtime_map = Dict()
+
+    def _analyse_task_runtime(self, task):
+        workbench = self.measurement.plugin.workbench
+        core = workbench.get_plugin('enaml.workbench.core')
+
+        # If the dependencies of the main task are not known
+        if not self._runtime_map.get('main'):
+            cmd = 'exopy.app.dependencies.analyse'
+            deps = core.invoke_command(cmd,
+                                       {'obj': task,
+                                        'dependencies': ['build', 'runtime']})
+
+            b_deps, r_deps = deps
+            msg = 'Failed to analyse main task %s dependencies.'
+            if b_deps.errors:
+                return False, msg % 'build', b_deps.errors
+            if r_deps.errors:
+                return False, msg % 'runtime', r_deps.errors
+            self._build_analysis = b_deps.dependencies
+            self._runtime_map['main'] = r_deps.dependencies
+            self._update_runtime_analysis(r_deps.dependencies)
+
+        return True, '', {}
+
+    def _collect_analysed_runtimes(self):
+        workbench = self.measurement.plugin.workbench
+        core = workbench.get_plugin('enaml.workbench.core')
+
+        cmd = 'exopy.app.dependencies.collect'
+        deps = core.invoke_command(cmd,
+                                   dict(dependencies=self._runtime_analysis,
+                                        owner='exopy.measurement',
+                                        kind='runtime'))
+
+        if deps.errors:
+            msg = 'Failed to collect some runtime dependencies.'
+            return False, msg, deps.errors
+
+        elif deps.unavailable:
+            msg = 'Some dependencies are currently unavailable.'
+            self._runtime_dependencies = deps.dependencies
+            return False, msg, deps.unavailable
+
+        self._runtime_dependencies = deps.dependencies
+        return True, '', {}
 
     def _update_runtime_analysis(self, new):
         """Update the known runtime dependencies.
