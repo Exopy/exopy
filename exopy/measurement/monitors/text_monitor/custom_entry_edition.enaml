@@ -11,7 +11,7 @@
 """
 from collections import Counter
 
-from atom.api import (Atom, Unicode, List, Dict)
+from atom.api import (Atom, Str, List, Dict)
 from enaml.widgets.api import (ObjectCombo, Dialog, Container, Field, Label,
                                PushButton)
 from enaml.layout.api import hbox, vbox, spacer
@@ -26,7 +26,7 @@ class _Entry(Atom):
 
     """
     #: Selected database entry.
-    entry = Unicode()
+    entry = Str()
 
     #: All database entries that can be used.
     entries = List()

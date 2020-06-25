@@ -40,7 +40,7 @@ Action to test:
 """
 import sys
 import os
-from atom.api import Atom, Unicode, Signal, List
+from atom.api import Atom, Str, Signal, List
 from enaml.widgets.api import (Window, Container, PushButton, Field,
                                CheckBox, Action, GroupBox, Dialog,
                                Menu, Label)
@@ -72,14 +72,14 @@ class File(Atom):
     """Class simply holding a name, to be represented as a leaf.
 
     """
-    name = Unicode()
+    name = Str()
 
 
 class Folder(Atom):
     """Class having a name and children to be represented as a node.
 
     """
-    name = Unicode()
+    name = Str()
 
     children = List()
 

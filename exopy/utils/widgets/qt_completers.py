@@ -9,7 +9,7 @@
 """Widgets with support for text completion.
 
 """
-from atom.api import List, Tuple, Unicode, Bool, Callable, Value
+from atom.api import List, Tuple, Str, Bool, Callable, Value
 from enaml.core.declarative import d_
 from enaml.qt import QtCore, QtWidgets
 from enaml.widgets.api import RawWidget, Feature
@@ -139,7 +139,7 @@ class QtLineCompleter(RawWidget):
 
     """
     #: Text being edited by this widget.
-    text = d_(Unicode())
+    text = d_(Str())
 
     #: Static list of entries used to propose completion. This member value is
     #: not updated by the entries_updater.
@@ -149,7 +149,7 @@ class QtLineCompleter(RawWidget):
     entries_updater = d_(Callable())
 
     #: Delimiters marking the begining and end of completed section.
-    delimiters = d_(Tuple(Unicode(), ('{', '}')))
+    delimiters = d_(Tuple(Str(), ('{', '}')))
 
     hug_width = 'ignore'
     features = Feature.FocusEvents
@@ -237,7 +237,7 @@ class QtTextCompleter(RawWidget):
 
     """
     #: Text being edited by this widget.
-    text = d_(Unicode())
+    text = d_(Str())
 
     #: Static list of entries used to propose completion. This member value is
     #: not updated by the entries_updater.
@@ -247,7 +247,7 @@ class QtTextCompleter(RawWidget):
     entries_updater = d_(Callable())
 
     #: Delimiters marking the begining and end of completed section.
-    delimiters = d_(Tuple(Unicode(), ('{', '}')))
+    delimiters = d_(Tuple(Str(), ('{', '}')))
 
     hug_width = 'ignore'
     features = Feature.FocusEvents

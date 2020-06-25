@@ -12,7 +12,7 @@ Settings are architecture specific information. Then can allow to select a
 if several are available for example.
 
 """
-from atom.api import Unicode, ForwardTyped, Bool
+from atom.api import Str, ForwardTyped, Bool
 from enaml.core.api import d_, Declarative, d_func
 from enaml.widgets.api import GroupBox
 
@@ -23,7 +23,7 @@ class BaseSettings(GroupBox):
     """
     #: Id of this settings (different from the declaration one as multiple
     #: settings of the same type can exist for a single instrument).
-    user_id = d_(Unicode())
+    user_id = d_(Str())
 
     #: Reference to the declaration that created this object.
     declaration = d_(ForwardTyped(lambda: Settings))
@@ -58,10 +58,10 @@ class Settings(Declarative):
 
     """
     #: Unique name used to identify the editor.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Connection description.
-    description = d_(Unicode())
+    description = d_(Str())
 
     @d_func
     def new(self, workbench, defaults, read_only):

@@ -11,7 +11,7 @@
 """
 import random
 
-from atom.api import (Atom, Bool, Unicode, Subclass, ForwardTyped, Typed)
+from atom.api import (Atom, Bool, Str, Subclass, ForwardTyped, Typed)
 
 from inspect import getdoc
 
@@ -40,7 +40,7 @@ class BaseTaskConfig(Atom):
     manager = ForwardTyped(task_manager)
 
     #: Name of the task to create.
-    task_name = Unicode()
+    task_name = Str()
 
     #: Class of the task to create.
     task_class = Subclass(BaseTask)
@@ -113,7 +113,7 @@ class PyTaskConfig(BaseTaskConfig):
 
     """
     # Docstring of the class to help pepole know what they are going to create.
-    task_doc = Unicode()
+    task_doc = Str()
 
     def __init__(self, **kwargs):
         super(PyTaskConfig, self).__init__(**kwargs)
@@ -131,10 +131,10 @@ class TemplateTaskConfig(BaseTaskConfig):
 
     """
     #: Path to the file storing the hierarchy.
-    template_path = Unicode()
+    template_path = Str()
 
     #: Description of the template.
-    template_doc = Unicode()
+    template_doc = Str()
 
     def __init__(self, **kwargs):
         super(TemplateTaskConfig, self).__init__(**kwargs)

@@ -14,7 +14,7 @@ import numbers
 from multiprocessing import Event
 
 import pytest
-from atom.api import Unicode
+from atom.api import Str
 
 from exopy.tasks.api import RootTask, validators
 from exopy.tasks.tasks.logic.loop_task import LoopTask
@@ -30,7 +30,7 @@ def task():
         """Class for testing feval validators.
 
         """
-        feval = Unicode()
+        feval = Str()
 
     root = RootTask(should_stop=Event(), should_pause=Event())
     task = Tester(name='test', database_entries={'val': 1})

@@ -9,7 +9,7 @@
 """Logging Task.
 
 """
-from atom.api import (Unicode, set_default)
+from atom.api import (Str, set_default)
 import logging
 
 from ..base_tasks import SimpleTask
@@ -20,7 +20,7 @@ class LogTask(SimpleTask):
 
     """
     #: Message to log when the task is executed.
-    message = Unicode().tag(pref=True, fmt=True)
+    message = Str().tag(pref=True, fmt=True)
 
     database_entries = set_default({'message': ''})
 

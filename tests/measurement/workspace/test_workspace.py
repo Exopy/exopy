@@ -552,11 +552,11 @@ def test_measurement_execution(workspace, exopy_qtbot):
 
     """
     from exopy.measurement.processor import MeasurementProcessor
-    from atom.api import Unicode, Dict
+    from atom.api import Str, Dict
 
     class P(MeasurementProcessor):
 
-        called = Unicode()
+        called = Str()
 
         args = Dict()
 

@@ -12,7 +12,7 @@ TextMonitor.
 """
 from inspect import cleandoc
 
-from atom.api import Unicode, List, Dict
+from atom.api import Str, List, Dict
 from enaml.core.api import Declarative, d_
 
 from .....utils.traceback import format_exc
@@ -26,17 +26,17 @@ class BaseRule(HasPrefAtom):
 
     """
     #: Name of the rule.
-    id = Unicode().tag(pref=True)
+    id = Str().tag(pref=True)
 
     #: Quick description of what this rule is intended for.
-    description = d_(Unicode()).tag(pref=True)
+    description = d_(Str()).tag(pref=True)
 
     #: List of database entries suffixes used to identify the entries which
     #: contributes to the rule.
     suffixes = List(default=['']).tag(pref=True)
 
     #: Id of the class used for persistence.
-    class_id = Unicode().tag(pref=True)
+    class_id = Str().tag(pref=True)
 
     def try_apply(self, new_entry, monitor):
         """ Attempt to apply the rule.
@@ -75,11 +75,11 @@ class RuleType(Declarator):
     #: name preceded by ':'.
     #: ex: exopy.measurement.monitors.text_monitor.std_rules:RejectRule
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    rule = d_(Unicode())
+    rule = d_(Str())
 
     #: Path to the view object associated with the task.
     #: The path of any parent GroupDeclarator object will be prepended to it.
-    view = d_(Unicode())
+    view = d_(Str())
 
     def register(self, collector, traceback):
         """Collect rule and view and store them into the DeclaratorCollector
@@ -189,14 +189,14 @@ class RuleConfig(Declarative):
 
     """
     #: Id of this rule configuration this should be unique.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Quick description of what this rule is intended for.
-    description = d_(Unicode())
+    description = d_(Str())
 
     #: Id of the rule to use. This is dot separated string containing the
     #: name of the package defining the rule type and the rule type name.
-    rule_type = d_(Unicode())
+    rule_type = d_(Str())
 
     #: Configuration dictionary to use to instantiate the rule
     config = d_(Dict())

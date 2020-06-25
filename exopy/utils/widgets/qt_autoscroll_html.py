@@ -9,7 +9,7 @@
 """Html widget automatically scrolling ot show latest added text.
 
 """
-from atom.api import Unicode
+from atom.api import Str
 from enaml.core.declarative import d_
 from enaml.qt import QtGui, QtWidgets
 from enaml.widgets.api import RawWidget
@@ -23,7 +23,7 @@ class QtAutoscrollHtml(RawWidget):
 
     """
     #: Text displayed by the widget. Any Html mark up will be rendered.
-    text = d_(Unicode())
+    text = d_(Str())
 
     hug_width = 'ignore'
     hug_height = 'ignore'

@@ -9,7 +9,7 @@
 """Declaration of plugin susceptible to use instruments
 
 """
-from atom.api import Enum, Unicode
+from atom.api import Enum, Str
 from enaml.core.declarative import Declarative, d_, d_func
 
 
@@ -20,7 +20,7 @@ class InstrUser(Declarative):
     #: Plugin id associated with this use of instrument. This allow the manager
     #: to know what part of the application requested the right to use some
     #: drivers.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Is the plugin susceptible to release the profiles it is currently using
     #: if the manager asks it to do so.

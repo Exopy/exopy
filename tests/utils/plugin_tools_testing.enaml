@@ -9,7 +9,7 @@
 """Manifests used when testing plugin tools module content.
 
 """
-from  atom.api import Typed, Unicode, Bool, Enum
+from  atom.api import Typed, Str, Bool, Enum
 from enaml.workbench.api import (PluginManifest, Plugin, Extension,
                                  ExtensionPoint)
 from  enaml.core.api import Declarative, d_, d_func
@@ -30,9 +30,9 @@ class Contribution(Declarative):
     """Dummy class representing a contribution to an extension point.
 
     """
-    id = d_(Unicode())
+    id = d_(Str())
 
-    description = d_(Unicode())
+    description = d_(Str())
 
     @d_func
     def new(self, workbench):
@@ -168,7 +168,7 @@ class TestDeclarator(Declarator):
     """Dummy Declarator simply taking note that it registered and unregistered.
 
     """
-    id = d_(Unicode())
+    id = d_(Str())
 
     fail_register = d_(Bool())
 

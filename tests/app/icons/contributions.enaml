@@ -11,7 +11,7 @@
 """
 import enaml.icon
 from enaml.widgets.api import Window, Container, PushButton
-from atom.api import Unicode
+from atom.api import Str
 
 from enaml.workbench.api import Extension, PluginManifest
 from exopy.app.icons.icon_theme import IconTheme, IconThemeExtension, Icon
@@ -21,7 +21,7 @@ class DumbIcon(enaml.icon.Icon):
     """Dumb class for testing.
 
     """
-    id = Unicode()
+    id = Str()
 
 
 enamldef DummyTheme(IconTheme):

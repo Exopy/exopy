@@ -15,7 +15,7 @@ from collections import OrderedDict, defaultdict
 from itertools import chain
 from datetime import date, datetime
 
-from atom.api import (Atom, Dict, Unicode, Typed, ForwardTyped, Bool, Enum,
+from atom.api import (Atom, Dict, Str, Typed, ForwardTyped, Bool, Enum,
                       Value)
 from configobj import ConfigObj
 
@@ -316,12 +316,12 @@ class Measurement(HasPrefAtom):
 
     """
     #: Name of the measurement.
-    name = Unicode().tag(pref=True)
+    name = Str().tag(pref=True)
 
     #: Id of that particular iteration of the measurement. This value is used
     #: when saving the measurement before running it. It is also communicated
     #: to the root task
-    id = Unicode().tag(pref=True)
+    id = Str().tag(pref=True)
 
     #: Current measurement status.
     status = Enum('READY', 'RUNNING', 'PAUSING', 'PAUSED', 'RESUMING',
@@ -329,10 +329,10 @@ class Measurement(HasPrefAtom):
                   'INTERRUPTED')
 
     #: Detailed information about the measurement status.
-    infos = Unicode()
+    infos = Str()
 
     #: Path to the last file in which that measurement was saved.
-    path = Unicode()
+    path = Str()
 
     #: Root task holding the measurement logic.
     root_task = Typed(RootTask)

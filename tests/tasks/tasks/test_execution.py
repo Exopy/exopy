@@ -16,7 +16,7 @@ from multiprocessing import Event
 from time import sleep
 
 import pytest
-from atom.api import Unicode, set_default
+from atom.api import Str, set_default
 from enaml.application import deferred_call
 
 from exopy.tasks.tasks.base_tasks import RootTask, ComplexTask
@@ -58,13 +58,13 @@ class TestTaskExecution(object):
             """Class declaring a member to format and one to eval.
 
             """
-            form = Unicode().tag(fmt=True)
+            form = Str().tag(fmt=True)
 
-            feval = Unicode().tag(feval=Feval())
+            feval = Str().tag(feval=Feval())
 
-            feval_warn = Unicode().tag(feval=Feval(warn=True))
+            feval_warn = Str().tag(feval=Feval(warn=True))
 
-            feval_empty = Unicode().tag(feval=SkipEmpty())
+            feval_empty = Str().tag(feval=SkipEmpty())
 
             database_entries = set_default({'form': '', 'feval': 0,
                                             'feval_warn': 0, 'feval_empty': 0})
@@ -111,7 +111,7 @@ class TestTaskExecution(object):
             validator.
 
             """
-            feval = Unicode().tag(feval=object())
+            feval = Str().tag(feval=object())
 
         tester = Tester(name='test', feval='2*{test_val}',
                         database_entries={'val': 1, 'feval': 0})

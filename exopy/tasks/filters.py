@@ -11,7 +11,7 @@
 The filter available by default are declared in the manager manifest.
 
 """
-from atom.api import Value, Subclass, Unicode, Property, set_default
+from atom.api import Value, Subclass, Str, Property, set_default
 from enaml.core.api import d_func, d_
 
 from .tasks.base_tasks import BaseTask
@@ -23,7 +23,7 @@ class TaskFilter(Declarator):
 
     """
     #: Unique id of this filter (also used as a name).
-    id = d_(Unicode())
+    id = d_(Str())
 
     @d_func
     def filter_tasks(self, tasks, templates):
@@ -69,7 +69,7 @@ class MetadataTaskFilter(TaskFilter):
 
     """
     #: Metadata key to match.
-    meta_key = d_(Unicode())
+    meta_key = d_(Str())
 
     #: Metadata value to match.
     meta_value = d_(Value())
@@ -90,7 +90,7 @@ class GroupTaskFilter(MetadataTaskFilter):
 
     """
     #: Group to which the tasks must belong.
-    group = d_(Unicode())
+    group = d_(Str())
 
     meta_key = set_default('group')
 

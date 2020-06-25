@@ -12,7 +12,7 @@
 from itertools import chain
 from functools import partial
 
-from atom.api import (Typed, Unicode, Constant, Bool, Value, Dict,
+from atom.api import (Typed, Str, Constant, Bool, Value, Dict,
                       set_default)
 from enaml.core.declarative import d_, d_func
 from enaml.widgets.api import Container, Stack, StackItem, PushButton, Label

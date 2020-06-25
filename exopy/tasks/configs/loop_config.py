@@ -9,7 +9,7 @@
 """Configurer dedicated to the LoopTask allowing to specify a task to embed.
 
 """
-from atom.api import (Typed, Unicode, Bool)
+from atom.api import (Typed, Str, Bool)
 
 from .base_configs import PyTaskConfig, BaseTaskConfig
 from .base_config_views import BaseConfigView
@@ -23,7 +23,7 @@ class LoopTaskConfig(PyTaskConfig):
     use_subtask = Bool()
 
     #: Embedded task id.
-    subtask = Unicode()
+    subtask = Str()
 
     #: Configurer for the subtask.
     subconfig = Typed(BaseTaskConfig)

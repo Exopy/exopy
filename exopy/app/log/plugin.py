@@ -12,7 +12,7 @@
 import os
 import logging
 
-from atom.api import Unicode, Dict, List, Tuple, Typed
+from atom.api import Str, Dict, List, Tuple, Typed
 from enaml.workbench.api import Plugin
 
 from .tools import (LogModel, GuiHandler, DayRotatingTimeHandler)
@@ -30,10 +30,10 @@ class LogPlugin(Plugin):
 
     """
     #: List of installed handlers.
-    handler_ids = List(Unicode())
+    handler_ids = List(Str())
 
     #: List of installed filters.
-    filter_ids = List(Unicode())
+    filter_ids = List(Str())
 
     #: Model which can be used to display the log in the GUI. It is associated
     #: to a handler attached to the root logger.
@@ -197,7 +197,7 @@ class LogPlugin(Plugin):
     # ---- Private API --------------------------------------------------------
 
     # Mapping between handler ids and handler, logger name pairs.
-    _handlers = Dict(Unicode(), Tuple())
+    _handlers = Dict(Str(), Tuple())
 
     # Mapping between filter_id and filter, handler_id pairs.
-    _filters = Dict(Unicode(), Tuple())
+    _filters = Dict(Str(), Tuple())

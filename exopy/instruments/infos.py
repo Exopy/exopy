@@ -14,7 +14,7 @@ from itertools import chain
 from operator import attrgetter
 
 from configobj import ConfigObj
-from atom.api import (Atom, Unicode, Dict, Callable, List, Property, Typed,
+from atom.api import (Atom, Str, Dict, Callable, List, Property, Typed,
                       Bool, Enum, Value)
 
 from ..utils.mapping_utils import recursive_update
@@ -29,7 +29,7 @@ class DriverInfos(Atom):
 
     """
     #: Id of the driver built on the class name and the top-level package
-    id = Unicode()
+    id = Str()
 
     #: Actual class to use as driver.
     cls = Callable()
@@ -38,7 +38,7 @@ class DriverInfos(Atom):
     infos = Dict()
 
     #: Starter id
-    starter = Unicode()
+    starter = Str()
 
     #: Connection information.
     connections = Dict()
@@ -101,13 +101,13 @@ class InstrumentModelInfos(Atom):
 
     """
     #: Instrument manufacturer (this is the real manufacturer not an alias).
-    manufacturer = Unicode()
+    manufacturer = Str()
 
     #: Instrument model.
-    model = Unicode()
+    model = Str()
 
     #: Instrument serie.
-    serie = Unicode()
+    serie = Str()
 
     #: Instrument kind.
     kind = Enum(*INSTRUMENT_KINDS)
@@ -186,7 +186,7 @@ class SeriesInfos(Atom):
 
     """
     #: Name of the serie.
-    name = Unicode()
+    name = Str()
 
     #: List of the instrument models matching the selected kind.
     #: This object should not be manipulated by user code.
@@ -333,7 +333,7 @@ class ManufacturersHolder(Atom):
     use_series = Bool(True)
 
     #: Expose the known instruments only of the matching kind.
-    kind = Unicode('All')
+    kind = Str('All')
 
     def update_manufacturers(self, drivers, removed=False):
         """Update a manufacturer infos and create it if it does not exist yet.
@@ -411,13 +411,13 @@ class ProfileInfos(Atom):
 
     """
     #: Path to the .ini file holding the full infos.
-    path = Unicode()
+    path = Str()
 
     #: Reference to the instrument plugin.
     plugin = Value()
 
     #: Profile id.
-    id = Unicode()
+    id = Str()
 
     #: Supported model
     model = Typed(InstrumentModelInfos)

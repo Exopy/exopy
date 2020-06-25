@@ -11,7 +11,7 @@
 """
 import pytest
 import enaml
-from atom.api import Atom, Bool, Value, Unicode
+from atom.api import Atom, Bool, Value, Str
 
 from exopy.testing.util import handle_dialog
 
@@ -52,7 +52,7 @@ class FalseEntryPoint(Atom):
 
     """
     #: Name of this entry point
-    name = Unicode()
+    name = Str()
 
     #: Flag indicating whether the require method should raise an error.
     missing_require = Bool()

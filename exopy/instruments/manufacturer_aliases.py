@@ -11,7 +11,7 @@
 ex : Keysight : aliases Agilent, HP
 
 """
-from atom.api import Unicode, List
+from atom.api import Str, List
 from enaml.core.api import Declarative, d_
 
 
@@ -20,7 +20,7 @@ class ManufacturerAlias(Declarative):
 
     """
     #: Main name under which the vendor is expected to be known
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: List of aliased names.
     aliases = d_(List())

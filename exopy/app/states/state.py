@@ -9,7 +9,7 @@
 """State plugin extension declaration.
 
 """
-from atom.api import (List, Unicode)
+from atom.api import (List, Str)
 from enaml.core.api import Declarative, d_
 
 
@@ -21,11 +21,11 @@ class State(Declarative):
 
     """
     #: The globally unique identifier for the state
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: An optional description of what the state provides.
-    description = d_(Unicode())
+    description = d_(Str())
 
     #: The list of plugin members whose values should be reflected in the
     #: state object
-    sync_members = d_(List(Unicode()))
+    sync_members = d_(List(Str()))

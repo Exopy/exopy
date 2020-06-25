@@ -11,7 +11,7 @@
 """
 import numpy as np
 
-from atom.api import Unicode
+from atom.api import Str
 from collections import Iterable
 
 from ..task_interface import TaskInterface
@@ -23,7 +23,7 @@ class IterableLoopInterface(TaskInterface):
 
     """
     #: Iterable on which to iterate.
-    iterable = Unicode('range(10)').tag(pref=True, feval=Feval(types=Iterable))
+    iterable = Str('range(10)').tag(pref=True, feval=Feval(types=Iterable))
 
     def check(self, *args, **kwargs):
         """Check that the iterable member evaluation does yield an iterable.

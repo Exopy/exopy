@@ -9,7 +9,7 @@
 """Declarative node for tree node generation.
 
 """
-from atom.api import (Unicode, Bool, List, Value, Property, Dict)
+from atom.api import (Str, Bool, List, Value, Property, Dict)
 from enaml.core.declarative import Declarative, d_, d_func
 from enaml.widgets.api import Menu
 
@@ -40,18 +40,18 @@ class TreeNode(Declarative):
 
     #: Either the name of a member containing a label, or a constant label, if
     #: the string starts with '='.
-    label = d_(Unicode())
+    label = d_(Str())
 
     #: Either the name of a member containing a tooltip, or constant tooltip,
     #: if the string starts with '='.
-    tooltip = d_(Unicode())
+    tooltip = d_(Str())
 
     #: Name of the member containing children (if '', the node is a leaf).
-    children_member = d_(Unicode())
+    children_member = d_(Str())
 
     #: Name of the signal use to notify changes to the children. The payload of
     #: the signal should be a ContainerChange instance.
-    children_changed = d_(Unicode())
+    children_changed = d_(Str())
 
     #: List of object classes than can be added or copied
     add = d_(List())
@@ -60,7 +60,7 @@ class TreeNode(Declarative):
     move = d_(List())
 
     #: Name to use for a new instance
-    name = d_(Unicode())
+    name = d_(Str())
 
     #: Can the object's children be renamed?
     rename = d_(Bool(True))
@@ -90,16 +90,16 @@ class TreeNode(Declarative):
     node_for_class = Property()
 
     #: Name of leaf item icon
-    icon_item = d_(Unicode('<item>'))
+    icon_item = d_(Str('<item>'))
 
     #: Name of group item icon
-    icon_group = d_(Unicode('<group>'))
+    icon_group = d_(Str('<group>'))
 
     #: Name of opened group item icon
-    icon_open = d_(Unicode('<open>'))
+    icon_open = d_(Str('<open>'))
 
     #: Resource path used to locate the node icon
-    icon_path = d_(Unicode('Icon'))
+    icon_path = d_(Str('Icon'))
 
     #: Selector or name for background color
     background = Value('white')

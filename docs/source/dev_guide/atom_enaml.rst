@@ -15,10 +15,6 @@ duck-typing but tends to make the code easier to read. Note also that metadata
 can be added to a member using the :py:meth:tag method. Metadata are
 extensively used in Exopy.
 
-.. note::
-
-    For clarity sake and Python2/3 compatibility, Unicode should be used
-    instead of Str.
 
 Enaml
 -----

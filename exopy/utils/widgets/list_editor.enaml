@@ -14,7 +14,7 @@ responsability of the model to signal internal changes to the list.
 
 """
 from functools import partial
-from atom.api import Unicode, List
+from atom.api import Str, List
 from enaml.core.api import Looper, Conditional
 from enaml.core.declarative import d_
 from enaml.layout.api import hbox, align, spacer, grid, vbox
@@ -90,7 +90,7 @@ class ListContainer(Container):
 
     """
     #: Aligmenent of the PushButton used to edit the list content.
-    alignment = d_(Unicode('top'))
+    alignment = d_(Str('top'))
 
     def layout_constraints(self):
         """Layout the push buttons used to edit the list content.

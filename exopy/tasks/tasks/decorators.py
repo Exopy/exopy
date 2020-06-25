@@ -17,7 +17,7 @@ from functools import update_wrapper
 from time import sleep
 from threading import Thread, Event, current_thread
 
-from atom.api import Atom, Value, Callable, Unicode
+from atom.api import Atom, Value, Callable, Str
 
 from ...utils.traceback import format_exc
 
@@ -185,7 +185,7 @@ class ThreadDispatcher(Atom):
     _func = Callable()
 
     #: Pool id to which this dispatcher belongs.
-    _pool = Unicode()
+    _pool = Str()
 
     def _background_loop(self):
         """Background function executed by the thread.

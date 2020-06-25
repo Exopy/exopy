@@ -9,7 +9,7 @@
 """Base classes for all engines
 
 """
-from atom.api import (Atom, Unicode, ForwardTyped, Signal, Enum, Bool, Dict,
+from atom.api import (Atom, Str, ForwardTyped, Signal, Enum, Bool, Dict,
                       Value, List)
 from enaml.core.api import Declarative, d_, d_func
 
@@ -22,7 +22,7 @@ class ExecutionInfos(Atom):
 
     """
     #: Id used to identify the task in logger messages.
-    id = Unicode()
+    id = Str()
 
     #: Task to execute.
     task = Value()
@@ -145,10 +145,10 @@ class Engine(Declarative):
 
     """
     #: Unique name used to identify the engine. Should be user understandable.
-    id = d_(Unicode())
+    id = d_(Str())
 
     #: Description of the engine
-    description = d_(Unicode())
+    description = d_(Str())
 
     @d_func
     def new(self, workbench, default=True):
