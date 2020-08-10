@@ -14,7 +14,7 @@ from collections import OrderedDict
 from ast import literal_eval
 
 from textwrap import fill
-from atom.api import Str, Str, Enum, Atom, Constant
+from atom.api import Str, Enum, Atom, Constant
 
 from inspect import getfullargspec
 from inspect import cleandoc
@@ -84,10 +84,10 @@ def member_from_pref(obj, member, val):
 
     # If 'pref=True' then we rely on the standard save mechanism
     if meta_value is True:
-        # If the member is a subclass of Str, Str then we just take the
+        # If the member is a subclass of Str then we just take the
         # raw value and Atom will handle the casting if any for us.
         # If it is a subclass of basestring then we save it as-is
-        if isinstance(member, (Str, Str)):
+        if isinstance(member, Str):
             value = val
 
         # If it is an Enum where the first item is a (subclass of) string, then
