@@ -52,4 +52,5 @@ docs/build
 .spyderproject
 .spyderworkspace
 .spyproject
-.vscode
+.mypy_cache/
+.vscode/
