@@ -47,12 +47,13 @@ jobs:
           python setup.py develop
       - name: Install pytest
         run: |
-          pip install pytest pytest-cov pytest-qt
+          python -m pip install pytest pytest-cov pytest-qt
+          python -m pip install https://github.com/MatthieuDartiailh/enaml_coverage_plugin/tarball/master
       - name: Run tests (Windows)
-        if: matrix.os != 'ubuntu-latest' && matrix.python-version != '3.6'
+        if: matrix.os != 'ubuntu-latest'
         run: python -X dev -m pytest tests --cov enaml --cov-report xml
       - name: Run tests (Linux)
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.6'
+        if: matrix.os == 'ubuntu-latest'
         shell: bash -l {0}
         run: |
           export DISPLAY=:99.0
