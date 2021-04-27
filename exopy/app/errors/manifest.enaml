@@ -11,7 +11,8 @@
 """
 import logging
 from pprint import pformat
-from collections import defaultdict, Mapping
+from collections import defaultdict
+from collections.abc import Mapping
 
 from enaml.workbench.api import PluginManifest, ExtensionPoint, Extension
 from enaml.workbench.core.api import Command

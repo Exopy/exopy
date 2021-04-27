@@ -18,7 +18,7 @@ with enaml.imports():
     from exopy.app.icons.manifest import IconManagerManifest
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def icon_workbench(workbench, app_dir):
     """Register the icon mannager plugin and dependencies.
 

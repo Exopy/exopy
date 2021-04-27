@@ -39,7 +39,7 @@ with enaml.imports():
 pytests_plugin = str('exopy.testing.fixtures'),
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def measurement_workbench(workbench, monkeypatch, app_dir):
     """Setup the workbench in such a way that the measurement plugin can be
     tested.

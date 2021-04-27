@@ -18,7 +18,7 @@ unregistered first).
 
 """
 import logging
-from collections import Mapping
+from collections.abc import Mapping
 from pprint import pformat
 
 from enaml.workbench.api import PluginManifest, Extension

@@ -21,7 +21,7 @@ from exopy.tasks.tasks.logic.loop_task import LoopTask
 from exopy.testing.tasks.util import CheckTask
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def task():
     """Create a task to test the validators.
 

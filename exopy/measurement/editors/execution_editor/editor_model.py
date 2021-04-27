@@ -9,7 +9,8 @@
 """Model for the execution editor keeping track of the declared pools.
 
 """
-from collections import Counter, Iterable
+from collections import Counter
+from collections.abc import Iterable
 
 from atom.api import Atom, Value, Typed, List
 

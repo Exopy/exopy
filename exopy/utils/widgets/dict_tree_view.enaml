@@ -9,7 +9,7 @@
 """Widget used to represent nested dict as a tree.
 
 """
-from collections import Mapping
+from collections.abc import Mapping
 
 from atom.api import Atom, Typed, Value, Str, ForwardTyped, List
 

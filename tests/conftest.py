@@ -20,3 +20,7 @@ pytest_plugins = ('exopy.testing.fixtures',
                   'exopy.testing.measurement.monitors.text_monitor.fixtures',
                   'exopy.testing.tasks.fixtures')
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "ui: mark test involving ui display"
+    )
