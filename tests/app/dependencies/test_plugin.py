@@ -33,7 +33,7 @@ RELEASE = 'exopy.app.dependencies.release_runtimes'
 # --- Fixtures ----------------------------------------------------------------
 # =============================================================================
 
-@pytest.yield_fixture
+@pytest.fixture
 def dep_workbench(workbench):
     """Setup the workbench to test dependencies related capabilities.
 

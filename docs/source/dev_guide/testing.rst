@@ -102,7 +102,7 @@ after the tests.
 
 To avoid duplicating a lot of code Pytest provides fixture functions. A fixture
 function is imply a function decorated with '@pytest.fixture' (or
-'@pytest.yield_fixture') which, when passed as argument of a test function,
+'@pytest.fixture') which, when passed as argument of a test function,
 will be called automatically by pytest. Standard fixture simply gives access to
 a value, yield_fixture allow to cleanup after the test execution. Note that a
 fixture can rely on another fixture.
@@ -113,7 +113,7 @@ fixture can rely on another fixture.
     def tool():
         return 1
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def clean_tool(tool):
         yield tool  # This will pass 1 to the test function
         del tool  # This is executed after the test function (no matter the errors)

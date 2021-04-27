@@ -57,7 +57,7 @@ def dialog_sleep():
     return DIALOG_SLEEP
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def sys_path():
     """Detect installation path of exopy.
 
@@ -106,7 +106,7 @@ def watchdog_on_travis():
         watchdog.observers.Observer = PollingObserver
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def app():
     """Make sure a QtApplication is active.
 
@@ -120,7 +120,7 @@ def app():
         yield app
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def exopy_qtbot(app, qtbot):
     """Set the enaml application on the bot and add automatic windows cleanup.
 
@@ -130,7 +130,7 @@ def exopy_qtbot(app, qtbot):
         yield qtbot
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def app_dir(tmpdir):
     """Fixture setting the app_directory.ini file for each test.
 
@@ -147,7 +147,7 @@ def app_dir(tmpdir):
     remove(app_pref)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def logger(caplog):
     """Fixture returning a logger for testing and cleaning handlers afterwards.
 

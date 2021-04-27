@@ -68,7 +68,7 @@ class ExecThread(Thread):
         self.value = self._engine.perform(self._exec_infos)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def process_engine(measurement_workbench):
     measurement_workbench.register(LogManifest())
     measurement_workbench.register(TasksManagerManifest())
@@ -78,7 +78,7 @@ def process_engine(measurement_workbench):
     gc.collect()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def sync_server():
     class SyncServer(object):
 

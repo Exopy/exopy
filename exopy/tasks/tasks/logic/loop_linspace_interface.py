@@ -97,6 +97,6 @@ class LinspaceLoopInterface(TaskInterface):
         raw_values = np.linspace(start, stop, num)
         iterable = np.fromiter((round(value, digit)
                                 for value in raw_values),
-                               np.float, len(raw_values))
+                               np.float64, len(raw_values))
         task.write_in_database('loop_values', np.array(iterable))
         task.perform_loop(iterable)

@@ -521,7 +521,7 @@ class MeasurementSpace(Workspace):
         if panels is None:
             template = 'meas_%d'
             items = self.dock_area.dock_items()
-            test = re.compile('meas\_([0-9]+)$')
+            test = re.compile(r'meas\_([0-9]+)$')
             measurement_items = [i for i in items if test.match(i.name)]
 
             ops = []
