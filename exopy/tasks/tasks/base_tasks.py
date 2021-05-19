@@ -334,7 +334,7 @@ class BaseTask(Atom):
         self.access_exs = access_exs
         self._remove_access_exception(entry, level)
 
-    def write_in_database(self, name, value):
+    def write_in_database(self, name, value, notify=True):
         """Write a value to the right database entry.
 
         This method build a task specific database entry from the name
@@ -350,9 +350,11 @@ class BaseTask(Atom):
         value:
             Value to give to the entry.
 
+        notify:
+            Whether or not this value change should be notified to the monitor
         """
         value_name = self._task_entry(name)
-        return self.database.set_value(self.path, value_name, value)
+        return self.database.set_value(self.path, value_name, value, notify)
 
     def get_from_database(self, full_name):
         """Access to a database value using full name.

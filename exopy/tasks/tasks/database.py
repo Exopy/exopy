@@ -74,7 +74,7 @@ class TaskDatabase(Atom):
     #: running mode the database is flattened into a list for faster acces.
     running = Bool(False)
 
-    def set_value(self, node_path, value_name, value):
+    def set_value(self, node_path, value_name, value, notify=True):
         """Method used to set the value of the entry at the specified path
 
         This method can be used both in edition and running mode.
@@ -91,6 +91,9 @@ class TaskDatabase(Atom):
         value : any
             Actual value to be stored
 
+        notify: bool
+            Whether or not this value change should be notified to the monitor
+
         Returns
         -------
         new_val : bool
@@ -104,7 +107,8 @@ class TaskDatabase(Atom):
             index = self._entry_index_map[full_path]
             with self._lock:
                 self._flat_database[index] = value
-                self.notifier((node_path + '/' + value_name, value))
+                if notify:
+                    self.notifier((node_path + '/' + value_name, value))
         else:
             node = self.go_to_path(node_path)
             if value_name not in node.data:
