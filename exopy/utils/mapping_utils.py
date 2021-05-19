@@ -9,7 +9,7 @@
 """Mapping related utility functions.
 
 """
-from collections import Mapping
+from collections.abc import Mapping
 
 
 def recursive_update(to_update, data):

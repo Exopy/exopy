@@ -32,7 +32,7 @@ with enaml.imports():
 pytests_plugin = str('exopy.testing.fixtures'),
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def instr_workbench(workbench, monkeypatch, app_dir, app):
     """Setup the workbench in such a way that the instrs manager can be tested.
 

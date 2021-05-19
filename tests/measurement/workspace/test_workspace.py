@@ -23,7 +23,7 @@ with enaml.imports():
     from exopy.testing.measurement.contributions import Flags
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def workspace(exopy_qtbot, measurement_workbench, measurement):
     """Create a measurement workspace.
 

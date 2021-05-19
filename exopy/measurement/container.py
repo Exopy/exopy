@@ -9,7 +9,7 @@
 """Specialised container used to store measurements.
 
 """
-from collections import Iterable
+from collections.abc import Iterable
 
 from atom.api import Atom, List, Signal
 

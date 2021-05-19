@@ -10,7 +10,7 @@
 
 """
 import logging
-from collections import Mapping
+from collections.abc import Mapping
 from pprint import pformat
 
 import enaml

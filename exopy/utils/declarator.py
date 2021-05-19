@@ -87,7 +87,7 @@ class Declarator(Declarative):
         raise NotImplementedError()
 
 
-PATH_VALIDATOR = re.compile('^(\.?\w+)*$')
+PATH_VALIDATOR = re.compile(r'^(\.?\w+)*$')
 
 
 class GroupDeclarator(Declarator):

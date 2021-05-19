@@ -12,7 +12,7 @@
 import numpy as np
 
 from atom.api import Str
-from collections import Iterable
+from collections.abc import Iterable
 
 from ..task_interface import TaskInterface
 from ..validators import Feval

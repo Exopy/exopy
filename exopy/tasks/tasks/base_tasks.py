@@ -16,7 +16,7 @@ import os
 import logging
 import threading
 from multiprocessing.synchronize import Event
-from collections import Iterable
+from collections.abc import Iterable
 from inspect import cleandoc
 from textwrap import fill
 from copy import deepcopy
