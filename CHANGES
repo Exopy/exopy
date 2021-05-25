@@ -13,6 +13,8 @@ Exopy Changelog
 - identify duplicate measurements in the waiting queue PR # 130 (fvalmorra)
 - add a "loop_values" database entry to LoopTask which contains the list of
   all values the loop will iterate through PR #168 (rassouly)
+- measurement/monitor: fix a bug in TextMonitor where some undisplayed entries
+  where needlessely monitored (rassouly)
 
 
 0.1.0 - 15-02-2018
