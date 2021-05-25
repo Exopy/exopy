@@ -337,6 +337,9 @@ class TextMonitor(BaseMonitor):
             self.displayed_entries = disp
             self.undisplayed_entries = undisp
             self.hidden_entries = hidden
+            for e in undisp + hidden:
+                if e.path in self.monitored_entries:
+                    self.monitored_entries.remove(e.path)
 
     def add_entries(self, section, entries):
         """Add entries to the specified section.
