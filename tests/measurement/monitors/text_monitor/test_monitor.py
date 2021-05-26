@@ -424,6 +424,9 @@ def test_get_set_state(monitor, monkeypatch, measurement, database):
     database.set_value('root', 'test2_index', 1)
     database.set_value('root', 'test2_loop', 10)
 
+    monitor.move_entries("displayed", "undisplayed",
+                         [e for e in monitor.displayed_entries if "test2" in e.path])
+
     state = monitor.get_state()
 
     assert 'rule_0' in state
@@ -473,10 +476,12 @@ def test_get_set_state(monitor, monkeypatch, measurement, database):
     monitor.link_to_measurement(measurement)
 
     assert not monitor._state
-    print(sorted([e.path for e in monitor.displayed_entries]))
     assert (sorted([e.path for e in monitor.displayed_entries]) ==
-            sorted(['custom', 'root/test_progress', 'root/test2_progress',
-                    'root/r']))
+            sorted(['custom', 'root/test_progress', 'root/r']))
+    # custom is not in because it's not in the database but test2_loop is in because
+    # custom depends on it
+    assert set(monitor.monitored_entries) == set(["root/r", "root/test_index",
+                                                  "root/test_loop", "root/test2_loop"])
 
 
 def test_known_monitored_entries(monitor):

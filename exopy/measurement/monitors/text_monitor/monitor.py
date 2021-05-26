@@ -337,6 +337,10 @@ class TextMonitor(BaseMonitor):
             self.displayed_entries = disp
             self.undisplayed_entries = undisp
             self.hidden_entries = hidden
+            self.monitored_entries = []
+            self.updaters = {}
+            for e in set(disp):
+                self._displayed_entry_added(e)
 
     def add_entries(self, section, entries):
         """Add entries to the specified section.
