@@ -33,7 +33,7 @@ with enaml.imports():
     from exopy.app.icons.manifest import IconManagerManifest
     from exopy.app.packages.manifest import PackagesManifest
     from exopy.app.log.manifest import LogManifest
-    from exopy.app.headless.manifest import HeadlessManifest    
+    from exopy.app.headless.manifest import HeadlessManifest
     from exopy.measurement.manifest import MeasureManifest
     from exopy.measurement.monitors.text_monitor.manifest\
         import TextMonitorManifest
@@ -205,7 +205,6 @@ def main(cmd_line_args=None):
                         action='store_true')
     parser.add_argument("-x", "--execute",
                         help="Execute given measurement file")
-    
 
     modifiers = []
     for i, ep in enumerate(iter_entry_points('exopy_cmdline_args')):
@@ -273,6 +272,10 @@ def main(cmd_line_args=None):
                    'application start ups :\n {}'.format(e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
+
+    # Quit hard and early if we are headless mode
+    if args.execute:
+        return
 
     core = workbench.get_plugin('enaml.workbench.core')
 

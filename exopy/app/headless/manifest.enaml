@@ -50,13 +50,10 @@ def start_headless_measurement(workbench, cmd_args):
     if path:
         meas_plugin = workbench.get_plugin('exopy.measurement')
         meas, errors = Measurement.load(meas_plugin, path)
-        meas.add_tool('post-hook', 'exopy.autoclose')
+        if errors:
+            print(errors)
         meas_plugin.processor.continuous_processing = False
-        meas_plugin.processor.start_measurement(meas)
-        # time.sleep(5)
-        # while meas_plugin.processor.active:
-        #     time.sleep(0.05)
-        # print("Done!")
+        meas_plugin.processor._run_measurement(meas, headless=True)
 
 # =============================================================================
 # --- Descriptions ------------------------------------------------------------

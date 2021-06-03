@@ -76,6 +76,7 @@ class MeasurementProcessor(Atom):
         """Start a new measurement.
 
         """
+        print("measurement started")
         if self._thread and self._thread.is_alive():
             self._state.set('stop_processing')
             self._thread.join(5)
@@ -265,10 +266,15 @@ class MeasurementProcessor(Atom):
         self._state.clear('processing')
         deferred_call(setattr, self, 'active', False)
 
-    def _run_measurement(self, measurement):
+    def _run_measurement(self, measurement, headless=False):
         """Run a single measurement.
 
         """
+        plugin = self.plugin
+        if not self.engine:
+            engine = plugin.create('engine', plugin.selected_engine)
+            self.engine = engine
+
         # Switch to running state.
         measurement.enter_running_state()
 
@@ -311,10 +317,11 @@ class MeasurementProcessor(Atom):
         errors = {}
         if self._check_for_pause_or_stop():
 
-            # Connect new monitors, and start them.
-            logger.debug('Connecting monitors for measurement %s',
-                         meas_id)
-            self._start_monitors(measurement)
+            if not headless:
+                # Connect new monitors, and start them.
+                logger.debug('Connecting monitors for measurement %s',
+                             meas_id)
+                self._start_monitors(measurement)
 
             # Assemble the task infos for the engine to run the main task.
             deps = measurement.dependencies
@@ -340,10 +347,11 @@ class MeasurementProcessor(Atom):
             errors.update(execution_result.errors)
             measurement.task_execution_result = execution_result
 
-            # Disconnect monitors.
-            logger.debug('Disonnecting monitors for measurement %s',
-                         meas_id)
-            self._stop_monitors(measurement)
+            if not headless:
+                # Disconnect monitors.
+                logger.debug('Disonnecting monitors for measurement %s',
+                             meas_id)
+                self._stop_monitors(measurement)
 
         # Save the stop_attempt state to allow to run post execution if we
         # are supposed to do so.
