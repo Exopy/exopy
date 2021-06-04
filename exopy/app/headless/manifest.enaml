@@ -80,7 +80,7 @@ enamldef HeadlessManifest(PluginManifest):
         point = 'exopy.app.startup'
         AppStartup:
             id = 'exopy.app.headless'
-            priority = 1
+            priority = 20
             run => (workbench, cmd_args):
                 start_headless_measurement(workbench, cmd_args)
     Extension:
