@@ -27,26 +27,17 @@ PLUGIN_ID ='exopy.app.headless'
 
 
 # =============================================================================
-# --- Factories ---------------------------------------------------------------
-# =============================================================================
-
-def log_plugin_factory():
-    """ Factory function for the LogPlugin.
-
-    """
-    from .plugin import LogPlugin
-    return LogPlugin()
-
-
-# =============================================================================
 # --- Startup handler ---------------------------------------------------------
 # =============================================================================
 
 def start_headless_measurement(workbench, cmd_args):
     """Start headless measurement system.
 
+    Execute the measurement present in the command line invocation of
+    exopy if there is one. Only one measurement is run and all the
+    monitors are disabled.
     """
-    path = cmd_args.execute
+    path = cmd_args.measurement_execute
     if path:
         meas_plugin = workbench.get_plugin('exopy.measurement')
         meas, errors = Measurement.load(meas_plugin, path)
@@ -54,11 +45,6 @@ def start_headless_measurement(workbench, cmd_args):
             print(errors)
         meas_plugin.processor.continuous_processing = False
         meas_plugin.processor._run_measurement(meas, headless=True)
-
-# =============================================================================
-# --- Descriptions ------------------------------------------------------------
-# =============================================================================
-
 
 
 # =============================================================================
@@ -70,7 +56,6 @@ enamldef HeadlessManifest(PluginManifest):
 
     """
     id = PLUGIN_ID
-    factory = log_plugin_factory
 
     # =========================================================================
     # --- Extensions ----------------------------------------------------------

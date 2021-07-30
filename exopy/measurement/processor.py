@@ -76,7 +76,6 @@ class MeasurementProcessor(Atom):
         """Start a new measurement.
 
         """
-        print("measurement started")
         if self._thread and self._thread.is_alive():
             self._state.set('stop_processing')
             self._thread.join(5)
@@ -316,7 +315,6 @@ class MeasurementProcessor(Atom):
         result = True
         errors = {}
         if self._check_for_pause_or_stop():
-
             if not headless:
                 # Connect new monitors, and start them.
                 logger.debug('Connecting monitors for measurement %s',

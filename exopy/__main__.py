@@ -203,7 +203,7 @@ def main(cmd_line_args=None):
     parser.add_argument("-r", "--reset-app-folder",
                         help='Reset the application startup folder.',
                         action='store_true')
-    parser.add_argument("-x", "--execute",
+    parser.add_argument("--measurement-execute",
                         help="Execute given measurement file")
 
     modifiers = []
@@ -274,7 +274,7 @@ def main(cmd_line_args=None):
         display_startup_error_dialog(text, content, details)
 
     # Quit hard and early if we are headless mode
-    if args.execute:
+    if args.measurement_execute:
         return
 
     core = workbench.get_plugin('enaml.workbench.core')
