@@ -86,7 +86,11 @@ def get_window(qtbot, cls=Window, timeout=1000):
         """
         assert [w for w in Window.windows if isinstance(w, cls)]
 
-    qtbot.wait_until(check_window_presence)
+    try:
+        qtbot.wait_until(check_window_presence)
+    except qtbot.TimeoutError: # Work around change in pytest-qt behavior
+        raise AssertionError
+
     for w in Window.windows:
         if isinstance(w, cls):
             return w
@@ -287,7 +291,7 @@ def handle_dialog(qtbot, op='accept', handler=lambda qtbot, window: window,
     except Exception:
         raise
     else:
-        qtbot.wait_until(sch.was_called, 10e3)
+        qtbot.wait_until(sch.was_called, timeout=10e3)
 
 
 @contextmanager
