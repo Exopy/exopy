@@ -33,6 +33,7 @@ with enaml.imports():
     from exopy.app.icons.manifest import IconManagerManifest
     from exopy.app.packages.manifest import PackagesManifest
     from exopy.app.log.manifest import LogManifest
+    from exopy.app.headless.manifest import HeadlessManifest
     from exopy.measurement.manifest import MeasureManifest
     from exopy.measurement.monitors.text_monitor.manifest\
         import TextMonitorManifest
@@ -202,6 +203,8 @@ def main(cmd_line_args=None):
     parser.add_argument("-r", "--reset-app-folder",
                         help='Reset the application startup folder.',
                         action='store_true')
+    parser.add_argument("--measurement-execute",
+                        help="Execute given measurement file")
 
     modifiers = []
     for i, ep in enumerate(iter_entry_points('exopy_cmdline_args')):
@@ -256,6 +259,7 @@ def main(cmd_line_args=None):
     workbench.register(TasksManagerManifest())
     workbench.register(MeasureManifest())
     workbench.register(TextMonitorManifest())
+    workbench.register(HeadlessManifest())
 
     ui = workbench.get_plugin(u'enaml.workbench.ui')  # Create the application
 
@@ -268,6 +272,10 @@ def main(cmd_line_args=None):
                    'application start ups :\n {}'.format(e))
         details = format_exc()
         display_startup_error_dialog(text, content, details)
+
+    # Quit hard and early if we are headless mode
+    if args.measurement_execute:
+        return
 
     core = workbench.get_plugin('enaml.workbench.core')
 
@@ -289,6 +297,7 @@ def main(cmd_line_args=None):
 
     # Unregister all contributed packages
     workbench.unregister('exopy.app.packages')
+    workbench.unregister('exopy.app.headless')
     workbench.unregister('exopy.measurement.monitors.text_monitor')
     workbench.unregister('exopy.measurement')
     workbench.unregister('exopy.tasks')

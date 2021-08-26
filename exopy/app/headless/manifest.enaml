@@ -1,0 +1,78 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2021 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Headless plugin manifest.
+
+"""
+import time
+import os
+import json
+
+from enaml.workbench.api import PluginManifest, Extension
+from enaml.workbench.ui.api import ActionItem
+from enaml.workbench.core.api import Command
+
+from ...measurement.measurement import Measurement
+from ..api import AppStartup
+from ...measurement.hooks.api import PostExecutionHook
+
+from ..headless.autoclose import AutoClose
+
+PLUGIN_ID ='exopy.app.headless'
+
+
+# =============================================================================
+# --- Startup handler ---------------------------------------------------------
+# =============================================================================
+
+def start_headless_measurement(workbench, cmd_args):
+    """Start headless measurement system.
+
+    Execute the measurement present in the command line invocation of
+    exopy if there is one. Only one measurement is run and all the
+    monitors are disabled.
+    """
+    path = cmd_args.measurement_execute
+    if path:
+        meas_plugin = workbench.get_plugin('exopy.measurement')
+        meas, errors = Measurement.load(meas_plugin, path)
+        if errors:
+            print(errors)
+        meas_plugin.processor.continuous_processing = False
+        meas_plugin.processor._run_measurement(meas, headless=True)
+
+
+# =============================================================================
+# --- Manifest ----------------------------------------------------------------
+# =============================================================================
+
+enamldef HeadlessManifest(PluginManifest):
+    """Manifest for the plugin handling logging for an application.
+
+    """
+    id = PLUGIN_ID
+
+    # =========================================================================
+    # --- Extensions ----------------------------------------------------------
+    # =========================================================================
+    Extension:
+        id = 'startup'
+        point = 'exopy.app.startup'
+        AppStartup:
+            id = 'exopy.app.headless'
+            priority = 20
+            run => (workbench, cmd_args):
+                start_headless_measurement(workbench, cmd_args)
+    Extension:
+        id = 'post-execution'
+        point = 'exopy.measurement.post-execution'
+        PostExecutionHook:
+            id = 'exopy.autoclose'
+            description = 'Closes Exopy at the end of the measurement.'
+            new => (workbench, defaults=True):
+                return AutoClose()

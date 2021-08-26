@@ -61,7 +61,7 @@ def process_and_join_thread(bot, thread, timeout=0.1):
         thread.join(timeout)
         assert not thread.is_alive()
 
-    bot.wait_until(test_func, 20e3)
+    bot.wait_until(test_func, timeout=20e3)
 
 
 def test_setting_continuous_processing(processor):
