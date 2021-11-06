@@ -572,8 +572,6 @@ class TaskDatabase(Atom):
         self._flat_database = datas
         self._entry_index_map = mapping
 
-        self._database = None
-
     def list_nodes(self):
         """List all the nodes present in the database.
 
