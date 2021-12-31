@@ -598,7 +598,7 @@ def test_stopping_processing_while_in_pause(exopy_qtbot, processor,
     exopy_qtbot.wait_until(lambda: wait_on_state_paused(0.04), timeout=40e3)
 
     processor.stop_processing(no_post_exec=True)
-    exopy_qtbot.wait(0.2)
+    exopy_qtbot.wait(200)
 
     def wait(timeout):
         processor._thread.join(timeout)

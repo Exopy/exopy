@@ -42,9 +42,12 @@ class _Aux(HasPrefAtom):
     value = Value().tag(pref=True)
     const = Constant('r').tag(pref=True)
 
-    atom = Typed(_Aaux, ()).tag(pref=True)
+    atom = Typed(_Aaux).tag(pref=True)
 
     no_tag = Int()
+
+    def _default_atom(self):
+        return _Aaux()
 
 
 def test_false_from_pref_softerror():

@@ -283,8 +283,10 @@ class DayRotatingTimeHandler(TimedRotatingFileHandler):
     def __init__(self, filename, mode='wb', **kwargs):
         self.mode = mode
         self.path = ''
-        super(DayRotatingTimeHandler, self).__init__(filename, when='MIDNIGHT',
-                                                     **kwargs)
+        kwargs.setdefault("encoding", "utf-8")
+        super(DayRotatingTimeHandler, self).__init__(
+            filename, when='MIDNIGHT', **kwargs
+        )
 
     def _open(self):
         """Open a file named accordingly to the base name and the time of
