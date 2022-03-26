@@ -1,0 +1,5 @@
+pytest
+pytest-cov
+pytest-qt
+pytest-timeout
+enaml_coverage_plugin
