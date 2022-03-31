@@ -15,6 +15,7 @@ license = {file = "LICENSE"}
 authors = [
   {name = "Matthieu Dartiailh", email = "m.dartiailh@gmail.com"}
 ]
+keywords=["experiment", "automation", "GUI"]
 classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Physics",
@@ -27,6 +28,18 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dynamic=["version"]
+dependencies = [
+   "atom>=0.7.0",
+    "configobj",
+    "watchdog",
+    "qtawesome",
+    "numpy",
+    # If we had default extras we could allow to select different enaml backends
+    "enaml[qt5-pyqt]>=0.14.1",
+]
+
+[project.gui-scripts]
+exopy = "exopy.__main__:main"
 
 
 [project.urls]
@@ -37,11 +50,8 @@ changelog = "http://github.com/exopy/exopy/blob/main/CHANGES"
 
 
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4.3"]
+requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-include-package-data = false
 
 [tool.setuptools_scm]
 write_to = "exopy/version.py"
