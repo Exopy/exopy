@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Interface allowing to use a linspace in a LoopTask
+"""Interface allowing to use a logspace in a LoopTask
 
 """
 import numbers
@@ -19,7 +19,7 @@ from ..task_interface import TaskInterface
 from ..validators import Feval
 
 
-class LinspaceLoopInterface(TaskInterface):
+class LogspaceLoopInterface(TaskInterface):
     """ Common logic for all loop tasks.
 
     """
@@ -38,7 +38,7 @@ class LinspaceLoopInterface(TaskInterface):
         """
         task = self.task
         err_path = task.path + '/' + task.name
-        test, traceback = super(LinspaceLoopInterface,
+        test, traceback = super(LogspaceLoopInterface,
                                 self).check(*args, **kwargs)
 
         if not test:
@@ -94,7 +94,7 @@ class LinspaceLoopInterface(TaskInterface):
         # Round values to the maximal number of digit used in start, stop and
         # step so that we never get issues with floating point rounding issues.
         # The max is used to allow from 1.01 to 2.01 by 0.1
-        raw_values = np.linspace(start, stop, num)
+        raw_values = np.logspace(start, stop, num)
         iterable = np.fromiter((round(value, digit)
                                 for value in raw_values),
                                np.float64, len(raw_values))
