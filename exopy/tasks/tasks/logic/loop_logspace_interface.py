@@ -23,13 +23,13 @@ class LogspaceLoopInterface(TaskInterface):
     """ Common logic for all loop tasks.
 
     """
-    #: Value at which to start the loop.
+    #: Value of exponent at which to start the loop.
     start = Str('0.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
-    #: Value at which to stop the loop (included)
+    #: Value of exponent at which to stop the loop (included)
     stop = Str('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
-    #: Step between loop values.
+    #: Step size between exponent values.
     step = Str('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
