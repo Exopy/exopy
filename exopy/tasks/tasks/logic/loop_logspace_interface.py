@@ -32,6 +32,9 @@ class LogspaceLoopInterface(TaskInterface):
     #: Step size between exponent values.
     step = Str('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
 
+    #: Base value.
+    base = Str().tag(pref=True, feval=Feval(types=numbers.Real))
+
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.
 
@@ -76,6 +79,7 @@ class LogspaceLoopInterface(TaskInterface):
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         step = task.format_and_eval_string(self.step)
+        base = task.format_and_eval_string(self.base)
 
         # Make sure the sign of the step makes sense.
         step = -abs(step) if start > stop else abs(step)
@@ -94,7 +98,7 @@ class LogspaceLoopInterface(TaskInterface):
         # Round values to the maximal number of digit used in start, stop and
         # step so that we never get issues with floating point rounding issues.
         # The max is used to allow from 1.01 to 2.01 by 0.1
-        raw_values = np.logspace(start, stop, num)
+        raw_values = np.logspace(start=start, stop=stop, num=num, base=base)
         iterable = np.fromiter((round(value, digit)
                                 for value in raw_values),
                                np.float64, len(raw_values))

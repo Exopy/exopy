@@ -1,0 +1,70 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""View for the LinspaceLoopInterface.
+
+"""
+from enaml.widgets.api import (Container, Label, Splitter, SplitItem)
+
+from .....utils.widgets.qt_completers import QtLineCompleter
+from ...string_evaluation import EVALUATER_TOOLTIP
+
+
+enamldef LogspaceLoopView(Splitter): view:
+    """View for the LogspaceLoopInterface.
+
+    """
+    #: Reference to the interface to which this view is linked.
+    attr interface
+
+    #: Reference to the root view.
+    attr root
+
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_start:
+                text = 'Start'
+            QtLineCompleter: val_start:
+                text := interface.start
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
+                tool_tip = "Exponent of first value in logspace list"
+
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_stop:
+                text = 'Stop'
+            QtLineCompleter: val_stop:
+                text := interface.stop
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
+                tool_tip = "Exponent of last value in logspace list"
+
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_step:
+                text = 'Step'
+            QtLineCompleter: val_step:
+                text := interface.step
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
+                tool_tip = "Step size of exponent"
+    SplitItem:
+        Container:
+            padding = 0
+            Label: lab_base:
+                text = 'Base'
+            QtLineCompleter: val_base:
+                text := interface.base
+                entries_updater << \
+                    interface.task.list_accessible_database_entries
+                tool_tip = "Base value"
+

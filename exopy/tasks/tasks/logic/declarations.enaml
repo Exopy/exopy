@@ -49,4 +49,4 @@ enamldef LogicTasks(Tasks):
 
         Interface:
             interface = 'loop_logspace_interface:LogspaceLoopInterface'
-            views = ['views.loop_linspace_view:LinspaceLoopView']
+            views = ['views.loop_logspace_view:LogspaceLoopView']
