@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2018-2018 by Exopy Authors, see AUTHORS for more details.
+# Copyright 2015-2023 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -19,18 +19,18 @@ from ..task_interface import TaskInterface
 from ..validators import Feval
 
 
-class LinspaceLoopInterface(TaskInterface):
+class GeomspaceLoopInterface(TaskInterface):
     """ Common logic for all loop tasks.
 
     """
     #: Value at which to start the loop.
-    start = Str('0.0').tag(pref=True, feval=Feval(types=numbers.Real))
+    start = Str('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Value at which to stop the loop (included)
-    stop = Str('1.0').tag(pref=True, feval=Feval(types=numbers.Real))
+    stop = Str('100.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    step = Str('0.1').tag(pref=True, feval=Feval(types=numbers.Real))
+    num = Str('10').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.
@@ -38,7 +38,7 @@ class LinspaceLoopInterface(TaskInterface):
         """
         task = self.task
         err_path = task.path + '/' + task.name
-        test, traceback = super(LinspaceLoopInterface,
+        test, traceback = super(GeomspaceLoopInterface,
                                 self).check(*args, **kwargs)
 
         if not test:
@@ -46,25 +46,11 @@ class LinspaceLoopInterface(TaskInterface):
 
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
-        step = task.format_and_eval_string(self.step)
+        num = task.format_and_eval_string(self.num)
         if 'value' in task.database_entries:
             task.write_in_database('value', start)
 
-        try:
-            num = int(abs((stop - start)/step)) + 1
-            task.write_in_database('point_number', num)
-        except Exception as e:
-            test = False
-            mess = 'Loop task did not succeed to compute the point number: {}'
-            traceback[err_path + '-points'] = mess.format(e)
-            return test, traceback
-
-        try:
-            np.arange(start, stop, step)
-        except Exception as e:
-            test = False
-            mess = 'Loop task did not succeed to create an arange: {}'
-            traceback[err_path + '-arange'] = mess.format(e)
+        task.write_in_database('point_number', num)
 
         return test, traceback
 
@@ -75,26 +61,22 @@ class LinspaceLoopInterface(TaskInterface):
         task = self.task
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
-        step = task.format_and_eval_string(self.step)
+        num = task.format_and_eval_string(self.num)
 
         # Make sure the sign of the step makes sense.
-        step = -abs(step) if start > stop else abs(step)
+        num = -abs(num) if start > stop else abs(num)
 
-        # Compute the number of steps we need.
-        num = int(round(abs(((stop - start)/step)))) + 1
-
-        # Update stop to make sure that the generated step is close to the user
-        # specified one.
+       
+        # determine rounding from user input.   
         stop_digit = abs(Decimal(str(stop)).as_tuple().exponent)
         start_digit = abs(Decimal(str(start)).as_tuple().exponent)
-        step_digit = abs(Decimal(str(step)).as_tuple().exponent)
-        digit = max((start_digit, step_digit, stop_digit))
-        stop = round(start + (num-1)*step, digit)
+        digit = max((start_digit, stop_digit))
+        stop = round(stop, digit)
 
-        # Round values to the maximal number of digit used in start, stop and
-        # step so that we never get issues with floating point rounding issues.
+        # Round values to the maximal number of digit used in start and stop
+        # so that we never get issues with floating point rounding issues.
         # The max is used to allow from 1.01 to 2.01 by 0.1
-        raw_values = np.linspace(start, stop, num)
+        raw_values = np.geomspace(start, stop, num)
         iterable = np.fromiter((round(value, digit)
                                 for value in raw_values),
                                np.float64, len(raw_values))

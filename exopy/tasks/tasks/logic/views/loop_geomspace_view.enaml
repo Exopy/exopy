@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+# Copyright 2015-2023 by Exopy Authors, see AUTHORS for more details.
 #
 # Distributed under the terms of the BSD license.
 #
@@ -51,7 +51,7 @@ enamldef GeomspaceLoopView(Splitter): view:
             padding = 0
             Label: lab_num:
                 text = 'Num'
-            QtLineCompleter: val_step:
+            QtLineCompleter: val_num:
                 text := interface.num
                 entries_updater << \
                     interface.task.list_accessible_database_entries
