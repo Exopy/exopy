@@ -13,7 +13,7 @@ import numbers
 from decimal import Decimal
 
 import numpy as np
-from atom.api import Str
+from atom.api import Str, Int
 
 from ..task_interface import TaskInterface
 from ..validators import Feval
@@ -30,7 +30,7 @@ class GeomspaceLoopInterface(TaskInterface):
     stop = Str('100.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    num = Str('10').tag(pref=True, feval=Feval(types=numbers.Real))
+    num = Int('10').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.
