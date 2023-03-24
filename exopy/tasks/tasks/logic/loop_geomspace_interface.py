@@ -20,7 +20,7 @@ from ..validators import Feval
 
 
 class GeomspaceLoopInterface(TaskInterface):
-    """ Common logic for all loop tasks.
+    """ Interface used to loop over numbers evenly spaced on a log scale
 
     """
     #: Value at which to start the loop.
