@@ -62,10 +62,6 @@ class GeomspaceLoopInterface(TaskInterface):
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         num = task.format_and_eval_string(self.num)
-
-        # Make sure the sign of the step makes sense.
-        num = -abs(num) if start > stop else abs(num)
-
        
         # determine rounding from user input.   
         stop_digit = abs(Decimal(str(stop)).as_tuple().exponent)
