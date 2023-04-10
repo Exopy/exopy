@@ -24,6 +24,8 @@ from exopy.tasks.tasks.logic.loop_iterable_interface\
     import IterableLoopInterface
 from exopy.tasks.tasks.logic.loop_linspace_interface\
     import LinspaceLoopInterface
+from exopy.tasks.tasks.logic.loop_geomspace_interface\
+    import GeomspaceLoopInterface
 from exopy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
@@ -31,6 +33,16 @@ with enaml.imports():
     from exopy.tasks.tasks.logic.views.loop_view import LoopView
     from exopy.tasks.tasks.base_views import RootTaskView
 
+@pytest.fixture
+def geomspace_interface(request):
+    """Fixture building a geomspace interface.
+
+    """
+    interface = GeomspaceLoopInterface()
+    interface.start = '1.0'
+    interface.stop = '100.0'
+    interface.num = '10'
+    return interface
 
 @pytest.fixture
 def linspace_interface(request):
