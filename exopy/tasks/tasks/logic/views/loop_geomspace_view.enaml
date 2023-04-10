@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""View for the LinspaceLoopInterface.
+"""View for the Geomspace LoopInterface.
 
 """
 from enaml.widgets.api import (Container, Label, Splitter, SplitItem)

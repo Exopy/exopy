@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENCE, distributed with this software.
 # -----------------------------------------------------------------------------
-"""Interface allowing to use a linspace in a LoopTask
+"""Interface allowing to use a geomspace in a LoopTask
 
 """
 import numbers
@@ -30,7 +30,7 @@ class GeomspaceLoopInterface(TaskInterface):
     stop = Str('100.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    num = Int('10').tag(pref=True, feval=Feval(types=numbers.Real))
+    num = Str('10').tag(pref=True, feval=Feval(types=numbers.Real))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.
@@ -67,7 +67,6 @@ class GeomspaceLoopInterface(TaskInterface):
         stop_digit = abs(Decimal(str(stop)).as_tuple().exponent)
         start_digit = abs(Decimal(str(start)).as_tuple().exponent)
         digit = max((start_digit, stop_digit))
-        stop = round(stop, digit)
 
         # Round values to the maximal number of digit used in start and stop
         # so that we never get issues with floating point rounding issues.
