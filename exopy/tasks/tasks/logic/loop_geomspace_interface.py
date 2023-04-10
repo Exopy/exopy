@@ -30,7 +30,7 @@ class GeomspaceLoopInterface(TaskInterface):
     stop = Str('100.0').tag(pref=True, feval=Feval(types=numbers.Real))
 
     #: Step between loop values.
-    num = Str('10').tag(pref=True, feval=Feval(types=numbers.Real))
+    num = Str('10').tag(pref=True, feval=Feval(types=numbers.Integral))
 
     def check(self, *args, **kwargs):
         """Check evaluation of all loop parameters.
