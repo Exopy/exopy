@@ -47,10 +47,19 @@ class GeomspaceLoopInterface(TaskInterface):
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         num = task.format_and_eval_string(self.num)
+        task.write_in_database('point_number', num)
+        
         if 'value' in task.database_entries:
             task.write_in_database('value', start)
+        
+        try:
+            np.geomspace(start, stop, num)
+        except Exception as e:
+            test = False
+            mess = 'Loop task did not succeed to create a geomspace array: {}'
+            traceback[err_path + '-geomspace'] = mess.format(e)
 
-        task.write_in_database('point_number', num)
+        
 
         return test, traceback
 
