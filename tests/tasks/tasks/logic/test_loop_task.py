@@ -67,11 +67,31 @@ def iterable_interface(request):
 
 
 def false_perform_loop(self, iterable):
-    """Used to patch LoopTask for testing.
+    """Used to patch LoopTask for testing. Prevents loop from running 
+    when perform is called during test.
 
     """
     self.database_entries = {'iterable': iterable}
 
+def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
+    """Test that we properly round the values in the geomspace array
+    prior to loop execution.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Start has more digits
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+    geomspace_interface.perform()
+    expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
+                         0.22, 0.36, 0.6, 1.])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.
