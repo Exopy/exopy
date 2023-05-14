@@ -115,7 +115,6 @@ def test_linspace_handling_of_rounding(monkeypatch, linspace_interface):
     expected = np.array([0.1, 0.101, 0.102, 0.103, 0.104, 0.105, 0.106,
                          0.107, 0.108, 0.109, 0.11])
     # Check that this does indeed cause a rounding issue
-    
     with pytest.raises(AssertionError):
         np.testing.assert_array_equal(np.linspace(0.1, 0.11, 11), expected)
     np.testing.assert_array_equal(lt.database_entries['iterable'], expected)

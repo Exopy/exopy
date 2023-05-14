@@ -52,6 +52,16 @@ class GeomspaceLoopInterface(TaskInterface):
         if 'value' in task.database_entries:
             task.write_in_database('value', start)
         
+        #check that the num parameter is positive
+        try: 
+            if num < 1:
+                raise ValueError
+        except ValueError:
+            test = False
+            mess = "Number of points must be greater than or equal to 1."
+            traceback[err_path + '-geomspace'] = mess
+
+        #check that a geomspace array can be created with the given values
         try:
             np.geomspace(start, stop, num)
         except Exception as e:
