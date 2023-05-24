@@ -6,7 +6,7 @@ Installation
 Compatibility
 -------------
 
-Exopy is compatible with Python 3.4 or later.
+Exopy is compatible with Python 3.8 or later.
 
 Linux, Windows and OSX should all work as long as Qt 4 or Qt 5 is supported
 by the platform.
@@ -40,7 +40,7 @@ Installing from source
 Exopy itself is a pure python package and as such is quite easy to install from
 source, to do so just use :
 
-    $ pip install https://github.com/Exopy/exopy/tarball/master
+    $ pip install git+https://github.com/Exopy/exopy
 
 The dependencies of Exopy however can be more cumbersome to install. You can
 find the list in the setup.py script at the root of the Exopy repository.
