@@ -157,6 +157,9 @@ def logger(caplog):
 
     yield logger
 
+    for h in logger.handlers:
+        h.flush()
+        h.close()
     logger.handlers = []
 
 
