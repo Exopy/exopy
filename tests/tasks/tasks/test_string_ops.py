@@ -22,7 +22,7 @@ class TestFormatting(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.root = RootTask()
         database = self.root.database
         database.set_value('root', 'val1', 1)
@@ -148,7 +148,7 @@ class TestEvaluation(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.root = RootTask()
         database = self.root.database
         database.set_value('root', 'val1', 1)

@@ -32,14 +32,14 @@ class TestWhileTask(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.root = RootTask(should_stop=Event(), should_pause=Event())
         self.task = WhileTask(name='Test')
         self.root.add_child_task(0, self.task)
         self.check = CheckTask(name='check')
         self.task.add_child_task(0, self.check)
 
-    def teardown(self):
+    def teardown_method(self):
         del self.root.should_pause
         del self.root.should_stop
         # Ensure we collect the file descriptor of the events. Otherwise we can

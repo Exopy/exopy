@@ -45,7 +45,7 @@ class TestInstrumentTask(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         r = RootTask()
         r.run_time = {d_id: {'d': (object, FalseStarter())},
                       p_id: {'p': {'connections': {'c': {}, 'c2': {}},

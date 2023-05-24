@@ -29,7 +29,7 @@ class TestState(object):
     """Test the handling os states by the state plugin.
 
     """
-    def setup(self):
+    def setup_method(self):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(StateManifest())

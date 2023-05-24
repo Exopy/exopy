@@ -18,7 +18,7 @@ class TestContainerChange(object):
     """Test the ContainerChange capabilities.
 
     """
-    def setup(self):
+    def setup_method(self):
 
         self.obj = object()
         self.name = 'name'

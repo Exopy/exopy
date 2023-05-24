@@ -36,7 +36,7 @@ class TestLogPlugin(object):
     """Test all the commands deined by the LogPLugin.
 
     """
-    def setup(self):
+    def setup_method(self):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(AppManifest())
@@ -44,7 +44,7 @@ class TestLogPlugin(object):
         self.workbench.register(StateManifest())
         self.workbench.register(LogManifest())
 
-    def teardown(self):
+    def teardown_method(self):
         self.workbench.unregister(PLUGIN_ID)
 
     def test_handler1(self, logger):
