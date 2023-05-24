@@ -1,4 +1,6 @@
 [run]
+branch = True
+source = exopy
 omit =
     */exopy/testing/*
     *exopy/version.py

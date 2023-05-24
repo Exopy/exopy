@@ -78,7 +78,7 @@ enamldef IconManagerManifest(PluginManifest):
             get_icon => (manager, icon_id):
                 from qtawesome import icon as qicon
                 try:
-                    icon = enaml.icon.Icon(_tkdata=qicon('fa.' + icon_id))
+                    icon = enaml.icon.Icon(_tkdata=qicon('fa5.' + icon_id))
                 except Exception:
                     icon = None
 

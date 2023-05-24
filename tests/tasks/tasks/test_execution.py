@@ -30,7 +30,7 @@ class TestTaskExecution(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         root = RootTask()
         root.should_pause = Event()
         root.should_stop = Event()
@@ -41,7 +41,7 @@ class TestTaskExecution(object):
         root.write_in_database('meas_id', '001')
         self.root = root
 
-    def teardown(self):
+    def teardown_method(self):
         del self.root.should_pause
         del self.root.should_stop
         del self.root.paused

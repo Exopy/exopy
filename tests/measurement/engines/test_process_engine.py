@@ -113,7 +113,7 @@ def sync_server():
             self._answer_pipes[sock_id].recv(4096).decode('utf-8')
 
         def signal(self, sock_id):
-            """Send a message to the specifed socket.
+            """Send a message to the specified socket.
 
             The socket must first have been waited on.
 
@@ -125,6 +125,8 @@ def sync_server():
 
             """
             self._received = []
+            for s in self._answer_pipes.values():
+                s.close()
             self._answer_pipes.clear()
 
     sync = SyncServer()

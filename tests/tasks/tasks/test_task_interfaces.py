@@ -154,7 +154,7 @@ class TestInterfaceableTaskMixin(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.root = RootTask()
         self.mixin = Mixin(name='Simple')
         self.root.add_child_task(0, self.mixin)
@@ -327,7 +327,7 @@ class TestInterfaceableInterfaceMixin(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.root = RootTask()
         self.mixin = InterfaceTest3()
         self.root.add_child_task(0, Mixin(name='Simple', interface=self.mixin))

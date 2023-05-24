@@ -37,7 +37,7 @@ class TestAppPlugin(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.workbench = Workbench()
         self.workbench.register(AppManifest())
         self.workbench.register(CoreManifest())

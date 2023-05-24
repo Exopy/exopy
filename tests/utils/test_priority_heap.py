@@ -19,7 +19,7 @@ class TestPriorityHeap(object):
 
     """
 
-    def setup(self):
+    def setup_method(self):
         self.queue = PriorityHeap()
 
     def test_push_pop(self):

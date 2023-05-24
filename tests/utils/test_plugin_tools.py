@@ -53,7 +53,7 @@ class TestExtensionsCollector(object):
     """Test the ExtensionsCollector behaviour.
 
     """
-    def setup(self):
+    def setup_method(self):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(ErrorsManifest())
@@ -154,7 +154,7 @@ class TestDeclaratorCollector(object):
     """Test the ExtensionsCollector behaviour.
 
     """
-    def setup(self):
+    def setup_method(self):
         self.workbench = Workbench()
         self.workbench.register(CoreManifest())
         self.workbench.register(ErrorsManifest())
