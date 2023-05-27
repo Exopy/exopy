@@ -54,3 +54,5 @@ docs/build
 .spyproject
 .mypy_cache/
 .vscode/
+*.log
+*.ini
