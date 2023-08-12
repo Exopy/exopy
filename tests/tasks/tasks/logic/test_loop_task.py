@@ -77,6 +77,11 @@ def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
     """Test that we properly round the values in the geomspace array
     prior to loop execution.
 
+    Intent: The logic should round all the elements of the generated geomspace
+    array so that they match the maximum decimal precision of the start and 
+    stop values provided by the user. This will prevent issues that commonly 
+    occur with floating point numbers.
+
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
     root = RootTask()
