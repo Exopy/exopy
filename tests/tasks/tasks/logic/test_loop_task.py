@@ -80,7 +80,8 @@ def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
     Intent: The logic should round all the elements of the generated geomspace
     array so that they match the maximum decimal precision of the start and 
     stop values provided by the user. This will prevent issues that commonly 
-    occur with floating point numbers.
+    occur with floating point numbers from interfering with the performance 
+    of the task.
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
@@ -97,6 +98,23 @@ def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
     expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
                          0.22, 0.36, 0.6, 1.])
     np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
+def test_geomspace_handling_of_num_exception(monkeypatch, geomspace_interface):
+    """
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Start has more digits
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '-10'
+    geomspace_interface.check()
+    pytest.raises(Exception, match="Number of points must be greater than or equal to 1.")
 
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.
