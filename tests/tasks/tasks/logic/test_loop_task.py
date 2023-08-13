@@ -99,8 +99,10 @@ def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
                          0.22, 0.36, 0.6, 1.])
     np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
 
-def test_geomspace_handling_of_num_exception(monkeypatch, geomspace_interface):
+def test_geomspace_handling_of_exceptions(monkeypatch, geomspace_interface):
     """
+    Intent: Ensure that any exceptions raised during the check prior to the 
+    perform are correctly caught.
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
@@ -114,8 +116,9 @@ def test_geomspace_handling_of_num_exception(monkeypatch, geomspace_interface):
     geomspace_interface.stop = '1.0'
     geomspace_interface.num = '-10'
     geomspace_interface.check()
-    pytest.raises(Exception, match="Number of points must be greater than or equal to 1.")
-
+    pytest.raises(Exception, match=r'Loop task did not succeed to create a \
+                  geomspace array:.*')
+        
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.
 
