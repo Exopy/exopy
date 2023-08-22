@@ -46,6 +46,7 @@ enamldef GeomspaceLoopView(Splitter): view:
                 entries_updater << \
                     interface.task.list_accessible_database_entries
                 tool_tip = EVALUATER_TOOLTIP
+                
     SplitItem:
         Container:
             padding = 0
