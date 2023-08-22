@@ -97,7 +97,7 @@ def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
                          0.22, 0.36, 0.6, 1.])
     np.testing.assert_array_equal(generated, expected)
 
-def test_geomspace_array_generation_exceptions(monkeypatch, geomspace_interface):
+def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_interface):
     """
     Intent: Ensure that any exceptions raised during the check prior to the 
     perform are correctly caught.
