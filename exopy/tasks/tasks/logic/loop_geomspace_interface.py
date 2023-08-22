@@ -44,25 +44,14 @@ class GeomspaceLoopInterface(TaskInterface):
         if not test:
             return test, traceback
 
-        start = task.format_and_eval_string(self.start)
-        stop = task.format_and_eval_string(self.stop)
-        num = task.format_and_eval_string(self.num)
-        task.write_in_database('point_number', num)
-        
-        # if 'value' in task.database_entries:
-        #     print("HERE")
-        #     task.write_in_database('value', start)
-
-        #check that a geomspace array can be created with the given values
+        #try to generate appropriately rounded geomspace array
         try:
-            np.geomspace(start, stop, num)
+            self.generate_geomspace_array()
         except Exception as e:
             test = False
             mess = 'Loop task did not succeed to create a geomspace array: {}'
             traceback[err_path + '-geomspace'] = mess.format(e)
-
         
-
         return test, traceback
 
     def perform(self):
@@ -70,10 +59,19 @@ class GeomspaceLoopInterface(TaskInterface):
 
         """
         task = self.task
+        iterable = self.generate_geomspace_array()
+        task.perform_loop(iterable)
+    
+    def generate_geomspace_array(self):
+        """Helper function for generating the geomspace array
+        
+        """
+        task = self.task
+
         start = task.format_and_eval_string(self.start)
         stop = task.format_and_eval_string(self.stop)
         num = task.format_and_eval_string(self.num)
-       
+
         # determine rounding from user input.   
         stop_digit = abs(Decimal(str(stop)).as_tuple().exponent)
         start_digit = abs(Decimal(str(start)).as_tuple().exponent)
@@ -81,10 +79,9 @@ class GeomspaceLoopInterface(TaskInterface):
 
         # Round values to the maximal number of digit used in start and stop
         # so that we never get issues with floating point rounding issues.
-        # The max is used to allow from 1.01 to 2.01 by 0.1
         raw_values = np.geomspace(start, stop, num)
-        iterable = np.fromiter((round(value, digit)
+        array = np.fromiter((round(value, digit)
                                 for value in raw_values),
                                np.float64, len(raw_values))
-        task.write_in_database('loop_values', np.array(iterable))
-        task.perform_loop(iterable)
+        
+        return array

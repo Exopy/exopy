@@ -73,13 +73,13 @@ def false_perform_loop(self, iterable):
     """
     self.database_entries = {'iterable': iterable}
 
-def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
+def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
     """
-    Intent: The logic should round all the elements of the generated geomspace
-    array so that they match the maximum decimal precision of the start and 
-    stop values provided by the user. This will prevent issues that commonly 
-    occur with floating point numbers from interfering with the performance 
-    of the task.
+    Intent: The logic should generate a geomspace array and round all the 
+    elements of the generated geomspace array so that they match the maximum 
+    decimal precision of the start and stop values provided by the user. 
+    This will prevent issues that commonly occur with floating point numbers 
+    from interfering with the performance of the task.
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
@@ -92,12 +92,12 @@ def test_geomspace_handling_of_rounding(monkeypatch, geomspace_interface):
     geomspace_interface.start = '0.01'
     geomspace_interface.stop = '1.0'
     geomspace_interface.num = '10'
-    geomspace_interface.perform()
+    generated = geomspace_interface.generate_geomspace_array()
     expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
                          0.22, 0.36, 0.6, 1.])
-    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+    np.testing.assert_array_equal(generated, expected)
 
-def test_geomspace_handling_of_exceptions(monkeypatch, geomspace_interface):
+def test_geomspace_array_generation_exceptions(monkeypatch, geomspace_interface):
     """
     Intent: Ensure that any exceptions raised during the check prior to the 
     perform are correctly caught.
