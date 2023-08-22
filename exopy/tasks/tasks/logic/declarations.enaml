@@ -50,3 +50,4 @@ enamldef LogicTasks(Tasks):
         Interface:
             interface = 'loop_geomspace_interface:GeomspaceLoopInterface'
             views = ['views.loop_geomspace_view:GeomspaceLoopView']
+            
