@@ -49,8 +49,9 @@ class GeomspaceLoopInterface(TaskInterface):
         num = task.format_and_eval_string(self.num)
         task.write_in_database('point_number', num)
         
-        if 'value' in task.database_entries:
-            task.write_in_database('value', start)
+        # if 'value' in task.database_entries:
+        #     print("HERE")
+        #     task.write_in_database('value', start)
 
         #check that a geomspace array can be created with the given values
         try:
