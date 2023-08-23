@@ -131,7 +131,7 @@ def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_in
     lt = LoopTask(name='Test')
     root.add_child_task(0, lt)
 
-    # Start has more digits
+    # a negative valued num should raise an exception.
     lt.interface = geomspace_interface
     geomspace_interface.start = '0.01'
     geomspace_interface.stop = '1.0'
