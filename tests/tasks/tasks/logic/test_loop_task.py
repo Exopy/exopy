@@ -122,8 +122,8 @@ def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
 
 def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_interface):
     """
-    Intent: Ensure that any exceptions raised during the check prior to the 
-    perform are correctly caught.
+    Intent: Ensure that the check method will catch user input errors prior
+    to performing the task.
 
     """
     monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
