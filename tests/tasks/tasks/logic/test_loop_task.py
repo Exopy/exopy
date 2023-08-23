@@ -73,6 +73,28 @@ def false_perform_loop(self, iterable):
     """
     self.database_entries = {'iterable': iterable}
 
+def test_geomspace_perform(monkeypatch, geomspace_interface):
+    """
+    Intent: The logic should generate a rounded geomspace array, write the
+    array to the 'loop_values' database key and then pass the geomspace array
+    to the perform_loop func.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Start has more digits
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+    geomspace_interface.perform()
+    expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
+                         0.22, 0.36, 0.6, 1.])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
 def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
     """
     Intent: The logic should generate a geomspace array and round all the 
@@ -92,10 +114,10 @@ def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
     geomspace_interface.start = '0.01'
     geomspace_interface.stop = '1.0'
     geomspace_interface.num = '10'
-    generated = geomspace_interface.generate_geomspace_array()
+    actual = geomspace_interface.generate_geomspace_array()
     expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
                          0.22, 0.36, 0.6, 1.])
-    np.testing.assert_array_equal(generated, expected)
+    np.testing.assert_array_equal(actual, expected)
 
 def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_interface):
     """
