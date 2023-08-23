@@ -10,6 +10,7 @@
 
 """
 import gc
+import re
 from multiprocessing import Event
 
 import pytest
@@ -135,9 +136,13 @@ def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_in
     geomspace_interface.start = '0.01'
     geomspace_interface.stop = '1.0'
     geomspace_interface.num = '-10'
-    geomspace_interface.check()
-    pytest.raises(Exception, match=r'Loop task did not succeed to create a \
-                  geomspace array:.*')
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-geomspace']
+    pattern = r'Loop task did not succeed to create a geomspace array: .+$'
+    match = re.match(pattern, mess)
+    assert match is not None
+
         
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.

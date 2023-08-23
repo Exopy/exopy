@@ -47,12 +47,11 @@ class GeomspaceLoopInterface(TaskInterface):
         #try to generate appropriately rounded geomspace array
         try:
             iterable = self.generate_geomspace_array()
-        except Exception as e:
+            task.write_in_database('loop_values', np.array(iterable))
+        except Exception as e: 
             test = False
             mess = 'Loop task did not succeed to create a geomspace array: {}'
             traceback[err_path + '-geomspace'] = mess.format(e)
-        
-        task.write_in_database('loop_values', np.array(iterable))
 
         return test, traceback
 
