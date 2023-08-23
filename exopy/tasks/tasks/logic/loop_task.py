@@ -133,7 +133,7 @@ class LoopTask(InterfaceableTaskMixin, ComplexTask):
         """
         self.write_in_database('point_number', len(iterable))
         self.write_in_database('loop_values', np.array(iterable))
-        
+
         root = self.root
         for i, value in enumerate(iterable):
 
