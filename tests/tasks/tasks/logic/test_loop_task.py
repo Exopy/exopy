@@ -120,19 +120,18 @@ def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
                          0.22, 0.36, 0.6, 1.])
     np.testing.assert_array_equal(actual, expected)
 
-def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_interface):
+def test_geomspace_array_generation_num_exception_handling(geomspace_interface):
     """
     Intent: Ensure that the check method will catch user input errors prior
     to performing the task.
 
     """
-    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
     root = RootTask()
     lt = LoopTask(name='Test')
     root.add_child_task(0, lt)
-
-    # a negative valued num should raise an exception.
     lt.interface = geomspace_interface
+    
+    # a negative valued num should raise an exception.
     geomspace_interface.start = '0.01'
     geomspace_interface.stop = '1.0'
     geomspace_interface.num = '-10'
@@ -143,7 +142,73 @@ def test_geomspace_array_generation_exception_handling(monkeypatch, geomspace_in
     match = re.match(pattern, mess)
     assert match is not None
 
-        
+    # num must be enforced to be an integer
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10.5'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-num']
+    print(mess)
+    pattern = r"Expected value should of types <class 'numbers.Integral'>, got <class 'float'>."
+    match = re.match(pattern, mess)
+    assert match is not None
+
+    # character inputs should fail
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = 'err'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-num']
+    print(mess)
+    pattern = r"Failed to eval num :.*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+def test_geomspace_array_generation_start_exception_handling(geomspace_interface):
+    """
+    Intent: Ensure that the check method will catch start input errors
+
+    """
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # a character string input for start should raise an exception.
+    lt.interface = geomspace_interface
+    geomspace_interface.start = 'err'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-start']
+    pattern = r"Failed to eval start : .*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+def test_geomspace_array_generation_stop_exception_handling(geomspace_interface):
+    """
+    Intent: Ensure that the check method will catch stop input errors
+
+    """
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # a negative valued num should raise an exception.
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.1'
+    geomspace_interface.stop = 'err'
+    geomspace_interface.num = '10'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-stop']
+    pattern = r"Failed to eval stop : .*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+   
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.
 
