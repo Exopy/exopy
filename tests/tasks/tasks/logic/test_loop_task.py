@@ -120,7 +120,7 @@ def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
                          0.22, 0.36, 0.6, 1.])
     np.testing.assert_array_equal(actual, expected)
 
-def test_geomspace_array_generation_num_exception_handling(geomspace_interface):
+def test_geomspace_num_exception_handling(geomspace_interface):
     """
     Intent: Ensure that the check method will catch user input errors prior
     to performing the task.
@@ -149,7 +149,6 @@ def test_geomspace_array_generation_num_exception_handling(geomspace_interface):
 
     test, traceback = geomspace_interface.check()
     mess = traceback['root/' + lt.name + '-num']
-    print(mess)
     pattern = r"Expected value should of types <class 'numbers.Integral'>, got <class 'float'>."
     match = re.match(pattern, mess)
     assert match is not None
@@ -161,12 +160,11 @@ def test_geomspace_array_generation_num_exception_handling(geomspace_interface):
 
     test, traceback = geomspace_interface.check()
     mess = traceback['root/' + lt.name + '-num']
-    print(mess)
     pattern = r"Failed to eval num :.*"
     match = re.match(pattern, mess)
     assert match is not None
 
-def test_geomspace_array_generation_start_exception_handling(geomspace_interface):
+def test_geomspace_start_exception_handling(geomspace_interface):
     """
     Intent: Ensure that the check method will catch start input errors
 
@@ -187,7 +185,7 @@ def test_geomspace_array_generation_start_exception_handling(geomspace_interface
     match = re.match(pattern, mess)
     assert match is not None
 
-def test_geomspace_array_generation_stop_exception_handling(geomspace_interface):
+def test_geomspace_stop_exception_handling(geomspace_interface):
     """
     Intent: Ensure that the check method will catch stop input errors
 
