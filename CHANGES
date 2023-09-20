@@ -16,6 +16,10 @@ Exopy Changelog
 - measurement/monitor: fix a bug in TextMonitor where some undisplayed entries
   where needlessely monitored (rassouly)
 
+0.1.0 - 20-19-2023
+------------------
+
+- tasks: Added geomspace interface to Loop Task (#183)
 
 0.1.0 - 15-02-2018
 ------------------
