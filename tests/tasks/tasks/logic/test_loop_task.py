@@ -10,6 +10,7 @@
 
 """
 import gc
+import re
 from multiprocessing import Event
 
 import pytest
@@ -24,6 +25,8 @@ from exopy.tasks.tasks.logic.loop_iterable_interface\
     import IterableLoopInterface
 from exopy.tasks.tasks.logic.loop_linspace_interface\
     import LinspaceLoopInterface
+from exopy.tasks.tasks.logic.loop_geomspace_interface\
+    import GeomspaceLoopInterface
 from exopy.tasks.tasks.logic.loop_exceptions_tasks\
     import BreakTask, ContinueTask
 
@@ -31,6 +34,16 @@ with enaml.imports():
     from exopy.tasks.tasks.logic.views.loop_view import LoopView
     from exopy.tasks.tasks.base_views import RootTaskView
 
+@pytest.fixture
+def geomspace_interface(request):
+    """Fixture building a geomspace interface.
+
+    """
+    interface = GeomspaceLoopInterface()
+    interface.start = '1.0'
+    interface.stop = '100.0'
+    interface.num = '10'
+    return interface
 
 @pytest.fixture
 def linspace_interface(request):
@@ -55,12 +68,145 @@ def iterable_interface(request):
 
 
 def false_perform_loop(self, iterable):
-    """Used to patch LoopTask for testing.
+    """Used to patch LoopTask for testing. Prevents loop from running 
+    when perform is called during test.
 
     """
     self.database_entries = {'iterable': iterable}
 
+def test_geomspace_perform(monkeypatch, geomspace_interface):
+    """
+    Intent: The logic should generate a rounded geomspace array, write the
+    array to the 'loop_values' database key and then pass the geomspace array
+    to the perform_loop func.
 
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Start has more digits
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+    geomspace_interface.perform()
+    expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
+                         0.22, 0.36, 0.6, 1.])
+    np.testing.assert_array_equal(lt.database_entries['iterable'], expected)
+
+def test_geomspace_generate_rounded_array(monkeypatch, geomspace_interface):
+    """
+    Intent: The logic should generate a geomspace array and round all the 
+    elements of the generated geomspace array so that they match the maximum 
+    decimal precision of the start and stop values provided by the user. 
+    This will prevent issues that commonly occur with floating point numbers 
+    from interfering with the performance of the task.
+
+    """
+    monkeypatch.setattr(LoopTask, 'perform_loop', false_perform_loop)
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # Start has more digits
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+    actual = geomspace_interface.generate_geomspace_array()
+    expected = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13,
+                         0.22, 0.36, 0.6, 1.])
+    np.testing.assert_array_equal(actual, expected)
+
+def test_geomspace_num_exception_handling(geomspace_interface):
+    """
+    Intent: Ensure that the check method will catch user input errors prior
+    to performing the task.
+
+    """
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+    lt.interface = geomspace_interface
+    
+    # a negative valued num should raise an exception.
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '-10'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-geomspace']
+    pattern = r'Loop task did not succeed to create a geomspace array: .+$'
+    match = re.match(pattern, mess)
+    assert match is not None
+
+    # num must be enforced to be an integer
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10.5'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-num']
+    pattern = r"Expected value should of types <class 'numbers.Integral'>, got <class 'float'>."
+    match = re.match(pattern, mess)
+    assert match is not None
+
+    # character inputs should fail
+    geomspace_interface.start = '0.01'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = 'err'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-num']
+    pattern = r"Failed to eval num :.*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+def test_geomspace_start_exception_handling(geomspace_interface):
+    """
+    Intent: Ensure that the check method will catch start input errors
+
+    """
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # a character string input for start should raise an exception.
+    lt.interface = geomspace_interface
+    geomspace_interface.start = 'err'
+    geomspace_interface.stop = '1.0'
+    geomspace_interface.num = '10'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-start']
+    pattern = r"Failed to eval start : .*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+def test_geomspace_stop_exception_handling(geomspace_interface):
+    """
+    Intent: Ensure that the check method will catch stop input errors
+
+    """
+    root = RootTask()
+    lt = LoopTask(name='Test')
+    root.add_child_task(0, lt)
+
+    # a negative valued num should raise an exception.
+    lt.interface = geomspace_interface
+    geomspace_interface.start = '0.1'
+    geomspace_interface.stop = 'err'
+    geomspace_interface.num = '10'
+
+    test, traceback = geomspace_interface.check()
+    mess = traceback['root/' + lt.name + '-stop']
+    pattern = r"Failed to eval stop : .*"
+    match = re.match(pattern, mess)
+    assert match is not None
+
+   
 def test_linspace_handling_of_step_sign(monkeypatch, linspace_interface):
     """Test that no matter the sign of step we generate the proper array.
 
