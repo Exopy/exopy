@@ -128,7 +128,8 @@ class TaskDatabase(Atom):
             Path where we start looking for the entry
 
         value_name : unicode
-            Name of the value we are looking for
+            Name of the value we are looking for. Can be of the form "path/name". 
+            If path starts with "root" value_name is the full path, otherwise the path starts from assumed path
 
         Returns
         -------
@@ -139,7 +140,11 @@ class TaskDatabase(Atom):
         if self.running:
             index = self._find_index(assumed_path, value_name)
             return self._flat_database[index]
-
+        
+        # checks wether value_name is a full path
+        elif value_name.partition("/")[0] == "root":
+                new_assumed_path = "root"
+                new_value_name = value_name.partition("/")[-1]
         else:
             node = self.go_to_path(assumed_path)
 
@@ -152,6 +157,12 @@ class TaskDatabase(Atom):
             elif 'access' in node.meta and value_name in node.meta['access']:
                 path = assumed_path + '/' + node.meta['access'][value_name]
                 return self.get_value(path, value_name)
+            
+            # go one step down in the node hierarchy. Allows to provide a path in value_name
+            elif value_name.partition("/")[-1] !="":
+                new_assumed_path = assumed_path + "/" + value_name.partition("/")[0]
+                new_value_name = value_name.partition("/")[-1]
+                return self.get_value(new_assumed_path, new_value_name)
 
             # Finally go one step up in the node hierarchy.
             else:
@@ -642,7 +653,12 @@ class TaskDatabase(Atom):
         Only to be used in running mode.
 
         """
-        path = assumed_path
+        if entry.partition("/")[0] == 'root': #if the entry is a full path
+            path = 'root'
+            entry = entry.partition("/")[-1]
+        else:
+            path = assumed_path
+            
         while path != 'root':
             full_path = path + '/' + entry
             if full_path in self._entry_index_map:
