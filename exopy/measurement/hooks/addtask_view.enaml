@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright 2015-2018 by Exopy Authors, see AUTHORS for more details.
+#
+# Distributed under the terms of the BSD license.
+#
+# The full license is in the file LICENCE, distributed with this software.
+# -----------------------------------------------------------------------------
+"""Widget associated with the AddTaskHook.
+
+"""
+from atom.api import Typed
+from enaml.widgets.api import Container, PushButton, Label
+from ...tasks.tasks.base_views import RootTaskView
+
+
+enamldef AddTasksView(Container):
+    """ Widget used for the AddTaskHook
+
+    """
+    #: Reference to the hook edited with this view
+    attr hook
+
+    #: Reference to the corresponding declaration
+    attr declaration
+
+    #: Reference to the corresponding measurement workbench
+    attr workbench
+
+    hug_width = 'ignore'
+    hug_height = 'ignore'
+    RootTaskView: view:
+        core = workbench.get_plugin('enaml.workbench.core')
+        task = hook.root_task
+        show_path = False

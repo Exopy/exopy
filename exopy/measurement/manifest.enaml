@@ -28,7 +28,7 @@ from ..utils.plugin_tools import make_handler
 
 from .engines.process_engine import ProcessEngine
 from .editors.api import Editor
-from .hooks.api import PreExecutionHook
+from .hooks.api import PreExecutionHook, PostExecutionHook
 
 logger = logging.getLogger(__name__)
 
@@ -217,6 +217,25 @@ enamldef MeasureManifest(PluginManifest): manifest:
             new => (workbench, default=False):
                 from .hooks.internal_checks import InternalChecksHook
                 return InternalChecksHook(declaration=self)
+
+    Extension:
+        id = 'post-execution'
+        point = manifest.id + '.post-execution'
+        PostExecutionHook:
+            id = 'exopy.addtask_hook'
+            description = ('Run an additional task at the end of a measure,'
+                           'even if it is stopped.')
+
+            new => (workbench, default=False):
+                from .hooks.addtask_hook import AddTasksHook
+                return AddTasksHook(declaration=self,
+                                    workbench=workbench)
+
+            make_view => (workbench, hook):
+                with enaml.imports():
+                    from .hooks.addtask_view import AddTasksView
+                return AddTasksView(declaration=self, hook=hook,
+                                    workbench=workbench)
 
     Extension:
         id = 'preferences'

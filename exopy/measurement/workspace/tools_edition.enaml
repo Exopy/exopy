@@ -122,8 +122,10 @@ enamldef ToolsEditor(DestroyableContainer): main:
     attr _names = ids_to_unique_names(getattr(measurement, _kind), reverse=True)
 
     constraints << [hbox(tools, *(list(inc.objects) +
-                                       [vbox(add, remove, up, down, spacer)]))
-                    ]
+                                       [vbox(add, remove, up, down, spacer)])),
+                    add.right == contents_right,
+                    tools.bottom == contents_bottom,
+                    tools.top == contents_top]
 
     func update_items():
         """Update the list of tools.
@@ -132,6 +134,7 @@ enamldef ToolsEditor(DestroyableContainer): main:
         self._names = ids_to_unique_names(getattr(measurement, _kind),
                                           reverse=True)
         tools.items = list(_names)
+
         if not _names:
             tools.selected_item = None
 
@@ -181,13 +184,13 @@ enamldef ToolsEditor(DestroyableContainer): main:
 
     Include: inc:
         objects << (make_view(tools.selected_item) if tools.selected_item
-                    else [])
+                    else [Container()])
         destroy_old = False
 
     PushButton: add:
         text = 'Add'
         enabled << not all([id in tools.items
-                            for id in  getattr(measurement.plugin, _kind)])
+                            for id in getattr(measurement.plugin, _kind)])
         clicked ::
             selector = ToolSelector(measurement=measurement, kind=kind)
             res = selector.exec_()
@@ -263,27 +266,22 @@ enamldef ToolsEditorDockItem(DockItem): main:
             Page:
                 title = 'Pre-execution'
                 name = 'exopy.measurement.workspace.tools.pre_hooks'
-                Container:
-                    constraints << [hbox(pre_ed, spacer)]
-                    ToolsEditor: pre_ed:
-                        kind = 'pre-hook'
-                        measurement << main.measurement
-                        mandatory_tools = ['exopy.internal_checks']
+                ToolsEditor: pre_ed:
+                    kind = 'pre-hook'
+                    measurement << main.measurement
+                    mandatory_tools = ['exopy.internal_checks']
 
             Page:
                 title = 'Monitors'
                 name = 'exopy.measurement.workspace.tools.monitors'
-                Container:
-                    constraints << [hbox(mon_ed, spacer)]
-                    ToolsEditor: mon_ed:
-                        kind = 'monitor'
-                        measurement << main.measurement
+                ToolsEditor: mon_ed:
+                    kind = 'monitor'
+                    measurement << main.measurement
 
             Page:
                 title = 'Post-execution'
                 name = 'exopy.measurement.workspace.tools.post_hooks'
-                Container:
-                    constraints << [hbox(post_ed, spacer)]
-                    ToolsEditor: post_ed:
-                        kind = 'post-hook'
-                        measurement << main.measurement
+                ToolsEditor: post_ed:
+                    kind = 'post-hook'
+                    measurement << main.measurement
+
